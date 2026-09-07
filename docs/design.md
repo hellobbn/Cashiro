@@ -540,3 +540,15 @@ val ColorScheme.expense: Color
 - [Material Symbols](https://fonts.google.com/icons)
 - [Material 3 Components](https://developer.android.com/jetpack/compose/designsystems/material3)
 - [Dynamic Color](https://developer.android.com/develop/ui/views/theming/dynamic-colors)
+
+## Chinese localization and interface refinement
+
+The native Compose refinement draws design cues from [InstallerX Revived](https://github.com/wxxsfxyzm/InstallerX-Revived), specifically its Material 3 Expressive settings and `PreferredPage` segmented, titled groups. This is an independent implementation using Cashiro's existing components, with no additional UI framework or copied reference code.
+
+- Settings use labeled groups for personalization, finances, automation, and app information. Existing rounded segmented rows remain, with tonal icon containers that follow dynamic, light, and dark themes.
+- Group titles expose heading semantics. Shared list rows have a 56dp minimum height, button roles when actionable, and merged text semantics. Supporting text uses the 14sp body scale and can wrap.
+- The profile summary is stable rather than alternating on a timer. Language values are width-bounded and wrap to keep the main label visible.
+- Large app-bar titles use the theme headline scale. Home actions use Material icon buttons with 48dp touch targets. Balance labels and supporting text avoid low-opacity text over translucent backgrounds.
+- Chinese, Japanese, and Korean configurations use zero extra letter spacing throughout the theme type scale; the chosen font and Android's glyph fallback are preserved.
+
+Verification targets are Chinese and English, light and dark themes, narrow screens, and enlarged system fonts. The existing currency and account data remain governed by their own preferences and models.
