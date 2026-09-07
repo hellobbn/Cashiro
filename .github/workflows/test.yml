@@ -35,7 +35,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Run parser-core tests
-      run: ./gradlew :parser-core:test --continue
+      run: ./gradlew :parser-core:test --continue --no-configuration-cache
 
     - name: Upload parser test results
       uses: actions/upload-artifact@v4
