@@ -134,6 +134,7 @@ fun CashiroBottomNavigation(
                         if (blurEffects) Modifier.hazeEffect(
                             state = hazeState,
                             block = fun HazeEffectScope.() {
+                                inputScale = HazeInputScale.Auto
                                 style = HazeDefaults.style(
                                     backgroundColor = Color.Transparent,
                                     tint = HazeDefaults.tint(containerColor),
@@ -245,6 +246,7 @@ fun CashiroBottomNavigation(
                                 if (blurEffects) Modifier.hazeEffect(
                                     state = hazeState,
                                     block = fun HazeEffectScope.() {
+                                        inputScale = HazeInputScale.Auto
                                         style = HazeDefaults.style(
                                             backgroundColor = Color.Transparent,
                                             blurRadius = 20.dp,
@@ -373,6 +375,7 @@ fun CashiroBottomNavigation(
                                         if (blurEffects) Modifier.hazeEffect(
                                             state = hazeState,
                                             block = fun HazeEffectScope.() {
+                                                inputScale = HazeInputScale.Auto
                                                 style = HazeDefaults.style(
                                                     backgroundColor = Color.Transparent,
                                                     tint = HazeTint(dropContainerColor.copy(0.5f)),

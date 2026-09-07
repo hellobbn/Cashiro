@@ -305,7 +305,7 @@ internal fun BudgetAnimatedGradientMeshCard(
     val infiniteTransition = rememberInfiniteTransition(label = "BudgetGradient")
     
     // Animate color pulsing
-    val animatedColor by infiniteTransition.animateColor(
+    val animatedColor = infiniteTransition.animateColor(
         initialValue = budgetColor.copy(alpha = 0.15f),
         targetValue = budgetColor.copy(alpha = 0.05f),
         animationSpec = infiniteRepeatable(
@@ -314,7 +314,7 @@ internal fun BudgetAnimatedGradientMeshCard(
         ), label = "PrimaryColor"
     )
     
-    val animatedSecondaryColor by infiniteTransition.animateColor(
+    val animatedSecondaryColor = infiniteTransition.animateColor(
         initialValue = budgetColor.copy(alpha = 0.05f),
         targetValue = budgetColor.copy(alpha = 0.15f),
         animationSpec = infiniteRepeatable(
@@ -324,7 +324,7 @@ internal fun BudgetAnimatedGradientMeshCard(
     )
 
     // Animation 1: Top-Left to Center-Right
-    val offsetX1 by infiniteTransition.animateFloat(
+    val offsetX1 = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 0.8f,
         animationSpec = infiniteRepeatable(
@@ -332,7 +332,7 @@ internal fun BudgetAnimatedGradientMeshCard(
             repeatMode = RepeatMode.Reverse
         ), label = "offsetX1"
     )
-    val offsetY1 by infiniteTransition.animateFloat(
+    val offsetY1 = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 0.6f,
         animationSpec = infiniteRepeatable(
@@ -342,7 +342,7 @@ internal fun BudgetAnimatedGradientMeshCard(
     )
 
     // Animation 2: Bottom-Right to Center-Left
-    val offsetX2 by infiniteTransition.animateFloat(
+    val offsetX2 = infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 0.2f,
         animationSpec = infiniteRepeatable(
@@ -350,7 +350,7 @@ internal fun BudgetAnimatedGradientMeshCard(
             repeatMode = RepeatMode.Reverse
         ), label = "offsetX2"
     )
-    val offsetY2 by infiniteTransition.animateFloat(
+    val offsetY2 = infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 0.4f,
         animationSpec = infiniteRepeatable(
@@ -360,7 +360,7 @@ internal fun BudgetAnimatedGradientMeshCard(
     )
     
     // Animation 3: Top-Right pulsing
-    val offsetX3 by infiniteTransition.animateFloat(
+    val offsetX3 = infiniteTransition.animateFloat(
         initialValue = 0.8f,
         targetValue = 0.6f,
         animationSpec = infiniteRepeatable(
@@ -368,7 +368,7 @@ internal fun BudgetAnimatedGradientMeshCard(
             repeatMode = RepeatMode.Reverse
         ), label = "offsetX3"
     )
-    val Scale3 by infiniteTransition.animateFloat(
+    val Scale3 = infiniteTransition.animateFloat(
         initialValue = 0.4f,
         targetValue = 0.7f,
         animationSpec = infiniteRepeatable(
@@ -394,6 +394,16 @@ internal fun BudgetAnimatedGradientMeshCard(
                     .matchParentSize()
                     .blur(60.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
             ) {
+                // Read the animation state here, inside the draw lambda: the blobs then
+                // repaint without recomposing this card or its content() slot.
+                val animatedColor = animatedColor.value
+                val animatedSecondaryColor = animatedSecondaryColor.value
+                val offsetX1 = offsetX1.value
+                val offsetY1 = offsetY1.value
+                val offsetX2 = offsetX2.value
+                val offsetY2 = offsetY2.value
+                val offsetX3 = offsetX3.value
+                val scale3 = Scale3.value
                 val canvasWidth = size.width
                 val canvasHeight = size.height
                 
@@ -415,7 +425,7 @@ internal fun BudgetAnimatedGradientMeshCard(
                 drawCircle(
                     color = animatedColor.copy(alpha = animatedColor.alpha * 0.8f),
                     center = Offset(x = canvasWidth * offsetX3, y = canvasHeight * 0.2f),
-                    radius = canvasWidth * Scale3
+                    radius = canvasWidth * scale3
                 )
             }
 

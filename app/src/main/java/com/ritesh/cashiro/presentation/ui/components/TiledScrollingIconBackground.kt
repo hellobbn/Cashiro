@@ -54,7 +54,9 @@ fun TiledScrollingIconBackground(
     animationDuration: Int = 15000
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "TiledBackground")
-    val scrollOffset by infiniteTransition.animateFloat(
+    // Held as State rather than read with `by`: the read happens inside the draw lambda below,
+    // so the tiles repaint without recomposing this composable every animation frame.
+    val scrollOffset = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -64,6 +66,8 @@ fun TiledScrollingIconBackground(
         label = "ScrollAnimation"
     )
 
+    // painterResource / rememberVectorPainter must stay in composition, but the list itself is
+    // rebuilt on every recomposition otherwise.
     val paintersWithTint = iconResources.map { iconResource ->
         val painter = when (iconResource) {
             is IconResource.DrawableResource -> painterResource(id = iconResource.resId)
@@ -83,9 +87,9 @@ fun TiledScrollingIconBackground(
         val sizePx = iconSize.toPx()
         val spacing = sizePx * 0.4f
         val step = sizePx + spacing
-        
+
         // Offset ranges from 0 to step
-        val offsetY = scrollOffset * step
+        val offsetY = scrollOffset.value * step
 
         // Calculate how many items we need to cover the area
         // We add extra to handle rotation and overflow

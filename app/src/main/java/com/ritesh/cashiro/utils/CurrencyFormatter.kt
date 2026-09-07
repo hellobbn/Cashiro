@@ -9,6 +9,7 @@ import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
+import java.util.Optional
 
 /**
  * Utility class for formatting currency values
@@ -63,29 +64,53 @@ object CurrencyFormatter {
 
     private val DEFAULT_LOCALE = Locale.US
 
+    private fun localeFor(currencyCode: String): Locale =
+        CURRENCY_LOCALES[currencyCode]
+            ?: if (currencyCode == "INR" || currencyCode == "NPR") INDIAN_LOCALE else DEFAULT_LOCALE
+
+    // Building a DecimalFormat/NumberFormat loads locale data and allocates; these run several
+    // times per transaction row while scrolling. java.text formatters are not thread safe, so
+    // the caches are per-thread rather than shared.
+    private val amountFormats = object : ThreadLocal<MutableMap<String, DecimalFormat>>() {
+        override fun initialValue() = mutableMapOf<String, DecimalFormat>()
+    }
+
+    private val currencyFormats = object : ThreadLocal<MutableMap<String, Optional<NumberFormat>>>() {
+        override fun initialValue() = mutableMapOf<String, Optional<NumberFormat>>()
+    }
+
+    private fun amountFormat(currencyCode: String): DecimalFormat =
+        amountFormats.get()!!.getOrPut(currencyCode) {
+            val pattern = if (currencyCode == "INR" || currencyCode == "NPR") "#,##,##0.00" else "#,##0.00"
+            DecimalFormat(pattern, DecimalFormatSymbols(localeFor(currencyCode)))
+        }
+
+    /** Returns null when the platform has no currency data for [currencyCode]. */
+    private fun currencyFormat(currencyCode: String): NumberFormat? =
+        currencyFormats.get()!!.getOrPut(currencyCode) {
+            runCatching {
+                NumberFormat.getCurrencyInstance(localeFor(currencyCode)).apply {
+                    minimumFractionDigits = 0
+                    maximumFractionDigits = 2
+                    currency = Currency.getInstance(currencyCode)
+                }
+            }.map { Optional.of(it) }.getOrDefault(Optional.empty())
+        }.orElse(null)
+
     /**
      * Formats a BigDecimal amount as currency with the specified currency code
      */
     fun formatCurrency(amount: BigDecimal, currencyCode: String = "CNY"): String {
         return try {
-            val locale = CURRENCY_LOCALES[currencyCode] ?: if (currencyCode == "INR" || currencyCode == "NPR") INDIAN_LOCALE else DEFAULT_LOCALE
-            val formatter = NumberFormat.getCurrencyInstance(locale)
-            
+            val locale = localeFor(currencyCode)
+
             // Get our custom symbol
             val customSymbol = CurrencySymbols.getSymbol(currencyCode)
 
-            // Configure formatting rules
-            formatter.minimumFractionDigits = 0
-            formatter.maximumFractionDigits = 2
- 
-            // Set the currency if supported
-            try {
-                formatter.currency = Currency.getInstance(currencyCode)
-            } catch (e: Exception) {
-                // If currency not supported, use symbol mapping
-                return "$customSymbol${formatAmount(amount)}"
-            }
- 
+            // If currency not supported, use symbol mapping
+            val formatter = currencyFormat(currencyCode)
+                ?: return "$customSymbol${formatAmount(amount)}"
+
             val formatted = formatter.format(amount)
             
             // If the formatted string doesn't contain our custom symbol, or contains the ISO code,
@@ -118,13 +143,8 @@ object CurrencyFormatter {
      * Formats an amount with proper grouping and decimals
      * Uses Indian grouping (#,##,##0.00) for INR and NPR, standard (#,##0.00) otherwise
      */
-    fun formatAmount(amount: BigDecimal, currencyCode: String = "CNY"): String {
-        val locale = CURRENCY_LOCALES[currencyCode] ?: if (currencyCode == "INR" || currencyCode == "NPR") INDIAN_LOCALE else DEFAULT_LOCALE
-        val pattern = if (currencyCode == "INR" || currencyCode == "NPR") "#,##,##0.00" else "#,##0.00"
-        val symbols = DecimalFormatSymbols(locale)
-        val formatter = DecimalFormat(pattern, symbols)
-        return formatter.format(amount)
-    }
+    fun formatAmount(amount: BigDecimal, currencyCode: String = "CNY"): String =
+        amountFormat(currencyCode).format(amount)
 
     /**
      * Formats a double amount with proper grouping and decimals

@@ -38,6 +38,7 @@ import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.utils.formatBalance
 import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 
@@ -198,6 +199,7 @@ internal fun SharedTransitionScope.AccountBalanceRow(
                 .clip(shape)
                 .then(
                     if (blurEffects) Modifier.hazeEffect(hazeState) {
+                        inputScale = HazeInputScale.Auto
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
                             tint = HazeDefaults.tint(containerColor),

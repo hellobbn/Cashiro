@@ -144,6 +144,7 @@ fun DateRangePickerDialog(
             if (blurEffects) Modifier.hazeEffect(
                 state = hazeState,
                 block = fun HazeEffectScope.() {
+                    inputScale = HazeInputScale.Auto
                     style = HazeDefaults.style(
                         backgroundColor = Color.Transparent,
                         tint = HazeDefaults.tint(containerColor),

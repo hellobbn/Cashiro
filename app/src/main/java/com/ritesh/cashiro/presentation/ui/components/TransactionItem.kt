@@ -295,10 +295,11 @@ fun TransactionItem(
                 )
             },
             supporting = {
+                // No marquee here: the tag row is a fixed set of short chips, and basicMarquee
+                // measures its content with unbounded width on every row of the list.
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-                    modifier = Modifier.basicMarquee()
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
                     var needsSeparator = false
                     

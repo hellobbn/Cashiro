@@ -26,6 +26,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -65,10 +68,17 @@ fun CustomTitleTopAppBar(
     blurEffects: Boolean = LocalBlurEffects.current,
     showTitleInLargeBar: Boolean = true
 ) {
-    val collapsedFraction = scrollBehaviorLarge.state.collapsedFraction
+    // collapsedFraction changes every scroll frame. Passing it as a lambda keeps the read in
+    // the draw phase, so scrolling repaints the bar instead of recomposing this whole subtree.
+    val hasLargeBar = scrollBehaviorLarge != scrollBehaviorSmall
+    val collapsedFraction = { scrollBehaviorLarge.state.collapsedFraction }
+    val smallBarFraction = if (hasLargeBar) collapsedFraction else ({ 1f })
+    val isCollapsed by remember(scrollBehaviorLarge, hasLargeBar) {
+        derivedStateOf { !hasLargeBar || scrollBehaviorLarge.state.collapsedFraction > 0.01f }
+    }
 
     // LargeTopAppBar
-    if(scrollBehaviorLarge != scrollBehaviorSmall) {
+    if (hasLargeBar) {
         LargerTopAppBar(
             scrollBehaviorLarge = scrollBehaviorLarge,
             title = title,
@@ -92,7 +102,8 @@ fun CustomTitleTopAppBar(
         hasActionButton = hasActionButton,
         actionContent = actionContent,
         navigationContent = navigationContent,
-        collapsedFraction = if(scrollBehaviorLarge != scrollBehaviorSmall)collapsedFraction else 1f,
+        collapsedFraction = smallBarFraction,
+        isCollapsed = isCollapsed,
         modifier = modifier,
         hazeState = hazeState,
         blurEffects = blurEffects,
@@ -154,7 +165,7 @@ private fun LargerTopAppBar(
     scrollBehaviorLarge: TopAppBarScrollBehavior,
     title: String,
     hasBackButton: Boolean = false,
-    collapsedFraction: Float,
+    collapsedFraction: () -> Float,
     extraInfoCard: @Composable () -> Unit = {},
     actionContent: @Composable () -> Unit = {},
     navigationContent: @Composable () -> Unit = {},
@@ -199,6 +210,7 @@ private fun LargerTopAppBar(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
                             tint = tint(backgroundColor),
@@ -219,7 +231,7 @@ private fun LargerTopAppBar(
                 )
             )
             .windowInsetsPadding(WindowInsets.statusBars)
-            .alpha(1f - collapsedFraction)
+            .graphicsLayer { alpha = 1f - collapsedFraction() }
     )
 }
 
@@ -292,13 +304,14 @@ private fun RegularTopAppBar(
     hasActionButton: Boolean = false,
     actionContent: @Composable () -> Unit = {},
     navigationContent: @Composable () -> Unit = {},
-    collapsedFraction: Float,
+    collapsedFraction: () -> Float,
+    isCollapsed: Boolean,
     hazeState: HazeState,
     blurEffects: Boolean = true,
     showTitle: Boolean = true
 ){
     BlurredAnimatedVisibility(
-        visible = collapsedFraction > 0.01f,
+        visible = isCollapsed,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
@@ -348,6 +361,7 @@ private fun RegularTopAppBar(
                     if (blurEffects) Modifier.hazeEffect(
                         state = hazeState,
                         block = fun HazeEffectScope.() {
+                            inputScale = HazeInputScale.Auto
                             style = HazeDefaults.style(
                                 backgroundColor = Color.Transparent,
                                 blurRadius = 10.dp,
@@ -367,7 +381,7 @@ private fun RegularTopAppBar(
                     )
                 )
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .alpha(collapsedFraction)
+                .graphicsLayer { alpha = collapsedFraction() }
         )
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
@@ -39,19 +40,31 @@ fun CashiroTheme(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    // Read the current system resources on recomposition instead of caching a wallpaper palette.
-    var colorScheme = if (themeStyle == ThemeStyle.DYNAMIC && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    } else {
-        if (darkTheme) getCustomDarkColorScheme(accentColor) else getCustomLightColorScheme(accentColor)
-    }
+    val configuration = LocalConfiguration.current
 
-    // Apply Amoled Black if enabled in Dark Mode
-    if (darkTheme && isAmoledMode) {
-        colorScheme = colorScheme.copy(
-            background = Color.Black,
-            surface = Color.Black,
-        )
+    // MaterialTheme publishes the scheme through a static CompositionLocal, so handing it a
+    // fresh instance invalidates the whole tree. Keyed on the configuration so a wallpaper or
+    // system-resource change still produces an up-to-date palette instead of a cached one.
+    val colorScheme = remember(
+        configuration,
+        context,
+        themeStyle,
+        dynamicColor,
+        darkTheme,
+        isAmoledMode,
+        accentColor
+    ) {
+        val scheme = if (themeStyle == ThemeStyle.DYNAMIC && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        } else {
+            if (darkTheme) getCustomDarkColorScheme(accentColor) else getCustomLightColorScheme(accentColor)
+        }
+        // Apply Amoled Black if enabled in Dark Mode
+        if (darkTheme && isAmoledMode) {
+            scheme.copy(background = Color.Black, surface = Color.Black)
+        } else {
+            scheme
+        }
     }
 
     val view = LocalView.current
@@ -80,13 +93,20 @@ fun CashiroTheme(
     }
 
     // CJK glyphs already occupy a full em; Latin tracking creates uneven Chinese text.
-    val useCjkSpacing = LocalConfiguration.current.locales[0].language in setOf("zh", "ja", "ko")
+    val useCjkSpacing = configuration.locales[0].language in setOf("zh", "ja", "ko")
+
+    // Typography and the motion scheme are static CompositionLocals too, so they get the
+    // same treatment: build them once per input change, not once per recomposition.
+    val typography = remember(fontFamily, useCjkSpacing) {
+        getTypography(fontFamily = fontFamily, useCjkSpacing = useCjkSpacing)
+    }
+    val motionScheme = remember { MotionScheme.expressive() }
 
     CompositionLocalProvider(LocalBlurEffects provides blurEffects) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,
-            typography = getTypography(fontFamily = fontFamily, useCjkSpacing = useCjkSpacing),
-            motionScheme = MotionScheme.expressive(),
+            typography = typography,
+            motionScheme = motionScheme,
             content = content
         )
     }

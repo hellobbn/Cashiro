@@ -57,6 +57,7 @@ import com.ritesh.cashiro.presentation.ui.icons.*
 import com.ritesh.cashiro.presentation.ui.theme.*
 import androidx.compose.foundation.clickable
 import com.ritesh.cashiro.core.Constants
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.hazeEffect
@@ -589,6 +590,7 @@ fun AboutScreen(
                     if (blurEffects) Modifier.hazeEffect(
                         state = hazeState,
                         block = fun HazeEffectScope.() {
+                            inputScale = HazeInputScale.Auto
                             style = HazeDefaults.style(
                                 backgroundColor = Color.Transparent,
                                 tint = HazeDefaults.tint(containerColor),

@@ -43,6 +43,7 @@ import com.ritesh.cashiro.utils.CurrencyFormatter
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 
@@ -407,6 +408,7 @@ fun MergeConfirmationDialog(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
                             tint = HazeDefaults.tint(containerColor),

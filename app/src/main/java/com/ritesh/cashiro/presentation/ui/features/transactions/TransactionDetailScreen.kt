@@ -234,6 +234,7 @@ import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.IconResolutionUtils
 import com.ritesh.cashiro.utils.SubscriptionUtils
 import com.ritesh.cashiro.utils.formatAmount
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
@@ -674,6 +675,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                         if (blurEffects) Modifier.hazeEffect(
                                             state = hazeState,
                                             block = fun HazeEffectScope.() {
+                                                inputScale = HazeInputScale.Auto
                                                 style = HazeDefaults.style(
                                                     backgroundColor = Color.Transparent,
                                                     tint = HazeTint(dropContainerColor.copy(0.5f)),
