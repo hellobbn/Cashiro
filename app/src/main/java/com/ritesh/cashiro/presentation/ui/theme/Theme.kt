@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.core.view.WindowCompat
@@ -92,10 +93,13 @@ fun CashiroTheme(
         AppFont.SN_PRO -> SNProFontFamily
     }
 
+    // CJK glyphs already occupy a full em; Latin tracking creates uneven Chinese text.
+    val useCjkSpacing = LocalConfiguration.current.locales[0].language in setOf("zh", "ja", "ko")
+
     CompositionLocalProvider(LocalBlurEffects provides blurEffects) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,
-            typography = getTypography(fontFamily = fontFamily),
+            typography = getTypography(fontFamily = fontFamily, useCjkSpacing = useCjkSpacing),
             shapes = Shapes,
             content = content
         )

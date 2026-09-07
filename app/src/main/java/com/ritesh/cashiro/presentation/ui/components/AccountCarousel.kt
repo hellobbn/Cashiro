@@ -29,6 +29,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.ritesh.cashiro.R
+import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -73,9 +76,10 @@ fun SharedTransitionScope.AccountCarousel(
                 accountLast4 = account.accountLast4,
                 balance = account.formatBalance(),
                 subtitle = when {
-                    account.isWallet -> "Wallet"
-                    creditCards.contains(account) -> "Credit Card"
-                    else -> "Savings account"
+                    account.isWallet -> stringResource(R.string.type_wallet)
+                    creditCards.contains(account) -> stringResource(R.string.type_credit_card)
+                    InstitutionCatalog.find(account.bankName)?.isBroker == true -> stringResource(R.string.type_investment_account)
+                    else -> stringResource(R.string.type_savings_account)
                 },
                 onClick = { onAccountClick(account.bankName, account.accountLast4) },
                 animatedContentScope = animatedContentScope,
@@ -105,9 +109,10 @@ fun SharedTransitionScope.AccountCarousel(
                 accountLast4 = account.accountLast4,
                 balance = account.formatBalance(),
                 subtitle = when {
-                    account.isWallet -> "Wallet"
-                    creditCards.contains(account) -> "Credit Card"
-                    else -> "Savings account"
+                    account.isWallet -> stringResource(R.string.type_wallet)
+                    creditCards.contains(account) -> stringResource(R.string.type_credit_card)
+                    InstitutionCatalog.find(account.bankName)?.isBroker == true -> stringResource(R.string.type_investment_account)
+                    else -> stringResource(R.string.type_savings_account)
                 },
                 onClick = { onAccountClick(account.bankName, account.accountLast4) },
                 animatedContentScope = animatedContentScope,
@@ -242,11 +247,11 @@ fun SharedTransitionScope.AccountCarouselCard(
                     Text(
                         text = if (isWallet) bankName.uppercase() else "${bankName.uppercase()} ••$accountLast4",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        letterSpacing = 1.sp
+                        letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
@@ -264,8 +269,8 @@ fun SharedTransitionScope.AccountCarouselCard(
 
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -287,16 +292,16 @@ fun SharedTransitionScope.AccountCarouselCard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "View details",
+                        text = stringResource(R.string.view_details),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }

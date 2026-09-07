@@ -1,18 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.settings
 
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +51,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -92,20 +84,7 @@ import com.ritesh.cashiro.presentation.ui.icons.SecuritySafe
 import com.ritesh.cashiro.presentation.ui.icons.Status
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
-import com.ritesh.cashiro.presentation.ui.theme.blue_dark
-import com.ritesh.cashiro.presentation.ui.theme.blue_light
-import com.ritesh.cashiro.presentation.ui.theme.cyan_dark
-import com.ritesh.cashiro.presentation.ui.theme.cyan_light
-import com.ritesh.cashiro.presentation.ui.theme.green_dark
-import com.ritesh.cashiro.presentation.ui.theme.green_light
 import com.ritesh.cashiro.presentation.ui.theme.orange_dark
-import com.ritesh.cashiro.presentation.ui.theme.orange_light
-import com.ritesh.cashiro.presentation.ui.theme.purple_dark
-import com.ritesh.cashiro.presentation.ui.theme.purple_light
-import com.ritesh.cashiro.presentation.ui.theme.red_dark
-import com.ritesh.cashiro.presentation.ui.theme.red_light
-import com.ritesh.cashiro.presentation.ui.theme.yellow_dark
-import com.ritesh.cashiro.presentation.ui.theme.yellow_light
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
@@ -253,6 +232,7 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(1.5.dp)
             ) {
+                SettingsGroupLabel(stringResource(R.string.settings_group_personal))
                 val profileImageUri = userPreferences?.profileImageUri?.toUri()
                 val profileBackgroundColor = Color(userPreferences?.profileBackgroundColor ?: Color.Transparent.toArgb())
 
@@ -266,33 +246,14 @@ fun SettingsScreen(
                         )
                     },
                     supporting = {
-                        val infiniteTransition = rememberInfiniteTransition(label = "profileText")
-                        val targetIndex by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 1f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(durationMillis = 5000, easing = LinearEasing),
-                                repeatMode = RepeatMode.Reverse
-                            ),
-                            label = "profileTextTarget"
+                        Text(
+                            text = googleDriveEmail?.takeIf { it.isNotBlank() }
+                                ?: stringResource(R.string.transactions_count_short, totalTransactionsCount),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
-
-                        AnimatedContent(
-                            targetState = (targetIndex > 0.5f) to googleDriveEmail,
-//                            transitionSpec = { fadeIn() togetherWith fadeOut() },
-                            transitionSpec = {
-                                slideInVertically { height -> height } + fadeIn() togetherWith
-                                        slideOutVertically { height -> -height } + fadeOut()
-                            },
-                            label = "profileTextContent"
-                        ) { (showGmail, gmail) ->
-                            Text(
-                                text = if (showGmail && !gmail.isNullOrBlank()) gmail
-                                       else stringResource(R.string.transactions_count_short, totalTransactionsCount),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.8f)
-                            )
-                        }
                     },
                     leading = {
                         Box(
@@ -344,7 +305,7 @@ fun SettingsScreen(
                     supporting = {
                         Text(
                             text = stringResource(R.string.appearances_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -353,7 +314,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .background(
-                                    color = orange_light,
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -361,7 +322,7 @@ fun SettingsScreen(
                             Icon(
                                 Icons.Rounded.Palette,
                                 contentDescription = null,
-                                tint = orange_dark
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     },
@@ -388,7 +349,7 @@ fun SettingsScreen(
                     supporting = {
                         Text(
                             text = stringResource(R.string.language_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -397,7 +358,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .background(
-                                    color = blue_light,
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -405,7 +366,7 @@ fun SettingsScreen(
                             Icon(
                                 Icons.Rounded.Translate,
                                 contentDescription = null,
-                                tint = blue_dark
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     },
@@ -429,7 +390,7 @@ fun SettingsScreen(
                     supporting = {
                         Text(
                             text = stringResource(R.string.currency_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -438,7 +399,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .background(
-                                    color = cyan_light,
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -446,7 +407,7 @@ fun SettingsScreen(
                             Icon(
                                 Iconax.DollarCircle,
                                 contentDescription = null,
-                                tint = cyan_dark
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     },
@@ -462,7 +423,8 @@ fun SettingsScreen(
                     padding = PaddingValues(0.dp)
                 )
 
-                Spacer( modifier = Modifier.height(Spacing.md))
+                Spacer(modifier = Modifier.height(Spacing.md))
+                SettingsGroupLabel(stringResource(R.string.settings_group_finances))
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
@@ -479,7 +441,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.accounts_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -488,7 +450,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = red_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                             contentAlignment = Alignment.Center
@@ -496,7 +458,7 @@ fun SettingsScreen(
                                 Icon(
                                     Icons.Rounded.AccountBalance,
                                     contentDescription = null,
-                                    tint = red_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -524,7 +486,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.budgets_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -533,7 +495,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = green_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -541,7 +503,7 @@ fun SettingsScreen(
                                 Icon(
                                     Iconax.Status,
                                     contentDescription = null,
-                                    tint = green_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -569,7 +531,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.loan_description),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -578,7 +540,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = cyan_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -586,7 +548,7 @@ fun SettingsScreen(
                                 Icon(
                                     Iconax.ArchiveBook,
                                     contentDescription = null,
-                                    tint = cyan_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -614,7 +576,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.categories_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -623,7 +585,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = purple_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -631,7 +593,7 @@ fun SettingsScreen(
                                 Icon(
                                     Iconax.Box2,
                                     contentDescription = null,
-                                    tint = purple_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -659,7 +621,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.smart_rules_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -668,7 +630,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = orange_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -676,7 +638,7 @@ fun SettingsScreen(
                                 Icon(
                                     Iconax.Fireworks7,
                                     contentDescription = null,
-                                    tint = orange_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -704,7 +666,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.data_privacy_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -713,7 +675,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = blue_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -721,7 +683,7 @@ fun SettingsScreen(
                                 Icon(
                                     Iconax.SecuritySafe,
                                     contentDescription = null,
-                                    tint = blue_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -749,7 +711,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.backup_sync_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -758,7 +720,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = cyan_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -766,7 +728,7 @@ fun SettingsScreen(
                                 Icon(
                                     Icons.Rounded.CloudSync,
                                     contentDescription = null,
-                                    tint = cyan_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -783,7 +745,8 @@ fun SettingsScreen(
                     )
                 }
 
-                Spacer( modifier = Modifier.height(Spacing.md))
+                Spacer(modifier = Modifier.height(Spacing.md))
+                SettingsGroupLabel(stringResource(R.string.settings_group_automation))
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
@@ -806,7 +769,7 @@ fun SettingsScreen(
                                     DownloadState.FAILED -> stringResource(R.string.ai_chat_subtitle_failed)
                                     DownloadState.ERROR_INSUFFICIENT_SPACE -> stringResource(R.string.ai_chat_subtitle_insufficient_space)
                                 },
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = if (downloadState == DownloadState.FAILED || downloadState == DownloadState.ERROR_INSUFFICIENT_SPACE)
                                     MaterialTheme.colorScheme.error
                                 else
@@ -818,7 +781,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = yellow_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -826,7 +789,7 @@ fun SettingsScreen(
                                 Icon(
                                     Icons.Default.AutoAwesome,
                                     contentDescription = null,
-                                    tint = yellow_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -897,7 +860,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.notifications_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -906,7 +869,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = green_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -914,7 +877,7 @@ fun SettingsScreen(
                                 Icon(
                                     Iconax.NotificationBing,
                                     contentDescription = null,
-                                    tint = green_dark
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         },
@@ -941,7 +904,7 @@ fun SettingsScreen(
                         supporting = {
                             Text(
                                 text = stringResource(R.string.sms_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -950,7 +913,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .background(
-                                        color = cyan_light,
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -958,7 +921,7 @@ fun SettingsScreen(
                                 Icon(
                                     Iconax.Clock,
                                     contentDescription = null,
-                                    tint = cyan_dark,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                 )
                             }
                         },
@@ -986,7 +949,7 @@ fun SettingsScreen(
                             supporting = {
                                 Text(
                                     text = stringResource(R.string.webhooks_subtitle),
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
@@ -995,7 +958,7 @@ fun SettingsScreen(
                                     modifier = Modifier
                                         .size(48.dp)
                                         .background(
-                                            color = purple_light,
+                                            color = MaterialTheme.colorScheme.secondaryContainer,
                                             shape = CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
@@ -1003,7 +966,7 @@ fun SettingsScreen(
                                     Icon(
                                         Icons.Rounded.Webhook,
                                         contentDescription = null,
-                                        tint = purple_dark
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 }
                             },
@@ -1021,7 +984,8 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer( modifier = Modifier.height(Spacing.md))
+                Spacer(modifier = Modifier.height(Spacing.md))
+                SettingsGroupLabel(stringResource(R.string.settings_group_app))
                 ListItem(
                     headline = {
                         Text(
@@ -1033,7 +997,7 @@ fun SettingsScreen(
                     supporting = {
                         Text(
                             text = stringResource(R.string.about_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -1042,7 +1006,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .background(
-                                    color = orange_light,
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
                                     shape = CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
@@ -1100,12 +1064,15 @@ fun LanguageTrailing(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.widthIn(max = 120.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
     ) {
         Text(
             text = languageName,
+            modifier = Modifier.weight(1f, fill = false),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Medium
@@ -1116,4 +1083,16 @@ fun LanguageTrailing(
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+@Composable
+private fun SettingsGroupLabel(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .semantics { heading() }
+            .padding(start = 16.dp, top = 8.dp, bottom = 10.dp)
+    )
 }

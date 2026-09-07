@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
@@ -136,11 +137,18 @@ fun BalanceCard(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = abbreviatedName.uppercase(),
+                                text = stringResource(R.string.net_worth_label),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = CurrencyFormatter.formatCurrency(totalBalance, currency),
                                 style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.ExtraBold,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(start = Spacing.xs)
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
@@ -153,7 +161,6 @@ fun BalanceCard(
                                     text = stringResource(R.string.percent_this_month_format, if (monthlyChangePercent >= 0) "+" else "", monthlyChangePercent.toString()),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.alpha(0.6f),
                                     fontWeight = FontWeight.Medium
                                 )
                             }
@@ -163,7 +170,7 @@ fun BalanceCard(
                         if (balanceHistory.isNotEmpty()) {
                             Box(
                                 modifier = Modifier
-                                    .width(100.dp)
+                                    .width(64.dp)
                                     .height(40.dp)
                             ) {
                                 BalanceSparkline(
@@ -181,10 +188,10 @@ fun BalanceCard(
                 ) {
                     // Expanded View
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Top
+                            verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+                            horizontalAlignment = Alignment.Start
                         ) {
                             Column {
                                 Text(
@@ -201,21 +208,18 @@ fun BalanceCard(
                                         text = userName,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.alpha(0.4f),
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
                                         text = "•",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.alpha(0.4f),
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
                                         text = stringResource(R.string.net_worth_label),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.alpha(0.4f),
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
@@ -223,7 +227,7 @@ fun BalanceCard(
                             }
                             Column(
                                 verticalArrangement = Arrangement.Top,
-                                horizontalAlignment = Alignment.End
+                                horizontalAlignment = Alignment.Start
                             ) {
                                 Text(
                                     text = CurrencyFormatter.formatCurrency(totalBalance, currency),
@@ -237,7 +241,8 @@ fun BalanceCard(
                                     Surface(
                                         onClick = onCurrencyClick,
                                         modifier = Modifier
-                                            .padding(horizontal = 12.dp),
+                                            .padding(horizontal = 12.dp)
+                                            .heightIn(min = 48.dp),
                                         shape = RoundedCornerShape(Dimensions.Radius.sm),
                                         color = MaterialTheme.colorScheme.tertiaryContainer.copy(
                                             alpha = 0.8f
@@ -291,7 +296,7 @@ fun BalanceCard(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.align(Alignment.CenterHorizontally).alpha(0.4f)
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
                         }
 
@@ -329,7 +334,7 @@ fun BalanceCard(
         Icon(
             imageVector = Iconax.LongArrow,
             contentDescription = if (isExpanded) stringResource(R.string.collapse) else stringResource(R.string.expand),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 4.dp)
@@ -352,9 +357,9 @@ private fun SummaryItem(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Bold,
-            fontSize = 10.sp
+            fontSize = 12.sp
         )
     }
 }

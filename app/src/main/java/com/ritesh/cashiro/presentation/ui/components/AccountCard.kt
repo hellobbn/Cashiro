@@ -115,7 +115,7 @@ fun AccountCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (account.isCreditCard) "Outstanding" else "Balance",
+                        text = stringResource(if (account.isCreditCard) R.string.outstanding_label else R.string.balance_label),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -326,10 +326,10 @@ text = {
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (account.isWallet) "wallet"
+                                    text = if (account.isWallet) stringResource(R.string.type_wallet)
                                     else "**** **** **** ${account.accountLast4}",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             Row(

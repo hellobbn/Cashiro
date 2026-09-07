@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
@@ -89,6 +91,8 @@ fun GreetingCard(
         ) {
             Text(
                 text = userName,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp
@@ -135,7 +139,7 @@ fun GreetingCard(
             Text(
                 text = subtitleText,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             /* Priority Logic:
@@ -172,32 +176,29 @@ fun GreetingCard(
 //                Text(
 //                    text = monthStatus ?: greeting,
 //                    style = MaterialTheme.typography.bodyMedium,
-//                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+//                    color = MaterialTheme.colorScheme.onSurfaceVariant
 //                )
 //            }
         }
 
-        // Action Buttons
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Icon(
-                imageVector = Iconax.NotificationOutline,
-                contentDescription = stringResource(R.string.notification),
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier
-                    .size(28.dp)
-                    .clickable(onClick = onNotificationClick)
-            )
-            Icon(
-                imageVector = Icons.Rounded.MoreHoriz,
-                contentDescription = stringResource(R.string.more_options),
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier
-                    .size(28.dp)
-                    .clickable(onClick = onMoreClick)
-            )
+        // Material icon buttons provide an accessible 48dp touch target and ripple.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onNotificationClick) {
+                Icon(
+                    imageVector = Iconax.NotificationOutline,
+                    contentDescription = stringResource(R.string.notification),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            IconButton(onClick = onMoreClick) {
+                Icon(
+                    imageVector = Icons.Rounded.MoreHoriz,
+                    contentDescription = stringResource(R.string.more_options),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 }

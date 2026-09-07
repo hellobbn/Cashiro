@@ -241,8 +241,8 @@ private fun TitleForLargeTopAppBar(
         ) {
             Text(
                 text = title,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Start,
                 modifier = modifier
                     .fillMaxWidth()
@@ -313,8 +313,8 @@ private fun RegularTopAppBar(
                 ) {
                     Text(
                         text = title,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.animatedOffsetModifier(
                             hasBackButton = hasBackButton,

@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 
 enum class ListItemPosition {
@@ -86,6 +88,8 @@ fun ListItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(padding)
+            .heightIn(min = 56.dp)
+            .semantics(mergeDescendants = true) { this.selected = selected }
             .then(
                 if (shape != null) {
                     Modifier
@@ -100,11 +104,12 @@ fun ListItem(
                 if (onClick != null || onLongClick != null) {
                     Modifier.combinedClickable(
                         onClick = onClick ?: {},
+                        role = Role.Button,
                         onLongClick = onLongClick
                     )
                 } else Modifier
             )
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -138,7 +143,7 @@ fun ListItem(
                                             )
                                     else MaterialTheme.colorScheme.onSurfaceVariant
                     ) {
-                        ProvideTextStyle(value = MaterialTheme.typography.bodySmall) {
+                        ProvideTextStyle(value = MaterialTheme.typography.bodyMedium) {
                             supporting()
                         }
                     }
