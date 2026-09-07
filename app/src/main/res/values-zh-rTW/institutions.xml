@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="institution_choose">選擇銀行或券商</string>
+    <string name="institution_search">搜尋名稱或簡稱</string>
+    <string name="institution_region_all">全部</string>
+    <string name="institution_region_cn">中國大陸</string>
+    <string name="institution_region_hk">中國香港</string>
+    <string name="institution_region_sg">新加坡</string>
+    <string name="institution_region_us">美國</string>
+    <string name="institution_no_results">找不到符合的機構。請改用其他名稱，或關閉列表後手動輸入帳戶。</string>
+    <string name="institution_icons">銀行與券商</string>
+</resources>
