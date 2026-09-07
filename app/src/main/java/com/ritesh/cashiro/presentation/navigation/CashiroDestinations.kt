@@ -209,6 +209,8 @@ data class Transactions(
 
 @Serializable object Appearance
 
+@Serializable object Investments
+
 @Serializable object ManageAccounts
 
 @Serializable object Profile

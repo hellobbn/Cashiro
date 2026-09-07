@@ -59,6 +59,7 @@ Personal Chinese / cross-border manual accounts:
 - New installs default to CNY. Existing saved currencies are not overwritten.
 - Institution picker covers CN / HK / SG / US banks and brokers as **name and icon presets only**.
 - Choosing an institution does not add SMS parsing, login, or holdings sync.
+- A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth.
 - Prefer account UX, currency defaults, and imports over SMS automation.
 
 ## Design Principles

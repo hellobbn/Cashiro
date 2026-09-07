@@ -1,17 +1,17 @@
 # Privacy Policy
 
-**Last Updated: August 2025**
+**Last Updated: September 7, 2026**
 
 ## Our Commitment to Privacy
 
 Cashiro is built with privacy as the core principle. We believe your financial data should remain yours alone.
 
-## 100% On-Device Processing
+## Local Processing and Optional Connections
 
-**All data processing happens locally on your device.** We use MediaPipe's on-device LLM (Qwen 2.5) for AI features, ensuring:
+**Core bookkeeping and on-device AI processing happen locally. Optional connections make network requests as described below.** We use MediaPipe's on-device LLM (Qwen 2.5) for AI features, ensuring:
 
-- ✅ **No cloud servers** - Your data never leaves your phone
-- ✅ **No data collection** - We don't collect, store, or transmit any user data
+- ✅ **Local by default** - Core bookkeeping does not require a Cashiro server
+- ✅ **User-directed sharing** - Optional integrations transmit the data needed for the features you enable
 - ✅ **No tracking** - No analytics, no telemetry, no user tracking
 - ✅ **No ads** - No advertising networks or tracking pixels
 - ✅ **Offline AI** - Once downloaded, AI works completely offline
@@ -24,7 +24,8 @@ Cashiro is built with privacy as the core principle. We believe your financial d
 - App preferences and settings
 
 ### Where It's Stored
-- All data is stored in a local SQLite database on your device
+- Bookkeeping data is stored in a local SQLite database; preferences use local app storage
+- Optional brokerage credentials and holdings use a separate encrypted, backup-excluded file
 - Database is protected by Android's app sandboxing
 - Data is only accessible to Cashiro app
 
@@ -46,17 +47,36 @@ Cashiro is built with privacy as the core principle. We believe your financial d
 - **Model Download**: One-time download of ~1.5GB model file from CloudFront CDN
 - **App Updates**: Google Play Store variant uses Play Services for app updates (F-Droid variant does not)
 - **After Model Download**: AI works completely offline, no internet required for core features
-- **Your Data**: Never transmitted over the internet, all processing remains on-device
+- **Optional integrations**: Brokerage sync contacts IBKR directly. Configured cloud backups and webhooks use the services selected by the user.
 
 ### No Other Permissions Required
 - No location tracking
 - No contact access
 - No camera or microphone access
 
+## Optional IBKR Brokerage Connection
+
+When you explicitly connect or refresh a brokerage account, Cashiro sends your Flex Token,
+Query ID / report reference, protocol version and User-Agent directly over HTTPS to
+`ndcdyn.interactivebrokers.com`. IBKR can see your source IP. Cashiro retrieves the report
+and parses holdings locally; it does not upload your bookkeeping transactions or route
+brokerage credentials through a Cashiro server. IBKR processes access under its own policies.
+
+The connection is read-only: no orders, trades or transfers. Tokens grant access to reports
+and should be kept private. Credentials, account IDs and holdings are encrypted with
+AES-GCM using an Android Keystore key and stored in `noBackupFilesDir`, outside system
+backup/device transfer and existing Cashiro exports/cloud backups. There is no plaintext
+fallback. Token entry is masked and its dialog blocks screenshots. Raw API URLs, responses
+and credentials are not logged by this integration.
+
+Disconnect deletes the local credentials and cached holdings. It does not revoke the token
+at IBKR: generate a new token there to invalidate the old one. Reinstalling or migrating to
+another device requires reconnecting. See [setup and security details](docs/brokerage-connections.md).
+
 ## Third-Party Services
 
-Cashiro does **NOT** use:
-- ❌ Cloud services or APIs (except CDN for model download)
+Cashiro does **NOT** use analytics or advertising services. Network integrations are listed separately:
+- Optional APIs include model downloads, updates, exchange rates, user-configured backups/webhooks and IBKR Flex. These are separate from analytics or advertising.
 - ❌ Analytics services (Google Analytics, Firebase, etc.)
 - ❌ Crash reporting services
 - ❌ Advertising networks
@@ -80,7 +100,8 @@ Cashiro does **NOT** use:
 When you export your data:
 - CSV/PDF files are created locally on your device
 - You control where to share or save them
-- No automatic uploads or backups
+- Local exports do not automatically upload themselves. User-enabled cloud backup or webhook features have their own network behavior.
+- Brokerage credentials and holdings are excluded from existing exports and backups.
 
 ## Open Source Transparency
 
@@ -107,13 +128,13 @@ For privacy concerns or questions:
 
 ## Summary
 
-**Your financial data stays on your phone. Period.**
+**Core records stay local; optional connections share only when enabled or requested.**
 
-- No servers
-- No uploads
+- No Cashiro server needed for IBKR sync
+- User-controlled connections and exports
 - No tracking
 - No ads
-- Complete privacy
+- Encrypted local brokerage storage
 
 ---
 

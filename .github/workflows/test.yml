@@ -44,3 +44,30 @@ jobs:
         name: parser-test-results
         path: parser-core/build/test-results/test/
         retention-days: 7
+
+  brokerage-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+      - uses: android-actions/setup-android@v3
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-brokerage-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-brokerage-gradle-
+      - name: Test read-only brokerage integration
+        run: ./gradlew :app:testStandardDebugUnitTest --tests 'com.ritesh.cashiro.data.brokerage.*' --no-configuration-cache
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: brokerage-test-results
+          path: app/build/test-results/testStandardDebugUnitTest/
+          retention-days: 7

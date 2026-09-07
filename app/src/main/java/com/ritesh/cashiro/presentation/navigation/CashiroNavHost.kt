@@ -217,6 +217,12 @@ fun CashiroNavHost(
                     )
                 }
 
+                composable<Investments> {
+                    com.ritesh.cashiro.presentation.ui.features.investments.InvestmentsScreen(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+
                 /* BOTTOM NAV SCREENS ---- */
                 // Home Screen
                 composable<Home>(

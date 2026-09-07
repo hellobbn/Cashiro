@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="investments_title">投资持仓</string>
+    <string name="investments_shortcut">连接券商 · 查看持仓</string>
+    <string name="investments_report_hint">只读报表快照，非实时行情。持仓市值不含现金，不计入首页净资产，避免与已有券商账户重复。</string>
+    <string name="investments_syncing">正在读取券商报表，通常需要数十秒…</string>
+    <string name="investments_retry">重试</string>
+    <string name="investments_empty_title">把持仓放在一起看</string>
+    <string name="investments_empty_body">先连接自己的 IBKR 账户。仅查看报表，不下单、不转账。</string>
+    <string name="investments_connect_ibkr">连接 IBKR</string>
+    <string name="investments_synced">上次同步：%1$s</string>
+    <string name="investments_as_of">报表日期：%1$s · 非实时</string>
+    <string name="investments_market_total">持仓市值（不含现金） %1$s %2$s</string>
+    <string name="investments_no_positions">此报表没有持仓</string>
+    <string name="investments_refresh">刷新持仓</string>
+    <string name="investments_disconnect">断开连接</string>
+    <string name="investments_disconnect_hint">删除此手机保存的连接凭据和持仓缓存，不影响券商账户或现有记账账户。如需使 Token 失效，请在 IBKR 中重新生成 Token。</string>
+    <string name="investments_cancel">取消</string>
+    <string name="investments_back">返回</string>
+    <string name="investments_quantity">数量：%1$s</string>
+    <string name="investments_value">市值：%1$s %2$s</string>
+    <string name="investments_cost">成本：%1$s %2$s</string>
+    <string name="investments_pnl">浮动盈亏：%1$s %2$s</string>
+    <string name="investments_setup">在 IBKR 网页端的「报表 → Flex Queries」创建 Activity Flex Query：\n\n• 格式：XML；日期格式：yyyyMMdd；期间：Last Business Day\n• 加入 Open Positions，选择 Summary（汇总），勾选全部字段，不选 Lots\n• 保存 Query ID，启用 Flex Web Service 并生成 Token\n\n没有持仓时也请保留空的 Open Positions 节。</string>
+    <string name="investments_privacy">Token 具有读取报表的权限，请勿分享。凭据及持仓在本机加密保存，不进入备份，也不经过 Cashiro 服务器。重新安装后需重新连接。</string>
+    <string name="investments_help">查看 IBKR 官方配置说明</string>
+    <string name="investments_label">连接名称</string>
+    <string name="investments_connect_sync">连接并同步</string>
+    <string name="investments_error_credentials">请检查 Flex Token 和 Query ID，确认 Flex Web Service 已启用。</string>
+    <string name="investments_error_expired">Token 已过期。请在 IBKR 生成新 Token，断开此连接后重新添加。</string>
+    <string name="investments_error_ip">IBKR 限制了访问 IP，请检查 Token 的 IP 限制设置。</string>
+    <string name="investments_error_query">请使用 XML Activity Flex Query，加入 Open Positions（Summary）及全部字段。</string>
+    <string name="investments_error_pending">报表尚未就绪，请稍后刷新。已有持仓保留。</string>
+    <string name="investments_error_rate">请求过于频繁，请至少等一分钟再刷新。</string>
+    <string name="investments_error_network">连接未成功，请检查网络后重试。已有持仓保留。</string>
+    <string name="investments_error_report">报表格式或字段与配置不符，请检查 XML、日期格式和持仓汇总字段。已有持仓保留。</string>
+    <string name="investments_error_provider">此版本尚未支持该券商连接。</string>
+    <string name="investments_error_storage">本机加密存储读写失败，本次操作未保存。请重试，现有记账数据不受影响。</string>
+    <string name="investments_error_duplicate">该连接或券商账户已添加，请刷新已有连接。</string>
+</resources>

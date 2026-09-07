@@ -427,6 +427,12 @@ fun SharedTransitionScope.HomeScreen(
                     ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
+                item(key = "investments_shortcut") {
+                    com.ritesh.cashiro.presentation.ui.features.investments.InvestmentsShortcut(
+                        onClick = { navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.Investments) },
+                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                    )
+                }
                 homeWidgets.forEach { widgetModel ->
                     if (widgetModel.isVisible) {
                         when (widgetModel.widget) {
