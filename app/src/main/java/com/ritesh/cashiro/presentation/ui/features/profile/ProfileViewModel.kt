@@ -16,6 +16,9 @@ import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.domain.model.PersonCategory
 import com.ritesh.cashiro.domain.usecase.AddEditLendBorrowPersonUseCase
+import com.ritesh.cashiro.domain.usecase.netWorthIn
+import com.ritesh.cashiro.domain.usecase.hiddenAccountKeys
+import com.ritesh.cashiro.domain.usecase.excludingHidden
 import com.ritesh.cashiro.domain.usecase.GetLendBorrowPersonsUseCase
 import com.ritesh.cashiro.utils.ImageUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -103,22 +106,11 @@ constructor(
             currencyRepository.effectiveBaseCurrencyCode,
             currencyConversionService.rateChangeTrigger
         ) { allBalances, baseCurrency, _ ->
-            if (allBalances.isEmpty()) return@combine BigDecimal.ZERO
-
-            var total = BigDecimal.ZERO
-            for (account in allBalances) {
-                val amt = if (account.currency == baseCurrency) {
-                    account.balance
-                } else {
-                    currencyConversionService.convertAmount(
-                        amount = account.balance,
-                        fromCurrency = account.currency,
-                        toCurrency = baseCurrency
-                    )
-                }
-                total = total.add(amt)
-            }
-            total
+            // Must match the home screen exactly: hidden accounts excluded, credit-card
+            // balances treated as debt rather than as assets.
+            allBalances
+                .excludingHidden(context.hiddenAccountKeys())
+                .netWorthIn(baseCurrency, currencyConversionService)
         }.onEach { total ->
             _state.update { it.copy(netWorth = total) }
         }.launchIn(viewModelScope)
