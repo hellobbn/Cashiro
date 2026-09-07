@@ -42,7 +42,6 @@ import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -110,15 +109,12 @@ import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy.DataPrivacyViewModel
-import com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy.PdfImportSheet
-import com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy.PdfProcessingDialog
 import com.ritesh.cashiro.presentation.ui.icons.Bag
 import com.ritesh.cashiro.presentation.ui.icons.DirectboxReceive
 import com.ritesh.cashiro.presentation.ui.icons.DirectboxSend
 import com.ritesh.cashiro.presentation.ui.icons.Folder2
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.icons.ImportArrow01
-import com.ritesh.cashiro.presentation.ui.icons.Information
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.blue_dark
@@ -183,11 +179,6 @@ fun BackupSyncScreen(
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri -> uri?.let { dataPrivacyViewModel.importBackup(it) } }
-    )
-
-    val pdfImportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri -> uri?.let { dataPrivacyViewModel.analyzePdfStatement(it) } }
     )
 
     val cashewImportLauncher = rememberLauncherForActivityResult(
@@ -906,36 +897,6 @@ fun BackupSyncScreen(
                             padding = PaddingValues(0.dp)
                         )
 
-                        // Import PDF Statement
-                        ListItem(
-                            headline = { Text(stringResource(R.string.import_pdf_statement)) },
-                            supporting = { Text(stringResource(R.string.import_pdf_statement_sub)) },
-                            leading = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .background(orange_light, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.PictureAsPdf,
-                                        contentDescription = null,
-                                        tint = orange_dark
-                                    )
-                                }
-                            },
-                            trailing = {
-                                Icon(
-                                    Icons.Rounded.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = { pdfImportLauncher.launch("application/pdf") },
-                            shape = ListItemPosition.Middle.toShape(),
-                            padding = PaddingValues(0.dp)
-                        )
-
                         // Import from Cashew
                         ListItem(
                             headline = { Text(stringResource(R.string.import_cashew_backup)) },
@@ -965,43 +926,6 @@ fun BackupSyncScreen(
                             shape = ListItemPosition.Bottom.toShape(),
                             padding = PaddingValues(0.dp)
                         )
-
-                        // PDF Support Warning
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = Spacing.sm),
-                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
-                            shape = MaterialTheme.shapes.large,
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(Spacing.md),
-                                verticalAlignment = Alignment.Top,
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-                            ) {
-                                Icon(
-                                    imageVector = Iconax.Information,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(Spacing.xs)
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.pdf_support_warning_title),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onErrorContainer,
-                                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.pdf_support_warning_sub),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onErrorContainer.copy(0.8f)
-                                    )
-                                }
-                            }
-                        }
                     }
                     }
                 }
@@ -1417,27 +1341,6 @@ fun BackupSyncScreen(
         )
     }
 
-    // PDF Processing / Error dialog
-    if (dataPrivacyUiState.isPdfProcessing || dataPrivacyUiState.pdfProcessingError != null) {
-        PdfProcessingDialog(
-            isVisible = dataPrivacyUiState.isPdfProcessing,
-            error = dataPrivacyUiState.pdfProcessingError,
-            onDismissError = { dataPrivacyViewModel.dismissPdfImport() },
-            blurEffects = blurEffects,
-            hazeState = hazeState
-        )
-    }
-
-    // PDF Import Review BottomSheet (Unified review of accounts and transactions)
-    dataPrivacyUiState.pdfAnalysisResult?.let { result ->
-        PdfImportSheet(
-            analysisResult = result,
-            onConfirm = { transactionDecisions, accountDecisions -> 
-                dataPrivacyViewModel.confirmPdfImport(accountDecisions, transactionDecisions)
-            },
-            onDismiss = { dataPrivacyViewModel.dismissPdfImport() }
-        )
-    }
 }
 
 @Composable
