@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -49,38 +51,42 @@ jobs:
         run: |
           VERSION=$(grep 'versionName = ' app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
           CODE=$(grep 'versionCode = ' app/build.gradle.kts | sed 's/[^0-9]*//g')
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          COMMIT_COUNT=$(git rev-list --count HEAD)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
           echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
-          echo "Debug version $VERSION ($CODE) @ $SHORT_SHA"
+          echo "commit_count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+          echo "Debug c$COMMIT_COUNT $VERSION ($CODE) @ $SHORT_SHA"
 
-      - name: Build standard debug APKs
+      - name: Build slim standard debug APK
         env:
           GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx6G"
-        run: ./gradlew assembleStandardDebug --no-configuration-cache --stacktrace
+        run: |
+          ./gradlew assembleStandardDebug --no-configuration-cache --stacktrace \
+            -PslimDebug \
+            -PgitCommitCount=${{ steps.version.outputs.commit_count }} \
+            -PgitSha=${{ steps.version.outputs.short_sha }}
 
       - name: Stage APKs
-        id: stage
         run: |
           SRC="app/build/outputs/apk/standard/debug"
           OUT="dist/debug"
           mkdir -p "$OUT"
-          VERSION="${{ steps.version.outputs.version }}"
+          COUNT="${{ steps.version.outputs.commit_count }}"
           SHA="${{ steps.version.outputs.short_sha }}"
+          TARGET="$OUT/Cashiro-debug-c${COUNT}-${SHA}-arm64-v8a.apk"
           shopt -s nullglob
-          if [[ -f "$SRC/app-standard-universal-debug.apk" ]]; then
-            cp "$SRC/app-standard-universal-debug.apk" "$OUT/Cashiro-debug-v${VERSION}-${SHA}-universal.apk"
-          fi
           if [[ -f "$SRC/app-standard-arm64-v8a-debug.apk" ]]; then
-            cp "$SRC/app-standard-arm64-v8a-debug.apk" "$OUT/Cashiro-debug-v${VERSION}-${SHA}-arm64-v8a.apk"
-          fi
-          ls -la "$OUT"
-          if ! compgen -G "$OUT/*.apk" > /dev/null; then
-            echo "::error::No debug APKs found in $SRC"
+            cp "$SRC/app-standard-arm64-v8a-debug.apk" "$TARGET"
+          elif [[ -f "$SRC/app-standard-debug.apk" ]]; then
+            cp "$SRC/app-standard-debug.apk" "$TARGET"
+          else
+            echo "::error::No debug APK found in $SRC"
             ls -la "$SRC" || true
             exit 1
           fi
+          ls -lh "$TARGET"
           (
             cd "$OUT"
             sha256sum *.apk | tee SHA256SUMS
@@ -89,17 +95,27 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cashiro-debug-${{ steps.version.outputs.short_sha }}
+          name: cashiro-debug-c${{ steps.version.outputs.commit_count }}-${{ steps.version.outputs.short_sha }}
           path: |
             dist/debug/*.apk
             dist/debug/SHA256SUMS
           retention-days: 14
 
+      - name: Drop previous debug assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view debug-latest >/dev/null 2>&1; then
+            gh release view debug-latest --json assets --jq '.assets[].name' | while read -r name; do
+              [ -n "$name" ] && gh release delete-asset debug-latest "$name" --yes || true
+            done
+          fi
+
       - name: Publish rolling debug release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: debug-latest
-          name: Debug build ${{ steps.version.outputs.version }} (${{ steps.version.outputs.short_sha }})
+          name: Debug c${{ steps.version.outputs.commit_count }} (${{ steps.version.outputs.short_sha }})
           prerelease: true
           make_latest: false
           files: |
@@ -108,8 +124,13 @@ jobs:
           body: |
             Sideload debug build from `${{ github.sha }}` on `main`.
 
-            - Version: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.code }})
-            - Commit: ${{ github.sha }}
-            - Signed with the Android debug keystore (will not update a release-signed install)
+            commit_count: ${{ steps.version.outputs.commit_count }}
+            commit: ${{ github.sha }}
 
-            Install the `arm64-v8a` APK on a physical phone, or the `universal` APK if you are unsure.
+            - Version: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.code }})
+            - Commit count: ${{ steps.version.outputs.commit_count }}
+            - ABI: arm64-v8a only
+            - Native libs are zip-compressed; debug minify/shrink is on
+            - Signed with the Android debug keystore
+
+            Install `Cashiro-debug-c${{ steps.version.outputs.commit_count }}-${{ steps.version.outputs.short_sha }}-arm64-v8a.apk`.
