@@ -2,7 +2,7 @@
 
 The catalog in `InstitutionCatalog.kt` includes mainland Chinese banks, Hong Kong and Singapore banks, US banks, and brokers. Search accepts simplified/traditional Chinese names, English names, abbreviations, region codes, and currency codes. Region filters distinguish mainland BOC from BOC Hong Kong and other regional identities. Selecting an institution sets its title and bundled icon; account currency remains editable and is never silently replaced.
 
-Icons are bundled PNGs retrieved on 2026-09-06, with CGB and Futu upgraded on 2026-09-07. The table records the exact retrieval URLs, including the cache URL when the asset came through Google's favicon cache. No network calls are made by the app to display these assets. Logos identify their respective institutions and remain their owners' trademarks; inclusion does not imply affiliation or endorsement. These are visual account presets, not bank integrations or new SMS parsers.
+Icons are bundled images retrieved on 2026-09-06, with CGB, Futu, and CMB upgraded on 2026-09-07. The table records the exact retrieval URLs, including the cache URL when the asset came through Google's favicon cache. No network calls are made by the app to display these assets. Logos identify their respective institutions and remain their owners' trademarks; inclusion does not imply affiliation or endorsement. These are visual account presets, not bank integrations or new SMS parsers.
 
 SVG sources are the existing institution marks, rasterized to 192 px. UOB, Ping An, and CGB retain just the emblem from their official horizontal logos, with transparent square padding; no logo shapes were invented. Futu's official 782 px square social image is reduced to 192 px. BOC uses the same 128 px emblem retrieved for BOCHK, which shares its parent bank's mark. The CompaniesLogo sources below are third-party reproductions of the bank marks, not official download endpoints.
 
@@ -10,7 +10,7 @@ SVG sources are the existing institution marks, rasterized to 192 px. UOB, Ping 
 | --- | --- | --- | --- |
 | `boc` | https://boc.cn | [Source](https://www.google.com/s2/favicons?domain=bochk.com&sz=128) | 128 × 128 |
 | `ccb` | https://ccb.com | [Source](https://www.google.com/s2/favicons?domain=ccb.com&sz=128) | 114 × 114 |
-| `cmb` | https://cmbchina.com | [Source](https://www.google.com/s2/favicons?domain=cmbchina.com&sz=128) | 114 × 114 |
+| `cmb` | https://cmbchina.com | [Official App Store artwork](https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/86/ac/a0/86aca000-2f95-cedd-b1e8-f7eda1697143/AppIcon26-0-0-1x_U007epad-0-1-0-0-sRGB-85-220.png/512x512bb.jpg) | 512 × 512 (JPEG) |
 | `icbc` | https://icbc.com.cn | [Source](https://www.google.com/s2/favicons?domain=icbc.com.cn&sz=128) | 128 × 128 |
 | `abc` | https://abchina.com | [Source](https://companieslogo.com/img/orig/601288.SS-b2a444ea.svg?t=1720244490&download=true) | 192 × 192 |
 | `bocom` | https://bankcomm.com | [Source](https://companieslogo.com/img/orig/601328.SS-2cea774f.svg?t=1720244490&download=true) | 192 × 192 |
@@ -44,3 +44,5 @@ SVG sources are the existing institution marks, rasterized to 192 px. UOB, Ping 
 | `futu` | https://futuhk.com | [Source](https://static.futunn.com/futuhk_common/images/logo_hk.png) | 192 × 192 |
 
 Validation on 2026-09-07: all 34 PNGs decode and were inspected together for visible institution marks. Vanguard remains 32 px; Fidelity and Hang Seng are 48 px, and DBS and OCBC are 64 px, so these may look softer on high-density screens. Vanguard's official [favicon](https://investor.vanguard.com/corporate-portal/assets/favicon.ico) was also checked and contains only 16 and 32 px frames; the existing compact V was retained. Hang Seng's red emblem was checked against its official website and is intentional despite its familiar green wordmark.
+
+CMB update on 2026-09-07: replaced the low-resolution, text-heavy favicon with the unchanged 512 px artwork of the official [招商银行 app](https://apps.apple.com/cn/app/id392899425), published by CHINA MERCHANTS BANK CO.,LTD. The bank’s [app download page](https://m.cmbchina.com/app) links to this App Store ID. The resource name `ic_institution_cmb` is unchanged, so saved icon names and institution aliases continue to resolve.

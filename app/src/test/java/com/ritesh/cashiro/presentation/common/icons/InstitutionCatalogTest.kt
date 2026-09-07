@@ -1,9 +1,19 @@
 package com.ritesh.cashiro.presentation.common.icons
 
+import com.ritesh.cashiro.R
 import org.junit.Assert.*
 import org.junit.Test
 
 class InstitutionCatalogTest {
+    @Test fun `CMB icon update preserves aliases and the stored resource name`() {
+        listOf("招商银行", "招商銀行", "招行", "CMB", "China Merchants Bank").forEach { name ->
+            val institution = requireNotNull(InstitutionCatalog.find(name))
+            assertEquals("cmb", institution.id)
+            assertEquals(R.drawable.ic_institution_cmb, institution.iconResId)
+            assertEquals("ic_institution_cmb", institution.iconName)
+        }
+    }
+
     @Test fun `requested institutions resolve by familiar names`() {
         mapOf(
             "IBKR" to "ibkr", "Chase" to "chase", "BofA" to "bofa",

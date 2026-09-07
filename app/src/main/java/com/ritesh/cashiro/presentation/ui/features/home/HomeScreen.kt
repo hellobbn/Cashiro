@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -97,8 +96,6 @@ import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
 import com.ritesh.cashiro.data.preferences.HomeWidget
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.navigation.AccountDetail
 import com.ritesh.cashiro.presentation.navigation.NotificationSettings
@@ -418,13 +415,11 @@ fun SharedTransitionScope.HomeScreen(
                 }
             }
 
-            LazyColumn(
+            HomeContentList(
                 state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
-                    .overScrollVertical(),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                    .hazeSource(state = hazeState),
                 contentPadding =
                     PaddingValues(
                         top = Dimensions.Padding.content + paddingValues.calculateTopPadding(),
