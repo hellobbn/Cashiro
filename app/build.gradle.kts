@@ -37,12 +37,10 @@ val slimDebug = project.hasProperty("slimDebug")
 android {
     namespace = "com.ritesh.cashiro"
     compileSdk = 36
-
     buildFeatures {
         buildConfig = true
         compose = true
     }
-
     defaultConfig {
         applicationId = "com.ritesh.cashiro"
         minSdk = 26
@@ -50,18 +48,13 @@ android {
         versionCode = 94
         versionName = "2.1.61-beta"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
         val commitCount = gitCommitCount()
         val sha = gitSha()
         buildConfigField("int", "GIT_COMMIT_COUNT", commitCount.toString())
         buildConfigField("String", "GIT_SHA", "\"$sha\"")
-
         if (slimDebug) {
-            ndk {
-                abiFilters += "arm64-v8a"
-            }
+            ndk { abiFilters += "arm64-v8a" }
         }
-
         val localPropertiesFile = rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
             val localProperties = Properties()
@@ -72,7 +65,6 @@ android {
             buildConfigField("String", "RSA_PUBLIC_KEY", "\"\"")
         }
     }
-
     signingConfigs {
         create("release") {
             val localPropertiesFile = rootProject.file("local.properties")
@@ -89,21 +81,17 @@ android {
             }
         }
     }
-
     flavorDimensions += "version"
     productFlavors {
         create("fdroid") {
             dimension = "version"
-            ndk {
-                abiFilters += setOf("arm64-v8a", "armeabi-v7a")
-            }
+            ndk { abiFilters += setOf("arm64-v8a", "armeabi-v7a") }
         }
         create("standard") {
             dimension = "version"
             isDefault = true
         }
     }
-
     splits {
         abi {
             val runTasks = gradle.startParameter.taskNames.map { it.lowercase() }
@@ -115,7 +103,6 @@ android {
             isUniversalApk = !slimDebug
         }
     }
-
     buildTypes {
         debug {
             if (slimDebug) {
@@ -135,55 +122,35 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
-            ndk {
-                debugSymbolLevel = "SYMBOL_TABLE"
-            }
+            ndk { debugSymbolLevel = "SYMBOL_TABLE" }
         }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
     kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
             freeCompilerArgs.add("-Xannotation-default-target=param-property")
         }
     }
-
     packaging {
-        jniLibs {
-            useLegacyPackaging = true
-        }
+        jniLibs { useLegacyPackaging = true }
         resources {
-            excludes += setOf(
-                "META-INF/LICENSE*",
-                "META-INF/NOTICE*",
-                "META-INF/*.kotlin_module"
-            )
+            excludes += setOf("META-INF/LICENSE*", "META-INF/NOTICE*", "META-INF/*.kotlin_module")
         }
     }
-
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
     }
-
-    testOptions {
-        unitTests.isReturnDefaultValues = true
-    }
-
+    testOptions { unitTests.isReturnDefaultValues = true }
     lint {
         abortOnError = false
         checkReleaseBuilds = false
         lintConfig = file("lint.xml")
-        disable += setOf(
-            "GradleDependency",
-            "AndroidGradlePluginVersion",
-            "NewerVersionAvailable"
-        )
+        disable += setOf("GradleDependency", "AndroidGradlePluginVersion", "NewerVersionAvailable")
     }
 }
 
@@ -194,8 +161,8 @@ ksp {
 }
 
 dependencies {
-    implementation(libs.androidx.compose.animation)
     implementation(project(":parser-core"))
+    implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -233,7 +200,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
-    implementation(libs.litertlm.android)
     "standardImplementation"(libs.app.update)
     "standardImplementation"(libs.app.update.ktx)
     "standardImplementation"(libs.review)

@@ -2,27 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- SMS Permissions for reading and receiving transaction messages -->
-    <uses-permission android:name="android.permission.READ_SMS" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-
-    <!-- Notification permission for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- Alarm permissions -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
-    <!-- Telephony hardware feature (optional for ChromeOS compatibility) -->
-    <uses-feature android:name="android.hardware.telephony" android:required="false" />
-
-    <!-- Internet permission for downloading AI model -->
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Biometric permission for app lock feature -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-
-    <!-- Explicitly remove AD_ID permission to ensure privacy -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <application
@@ -75,9 +59,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity-alias>
 
         <activity-alias
@@ -93,9 +75,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity-alias>
 
         <activity-alias
@@ -111,9 +91,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity-alias>
 
         <activity-alias
@@ -129,19 +107,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity-alias>
-        
-        <!-- Crash report screen – launched in a separate process so it survives main-process death -->
+
         <activity
             android:name=".presentation.ui.screens.crash.CrashActivity"
             android:exported="false"
             android:theme="@style/Theme.CashiroCompose"
             android:process=":crash" />
 
-        <!-- Disable default WorkManager initialization -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -152,8 +126,7 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
-        
-        <!-- FileProvider for CSV export -->
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -164,17 +137,6 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- SMS BroadcastReceiver for real-time transaction processing -->
-        <receiver
-            android:name=".receiver.SmsBroadcastReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter android:priority="999">
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- Notification Action Receiver for handling notification button actions -->
         <receiver
             android:name=".receiver.NotificationActionReceiver"
             android:exported="false">
@@ -184,12 +146,10 @@
             </intent-filter>
         </receiver>
 
-        <!-- Reminder Receiver for daily alerts -->
         <receiver
             android:name=".receiver.ReminderReceiver"
             android:exported="false" />
 
-        <!-- Boot Receiver for rescheduling alarms on reboot -->
         <receiver
             android:name=".receiver.BootReceiver"
             android:exported="true">
@@ -202,7 +162,6 @@
             android:name=".receiver.WebhookSyncAlarmReceiver"
             android:exported="false" />
 
-        <!-- Quick Settings Tiles -->
         <service
             android:name=".service.AddTransactionTileService"
             android:exported="true"
@@ -236,7 +195,6 @@
             </intent-filter>
         </service>
 
-        <!-- Service to enable in-app language switching persistence on all Android versions -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
@@ -244,17 +202,6 @@
             <meta-data
                 android:name="autoStoreLocales"
                 android:value="true" />
-        </service>
-
-        <!-- Notification Listener Service for intercepting bank push notifications -->
-        <service
-            android:name=".receiver.BankNotificationListenerService"
-            android:exported="true"
-            android:label="Bank Notification Listener"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
         </service>
     </application>
 
