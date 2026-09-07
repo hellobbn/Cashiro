@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="institution_choose">Choose bank or broker</string>
+    <string name="institution_search">Search name or abbreviation</string>
+    <string name="institution_region_all">All</string>
+    <string name="institution_region_cn">Mainland China</string>
+    <string name="institution_region_hk">Hong Kong</string>
+    <string name="institution_region_sg">Singapore</string>
+    <string name="institution_region_us">United States</string>
+    <string name="institution_no_results">No matching institution. Try another name, or close this list to enter a custom account.</string>
+    <string name="institution_icons">Banks &amp; brokers</string>
+</resources>

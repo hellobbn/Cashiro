@@ -294,6 +294,14 @@ private fun getAllIcons(context: Context): List<IconItem> {
         icons.add(IconItem(name, category, iconName, resId))
     }
 
+    com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog.institutions.forEach { institution ->
+        addIcon(
+            (institution.searchTerms + institution.region).joinToString(" · "),
+            context.getString(R.string.institution_icons),
+            institution.iconResId
+        )
+    }
+
     // Animals
     addIcon("Bear", "Animals", R.drawable.type_animal_bear)
     addIcon("Bird", "Animals", R.drawable.type_animal_bird)

@@ -348,6 +348,7 @@ object BrandIcons {
     )
     
     fun getIconResource(merchantName: String): Int? {
+        InstitutionCatalog.find(merchantName)?.let { return it.iconResId }
         val normalized = merchantName.lowercase()
 
         if (normalized.contains("cred") && !normalized.contains("credit")) {
@@ -362,7 +363,7 @@ object BrandIcons {
             ?.value
     }
     
-    fun getBrandColor(merchantName: String): String? = when {
+    fun getBrandColor(merchantName: String): String? = InstitutionCatalog.find(merchantName)?.color ?: when {
         // Entertainment
         merchantName.contains("netflix", ignoreCase = true) -> "#E50914"
         merchantName.contains("spotify", ignoreCase = true) -> "#1DB954"
