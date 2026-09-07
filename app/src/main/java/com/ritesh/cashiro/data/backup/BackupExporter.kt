@@ -159,8 +159,6 @@ class BackupExporter @Inject constructor(
         val accountBalances = if (config.includeTransactionalData) database.accountBalanceDao().getAllBalances().first() else emptyList()
         val subscriptions = if (config.includeBudgets) database.subscriptionDao().getAllSubscriptions().first() else emptyList()
         val merchantMappings = if (config.includeProfileData) database.merchantMappingDao().getAllMappings().first() else emptyList()
-        val unrecognizedSms = if (config.includeTransactionalData) database.unrecognizedSmsDao().getAllUnrecognizedSms().first() else emptyList()
-        val chatMessages = if (config.includeTransactionalData) database.chatDao().getAllMessages().first() else emptyList()
         val budgets = if (config.includeBudgets) database.budgetDao().getAllBudgets().first() else emptyList()
         val budgetCategoryLimits = if (config.includeBudgets) database.budgetDao().getAllCategoryLimits().first() else emptyList()
         val subcategories = if (config.includeProfileData) database.subcategoryDao().getAllSubcategories().first() else emptyList()
@@ -245,8 +243,6 @@ class BackupExporter @Inject constructor(
                 accountBalances = accountBalances,
                 subscriptions = subscriptions,
                 merchantMappings = merchantMappings,
-                unrecognizedSms = if (config.privacy == ExportPrivacy.FULL) unrecognizedSms else emptyList(),
-                chatMessages = if (config.privacy == ExportPrivacy.FULL) chatMessages else emptyList(),
                 budgets = budgets,
                 budgetCategoryLimits = budgetCategoryLimits,
                 subcategories = subcategories,

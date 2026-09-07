@@ -12,15 +12,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,18 +26,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Sync
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -62,6 +53,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.R
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import androidx.navigation.NavHostController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -71,7 +64,6 @@ import androidx.navigation.toRoute
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.data.preferences.NavigationBarStyle
-import com.ritesh.cashiro.presentation.ui.components.SmsParsingProgressDialog
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.AddAccountScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.ManageAccountsScreen
@@ -81,10 +73,8 @@ import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetHistoryScreen
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetsScreen
 import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesScreen
-import com.ritesh.cashiro.presentation.ui.features.chat.ChatScreen
 import com.ritesh.cashiro.presentation.ui.features.contacts.ContactsScreen
 import com.ritesh.cashiro.presentation.ui.features.home.HomeScreen
-import com.ritesh.cashiro.presentation.ui.features.home.HomeViewModel
 import com.ritesh.cashiro.presentation.ui.features.lendborrow.LendBorrowScreen
 import com.ritesh.cashiro.presentation.ui.features.lendborrow.PersonDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.onboarding.OnBoardingScreen
@@ -103,8 +93,6 @@ import com.ritesh.cashiro.presentation.ui.features.settings.notifications.Notifi
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.CreateRuleScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.RulesScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.RulesViewModel
-import com.ritesh.cashiro.presentation.ui.features.settings.sms.SMSScreen
-import com.ritesh.cashiro.presentation.ui.features.settings.unrecognized.UnrecognizedSmsScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.webhooks.WebhookEditorScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.webhooks.WebhooksScreen
 import com.ritesh.cashiro.presentation.ui.features.subscriptions.SubscriptionsScreen
@@ -113,7 +101,6 @@ import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionDetai
 import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsScreen
 import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsViewModel
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
-import com.ritesh.cashiro.presentation.ui.icons.AiCommentary
 import com.ritesh.cashiro.presentation.ui.icons.Search
 import com.ritesh.cashiro.presentation.ui.icons.ImportArrow01
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
@@ -121,6 +108,7 @@ import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -151,15 +139,10 @@ fun CashiroNavHost(
         currentRoute?.contains(qualifiedName ?: "") == true
     }
 
-    val homeViewModel: HomeViewModel = hiltViewModel()
     val transactionsViewModel: TransactionsViewModel = hiltViewModel()
-    val homeUiState by homeViewModel.uiState.collectAsState()
-    val transactionsUiState by transactionsViewModel.uiState.collectAsState()
-    val smsScanWorkInfo by homeViewModel.smsScanWorkInfo.collectAsState()
     val view = LocalView.current
 
     // State for full resync confirmation dialog
-    var showFullResyncDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
 
     val isHomeScreen = currentRoute?.contains(Home::class.qualifiedName ?: "") == true
@@ -238,7 +221,6 @@ fun CashiroNavHost(
                         HomeScreen(
                             navController = navController,
                             onNavigateToSettings = { navController.safeNavigate(Settings) },
-                            onNavigateToChat = { navController.safeNavigate(Chat) },
                             onNavigateToTransactions = { navController.safeNavigate(Transactions()) },
                             onNavigateToTransactionsWithSearch = {
                                 navController.safeNavigate(Transactions(focusSearch = true))
@@ -258,7 +240,6 @@ fun CashiroNavHost(
                             onTransactionClick = { transactionId, key ->
                                 navController.safeNavigate(TransactionDetail(transactionId, key))
                             },
-                            onFullResyncClick = { showFullResyncDialog = true },
                             animatedContentScope = this@composable,
                         )
                     }
@@ -289,20 +270,6 @@ fun CashiroNavHost(
                     }
                 }
 
-                // Chat Screen
-                composable<Chat>(
-                    enterTransition = CashiroTransitions.verticalSlideEnter,
-                    exitTransition = CashiroTransitions.verticalSlideExit,
-                    popEnterTransition = CashiroTransitions.verticalSlidePopEnter,
-                    popExitTransition = CashiroTransitions.verticalSlidePopExit
-                ) {
-                    ChatScreen(
-                        modifier = Modifier.imePadding(),
-                        onNavigateToSettings = { navController.safeNavigate(Settings) },
-                        onNavigateBack = { navController.safePopBackStack() }
-                    )
-                }
-
                 /* SETTINGS & SUB-SCREENS ---- */
                 composable<Settings>(
                     enterTransition = CashiroTransitions.horizontalSlideEnter,
@@ -317,7 +284,6 @@ fun CashiroNavHost(
                         onNavigateToRules = { navController.safeNavigate(Rules) },
                         onNavigateToAppearance = { navController.safeNavigate(Appearance) },
                         onNavigateToProfile = { navController.safeNavigate(Profile) },
-                        onNavigateToSms = { navController.safeNavigate(SmsSettings) },
                         onNavigateToNotifications = { navController.safeNavigate(NotificationSettings) },
                         onNavigateToWebhooks = { navController.safeNavigate(Webhooks) },
                         onNavigateToBudgets = { navController.safeNavigate(Budgets()) },
@@ -419,19 +385,6 @@ fun CashiroNavHost(
                     )
                 }
 
-                composable<SmsSettings>(
-                    enterTransition = CashiroTransitions.horizontalSlideEnter,
-                    exitTransition = CashiroTransitions.horizontalSlideExit,
-                    popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
-                    popExitTransition = CashiroTransitions.horizontalSlidePopExit
-                ) {
-                    SMSScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToUnrecognizedSms = { navController.safeNavigate(UnrecognizedSms) },
-                        blurEffects = themeUiState.blurEffects
-                    )
-                }
-
                 composable<CurrencySettings>(
                     enterTransition = CashiroTransitions.horizontalSlideEnter,
                     exitTransition = CashiroTransitions.horizontalSlideExit,
@@ -517,17 +470,6 @@ fun CashiroNavHost(
                     CategoriesScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         blurEffects = themeUiState.blurEffects
-                    )
-                }
-
-                composable<UnrecognizedSms>(
-                    enterTransition = CashiroTransitions.horizontalSlideEnter,
-                    exitTransition = CashiroTransitions.horizontalSlideExit,
-                    popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
-                    popExitTransition = CashiroTransitions.horizontalSlidePopExit
-                ) {
-                    UnrecognizedSmsScreen(
-                        onNavigateBack = { navController.safePopBackStack() }
                     )
                 }
 
@@ -874,52 +816,21 @@ fun CashiroNavHost(
                     ) {
                         val smallFabContainerColor =  MaterialTheme.colorScheme.tertiaryContainer
                         val smallFabContentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                        // Secondary FAB (Sync or Download)
-                        if (isHomeScreen || isTransactionsScreen) {
+                        // Secondary FAB (Export)
+                        if (isTransactionsScreen) {
                             SmallFloatingActionButton(
                                 onClick = {
-                                    if (isHomeScreen) {
-                                        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                        homeViewModel.scanSmsMessages()
-                                    } else if (isTransactionsScreen) {
-                                        showExportDialog = true
-                                    }
+                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                                    showExportDialog = true
                                 },
-                                modifier = Modifier
-                                    .pointerInput(isHomeScreen) {
-                                        if (isHomeScreen) {
-                                            detectTapGestures(
-                                                onLongPress = {
-                                                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                                                    showFullResyncDialog = true
-                                                }
-                                            )
-                                        } else {
-                                            // Use default click handling for Transactions screen
-                                            detectTapGestures(onTap = {
-                                                if (isTransactionsScreen) {
-                                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                                    showExportDialog = true
-                                                }
-                                            })
-                                        }
-                                    },
                                 containerColor = smallFabContainerColor,
                                 contentColor = smallFabContentColor,
                             ) {
-                                if (isHomeScreen) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Sync,
-                                        contentDescription = stringResource(R.string.sync_sms_cd),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = Iconax.ImportArrow01,
-                                        contentDescription = stringResource(R.string.export_transactions),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Iconax.ImportArrow01,
+                                    contentDescription = stringResource(R.string.export_transactions),
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
 
@@ -957,6 +868,7 @@ fun CashiroNavHost(
                                         .hazeEffect(
                                             state = hazeState,
                                             block = fun HazeEffectScope.() {
+                                                inputScale = HazeInputScale.Auto
                                                 style = HazeDefaults.style(
                                                     backgroundColor = Color.Transparent,
                                                     tint = HazeDefaults.tint(fabContainerColor),
@@ -980,106 +892,13 @@ fun CashiroNavHost(
                 }
             }
 
-            // Full Resync Confirmation Dialog
-            if (showFullResyncDialog) {
-                val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                AlertDialog(
-                    onDismissRequest = { showFullResyncDialog = false },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Sync,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    title = { Text(stringResource(R.string.full_resync)) },
-                    text = {
-                        Text(stringResource(R.string.full_resync_desc))
-                    },
-                    confirmButton = {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Row(
-                                modifier = Modifier.align(Alignment.Center),
-                                horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                            ) {
-                                Button(
-                                    onClick = { showFullResyncDialog = false },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                        contentColor = MaterialTheme.colorScheme.onSurface
-                                    ),
-                                    shape = RoundedCornerShape(
-                                        topStart = Dimensions.Radius.xxl,
-                                        topEnd = Dimensions.Radius.xs,
-                                        bottomStart = Dimensions.Radius.xxl,
-                                        bottomEnd = Dimensions.Radius.xs
-                                    ),
-                                    modifier = Modifier
-                                        .weight(0.8f)
-                                        .fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.cancel),
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                }
-                                Button(
-                                    onClick = {
-                                        showFullResyncDialog = false
-                                        homeViewModel.scanSmsMessages(
-                                            forceResync = true
-                                        )
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                    ),
-                                    shape = RoundedCornerShape(
-                                        topStart = Dimensions.Radius.xs,
-                                        topEnd = Dimensions.Radius.xxl,
-                                        bottomStart = Dimensions.Radius.xs,
-                                        bottomEnd = Dimensions.Radius.xxl
-                                    ),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.resync_all),
-                                        style = MaterialTheme.typography.titleMedium)
-                                }
-                            }
-                        }
-                    },
-                    containerColor = if (themeUiState.blurEffects)
-                        MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-                    else MaterialTheme.colorScheme.surfaceContainerLow,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .then(
-                            if (themeUiState.blurEffects) Modifier.hazeEffect(
-                                state = hazeState,
-                                block = fun HazeEffectScope.() {
-                                    style = HazeDefaults.style(
-                                        backgroundColor = Color.Transparent,
-                                        tint = HazeDefaults.tint(containerColor),
-                                        blurRadius = 20.dp,
-                                        noiseFactor = -1f,
-                                    )
-                                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                }
-                            ) else Modifier
-                        ),
-                    shape = RoundedCornerShape(16.dp),
-                    dismissButton = {}
-                )
-            }
 
 
             // Export Transactions Dialog (Only when on TransactionsScreen)
             if (showExportDialog && isTransactionsScreen) {
+                // Collected inside the branch so the export list is only observed while the
+                // dialog is actually open.
+                val transactionsUiState by transactionsViewModel.uiState.collectAsStateWithLifecycle()
                 ExportTransactionsDialog(
                     transactions = transactionsUiState.transactions,
                     onDismiss = { showExportDialog = false },
@@ -1087,22 +906,10 @@ fun CashiroNavHost(
                     hazeState = hazeState
                 )
             }
-
-            // SMS Parsing Progress Dialog
-            SmsParsingProgressDialog(
-                isVisible = homeUiState.isScanning,
-                workInfo = smsScanWorkInfo,
-                onDismiss = { homeViewModel.cancelSmsScan() },
-                onCancel = { homeViewModel.cancelSmsScan() },
-                blurEffects = themeUiState.blurEffects,
-                hazeState = hazeState
-            )
         }
 
         val optionsDesc = stringResource(R.string.options_desc)
         val addTransactionLbl = stringResource(R.string.add_transaction)
-        val syncSmsLbl = stringResource(R.string.sync_sms)
-        val askAiLbl = stringResource(R.string.ask_ai)
         val exportLbl = stringResource(R.string.export)
         val searchLbl = stringResource(R.string.search)
 
@@ -1131,59 +938,7 @@ fun CashiroNavHost(
                         }
 
 
-                        if (isHomeScreen) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(min = 48.dp)
-                                    .combinedClickable(
-                                        onClick = {
-                                            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                            dismiss()
-                                            homeViewModel.scanSmsMessages()
-                                        },
-                                        onLongClick = {
-                                            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                                            dismiss()
-                                            showFullResyncDialog = true
-                                        }
-                                    )
-                                    .padding(MenuDefaults.DropdownMenuItemContentPadding),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Sync,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = syncSmsLbl,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            HorizontalDivider(
-                                thickness = 1.5.dp,
-                                color = MaterialTheme.colorScheme.surface.copy(0.6f)
-                            )
-
-                            DropdownMenuItem(
-                                text = { Text(
-                                    text = askAiLbl,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                ) },
-                                onClick = {
-                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    dismiss()
-                                    navController.safeNavigate(Chat)
-                                },
-                                leadingIcon = { Icon(Iconax.AiCommentary, contentDescription = null) }
-                            )
-                        } else if (isTransactionsScreen) {
+                        if (isTransactionsScreen) {
                             DropdownMenuItem(
                                 text = { Text(exportLbl) },
                                 onClick = {
@@ -1206,21 +961,7 @@ fun CashiroNavHost(
                                     }
                                 },
                                 leadingIcon = { Icon(Iconax.Search, contentDescription = null) }
-                            )
-                            HorizontalDivider(
-                                thickness = 1.5.dp,
-                                color = MaterialTheme.colorScheme.surface.copy(0.6f)
-                            )
-                            DropdownMenuItem(
-                                text = { Text(askAiLbl) },
-                                onClick = {
-                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    dismiss()
-                                    navController.safeNavigate(Chat)
-                                },
-                                leadingIcon = { Icon(Iconax.AiCommentary, contentDescription = null) }
-                            )
-                        }
+                            )                        }
                     }
                 )
             } else null

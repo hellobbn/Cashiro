@@ -20,9 +20,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# LiteRT (Edge AI) - Critical for JNI method resolution
--keep class com.google.ai.edge.litertlm.** { *; }
-
 # Room
 -keep class * extends androidx.room.RoomDatabase
 -keep @androidx.room.Entity class *

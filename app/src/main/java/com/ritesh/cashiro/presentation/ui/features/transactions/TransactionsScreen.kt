@@ -181,7 +181,6 @@ fun TransactionsScreen(
     val selectedCurrency by transactionsViewModel.selectedCurrency.collectAsStateWithLifecycle()
     val baseCurrency by transactionsViewModel.baseCurrency.collectAsStateWithLifecycle()
     val sortOption by transactionsViewModel.sortOption.collectAsStateWithLifecycle()
-    val smsScanMonths by transactionsViewModel.smsScanMonths.collectAsStateWithLifecycle()
     val customDateRange by transactionsViewModel.customDateRange.collectAsStateWithLifecycle()
     val selectionMode by transactionsViewModel.selectionMode.collectAsStateWithLifecycle()
     val selectedTransactionIds by transactionsViewModel.selectedTransactionIds.collectAsStateWithLifecycle()
@@ -942,7 +941,7 @@ private fun EmptyTransactionsState(
                 if (searchQuery.isEmpty() && selectedPeriod == TimePeriod.ALL) {
                     Spacer(modifier = Modifier.height(Spacing.xs))
                     Text(
-                        text = stringResource(R.string.sync_sms_to_see_transactions),
+                        text = stringResource(R.string.transactions_appear_here),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

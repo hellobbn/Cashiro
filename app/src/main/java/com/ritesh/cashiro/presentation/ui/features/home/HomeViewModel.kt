@@ -8,11 +8,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
@@ -26,17 +21,18 @@ import com.ritesh.cashiro.data.repository.AccountBalanceRepository
 import com.ritesh.cashiro.data.repository.BudgetRepository
 import com.ritesh.cashiro.data.repository.CategoryRepository
 import com.ritesh.cashiro.data.repository.CurrencyRepository
-import com.ritesh.cashiro.data.repository.LlmRepository
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.repository.SubscriptionRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
-import com.ritesh.cashiro.data.repository.UnrecognizedSmsRepository
+import com.ritesh.cashiro.domain.usecase.excludingHidden
+import com.ritesh.cashiro.domain.usecase.netWorthIn
 import com.ritesh.cashiro.domain.model.PersonInfo
 import com.ritesh.cashiro.presentation.ui.components.BalancePoint
-import com.ritesh.cashiro.worker.OptimizedSmsReaderWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -59,13 +55,11 @@ class HomeViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
-    private val llmRepository: LlmRepository,
     private val currencyConversionService: CurrencyConversionService,
     private val currencyRepository: CurrencyRepository,
     private val inAppUpdateManager: InAppUpdateManager,
     private val inAppReviewManager: InAppReviewManager,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val unrecognizedSmsRepository: UnrecognizedSmsRepository,
     private val categoryRepository: CategoryRepository,
     private val subcategoryRepository: SubcategoryRepository,
     private val budgetRepository: BudgetRepository,
@@ -79,10 +73,6 @@ class HomeViewModel @Inject constructor(
 
     private val _deletedTransaction = MutableStateFlow<TransactionEntity?>(null)
     val deletedTransaction: StateFlow<TransactionEntity?> = _deletedTransaction.asStateFlow()
-
-    // SMS scanning work progress tracking
-    private val _smsScanWorkInfo = MutableStateFlow<WorkInfo?>(null)
-    val smsScanWorkInfo: StateFlow<WorkInfo?> = _smsScanWorkInfo.asStateFlow()
 
     private val _homeWidgets = MutableStateFlow<List<HomeWidgetUiModel>>(emptyList())
     val homeWidgets: StateFlow<List<HomeWidgetUiModel>> = _homeWidgets.asStateFlow()
@@ -135,12 +125,6 @@ class HomeViewModel @Inject constructor(
                     bannerImageUri = preferences.bannerImageUri?.toUri(),
                     showBannerImage = preferences.showBannerImage
                 )
-            }
-        }
-
-        viewModelScope.launch {
-            unrecognizedSmsRepository.getUnreportedCount().collect { count ->
-                _uiState.value = _uiState.value.copy(unreadUpdatesCount = count)
             }
         }
 
@@ -206,7 +190,7 @@ class HomeViewModel @Inject constructor(
                 currencyConversionService.rateChangeTrigger
             ) { breakdownByCurrency, selectedCurrency, _ ->
                 updateBreakdownForSelectedCurrency(breakdownByCurrency, period = FinancialPeriod.CURRENT_MONTH, selectedCurrency = selectedCurrency)
-            }.collectLatest { }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -296,7 +280,7 @@ class HomeViewModel @Inject constructor(
                         selectedCurrency = selectedCurrency
                     )
                 }
-            }.collectLatest { }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -341,7 +325,7 @@ class HomeViewModel @Inject constructor(
                     currentMonthTransfer = transferTotal,
                     currentMonthInvestment = investmentTotal
                 ) }
-            }.collectLatest { }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -352,9 +336,10 @@ class HomeViewModel @Inject constructor(
             transactionRepository.getTransactionsBetweenDates(
                 startDate = startOfHeatmap,
                 endDate = endOfHeatmap
-            ).collect { transactions ->
-                val heatmap = transactions.groupBy { it.dateTime.toLocalDate() }
+            ).map { transactions ->
+                transactions.groupBy { it.dateTime.toLocalDate() }
                     .mapValues { it.value.size }
+            }.flowOn(Dispatchers.Default).collect { heatmap ->
                 _uiState.update { it.copy(transactionHeatmap = heatmap) }
             }
         }
@@ -367,7 +352,7 @@ class HomeViewModel @Inject constructor(
                 currencyConversionService.rateChangeTrigger
             ) { breakdownByCurrency, selectedCurrency, _ ->
                 updateBreakdownForSelectedCurrency(breakdownByCurrency, period = FinancialPeriod.LAST_MONTH, selectedCurrency = selectedCurrency)
-            }.collectLatest { }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -378,7 +363,7 @@ class HomeViewModel @Inject constructor(
                 currencyConversionService.rateChangeTrigger
             ) { breakdownByCurrency, selectedCurrency, _ ->
                 updateBreakdownForSelectedCurrency(breakdownByCurrency, period = FinancialPeriod.CURRENT_YEAR, selectedCurrency = selectedCurrency)
-            }.collectLatest { }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -400,7 +385,7 @@ class HomeViewModel @Inject constructor(
                     convertedAmounts = converted,
                     isLoading = false
                 ) }
-            }.collectLatest { }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -437,7 +422,7 @@ class HomeViewModel @Inject constructor(
                         upcomingSubscriptionsCurrency = targetCurrency
                     )
                 }
-            }.collectLatest { }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -478,7 +463,7 @@ class HomeViewModel @Inject constructor(
                 _uiState.update { 
                     it.copy(activeBudgets = convertedBudgets)
                 }
-            }.collectLatest { }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -596,21 +581,21 @@ class HomeViewModel @Inject constructor(
 
             // Re-fetch all accounts and filter
             accountBalanceRepository.getAllLatestBalances().first().let { allBalances: List<AccountBalanceEntity> ->
-                val visibleBalances: List<AccountBalanceEntity> = allBalances.filter { account: AccountBalanceEntity ->
-                    val key = "${account.bankName}_${account.accountLast4}"
-                    !hiddenAccounts.contains(key)
-                }
+                val visibleBalances: List<AccountBalanceEntity> = allBalances.excludingHidden(hiddenAccounts)
 
                 // Keep zero-balance accounts discoverable in the grouped account list.
                 val regularAccounts: List<AccountBalanceEntity> =
                     visibleBalances.filter { !it.isCreditCard }
                 val creditCards: List<AccountBalanceEntity> = visibleBalances.filter { it.isCreditCard }
 
+                val selectedCurrency = _uiState.value.selectedCurrency
+
                 // Update UI state
                 _uiState.value = _uiState.value.copy(
                     accountBalances = regularAccounts,
                     creditCards = creditCards,
-                    totalBalance = regularAccounts.sumOfBigDecimal { acc: AccountBalanceEntity -> acc.balance },
+                    // Same rule as the steady-state path: converted, and credit cards are debt.
+                    totalBalance = visibleBalances.netWorthIn(selectedCurrency, currencyConversionService),
                     totalAvailableCredit = creditCards.sumOfBigDecimal { card: AccountBalanceEntity ->
                         // Available = Credit Limit - Outstanding Balance
                         (card.creditLimit ?: BigDecimal.ZERO) - card.balance
@@ -618,67 +603,6 @@ class HomeViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    /**
-     * Scans SMS messages for transactions.
-     * @param forceResync If true, performs a full resync from scratch, reprocessing all SMS messages.
-     *                    This is useful when bank parsers have been updated and old transactions need to be re-parsed.
-     *                    If false (default), performs an incremental scan for new messages only.
-     */
-    fun scanSmsMessages(forceResync: Boolean = false) {
-        val inputData = workDataOf(
-            OptimizedSmsReaderWorker.INPUT_FORCE_RESYNC to forceResync
-        )
-
-        val workRequest = OneTimeWorkRequestBuilder<OptimizedSmsReaderWorker>()
-            .setInputData(inputData)
-            .addTag(OptimizedSmsReaderWorker.WORK_NAME)
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            OptimizedSmsReaderWorker.WORK_NAME,
-            ExistingWorkPolicy.REPLACE,
-            workRequest
-        )
-
-        // Update UI to show scanning
-        _uiState.value = _uiState.value.copy(isScanning = true)
-
-        // Track work progress
-        observeWorkProgress()
-    }
-
-    private fun observeWorkProgress() {
-        val workManager = WorkManager.getInstance(context)
-
-        // Use getWorkInfosById for more direct observation
-        workManager.getWorkInfosByTagLiveData(OptimizedSmsReaderWorker.WORK_NAME).observeForever { workInfos ->
-            val currentWork = workInfos.firstOrNull { it.tags.contains(OptimizedSmsReaderWorker.WORK_NAME) }
-            if (currentWork != null) {
-                _smsScanWorkInfo.value = currentWork
-
-                // Update scanning state based on work state
-                when (currentWork.state) {
-                    WorkInfo.State.SUCCEEDED,
-                    WorkInfo.State.FAILED,
-                    WorkInfo.State.CANCELLED,
-                    WorkInfo.State.BLOCKED -> {
-                        _uiState.value = _uiState.value.copy(isScanning = false)
-                    }
-                    else -> {
-                        // Still running or enqueued
-                        _uiState.value = _uiState.value.copy(isScanning = true)
-                    }
-                }
-            }
-        }
-    }
-
-    fun cancelSmsScan() {
-        val workManager = WorkManager.getInstance(context)
-        workManager.cancelUniqueWork(OptimizedSmsReaderWorker.WORK_NAME)
-        _uiState.value = _uiState.value.copy(isScanning = false)
     }
 
     fun refreshAccountBalances() {
@@ -750,15 +674,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun updateSystemPrompt() {
-        viewModelScope.launch {
-            try {
-                llmRepository.updateSystemPrompt()
-            } catch (e: Exception) {
-                // Handle error silently or add error state if needed
-            }
-        }
-    }
     fun hideBreakdownDialog() {
         _uiState.value = _uiState.value.copy(showBreakdownDialog = false)
     }

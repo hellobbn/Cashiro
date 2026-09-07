@@ -191,7 +191,6 @@ data class Transactions(
 
 @Serializable object Analytics
 
-@Serializable object Chat
 
 @Serializable data class TransactionDetail(val transactionId: Long, val sharedElementKey: String? = null)
 
@@ -199,7 +198,6 @@ data class Transactions(
 
 @Serializable data class AccountDetail(val bankName: String, val accountLast4: String)
 
-@Serializable object UnrecognizedSms
 
 @Serializable object Faq
 
@@ -220,7 +218,6 @@ data class Transactions(
     val sharedElementKey: String? = null
 )
 
-@Serializable object SmsSettings
 
 @Serializable object DataPrivacy
 @Serializable object CloudBackup

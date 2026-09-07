@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.ritesh.cashiro.MainActivity
 import com.ritesh.cashiro.R
+import com.ritesh.cashiro.core.NotificationChannels
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -45,10 +46,9 @@ class ReminderReceiver : BroadcastReceiver() {
 
         receiverScope.launch {
             try {
-                val scanEnabled = repository.scanNewTransactionsEnabled.first()
                 val upcomingEnabled = repository.upcomingNotificationsEnabled.first()
 
-                if (scanEnabled || upcomingEnabled) {
+                if (upcomingEnabled) {
                     sendReminderNotification(context)
                 } else {
                     Log.d(TAG, "Notifications are disabled, skipping")
@@ -63,8 +63,8 @@ class ReminderReceiver : BroadcastReceiver() {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val channel = NotificationChannel(
-            SmsBroadcastReceiver.CHANNEL_ID,
-            SmsBroadcastReceiver.CHANNEL_NAME,
+            NotificationChannels.REMINDER_CHANNEL_ID,
+            NotificationChannels.REMINDER_CHANNEL_NAME,
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = "Daily reminders to check transactions"
@@ -82,7 +82,7 @@ class ReminderReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, SmsBroadcastReceiver.CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, NotificationChannels.REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.cashiro)
             .setContentTitle("Daily Transaction Update")
             .setContentText("Don't forget to check your latest transactions and upcoming payments!")

@@ -42,6 +42,7 @@ import com.ritesh.cashiro.R
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 
@@ -142,6 +143,7 @@ fun DeleteTransactionDialog(
             if (blurEffects) Modifier.hazeEffect(
                 state = hazeState,
                 block = fun HazeEffectScope.() {
+                    inputScale = HazeInputScale.Auto
 
                     style = HazeDefaults.style(
                         backgroundColor = Color.Transparent,
@@ -249,6 +251,7 @@ fun DeleteMultipleTransactionsDialog(
             if (blurEffects) Modifier.hazeEffect(
                 state = hazeState,
                 block = fun HazeEffectScope.() {
+                    inputScale = HazeInputScale.Auto
 
                     style = HazeDefaults.style(
                         backgroundColor = Color.Transparent,
@@ -357,6 +360,7 @@ fun DeleteMultiplePersonsDialog(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
                             tint = HazeDefaults.tint(containerColor),
@@ -463,6 +467,7 @@ fun DeleteMultipleRecordsDialog(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
                             tint = HazeDefaults.tint(containerColor),
@@ -619,6 +624,7 @@ fun DeleteAccountDialog(
             if (blurEffects) Modifier.hazeEffect(
                 state = hazeState,
                 block = fun HazeEffectScope.() {
+                    inputScale = HazeInputScale.Auto
 
                     style = HazeDefaults.style(
                         backgroundColor = Color.Transparent,
@@ -712,6 +718,7 @@ fun DeleteCategoryDialog(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
 
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
@@ -793,6 +800,7 @@ fun DeleteCategoryDialog(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
 
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
@@ -887,6 +895,7 @@ fun DeleteBudgetDialog(
             if (blurEffects) Modifier.hazeEffect(
                 state = hazeState,
                 block = fun HazeEffectScope.() {
+                    inputScale = HazeInputScale.Auto
 
                     style = HazeDefaults.style(
                         backgroundColor = Color.Transparent,
@@ -902,109 +911,6 @@ fun DeleteBudgetDialog(
     )
 }
 
-@OptIn(ExperimentalHazeApi::class)
-@Composable
-fun DeleteAIModelDialog(
-    onDismiss: () -> Unit,
-    onDelete: () -> Unit,
-    blurEffects: Boolean = LocalBlurEffects.current,
-    hazeState: HazeState = remember { HazeState() },
-) {
-    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                Iconax.Danger,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
-            )
-        },
-        title = { Text(stringResource(R.string.delete_ai_model_title)) },
-        text = {
-            Text(
-                text = stringResource(R.string.delete_ai_model_confirm),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        },
-        confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-            }
-        },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-            if (blurEffects) Modifier.hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = HazeDefaults.tint(containerColor),
-                        blurRadius = 20.dp,
-                        noiseFactor = -1f,
-                    )
-                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                }
-            ) else Modifier
-        ),
-        shape = MaterialTheme.shapes.large
-    )
-}
 
 @OptIn(ExperimentalHazeApi::class)
 @Composable
@@ -1096,6 +1002,7 @@ fun DeleteSubscriptionDialog(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
 
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
@@ -1201,6 +1108,7 @@ fun DeleteSubcategoryDialog(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
 
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
@@ -1306,6 +1214,7 @@ fun DeleteCloudSnapshotDialog(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
 
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,

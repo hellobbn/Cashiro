@@ -11,11 +11,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ritesh.cashiro.data.database.converter.Converters
 import com.ritesh.cashiro.data.database.dao.AccountBalanceDao
-import com.ritesh.cashiro.data.database.dao.BankNotificationDao
 import com.ritesh.cashiro.data.database.dao.CardDao
 import com.ritesh.cashiro.data.database.dao.CategoryDao
-import com.ritesh.cashiro.data.database.dao.ChatDao
-import com.ritesh.cashiro.data.database.dao.ChatSessionDao
 
 import com.ritesh.cashiro.data.database.dao.ExchangeRateDao
 import com.ritesh.cashiro.data.database.dao.MerchantMappingDao
@@ -25,18 +22,14 @@ import com.ritesh.cashiro.data.database.dao.SubcategoryDao
 import com.ritesh.cashiro.data.database.dao.SubscriptionDao
 import com.ritesh.cashiro.data.database.dao.BudgetDao
 import com.ritesh.cashiro.data.database.dao.TransactionDao
-import com.ritesh.cashiro.data.database.dao.UnrecognizedSmsDao
 import com.ritesh.cashiro.data.database.dao.WebhookCursorDao
 import com.ritesh.cashiro.data.database.dao.WebhookLogDao
 import com.ritesh.cashiro.data.database.dao.WebhookProfileDao
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
-import com.ritesh.cashiro.data.database.entity.BankNotificationEntity
 import com.ritesh.cashiro.data.database.entity.BudgetCategoryLimitEntity
 import com.ritesh.cashiro.data.database.entity.BudgetEntity
 import com.ritesh.cashiro.data.database.entity.CardEntity
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
-import com.ritesh.cashiro.data.database.entity.ChatMessage
-import com.ritesh.cashiro.data.database.entity.ChatSession
 
 import com.ritesh.cashiro.data.database.entity.ExchangeRateEntity
 import com.ritesh.cashiro.data.database.entity.MerchantMappingEntity
@@ -45,7 +38,6 @@ import com.ritesh.cashiro.data.database.entity.RuleEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
-import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
 import com.ritesh.cashiro.data.database.entity.WebhookCursorEntity
 import com.ritesh.cashiro.data.database.entity.WebhookLogEntity
 import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
@@ -65,12 +57,9 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
         [
             TransactionEntity::class,
             SubscriptionEntity::class,
-            ChatMessage::class,
-            ChatSession::class,
             MerchantMappingEntity::class,
             CategoryEntity::class,
             AccountBalanceEntity::class,
-            UnrecognizedSmsEntity::class,
             CardEntity::class,
             RuleEntity::class,
             RuleApplicationEntity::class,
@@ -81,11 +70,10 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
             WebhookProfileEntity::class,
             WebhookLogEntity::class,
             WebhookCursorEntity::class,
-            BankNotificationEntity::class,
             com.ritesh.cashiro.data.database.entity.LendBorrowPersonEntity::class,
             com.ritesh.cashiro.data.database.entity.LendBorrowTransactionEntity::class
         ],
-        version = 62,
+        version = 63,
     exportSchema = true,
     autoMigrations =
         [
@@ -116,12 +104,9 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
 abstract class CashiroDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun subscriptionDao(): SubscriptionDao
-    abstract fun chatDao(): ChatDao
-    abstract fun chatSessionDao(): ChatSessionDao
     abstract fun merchantMappingDao(): MerchantMappingDao
     abstract fun categoryDao(): CategoryDao
     abstract fun accountBalanceDao(): AccountBalanceDao
-    abstract fun unrecognizedSmsDao(): UnrecognizedSmsDao
     abstract fun cardDao(): CardDao
     abstract fun ruleDao(): RuleDao
     abstract fun ruleApplicationDao(): RuleApplicationDao
@@ -131,7 +116,6 @@ abstract class CashiroDatabase : RoomDatabase() {
     abstract fun webhookProfileDao(): WebhookProfileDao
     abstract fun webhookLogDao(): WebhookLogDao
     abstract fun webhookCursorDao(): WebhookCursorDao
-    abstract fun bankNotificationDao(): BankNotificationDao
     abstract fun lendBorrowDao(): com.ritesh.cashiro.data.database.dao.LendBorrowDao
 
     companion object {
@@ -172,7 +156,9 @@ MIGRATION_55_56,
                                 MIGRATION_57_58,
                                 MIGRATION_58_59,
                                 MIGRATION_59_60,
-                                MIGRATION_60_61
+                                MIGRATION_60_61,
+                                MIGRATION_61_62,
+                                MIGRATION_62_63
                             )
                             .build()
                     INSTANCE = instance
@@ -667,6 +653,20 @@ MIGRATION_55_56,
                         )
                         """.trimIndent()
                     )
+                }
+            }
+
+        /**
+         * Drops the tables behind the removed on-device chat assistant and the removed
+         * SMS / bank-notification ingestion. Nothing reads them any more.
+         */
+        val MIGRATION_62_63 =
+            object : Migration(62, 63) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("DROP TABLE IF EXISTS chat_messages")
+                    db.execSQL("DROP TABLE IF EXISTS chat_sessions")
+                    db.execSQL("DROP TABLE IF EXISTS unrecognized_sms")
+                    db.execSQL("DROP TABLE IF EXISTS bank_notifications")
                 }
             }
     }

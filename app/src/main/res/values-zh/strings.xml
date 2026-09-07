@@ -81,7 +81,7 @@
     <string name="range_last_6_months">过去6个月</string>
     <string name="range_last_year">过去一年</string>
     <string name="range_all_time">全部时间</string>
-    <string name="add_account_info">添加未通过短信跟踪的账户，如现金、钱包或投资账户。</string>
+    <string name="add_account_info">添加现金、钱包、银行或投资账户。</string>
     <string name="account_type_label">账户类型</string>
     <string name="account_icon_label">账户图标</string>
     <string name="account_name_required_label">账户名称 *</string>
@@ -404,6 +404,8 @@
     <string name="show_original_message">显示原始消息</string>
     <string name="no_subscriptions_detected_yet">尚未检测到订阅</string>
     <string name="sync_sms_to_detect_subscriptions">同步您的短信以检测订阅</string>
+    <string name="no_subscriptions_yet">暂无订阅</string>
+    <string name="add_subscription_empty_hint">添加订阅以开始跟踪定期付款</string>
     <string name="export_transactions">导出交易</string>
     <string name="exporting">导出中...</string>
     <string name="export_complete">导出完成！</string>

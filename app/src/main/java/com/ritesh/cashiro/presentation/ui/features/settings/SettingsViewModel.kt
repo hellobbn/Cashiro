@@ -1,9 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings
 
-import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,17 +13,14 @@ import android.app.PendingIntent
 import androidx.core.app.NotificationCompat
 import com.ritesh.cashiro.MainActivity
 import com.ritesh.cashiro.R
-import com.ritesh.cashiro.receiver.SmsBroadcastReceiver
+import com.ritesh.cashiro.core.NotificationChannels
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import com.ritesh.cashiro.data.repository.ModelRepository
-import com.ritesh.cashiro.data.repository.ModelState
 import com.ritesh.cashiro.data.repository.SubscriptionRepository
-import com.ritesh.cashiro.data.repository.UnrecognizedSmsRepository
 import com.ritesh.cashiro.data.cloud.security.CloudCredentialStore
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.backup.BackupExporter
@@ -38,12 +33,10 @@ import com.ritesh.cashiro.data.webhook.WebhookSyncScheduler
 import com.ritesh.cashiro.domain.repository.RuleRepository
 import android.content.Intent
 import androidx.core.content.FileProvider
-import com.ritesh.cashiro.core.Constants
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import java.net.URLEncoder
 import java.io.File
 import javax.inject.Inject
 import androidx.core.net.toUri
@@ -73,9 +66,7 @@ import java.util.UUID
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val modelRepository: ModelRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val unrecognizedSmsRepository: UnrecognizedSmsRepository,
     private val transactionRepository: TransactionRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
     private val cardRepository: CardRepository,
@@ -110,329 +101,16 @@ class SettingsViewModel @Inject constructor(
             initialValue = null
         )
 
-    private val downloadManager =
-        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    private var currentDownloadId: Long? = null
 
     // Developer mode state
     val isDeveloperModeEnabled = userPreferencesRepository.isDeveloperModeEnabled
     val isWebhookModeEnabled = userPreferencesRepository.isWebhookModeEnabled
-    val isTokenInfoEnabled = userPreferencesRepository.isTokenInfoEnabled
     val isTestNotificationAlertsEnabled = userPreferencesRepository.isTestNotificationAlertsEnabled
 
-    // SMS scan period state
-    val smsScanMonths = userPreferencesRepository.smsScanMonths
-    val smsScanAllTime = userPreferencesRepository.smsScanAllTime
-
-    // Unrecognized SMS state
-    val unreportedSmsCount = unrecognizedSmsRepository.getUnreportedCount()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 0
-        )
-
     val isSampleDataSeeded: Flow<Boolean> = userPreferencesRepository.isSampleDataSeeded
-
-    init {
-        checkDownloadStatus()
-        
-        // Observe model state and progress from repository
-        viewModelScope.launch {
-            modelRepository.modelState.collect { state ->
-                val downloadStatus = when (state) {
-                    ModelState.NOT_DOWNLOADED -> DownloadState.NOT_DOWNLOADED
-                    ModelState.DOWNLOADING -> DownloadState.DOWNLOADING
-                    ModelState.READY -> DownloadState.COMPLETED
-                    ModelState.LOADING -> DownloadState.COMPLETED
-                    ModelState.ERROR -> DownloadState.FAILED
-                }
-                _uiState.update { it.copy(downloadStatus = downloadStatus) }
-            }
-        }
-        
-        viewModelScope.launch {
-            modelRepository.downloadProgress.collect { progress ->
-                _uiState.update { it.copy(downloadProgress = progress) }
-            }
-        }
-        modelRepository.checkModelState()
-    }
-
-    private fun checkDownloadStatus() {
-        viewModelScope.launch {
-            // First check for active download
-            val savedDownloadId = userPreferencesRepository.getActiveDownloadId()
-            Log.d("SettingsViewModel", "Checking download status, saved ID: $savedDownloadId")
-
-            if (savedDownloadId != null) {
-                // Query DownloadManager for this ID
-                val query = DownloadManager.Query().setFilterById(savedDownloadId)
-                val cursor = downloadManager.query(query)
-
-                if (cursor != null && cursor.moveToFirst()) {
-                    val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-
-                    if (statusIndex != -1) {
-                        val status = cursor.getInt(statusIndex)
-                        Log.d("SettingsViewModel", "Found active download with status: $status")
-
-                        when (status) {
-                            DownloadManager.STATUS_RUNNING,
-                            DownloadManager.STATUS_PENDING -> {
-                                _uiState.update { it.copy(downloadStatus = DownloadState.DOWNLOADING) }
-                                currentDownloadId = savedDownloadId
-                                // Sync ModelRepository state
-                                modelRepository.updateModelState(ModelState.DOWNLOADING)
-                                // Get current progress
-                                val bytesIndex =
-                                    cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                                val totalIndex =
-                                    cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-                                if (bytesIndex != -1 && totalIndex != -1) {
-                                    val bytes = cursor.getLong(bytesIndex)
-                                    val total = cursor.getLong(totalIndex)
-                                    _uiState.update {
-                                        it.copy(
-                                            downloadedMB = bytes / (1024 * 1024),
-                                            totalMB = total / (1024 * 1024)
-                                        )
-                                    }
-                                    if (total > 0) {
-                                        _uiState.update { it.copy(downloadProgress = (bytes * 100 / total).toInt()) }
-                                    }
-                                }
-                                modelRepository.monitorDownload(savedDownloadId)
-                            }
-
-                            DownloadManager.STATUS_SUCCESSFUL -> {
-                                _uiState.update {
-                                    it.copy(
-                                        downloadStatus = DownloadState.COMPLETED,
-                                        downloadProgress = 100
-                                    )
-                                }
-                                userPreferencesRepository.clearActiveDownloadId()
-                                modelRepository.updateModelState(ModelState.READY)
-                            }
-
-                            DownloadManager.STATUS_FAILED -> {
-                                _uiState.update { it.copy(downloadStatus = DownloadState.FAILED) }
-                                userPreferencesRepository.clearActiveDownloadId()
-                                // Sync ModelRepository state
-                                modelRepository.updateModelState(ModelState.NOT_DOWNLOADED)
-                            }
-
-                            DownloadManager.STATUS_PAUSED -> {
-                                _uiState.update { it.copy(downloadStatus = DownloadState.PAUSED) }
-                                currentDownloadId = savedDownloadId
-                                // Sync ModelRepository state - still downloading but paused
-                                modelRepository.updateModelState(ModelState.DOWNLOADING)
-                            }
-                        }
-                    }
-                    cursor.close()
-                } else {
-                    // Download ID not found in DownloadManager, clear it and check file
-                    Log.d(
-                        "SettingsViewModel",
-                        "Download ID not found in DownloadManager, checking file"
-                    )
-                    userPreferencesRepository.clearActiveDownloadId()
-                    checkModelFile()
-                }
-            } else {
-                // No active download, check if model file exists
-                checkModelFile()
-            }
-        }
-    }
-
-
-    private fun checkModelFile() {
-        val modelFile = File(
-            context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-            Constants.ModelDownload.MODEL_FILE_NAME
-        )
-        Log.d("SettingsViewModel", "Checking model file at: ${modelFile.absolutePath}")
-        Log.d(
-            "SettingsViewModel",
-            "Model file exists: ${modelFile.exists()}, size: ${modelFile.length()}, expected: ${Constants.ModelDownload.MODEL_SIZE_BYTES}"
-        )
-
-        // Check against expected size to ensure it's complete
-        // Allow 10% variance in file size as download sizes can vary slightly
-        val minSize = (Constants.ModelDownload.MODEL_SIZE_BYTES * 0.90).toLong()
-        val maxSize = (Constants.ModelDownload.MODEL_SIZE_BYTES * 1.20).toLong()
-
-        if (modelFile.exists() && modelFile.length() in minSize..maxSize) {
-            _uiState.update {
-                it.copy(
-                    downloadStatus = DownloadState.COMPLETED,
-                    totalMB = modelFile.length() / (1024 * 1024),
-                    downloadedMB = modelFile.length() / (1024 * 1024),
-                    downloadProgress = 100
-                )
-            }
-            // Update model repository state
-            Log.d(
-                "SettingsViewModel",
-                "Model complete (${modelFile.length()} bytes), updating repository state to READY"
-            )
-            modelRepository.updateModelState(ModelState.READY)
-        } else if (modelFile.exists() && modelFile.length() > maxSize) {
-            // File is too large, but might still be valid - mark as complete
-            _uiState.update {
-                it.copy(
-                    downloadStatus = DownloadState.COMPLETED,
-                    totalMB = modelFile.length() / (1024 * 1024),
-                    downloadedMB = modelFile.length() / (1024 * 1024),
-                    downloadProgress = 100
-                )
-            }
-            Log.d(
-                "SettingsViewModel",
-                "Model file larger than expected (${modelFile.length()} bytes), but marking as complete"
-            )
-            modelRepository.updateModelState(ModelState.READY)
-        } else if (modelFile.exists()) {
-            // Partial file exists, delete it
-            Log.d(
-                "SettingsViewModel",
-                "Partial model file found (${modelFile.length()} bytes), deleting"
-            )
-            modelFile.delete()
-            _uiState.update { it.copy(downloadStatus = DownloadState.NOT_DOWNLOADED) }
-        } else {
-            Log.d("SettingsViewModel", "Model not found")
-            _uiState.update { it.copy(downloadStatus = DownloadState.NOT_DOWNLOADED) }
-        }
-    }
-
-    fun startModelDownload() {
-        viewModelScope.launch {
-            // Guard: if model file is already fully downloaded, do NOT start a new download
-            // (DownloadManager would delete the existing file before writing the new one)
-            if (modelRepository.isModelDownloaded()) {
-                Log.d("SettingsViewModel", "Model already downloaded — skipping download")
-                _uiState.update {
-                    it.copy(
-                        downloadStatus = DownloadState.COMPLETED,
-                        downloadProgress = 100
-                    )
-                }
-                modelRepository.updateModelState(ModelState.READY)
-                userPreferencesRepository.clearActiveDownloadId()
-                return@launch
-            }
-
-            // Check if download is already active
-            val existingDownloadId = userPreferencesRepository.getActiveDownloadId()
-            if (existingDownloadId != null) {
-                // Check if this download is still active
-                val query = DownloadManager.Query().setFilterById(existingDownloadId)
-                val cursor = downloadManager.query(query)
-
-                if (cursor != null && cursor.moveToFirst()) {
-                    val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                    if (statusIndex != -1) {
-                        val status = cursor.getInt(statusIndex)
-                        if (status == DownloadManager.STATUS_RUNNING ||
-                            status == DownloadManager.STATUS_PENDING ||
-                            status == DownloadManager.STATUS_PAUSED
-                        ) {
-                            // Download is already active, just monitor it
-                            Log.d(
-                                "SettingsViewModel",
-                                "Download already active with ID: $existingDownloadId"
-                            )
-                            cursor.close()
-                            _uiState.update { it.copy(downloadStatus = DownloadState.DOWNLOADING) }
-                            currentDownloadId = existingDownloadId
-                            modelRepository.updateModelState(ModelState.DOWNLOADING)
-                            modelRepository.monitorDownload(existingDownloadId)
-                            return@launch
-                        }
-                    }
-                    cursor.close()
-                }
-            }
-
-            // Check storage space
-            val availableSpace = context.filesDir.usableSpace
-            if (availableSpace < Constants.ModelDownload.REQUIRED_SPACE_BYTES) {
-                _uiState.update { it.copy(downloadStatus = DownloadState.ERROR_INSUFFICIENT_SPACE) }
-                return@launch
-            }
-
-            // Create download request
-            val request = DownloadManager.Request(Constants.ModelDownload.MODEL_URL.toUri())
-                .setTitle("Qwen 2.5 Chat Model")
-                .setDescription("Downloading AI chat assistant for Cashiro")
-                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalFilesDir(
-                    context,
-                    Environment.DIRECTORY_DOWNLOADS,
-                    Constants.ModelDownload.MODEL_FILE_NAME
-                )
-                .setAllowedOverMetered(true) // Allow mobile data downloads
-                .setAllowedOverRoaming(false)
-
-            currentDownloadId = downloadManager.enqueue(request)
-            _uiState.update { it.copy(downloadStatus = DownloadState.DOWNLOADING) }
-
-            // Sync ModelRepository state
-            modelRepository.updateModelState(ModelState.DOWNLOADING)
-
-            // Save download ID
-            userPreferencesRepository.saveActiveDownloadId(currentDownloadId!!)
-            Log.d("SettingsViewModel", "Started download with ID: $currentDownloadId")
-
-            // Start monitoring progress via repository
-            modelRepository.monitorDownload(currentDownloadId!!)
-        }
-    }
-
-    fun cancelDownload() {
-        viewModelScope.launch {
-            currentDownloadId?.let { it ->
-                downloadManager.remove(it)
-                _uiState.update { it.copy(downloadStatus = DownloadState.NOT_DOWNLOADED) }
-                _uiState.update { it.copy(downloadProgress = 0) }
-                _uiState.update { it.copy(downloadedMB = 0) }
-                _uiState.update { it.copy(totalMB = 0) }
-
-                // Clear saved download ID
-                userPreferencesRepository.clearActiveDownloadId()
-
-                // Delete partial file
-                val modelFile = File(
-                    context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-                    Constants.ModelDownload.MODEL_FILE_NAME
-                )
-                modelRepository.deleteModel()
-                Log.d("SettingsViewModel", "Download cancelled and cleaned up")
-            }
-        }
-    }
-
-    fun deleteModel() {
-        viewModelScope.launch {
-            if (modelRepository.deleteModel()) {
-                _uiState.update { it.copy(downloadStatus = DownloadState.NOT_DOWNLOADED) }
-                _uiState.update { it.copy(downloadProgress = 0) }
-                _uiState.update { it.copy(downloadedMB = 0) }
-                _uiState.update { it.copy(totalMB = 0) }
-                // Clear any saved download ID
-                userPreferencesRepository.clearActiveDownloadId()
-                Log.d("SettingsViewModel", "Model deleted")
-            }
-        }
-    }
 
     fun toggleWebhookMode(enabled: Boolean) {
         viewModelScope.launch {
@@ -444,12 +122,6 @@ class SettingsViewModel @Inject constructor(
             } catch (t: Throwable) {
                 Log.e("SettingsViewModel", "Failed to apply webhook scheduling", t)
             }
-        }
-    }
-
-    fun toggleTokenInfoMode(enabled: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setTokenInfoEnabled(enabled)
         }
     }
 
@@ -476,8 +148,8 @@ class SettingsViewModel @Inject constructor(
 
             // Ensure channel exists
             val channel = NotificationChannel(
-                SmsBroadcastReceiver.CHANNEL_ID,
-                SmsBroadcastReceiver.CHANNEL_NAME,
+                NotificationChannels.REMINDER_CHANNEL_ID,
+                NotificationChannels.REMINDER_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Notifications for new transactions"
@@ -496,7 +168,7 @@ class SettingsViewModel @Inject constructor(
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            val notification = NotificationCompat.Builder(context, SmsBroadcastReceiver.CHANNEL_ID)
+            val notification = NotificationCompat.Builder(context, NotificationChannels.REMINDER_CHANNEL_ID)
                 .setSmallIcon(R.drawable.cashiro)
                 .setContentTitle("Test Notification")
                 .setContentText("This is a test notification from Cashiro.")
@@ -509,75 +181,6 @@ class SettingsViewModel @Inject constructor(
             Log.d("SettingsViewModel", "Sent test notification")
         } catch (e: Exception) {
             Log.e("SettingsViewModel", "Error sending test notification", e)
-        }
-    }
-
-    fun updateSmsScanMonths(months: Int) {
-        viewModelScope.launch {
-            val currentMonths = userPreferencesRepository.getSmsScanMonths()
-
-            // If increasing scan period, reset scan timestamp to force full scan
-            if (months > currentMonths) {
-                userPreferencesRepository.setLastScanTimestamp(0L)
-                Log.d("SettingsViewModel", "Scan period increased from $currentMonths to $months months - will perform full scan")
-            }
-
-            userPreferencesRepository.updateSmsScanMonths(months)
-        }
-    }
-
-    fun updateSmsScanAllTime(allTime: Boolean) {
-        viewModelScope.launch {
-            // If enabling all time scanning, reset scan timestamp to force full scan
-            if (allTime) {
-                userPreferencesRepository.setLastScanTimestamp(0L)
-                Log.d("SettingsViewModel", "All time scanning enabled - will perform full scan")
-            }
-
-            userPreferencesRepository.updateSmsScanAllTime(allTime)
-        }
-    }
-
-    fun openUnrecognizedSmsReport(context: Context) {
-        viewModelScope.launch {
-            try {
-                val firstUnreported = unrecognizedSmsRepository.getFirstUnreported()
-
-                if (firstUnreported != null) {
-                    val issueTitle = "[Unrecognized SMS] From: ${firstUnreported.sender}"
-                    val issueBody = """
-                        ### Unrecognized SMS Details
-                        - **Sender:** ${firstUnreported.sender}
-                        - **Date:** ${firstUnreported.receivedAt}
-                        
-                        ### Original SMS
-                        ```
-                        ${firstUnreported.smsBody}
-                        ```
-                        
-                        ### Expected Behavior
-                        _Describe how this SMS should have been parsed_
-                    """.trimIndent()
-
-                    val encodedTitle = URLEncoder.encode(issueTitle, "UTF-8")
-                    val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
-
-                    val url = "https://github.com/ritesh-kanwar/Cashiro/issues/new?title=$encodedTitle&body=$encodedBody"
-
-                    // Open in browser
-                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                    context.startActivity(intent)
-
-                    // Mark as reported
-                    unrecognizedSmsRepository.markAsReported(listOf(firstUnreported.id))
-
-                    Log.d("SettingsViewModel", "Opened report for unrecognized SMS from: ${firstUnreported.sender}")
-                } else {
-                    Log.d("SettingsViewModel", "No unreported SMS messages found")
-                }
-            } catch (e: Exception) {
-                Log.e("SettingsViewModel", "Error opening unrecognized SMS report", e)
-            }
         }
     }
 
@@ -1095,7 +698,6 @@ class SettingsViewModel @Inject constructor(
                 cardRepository.deleteAllCards()
                 ruleRepository.deleteAllRules()
                 merchantMappingRepository.deleteAllMappings()
-                unrecognizedSmsRepository.deleteAll()
                 
                 // Clear some relevant preferences
                 userPreferencesRepository.setSampleDataSeeded(false)

@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.appcompat.app.AppCompatActivity
-import com.ritesh.cashiro.receiver.SmsBroadcastReceiver
 import com.ritesh.cashiro.data.manager.NotificationScheduler
 import androidx.lifecycle.lifecycleScope
 import com.ritesh.cashiro.data.currency.model.CurrencySymbols
@@ -22,7 +21,6 @@ import com.ritesh.cashiro.presentation.ui.features.add.AddViewModel
 import com.ritesh.cashiro.presentation.ui.features.analytics.AnalyticsViewModel
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetViewModel
 import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesViewModel
-import com.ritesh.cashiro.presentation.ui.features.chat.ChatViewModel
 import com.ritesh.cashiro.presentation.ui.features.home.HomeViewModel
 import com.ritesh.cashiro.presentation.ui.features.onboarding.OnBoardingViewModel
 import com.ritesh.cashiro.presentation.ui.features.profile.ProfileViewModel
@@ -31,7 +29,6 @@ import com.ritesh.cashiro.presentation.ui.features.settings.appearance.ThemeView
 import com.ritesh.cashiro.presentation.ui.features.settings.applock.AppLockViewModel
 import com.ritesh.cashiro.presentation.ui.features.settings.notifications.NotificationViewModel
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.RulesViewModel
-import com.ritesh.cashiro.presentation.ui.features.settings.unrecognized.UnrecognizedSmsViewModel
 import com.ritesh.cashiro.presentation.ui.features.spotlight.SpotlightViewModel
 import com.ritesh.cashiro.presentation.ui.features.subscriptions.SubscriptionsViewModel
 import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionDetailViewModel
@@ -126,12 +123,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleIntent(intent: Intent?) {
         when (intent?.action) {
-            SmsBroadcastReceiver.ACTION_EDIT_TRANSACTION -> {
-                val transactionId = intent.getLongExtra(SmsBroadcastReceiver.EXTRA_TRANSACTION_ID, -1)
-                if (transactionId != -1L) {
-                    editTransactionId = transactionId
-                }
-            }
             ACTION_ADD_TRANSACTION -> {
                 addTransactionTab = 0
             }

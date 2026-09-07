@@ -13,11 +13,9 @@ import com.ritesh.cashiro.data.database.MIGRATION_52_53
 import com.ritesh.cashiro.data.database.MIGRATION_53_54
 
 import com.ritesh.cashiro.data.database.dao.AccountBalanceDao
-import com.ritesh.cashiro.data.database.dao.BankNotificationDao
 import com.ritesh.cashiro.data.database.dao.BudgetDao
 import com.ritesh.cashiro.data.database.dao.CardDao
 import com.ritesh.cashiro.data.database.dao.CategoryDao
-import com.ritesh.cashiro.data.database.dao.ChatDao
 import com.ritesh.cashiro.data.database.dao.ExchangeRateDao
 import com.ritesh.cashiro.data.database.dao.MerchantMappingDao
 import com.ritesh.cashiro.data.database.dao.RuleApplicationDao
@@ -25,7 +23,6 @@ import com.ritesh.cashiro.data.database.dao.RuleDao
 import com.ritesh.cashiro.data.database.dao.SubcategoryDao
 import com.ritesh.cashiro.data.database.dao.SubscriptionDao
 import com.ritesh.cashiro.data.database.dao.TransactionDao
-import com.ritesh.cashiro.data.database.dao.UnrecognizedSmsDao
 import com.ritesh.cashiro.data.database.dao.WebhookCursorDao
 import com.ritesh.cashiro.data.database.dao.WebhookLogDao
 import com.ritesh.cashiro.data.database.dao.WebhookProfileDao
@@ -82,7 +79,8 @@ object DatabaseModule {
                     CashiroDatabase.MIGRATION_58_59,
                     CashiroDatabase.MIGRATION_59_60,
                     CashiroDatabase.MIGRATION_60_61,
-                    CashiroDatabase.MIGRATION_61_62
+                    CashiroDatabase.MIGRATION_61_62,
+                    CashiroDatabase.MIGRATION_62_63
                 )
 
                 // Enable auto-migrations
@@ -123,18 +121,6 @@ object DatabaseModule {
     }
 
     /**
-     * Provides the ChatDao from the database.
-     *
-     * @param database The CashiroDatabase instance
-     * @return ChatDao for accessing chat message data
-     */
-    @Provides
-    @Singleton
-    fun provideChatDao(database: CashiroDatabase): ChatDao {
-        return database.chatDao()
-    }
-
-    /**
      * Provides the MerchantMappingDao from the database.
      *
      * @param database The CashiroDatabase instance
@@ -168,18 +154,6 @@ object DatabaseModule {
     @Singleton
     fun provideAccountBalanceDao(database: CashiroDatabase): AccountBalanceDao {
         return database.accountBalanceDao()
-    }
-
-    /**
-     * Provides the UnrecognizedSmsDao from the database.
-     *
-     * @param database The CashiroDatabase instance
-     * @return UnrecognizedSmsDao for accessing unrecognized SMS data
-     */
-    @Provides
-    @Singleton
-    fun provideUnrecognizedSmsDao(database: CashiroDatabase): UnrecognizedSmsDao {
-        return database.unrecognizedSmsDao()
     }
 
     /**
@@ -258,18 +232,6 @@ object DatabaseModule {
     @Singleton
     fun provideWebhookCursorDao(database: CashiroDatabase): WebhookCursorDao {
         return database.webhookCursorDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideBankNotificationDao(database: CashiroDatabase): BankNotificationDao {
-        return database.bankNotificationDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideChatSessionDao(database: CashiroDatabase): com.ritesh.cashiro.data.database.dao.ChatSessionDao {
-        return database.chatSessionDao()
     }
 
     @Provides

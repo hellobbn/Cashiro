@@ -34,11 +34,10 @@ class NotificationScheduler @Inject constructor(
      * Schedules or updates the daily reminder notification using AlarmManager.
      */
     suspend fun scheduleDailyReminder() {
-        val scanEnabled = userPreferencesRepository.scanNewTransactionsEnabled.first()
         val upcomingEnabled = userPreferencesRepository.upcomingNotificationsEnabled.first()
         val alertTimeMinutes = userPreferencesRepository.scanNewTransactionsAlertTime.first()
 
-        if (!scanEnabled && !upcomingEnabled) {
+        if (!upcomingEnabled) {
             Log.d(TAG, "Notifications disabled, cancelling alarm")
             cancelDailyReminder()
             return

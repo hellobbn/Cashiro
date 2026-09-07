@@ -945,13 +945,13 @@ private fun EmptySubscriptionsState() {
             )
             Spacer(modifier = Modifier.height(Spacing.md))
             Text(
-                text = stringResource(R.string.no_subscriptions_detected_yet),
+                text = stringResource(R.string.no_subscriptions_yet),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(Spacing.xs))
             Text(
-                text = stringResource(R.string.sync_sms_to_detect_subscriptions),
+                text = stringResource(R.string.add_subscription_empty_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

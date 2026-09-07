@@ -270,46 +270,6 @@ class TransactionsViewModel @Inject constructor(
             initialValue = 0f
         )
     
-    // SMS scan period for info banner
-    val smsScanMonths: StateFlow<Int> = userPreferencesRepository.smsScanMonths
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 3
-        )
-    
-    fun isShowingLimitedData(): Boolean {
-        val currentPeriod = _selectedPeriod.value
-        val scanMonthsValue = smsScanMonths.value
-
-        return when (currentPeriod) {
-            TimePeriod.ALL -> true  // Always show for "All Time"
-            TimePeriod.CURRENT_FY -> {
-                // Check if FY start is before scan period
-                val dateRange = getDateRangeForPeriod(TimePeriod.CURRENT_FY)
-                if (dateRange != null) {
-                    val (fyStart, _) = dateRange
-                    val scanStart = LocalDate.now().minusMonths(scanMonthsValue.toLong())
-                    fyStart.isBefore(scanStart)
-                } else {
-                    false
-                }
-            }
-            TimePeriod.CUSTOM -> {
-                // Check if custom range start is before scan period
-                val customRange = customDateRange.value
-                if (customRange != null) {
-                    val (startDate, _) = customRange
-                    val scanStart = LocalDate.now().minusMonths(scanMonthsValue.toLong())
-                    startDate.isBefore(scanStart)
-                } else {
-                    false
-                }
-            }
-            else -> false
-        }
-    }
-    
     init {
         // Observe the effective base currency dynamically
         viewModelScope.launch {

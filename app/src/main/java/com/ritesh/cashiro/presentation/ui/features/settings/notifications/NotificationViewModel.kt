@@ -21,12 +21,6 @@ class NotificationViewModel @Inject constructor(
     subscriptionRepository: SubscriptionRepository
 ) : ViewModel() {
 
-    val scanNewTransactionsEnabled: StateFlow<Boolean> = userPreferencesRepository.scanNewTransactionsEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val scanNewTransactionsAlertTime: StateFlow<Long> = userPreferencesRepository.scanNewTransactionsAlertTime
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1200L) // 20:00
-
     val upcomingNotificationsEnabled: StateFlow<Boolean> = userPreferencesRepository.upcomingNotificationsEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
@@ -42,20 +36,6 @@ class NotificationViewModel @Inject constructor(
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    fun setScanNewTransactionsEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setScanNewTransactionsEnabled(enabled)
-            notificationScheduler.scheduleDailyReminder()
-        }
-    }
-
-    fun setScanNewTransactionsAlertTime(minutes: Long) {
-        viewModelScope.launch {
-            userPreferencesRepository.setScanNewTransactionsAlertTime(minutes)
-            notificationScheduler.scheduleDailyReminder()
-        }
-    }
 
     fun setUpcomingNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch {

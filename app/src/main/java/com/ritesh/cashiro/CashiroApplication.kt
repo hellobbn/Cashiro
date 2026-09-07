@@ -44,7 +44,6 @@ class CashiroApplication : Application(), Configuration.Provider {
 
     /**
      * Publicly accessible flag to check if the app is in the foreground.
-     * Used by SmsBroadcastReceiver to determine whether to show notifications.
      */
     @Volatile
     var isAppInForeground: Boolean = false

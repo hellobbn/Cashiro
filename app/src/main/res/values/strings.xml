@@ -91,7 +91,7 @@
     <string name="range_last_year">Last Year</string>
     <string name="range_all_time">All Time</string>
     <!-- Add/Edit Account Screens -->
-    <string name="add_account_info">Add accounts not tracked via SMS like cash, wallets, or investment accounts.</string>
+    <string name="add_account_info">Add cash, wallets, bank, or investment accounts.</string>
     <string name="account_type_label">Account Type</string>
     <string name="account_icon_label">Account Icon</string>
     <string name="account_name_required_label">Account Name *</string>
@@ -425,6 +425,8 @@
     <string name="show_original_message">Show Original Message</string>
     <string name="no_subscriptions_detected_yet">No subscriptions detected yet</string>
     <string name="sync_sms_to_detect_subscriptions">Sync your SMS to detect subscriptions</string>
+    <string name="no_subscriptions_yet">No subscriptions yet</string>
+    <string name="add_subscription_empty_hint">Add a subscription to start tracking recurring payments</string>
     <!-- ExportTransactionsDialog -->
     <string name="export_transactions">Export Transactions</string>
     <string name="exporting">Exporting...</string>

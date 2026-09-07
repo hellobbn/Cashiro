@@ -18,14 +18,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.CloudSync
-import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Webhook
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,24 +57,18 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
-import com.ritesh.cashiro.core.Constants
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
-import com.ritesh.cashiro.presentation.ui.components.DeleteAIModelDialog
 import com.ritesh.cashiro.presentation.ui.components.LanguageSelectionBottomSheet
 import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
-import com.ritesh.cashiro.presentation.ui.components.LoadingCircularProgress
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.icons.ArchiveBook
-import com.ritesh.cashiro.presentation.ui.icons.Bag
 import com.ritesh.cashiro.presentation.ui.icons.Box2
-import com.ritesh.cashiro.presentation.ui.icons.Clock
 import com.ritesh.cashiro.presentation.ui.icons.DollarCircle
 import com.ritesh.cashiro.presentation.ui.icons.Fireworks7
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
-import com.ritesh.cashiro.presentation.ui.icons.ImportArrow01
 import com.ritesh.cashiro.presentation.ui.icons.NotificationBing
 import com.ritesh.cashiro.presentation.ui.icons.SecuritySafe
 import com.ritesh.cashiro.presentation.ui.icons.Status
@@ -98,7 +88,6 @@ fun SettingsScreen(
     onNavigateToRules: () -> Unit = {},
     onNavigateToAppearance: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToSms: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToWebhooks: () -> Unit = {},
     onNavigateToBudgets: () -> Unit = {},
@@ -111,13 +100,10 @@ fun SettingsScreen(
     blurEffects: Boolean
 ) {
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-    val downloadState = uiState.downloadStatus
-    val downloadProgress = uiState.downloadProgress
     val totalTransactionsCount by settingsViewModel.totalTransactions.collectAsStateWithLifecycle()
     val googleDriveEmail by settingsViewModel.googleDriveEmail.collectAsStateWithLifecycle()
     val userPreferences by settingsViewModel.userPreferences.collectAsStateWithLifecycle(initialValue = null)
     val isWebhookModeEnabled = userPreferences?.isWebhookModeEnabled == true
-    var showDeleteModelDialog by remember { mutableStateOf(false) }
     var showLanguageBottomSheet by remember { mutableStateOf(false) }
     val currentLanguageCode = remember(androidx.compose.ui.platform.LocalConfiguration.current) {
         val locales = AppCompatDelegate.getApplicationLocales()
@@ -751,103 +737,6 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
-                    ListItem(
-                        headline = {
-                            Text(
-                                text = stringResource(R.string.ai_chat_assistant),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                        },
-                        supporting = {
-                            Text(
-                                text = when (downloadState) {
-                                    DownloadState.NOT_DOWNLOADED -> stringResource(R.string.ai_chat_subtitle_not_downloaded, Constants.ModelDownload.MODEL_SIZE_MB)
-                                    DownloadState.DOWNLOADING -> stringResource(R.string.ai_chat_subtitle_downloading, downloadProgress)
-                                    DownloadState.PAUSED -> stringResource(R.string.ai_chat_subtitle_paused)
-                                    DownloadState.COMPLETED -> stringResource(R.string.ai_chat_subtitle_completed)
-                                    DownloadState.FAILED -> stringResource(R.string.ai_chat_subtitle_failed)
-                                    DownloadState.ERROR_INSUFFICIENT_SPACE -> stringResource(R.string.ai_chat_subtitle_insufficient_space)
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (downloadState == DownloadState.FAILED || downloadState == DownloadState.ERROR_INSUFFICIENT_SPACE)
-                                    MaterialTheme.colorScheme.error
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        leading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.secondaryContainer,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.AutoAwesome,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            }
-                        },
-                        trailing = {
-                            when (downloadState) {
-                                DownloadState.NOT_DOWNLOADED -> {
-                                    Icon(
-                                        Iconax.ImportArrow01,
-                                        contentDescription = stringResource(R.string.download),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                                DownloadState.DOWNLOADING -> {
-                                    LoadingCircularProgress(
-                                        modifier = Modifier.size(32.dp),
-                                        progress = downloadProgress / 100f
-                                    )
-                                }
-                                DownloadState.PAUSED, DownloadState.FAILED -> {
-                                    Icon(
-                                        Icons.Rounded.Refresh,
-                                        contentDescription = stringResource(R.string.retry),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                                DownloadState.COMPLETED -> {
-                                    Icon(
-                                        Iconax.Bag,
-                                        contentDescription = stringResource(R.string.delete),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                DownloadState.ERROR_INSUFFICIENT_SPACE -> {
-                                    Icon(
-                                        Icons.Rounded.Error,
-                                        contentDescription = stringResource(R.string.error),
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            }
-                        },
-                        onClick = {
-                            when (downloadState) {
-                                DownloadState.NOT_DOWNLOADED, DownloadState.PAUSED, DownloadState.FAILED -> {
-                                    settingsViewModel.startModelDownload()
-                                }
-                                DownloadState.DOWNLOADING -> {
-                                    settingsViewModel.cancelDownload()
-                                }
-                                DownloadState.COMPLETED -> {
-                                    showDeleteModelDialog = true
-                                }
-                                else -> {}
-                            }
-                        },
-                        shape = ListItemPosition.Top.toShape(),
-                        padding = PaddingValues(0.dp)
-                    )
                     // Notifications
                     ListItem(
                         headline = {
@@ -889,52 +778,8 @@ fun SettingsScreen(
                             )
                         },
                         onClick = { onNavigateToNotifications() },
-                        shape = ListItemPosition.Middle.toShape(),
-                        padding = PaddingValues(0.dp)
-                    )
-                    // SMS
-                    ListItem(
-                        headline = {
-                            Text(
-                                text = stringResource(R.string.sms_title),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                        },
-                        supporting = {
-                            Text(
-                                text = stringResource(R.string.sms_subtitle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        leading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.secondaryContainer,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Iconax.Clock,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                )
-                            }
-                        },
-                        trailing = {
-                            Icon(
-                                Icons.Rounded.ChevronRight,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        onClick = { onNavigateToSms() },
-                        shape = if (isWebhookModeEnabled) ListItemPosition.Middle.toShape()
-                            else ListItemPosition.Bottom.toShape(),
+                        shape = if (isWebhookModeEnabled) ListItemPosition.Top.toShape()
+                            else ListItemPosition.Single.toShape(),
                         padding = PaddingValues(0.dp)
                     )
                     if (isWebhookModeEnabled) {
@@ -1031,18 +876,6 @@ fun SettingsScreen(
                 )
                 Spacer(modifier = Modifier.height(110.dp))
             }
-        }
-
-        if (showDeleteModelDialog) {
-            DeleteAIModelDialog(
-                onDismiss = { showDeleteModelDialog = false },
-                onDelete = {
-                    settingsViewModel.deleteModel()
-                    showDeleteModelDialog = false
-                },
-                blurEffects = blurEffects,
-                hazeState = hazeState
-            )
         }
 
         if (showLanguageBottomSheet) {

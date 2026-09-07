@@ -113,9 +113,6 @@ data class DatabaseSnapshot(
     @SerializedName("merchant_mappings")
     val merchantMappings: List<MerchantMappingEntity>,
     
-    @SerializedName("unrecognized_sms")
-    val unrecognizedSms: List<UnrecognizedSmsEntity>,
-
     @SerializedName("budgets")
     val budgets: List<BudgetEntity> = emptyList(),
 
@@ -133,9 +130,6 @@ data class DatabaseSnapshot(
 
     @SerializedName("webhook_profiles")
     val webhookProfiles: List<WebhookProfileBackup> = emptyList(),
-
-    @SerializedName("chat_messages")
-    val chatMessages: List<ChatMessage>,
 
     @SerializedName("exchange_rates")
     val exchangeRates: List<ExchangeRateEntity> = emptyList(),
@@ -398,12 +392,10 @@ data class SelectiveImportFilter(
     val includeAccountBalances: Boolean = true,
     val includeSubscriptions: Boolean = true,
     val includeMerchantMappings: Boolean = true,
-    val includeUnrecognizedSms: Boolean = true,
     val includeBudgets: Boolean = true,
     val includeRules: Boolean = true,
     val includeRuleApplications: Boolean = true,
     val includeWebhookProfiles: Boolean = true,
-    val includeChatMessages: Boolean = true,
     val includeExchangeRates: Boolean = true,
     val includePreferences: Boolean = true
 ) {

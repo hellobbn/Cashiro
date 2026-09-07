@@ -42,7 +42,6 @@ fun GreetingCard(
     userName: String,
     profileImageUri: Uri?,
     profileBackgroundColor: Color,
-    unreadUpdatesCount: Int,
     onProfileClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},

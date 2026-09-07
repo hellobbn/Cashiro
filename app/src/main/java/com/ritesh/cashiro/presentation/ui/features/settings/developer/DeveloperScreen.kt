@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.Science
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -36,8 +33,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
-import com.ritesh.cashiro.presentation.ui.components.ListItem
-import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
@@ -49,7 +44,6 @@ import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.grey_dark
 import com.ritesh.cashiro.presentation.ui.theme.grey_light
 import androidx.compose.material.icons.rounded.Webhook
-import androidx.compose.material.icons.rounded.Code
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
@@ -62,11 +56,6 @@ fun DeveloperScreen(
 ) {
     val isWebhookModeEnabled by
             settingsViewModel.isWebhookModeEnabled.collectAsStateWithLifecycle(
-                initialValue = false
-            )
-
-    val isTokenInfoEnabled by
-            settingsViewModel.isTokenInfoEnabled.collectAsStateWithLifecycle(
                 initialValue = false
             )
 
@@ -83,7 +72,6 @@ fun DeveloperScreen(
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
@@ -150,34 +138,7 @@ fun DeveloperScreen(
                     isSingle = false,
                     isFirst = true
                 )
-                
-                PreferenceSwitch(
-                    title = stringResource(R.string.token_info),
-                    subtitle = stringResource(R.string.token_info_desc),
-                    checked = isTokenInfoEnabled,
-                    onCheckedChange = { settingsViewModel.toggleTokenInfoMode(it) },
-                    leadingIcon = {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(
-                                    color = grey_light,
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.Code,
-                                contentDescription = null,
-                                tint = grey_dark
-                            )
-                        }
-                    },
-                    padding = PaddingValues(0.dp),
-                    isSingle = false,
-                    isLast = false
-                )
-                
+
                 PreferenceSwitch(
                     title = stringResource(R.string.test_notification_alerts),
                     subtitle = stringResource(R.string.test_notification_alerts_desc),

@@ -107,7 +107,6 @@ import com.ritesh.cashiro.data.preferences.HomeWidget
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.navigation.AccountDetail
 import com.ritesh.cashiro.presentation.navigation.NotificationSettings
-import com.ritesh.cashiro.presentation.navigation.UnrecognizedSms
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
 import com.ritesh.cashiro.presentation.ui.components.AccountBalanceRow
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountSectionSummary
@@ -129,7 +128,6 @@ import com.ritesh.cashiro.presentation.ui.components.SubscriptionIconsStack
 import com.ritesh.cashiro.presentation.ui.components.TransactionItem
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.settings.appearance.ThemeViewModel
-import com.ritesh.cashiro.presentation.ui.icons.AiCommentary
 import com.ritesh.cashiro.presentation.ui.icons.Convertshape2
 import com.ritesh.cashiro.presentation.ui.icons.Gallery
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
@@ -149,6 +147,7 @@ import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeDefaults.tint
 import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -169,7 +168,6 @@ fun SharedTransitionScope.HomeScreen(
     themeViewModel: ThemeViewModel = hiltViewModel(),
     navController: NavController,
     onNavigateToSettings: () -> Unit = {},
-    onNavigateToChat: () -> Unit = {},
     onNavigateToTransactions: () -> Unit = {},
     onNavigateToTransactionsWithSearch: () -> Unit = {},
     onNavigateToSubscriptions: () -> Unit = {},
@@ -177,7 +175,6 @@ fun SharedTransitionScope.HomeScreen(
     onNavigateToBudgetHistory: (Long) -> Unit = {},
     onNavigateToLendBorrow: (String?) -> Unit = { _ -> },
     onTransactionClick: (Long, String) -> Unit = { _, _ -> },
-    onFullResyncClick: () -> Unit = {},
     animatedContentScope: AnimatedContentScope? = null,
 ) {
 
@@ -291,7 +288,6 @@ fun SharedTransitionScope.HomeScreen(
                     userName = uiState.userName,
                     profileImageUri = uiState.profileImageUri,
                     profileBackgroundColor = uiState.profileBackgroundColor,
-                    unreadUpdatesCount = 0,
                     onProfileClick = onNavigateToSettings,
                     onNotificationClick = { navController.safeNavigate(NotificationSettings) },
                     onMoreClick = { showMoreBottomSheet = true }
@@ -510,6 +506,7 @@ fun SharedTransitionScope.HomeScreen(
                                                     if (blurEffects && uiState.showBannerImage) Modifier.hazeEffect(
                                                         state = hazeStateBanner,
                                                         block = fun HazeEffectScope.() {
+                                                            inputScale = HazeInputScale.Auto
                                                             style = HazeDefaults.style(
                                                                 backgroundColor = Color.Transparent,
                                                                 tint = HazeDefaults.tint(containerColor),
@@ -682,6 +679,7 @@ fun SharedTransitionScope.HomeScreen(
                                                         if (blurEffects && uiState.showBannerImage) Modifier.hazeEffect(
                                                             state = hazeStateBanner,
                                                             block = fun HazeEffectScope.() {
+                                                                inputScale = HazeInputScale.Auto
                                                                 style = HazeDefaults.style(
                                                                     backgroundColor = Color.Transparent,
                                                                     tint = HazeDefaults.tint(containerColor),
@@ -1002,6 +1000,7 @@ private fun UpcomingSubscriptionsCard(
                 if (blurEffects) Modifier.hazeEffect(
                     state = hazeState,
                     block = fun HazeEffectScope.() {
+                        inputScale = HazeInputScale.Auto
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
                             tint = HazeDefaults.tint(containerColor),
