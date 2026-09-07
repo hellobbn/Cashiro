@@ -31,6 +31,8 @@ data class ManageAccountsUiState(
     val linkedCards: Map<String, List<CardEntity>> = emptyMap(),
     val orphanedCards: List<CardEntity> = emptyList(),
     val isLoading: Boolean = false,
+    val isSavingAccount: Boolean = false,
+    val accountSaveError: String? = null,
     val mainAccountKey: String? = null,
     val errorMessage: String? = null,
     val successMessage: String? = null
@@ -44,8 +46,9 @@ data class AccountFormState(
     val accountType: AccountType = AccountType.SAVINGS,
     val iconResId: Int = 0,
     val iconName: String = "",
-    val currency: String = "INR",
+    val currency: String = "CNY",
     val isValid: Boolean = false,
+    val isSaving: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -77,10 +80,11 @@ constructor(
 
     val defaultCurrencyForNewAccounts: StateFlow<String> = combine(
         userPreferencesRepository.defaultCurrencyEnabled,
-        userPreferencesRepository.defaultCurrencyCode
-    ) { enabled, code ->
-        if (enabled && !code.isNullOrBlank()) code else "INR"
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "INR")
+        userPreferencesRepository.defaultCurrencyCode,
+        userPreferencesRepository.baseCurrency
+    ) { enabled, code, baseCurrency ->
+        if (enabled && !code.isNullOrBlank()) code else baseCurrency
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "CNY")
 
     init {
         loadAccounts()
@@ -93,15 +97,7 @@ constructor(
 
     private fun initFormCurrency() {
         viewModelScope.launch {
-            userPreferencesRepository.defaultCurrencyEnabled.first().let { enabled ->
-                if (enabled) {
-                    userPreferencesRepository.defaultCurrencyCode.first()?.let { code ->
-                        if (code.isNotBlank()) {
-                            _formState.update { it.copy(currency = code) }
-                        }
-                    }
-                }
-            }
+            _formState.update { it.copy(currency = resolveDefaultCurrency()) }
         }
     }
 
@@ -111,7 +107,7 @@ constructor(
                 if (code.isNotBlank()) return code
             }
         }
-        return "INR"
+        return userPreferencesRepository.baseCurrency.first()
     }
 
     private fun initializeDefaultWallet() {
@@ -263,8 +259,17 @@ constructor(
         return bankName.isNotBlank() &&
                 last4.length == 4 &&
                 balance.isNotBlank() &&
-                balance.toDoubleOrNull() != null
+                balance.toBigDecimalOrNull() != null
     }
+
+    fun clearAccountSaveError() {
+        _uiState.update { it.copy(accountSaveError = null) }
+    }
+
+    private suspend fun accountExists(bankName: String, last4: String): Boolean =
+        accountBalanceRepository.getAllLatestBalances().first().any {
+            it.bankName.trim() == bankName.trim() && it.accountLast4 == last4
+        }
 
     fun addAccount(
         bankName: String,
@@ -276,69 +281,99 @@ constructor(
         isCreditCard: Boolean = false,
         isWallet: Boolean = false,
         creditLimit: BigDecimal? = null,
-        currency: String = "INR"
+        currency: String = "CNY",
+        onSaved: () -> Unit = {}
     ) {
+        if (_uiState.value.isSavingAccount) return
+        val normalizedName = bankName.trim()
+        if (normalizedName.isEmpty() || (!isWallet && accountLast4.length != 4)) return
+        // Set synchronously so rapid taps cannot launch duplicate insertions.
+        _uiState.update { it.copy(isSavingAccount = true, accountSaveError = null) }
         viewModelScope.launch {
-            // Check for duplicates
-            val existingAccount = accountBalanceRepository.getLatestBalance(bankName, accountLast4)
-
-            if (existingAccount != null) {
-                _uiState.update {
-                    it.copy(
-                            errorMessage = "Account with this name and last 4 digits already exists"
-                    )
+            var saved = false
+            try {
+                if (accountExists(normalizedName, accountLast4)) {
+                    _uiState.update { it.copy(accountSaveError = context.getString(R.string.account_already_exists)) }
+                    return@launch
                 }
-                return@launch
-            }
-
-            accountBalanceRepository.insertBalance(
-                AccountBalanceEntity(
-                    bankName = bankName,
-                    accountLast4 = accountLast4,
-                    balance = balance,
-                    creditLimit = creditLimit,
-                    timestamp = LocalDateTime.now(),
-                    isCreditCard = isCreditCard,
-                    isWallet = isWallet,
-                    iconResId = iconResId,
-                    iconName = iconName,
-                    sourceType = "MANUAL",
-                    currency = currency,
-                    color = colorHex
+                accountBalanceRepository.insertBalance(
+                    AccountBalanceEntity(
+                        bankName = normalizedName,
+                        accountLast4 = accountLast4,
+                        balance = balance,
+                        creditLimit = creditLimit,
+                        timestamp = LocalDateTime.now(),
+                        isCreditCard = isCreditCard,
+                        isWallet = isWallet,
+                        iconResId = iconResId,
+                        iconName = iconName,
+                        sourceType = "MANUAL",
+                        currency = currency,
+                        color = colorHex
+                    )
                 )
-            )
-
-            _uiState.update { it.copy(successMessage = "Account added successfully") }
-            delay(3000)
-            _uiState.update { it.copy(successMessage = null) }
+                saved = true
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("ManageAccountsViewModel", "Failed to save account", e)
+                _uiState.update { it.copy(accountSaveError = context.getString(R.string.account_save_failed)) }
+            } finally {
+                _uiState.update { it.copy(isSavingAccount = false) }
+            }
+            if (saved) onSaved()
         }
     }
 
-    fun addAccount() {
+    /** Form submission owns its entire save lifecycle; navigation happens after persistence. */
+    fun addAccount(onSaved: () -> Unit = {}) {
         val state = _formState.value
-        if (!state.isValid) return
+        if (!state.isValid || state.isSaving) return
+        if (state.accountType == AccountType.CREDIT && state.creditLimit.isNotBlank() && state.creditLimit.toBigDecimalOrNull() == null) {
+            _formState.update { it.copy(errorMessage = context.getString(R.string.err_invalid_amount)) }
+            return
+        }
+        _formState.update { it.copy(isSaving = true, errorMessage = null) }
 
-        val creditLimit =
-                if (state.accountType == AccountType.CREDIT && state.creditLimit.isNotBlank()) {
-                    BigDecimal(state.creditLimit)
-                } else null
-
-        addAccount(
-            bankName = state.bankName,
-            balance = BigDecimal(state.balance),
-            accountLast4 = state.accountLast4,
-            iconResId = state.iconResId,
-            iconName = state.iconName,
-            colorHex = "#33B5E5", // Default or handle color
-            isCreditCard = (state.accountType == AccountType.CREDIT),
-            isWallet = (state.accountType == AccountType.WALLET),
-            creditLimit = creditLimit,
-            currency = state.currency
-        )
-
-        // Clear form
         viewModelScope.launch {
-            _formState.value = AccountFormState(currency = resolveDefaultCurrency())
+            var saved = false
+            try {
+                val creditLimit = if (state.accountType == AccountType.CREDIT && state.creditLimit.isNotBlank()) {
+                    state.creditLimit.toBigDecimalOrNull()
+                        ?: throw IllegalArgumentException(context.getString(R.string.err_invalid_amount))
+                } else null
+                if (accountExists(state.bankName, state.accountLast4)) {
+                    _formState.update { it.copy(errorMessage = context.getString(R.string.account_already_exists)) }
+                    return@launch
+                }
+                accountBalanceRepository.insertBalance(
+                    AccountBalanceEntity(
+                        bankName = state.bankName.trim(),
+                        accountLast4 = state.accountLast4,
+                        balance = BigDecimal(state.balance),
+                        creditLimit = creditLimit,
+                        timestamp = LocalDateTime.now(),
+                        isCreditCard = state.accountType == AccountType.CREDIT,
+                        isWallet = state.accountType == AccountType.WALLET,
+                        iconResId = state.iconResId,
+                        iconName = state.iconName,
+                        sourceType = "MANUAL",
+                        currency = state.currency,
+                        color = "#33B5E5"
+                    )
+                )
+                // Keep the submitted currency for the reset; no second asynchronous save/reset race.
+                _formState.value = AccountFormState(currency = state.currency)
+                saved = true
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("ManageAccountsViewModel", "Failed to save account", e)
+                _formState.update { it.copy(errorMessage = context.getString(R.string.account_save_failed)) }
+            } finally {
+                _formState.update { it.copy(isSaving = false) }
+            }
+            if (saved) onSaved()
         }
     }
 

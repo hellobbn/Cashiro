@@ -17,6 +17,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.foundation.border
+import androidx.compose.foundation.Image
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.LocalContext
@@ -28,7 +31,6 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.ArrowDropDown
 import com.ritesh.cashiro.presentation.ui.components.CurrencyBottomSheet
 import androidx.compose.ui.res.stringResource
-import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,11 +40,18 @@ fun AddAccountScreen(
     manageAccountsViewModel: ManageAccountsViewModel = hiltViewModel()
 ) {
     val formState by manageAccountsViewModel.formState.collectAsState()
-    var showTypeDropdown by remember { mutableStateOf(false) }
+    var isScreenActive by remember { mutableStateOf(true) }
+    DisposableEffect(Unit) {
+        isScreenActive = true
+        onDispose { isScreenActive = false }
+    }
+    var showTypeDropdown by rememberSaveable { mutableStateOf(false) }
+    var showIconSelector by rememberSaveable { mutableStateOf(false) }
     
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(rememberScrollState())
             .padding(Dimensions.Padding.content),
         verticalArrangement = Arrangement.spacedBy(Spacing.md)
@@ -106,8 +115,7 @@ fun AddAccountScreen(
             onExpandedChange = { showTypeDropdown = it }
         ) {
             OutlinedTextField(
-                value = formState.accountType.name.lowercase()
-                    .capitalizeFirst(),
+                value = accountTypeLabel(formState.accountType),
                 onValueChange = {},
                 readOnly = true,
                 label = { Text(stringResource(R.string.account_type_label)) },
@@ -135,7 +143,7 @@ fun AddAccountScreen(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                type.name.lowercase().capitalizeFirst()
+                                accountTypeLabel(type)
                             )
                         },
                         onClick = {
@@ -156,123 +164,110 @@ fun AddAccountScreen(
                 }
             }
         }
-    }
 
-    // Icon Selector
-    Text(stringResource(R.string.account_icon_label), style = MaterialTheme.typography.labelMedium)
-    val context = LocalContext.current
-    Box(modifier = Modifier.height(200.dp).fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)) {
-        IconSelector(
-            context = context,
-            selectedIconName = formState.iconName,
-            onIconSelected = { manageAccountsViewModel.updateIcon(it) }
-        )
-    }
-
-    // Account Name
-    OutlinedTextField(
-        value = formState.bankName,
-        onValueChange = manageAccountsViewModel::updateBankName,
-        label = { Text(stringResource(R.string.account_name_required_label)) },
-        placeholder = {
-            Text(
-                when (formState.accountType) {
-                    AccountType.SAVINGS, AccountType.CURRENT -> stringResource(R.string.placeholder_bank_name)
-                    AccountType.CREDIT -> stringResource(R.string.placeholder_credit_name)
-                    AccountType.WALLET -> stringResource(R.string.placeholder_wallet_name)
-                }
-            )
-        },
-        leadingIcon = {
-            Icon(Icons.Default.Business, contentDescription = null)
-        },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Words
-        )
-    )
-
-    // Last 4 Digits
-    OutlinedTextField(
-        value = formState.accountLast4,
-        onValueChange = manageAccountsViewModel::updateAccountLast4,
-        label = { Text(stringResource(R.string.last_4_digits_required_label)) },
-        placeholder = { Text(stringResource(R.string.placeholder_last_4_digits)) },
-        leadingIcon = {
-            Icon(Icons.Default.Tag, contentDescription = null)
-        },
-        supportingText = {
-            Text(stringResource(R.string.enter_last_4_digits_hint))
-        },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number
-        )
-    )
-
-    // Current Balance
-    OutlinedTextField(
-        value = formState.balance,
-        onValueChange = manageAccountsViewModel::updateBalance,
-        label = { Text(stringResource(R.string.current_balance_required_label)) },
-        placeholder = { Text(stringResource(R.string.placeholder_decimal)) },
-        leadingIcon = {
-            Text(
-                CurrencyFormatter.getCurrencySymbol(formState.currency),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 12.dp)
-            )
-        },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Decimal
-        )
-    )
-
-    // Currency Selection
-    var showCurrencySheet by remember { mutableStateOf(false) }
-    OutlinedTextField(
-        value = "${formState.currency} (${CurrencyFormatter.getCurrencySymbol(formState.currency)})",
-        onValueChange = {},
-        label = { Text(stringResource(R.string.currency_label)) },
-        readOnly = true,
-        modifier = Modifier.fillMaxWidth(),
-        trailingIcon = {
-            IconButton(onClick = { showCurrencySheet = true }) {
-                Icon(Icons.Default.ArrowDropDown, contentDescription = stringResource(R.string.select_currency))
-            }
-        },
-        leadingIcon = {
-            Icon(Icons.Default.Language, contentDescription = null)
+        InstitutionPickerButton { institution, name ->
+            manageAccountsViewModel.updateBankName(name)
+            manageAccountsViewModel.updateIcon(institution.iconName)
         }
-    )
 
-    if (showCurrencySheet) {
-        CurrencyBottomSheet(
-            selectedCurrency = formState.currency,
-            onCurrencySelected = {
-                manageAccountsViewModel.updateCurrency(it)
-                showCurrencySheet = false
-            },
-            onDismiss = { showCurrencySheet = false }
-        )
-    }
+        OutlinedCard(
+            onClick = { showIconSelector = !showIconSelector },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (formState.iconResId != 0) {
+                    Image(
+                        painter = painterResource(formState.iconResId),
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp)
+                    )
+                } else {
+                    Icon(Icons.Default.AccountBalance, contentDescription = null,
+                        modifier = Modifier.size(40.dp))
+                }
+                Text(stringResource(R.string.account_icon_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f))
+                Icon(
+                    if (showIconSelector) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = stringResource(if (showIconSelector) R.string.collapse else R.string.expand)
+                )
+            }
+        }
+        if (showIconSelector) {
+            val context = LocalContext.current
+            Box(modifier = Modifier.height(240.dp).fillMaxWidth()
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)) {
+                IconSelector(
+                    context = context,
+                    selectedIconName = formState.iconName,
+                    onIconSelected = {
+                        manageAccountsViewModel.updateIcon(it)
+                        showIconSelector = false
+                    }
+                )
+            }
+        }
 
-    // Credit Limit (only for credit cards)
-    if (formState.accountType == AccountType.CREDIT) {
+        // Account Name
         OutlinedTextField(
-            value = formState.creditLimit,
-            onValueChange = manageAccountsViewModel::updateCreditLimit,
-            label = { Text(stringResource(R.string.credit_limit_label)) },
-            placeholder = { Text(stringResource(R.string.placeholder_decimal)) },
+            value = formState.bankName,
+            onValueChange = manageAccountsViewModel::updateBankName,
+            label = { Text(stringResource(R.string.account_name_required_label)) },
+            placeholder = {
+                Text(
+                    when (formState.accountType) {
+                        AccountType.SAVINGS, AccountType.CURRENT -> stringResource(R.string.placeholder_bank_name)
+                        AccountType.CREDIT -> stringResource(R.string.placeholder_credit_name)
+                        AccountType.WALLET -> stringResource(R.string.placeholder_wallet_name)
+                    }
+                )
+            },
             leadingIcon = {
-                Icon(Icons.Default.CreditScore, contentDescription = null)
+                Icon(Icons.Default.Business, contentDescription = null)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Words
+            )
+        )
+
+        // Last 4 Digits
+        OutlinedTextField(
+            value = formState.accountLast4,
+            onValueChange = manageAccountsViewModel::updateAccountLast4,
+            label = { Text(stringResource(R.string.last_4_digits_required_label)) },
+            placeholder = { Text(stringResource(R.string.placeholder_last_4_digits)) },
+            leadingIcon = {
+                Icon(Icons.Default.Tag, contentDescription = null)
             },
             supportingText = {
-                Text(stringResource(R.string.credit_limit_hint))
+                Text(stringResource(R.string.enter_last_4_digits_hint))
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number
+            )
+        )
+
+        // Current Balance
+        OutlinedTextField(
+            value = formState.balance,
+            onValueChange = manageAccountsViewModel::updateBalance,
+            label = { Text(stringResource(R.string.current_balance_required_label)) },
+            placeholder = { Text(stringResource(R.string.placeholder_decimal)) },
+            leadingIcon = {
+                Text(
+                    CurrencyFormatter.getCurrencySymbol(formState.currency),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -280,22 +275,80 @@ fun AddAccountScreen(
                 keyboardType = KeyboardType.Decimal
             )
         )
-    }
 
-    // Save Button
-    Button(
-        onClick = {
-            manageAccountsViewModel.addAccount()
-            if (formState.errorMessage == null) {
-                onNavigateBack()
+        // Currency Selection
+        var showCurrencySheet by remember { mutableStateOf(false) }
+        OutlinedTextField(
+            value = "${formState.currency} (${CurrencyFormatter.getCurrencySymbol(formState.currency)})",
+            onValueChange = {},
+            label = { Text(stringResource(R.string.currency_label)) },
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                IconButton(onClick = { showCurrencySheet = true }) {
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = stringResource(R.string.select_currency))
+                }
+            },
+            leadingIcon = {
+                Icon(Icons.Default.Language, contentDescription = null)
             }
-        },
-        enabled = formState.isValid,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(stringResource(R.string.save_account))
-    }
+        )
 
-    // Add some bottom padding for better scroll experience
-    Spacer(modifier = Modifier.height(16.dp))
+        if (showCurrencySheet) {
+            CurrencyBottomSheet(
+                selectedCurrency = formState.currency,
+                onCurrencySelected = {
+                    manageAccountsViewModel.updateCurrency(it)
+                    showCurrencySheet = false
+                },
+                onDismiss = { showCurrencySheet = false }
+            )
+        }
+
+        // Credit Limit (only for credit cards)
+        if (formState.accountType == AccountType.CREDIT) {
+            OutlinedTextField(
+                value = formState.creditLimit,
+                onValueChange = manageAccountsViewModel::updateCreditLimit,
+                label = { Text(stringResource(R.string.credit_limit_label)) },
+                placeholder = { Text(stringResource(R.string.placeholder_decimal)) },
+                leadingIcon = {
+                    Icon(Icons.Default.CreditScore, contentDescription = null)
+                },
+                supportingText = {
+                    Text(stringResource(R.string.credit_limit_hint))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal
+                )
+            )
+        }
+
+        // Save Button
+        Button(
+            onClick = {
+                manageAccountsViewModel.addAccount { if (isScreenActive) onNavigateBack() }
+            },
+            enabled = formState.isValid && !formState.isSaving,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(if (formState.isSaving) R.string.saving_account else R.string.save_account))
+        }
+
+        // Add some bottom padding for better scroll experience
+        Spacer(modifier = Modifier.height(16.dp))
+    }
 }
+
+
+@Composable
+private fun accountTypeLabel(type: AccountType): String = stringResource(
+    when (type) {
+        AccountType.SAVINGS -> R.string.type_savings_account
+        AccountType.CURRENT -> R.string.type_current_account
+        AccountType.CREDIT -> R.string.type_credit_card
+        AccountType.WALLET -> R.string.type_wallet
+    }
+)

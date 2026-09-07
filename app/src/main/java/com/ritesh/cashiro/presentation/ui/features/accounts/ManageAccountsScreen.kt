@@ -196,7 +196,10 @@ fun ManageAccountsScreen(
             val fabContainerColor =  MaterialTheme.colorScheme.primaryContainer
             val fabContentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ExtendedFloatingActionButton(
-                onClick = { showAddSheet = true },
+                onClick = {
+                    manageAccountsViewModel.clearAccountSaveError()
+                    showAddSheet = true
+                },
                 expanded = showFloatingLabel,
                 icon = { Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.add_account_fab_desc)) },
                 text = { Text(text = stringResource(R.string.add_account_fab_desc)) },
@@ -854,14 +857,17 @@ fun ManageAccountsScreen(
     if (showAddSheet) {
         ModalBottomSheet(
             sheetState = sheetState,
-            onDismissRequest = { showAddSheet = false },
+            onDismissRequest = { if (!uiState.isSavingAccount) showAddSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
             EditAccountSheet(
                 allAccounts = uiState.accounts,
                 defaultCurrency = defaultCurrency,
-                onDismiss = { showAddSheet = false },
+                isSaving = uiState.isSavingAccount,
+                saveError = uiState.accountSaveError,
+                onClearSaveError = manageAccountsViewModel::clearAccountSaveError,
+                onDismiss = { if (!uiState.isSavingAccount) showAddSheet = false },
                 onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency ->
                     manageAccountsViewModel.addAccount(
                         bankName = bankName,
@@ -873,9 +879,9 @@ fun ManageAccountsScreen(
                         isCreditCard = isCC,
                         isWallet = isWallet,
                         creditLimit = limit,
-                        currency = currency
+                        currency = currency,
+                        onSaved = { showAddSheet = false }
                     )
-                    showAddSheet = false
                 }
             )
         }

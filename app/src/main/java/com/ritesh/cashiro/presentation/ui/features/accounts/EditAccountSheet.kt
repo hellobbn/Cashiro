@@ -48,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,7 +90,10 @@ import java.math.BigDecimal
 fun EditAccountSheet(
     account: AccountBalanceEntity? = null,
     allAccounts: List<AccountBalanceEntity> = emptyList(),
-    defaultCurrency: String = "INR",
+    defaultCurrency: String = "CNY",
+    isSaving: Boolean = false,
+    saveError: String? = null,
+    onClearSaveError: () -> Unit = {},
     onDismiss: () -> Unit,
     onDelete: (() -> Unit)? = null,
     onSave: (bankName: String,
@@ -129,6 +133,13 @@ fun EditAccountSheet(
     var showCurrencySheet by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
+
+    val duplicateAccount = account == null && bankName.isNotBlank() && allAccounts.any {
+        it.bankName.trim() == bankName.trim() && it.accountLast4 == accountLast4
+    }
+    LaunchedEffect(bankName, accountLast4) {
+        onClearSaveError()
+    }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -201,11 +212,11 @@ fun EditAccountSheet(
         )
     }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxSize().imePadding()) {
         Column(
             modifier = Modifier
-                .imePadding()
-                .fillMaxSize()
+                .weight(1f)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.md, vertical = Spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -507,6 +518,15 @@ fun EditAccountSheet(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                if (!isWallet) {
+                    InstitutionPickerButton { institution, name ->
+                        bankName = name
+                        iconName = institution.iconName
+                        iconResId = institution.iconResId
+                        colorHex = institution.color
+                    }
+                }
+
                 // Bank Name Row
                 TextField(
                     value = bankName,
@@ -617,14 +637,12 @@ fun EditAccountSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(80.dp))
         }
 
         // Action Buttons at Bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.BottomCenter)
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
@@ -637,63 +655,74 @@ fun EditAccountSheet(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Delete button (only for existing accounts)
-                if (onDelete != null && account != null) {
-                    OutlinedButton(
-                        onClick = { showDeleteConfirmation = true },
-                        modifier = Modifier.height(56.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.error,
-                                    MaterialTheme.colorScheme.error
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val error = if (duplicateAccount) stringResource(R.string.account_already_exists) else saveError
+                if (error != null) {
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Delete button (only for existing accounts)
+                    if (onDelete != null && account != null) {
+                        OutlinedButton(
+                            onClick = { showDeleteConfirmation = true },
+                            modifier = Modifier.height(56.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.error,
+                                        MaterialTheme.colorScheme.error
+                                    )
                                 )
+                            ),
+                            shape = MaterialTheme.shapes.extraExtraLarge
+                        ) {
+                            Icon(
+                                imageVector = Iconax.Bag,
+                                contentDescription = stringResource(R.string.delete_account_desc)
                             )
-                        ),
+                        }
+                    }
+
+                    // Save button
+                    Button(
+                        onClick = {
+                            onSave(
+                                bankName.trim(),
+                                balance,
+                                accountLast4,
+                                iconResId,
+                                iconName,
+                                colorHex,
+                                isCreditCard,
+                                isWallet,
+                                if (isCreditCard) creditLimit else null,
+                                selectedCurrency
+                            )
+                        },
+                        enabled = !isSaving && !duplicateAccount && bankName.isNotBlank() && (isWallet || accountLast4.length == 4),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
                         shape = MaterialTheme.shapes.extraExtraLarge
                     ) {
-                        Icon(
-                            imageVector = Iconax.Bag,
-                            contentDescription = stringResource(R.string.delete_account_desc)
+                        Text(
+                            text = if (isSaving) stringResource(R.string.saving_account) else if (account == null) stringResource(R.string.add_account_title) else stringResource(R.string.save_changes),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                }
- 
-                // Save button
-                Button(
-                    onClick = {
-                        onSave(
-                            bankName,
-                            balance,
-                            accountLast4,
-                            iconResId,
-                            iconName,
-                            colorHex,
-                            isCreditCard,
-                            isWallet,
-                            if (isCreditCard) creditLimit else null,
-                            selectedCurrency
-                        )
-                    },
-                    enabled = bankName.isNotBlank() && (isWallet || accountLast4.length == 4),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = MaterialTheme.shapes.extraExtraLarge
-                ) {
-                    Text(
-                        text = if (account == null) stringResource(R.string.add_account_title) else stringResource(R.string.save_changes),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
             }
         }

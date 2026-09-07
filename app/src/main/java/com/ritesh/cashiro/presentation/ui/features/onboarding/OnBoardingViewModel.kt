@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.onboarding
 
+import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import android.Manifest
 import android.content.Context
 import android.util.Log
@@ -285,6 +286,7 @@ constructor(
             _uiState.update { it.copy(isLoading = true) }
             
             val balance = BigDecimal(state.manualAccountBalance)
+            val institution = InstitutionCatalog.find(state.manualAccountName)
             accountBalanceRepository.insertBalance(
                 AccountBalanceEntity(
                     bankName = state.manualAccountName,
@@ -292,8 +294,9 @@ constructor(
                     balance = balance,
                     timestamp = LocalDateTime.now(),
                     sourceType = "MANUAL",
-                    iconResId = com.ritesh.cashiro.R.drawable.type_finance_dollar_banknote, // Default icon
-                    color = "#33B5E5",
+                    iconResId = institution?.iconResId ?: com.ritesh.cashiro.R.drawable.type_finance_dollar_banknote,
+                    iconName = institution?.iconName ?: "type_finance_dollar_banknote",
+                    color = institution?.color ?: "#33B5E5",
                     currency = state.selectedCurrency
                 )
             )

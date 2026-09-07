@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.onboarding
 
+import com.ritesh.cashiro.presentation.ui.features.accounts.InstitutionPickerButton
 import android.Manifest
 import android.net.Uri
 import android.os.Build
@@ -1033,6 +1034,9 @@ fun ManualAccountEntryStep(
         )
 
         Spacer(modifier = Modifier.height(Spacing.xl))
+
+        InstitutionPickerButton { _, name -> onUpdateName(name) }
+        Spacer(modifier = Modifier.height(Spacing.sm))
 
         TextField(
             value = accountName,
