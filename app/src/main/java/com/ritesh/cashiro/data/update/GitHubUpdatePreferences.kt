@@ -18,11 +18,14 @@ class GitHubUpdatePreferences @Inject constructor(
 ) {
     private val dismissedCount = intPreferencesKey("dismissed_github_commit_count")
 
-    suspend fun getDismissedCommitCount(): Int {
-        return context.gitHubUpdateStore.data.map { it[dismissedCount] ?: 0 }.first()
+    private val dismissedRelease = intPreferencesKey("dismissed_github_release_version_code")
+    private fun key(channel: PublishChannel) = if (channel == PublishChannel.DEBUG) dismissedCount else dismissedRelease
+
+    suspend fun getDismissedBuild(channel: PublishChannel): Int {
+        return context.gitHubUpdateStore.data.map { it[key(channel)] ?: 0 }.first()
     }
 
-    suspend fun setDismissedCommitCount(commitCount: Int) {
-        context.gitHubUpdateStore.edit { it[dismissedCount] = commitCount }
+    suspend fun setDismissedBuild(channel: PublishChannel, build: Int) {
+        context.gitHubUpdateStore.edit { it[key(channel)] = build }
     }
 }

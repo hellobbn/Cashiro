@@ -74,7 +74,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
       
@@ -106,7 +106,7 @@ jobs:
           echo "Release version: $VERSION (code: $CODE)"
       
       - name: Check if tag already exists
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && github.event_name != 'push' }}
         run: |
           TAG_NAME="v${{ steps.next_version.outputs.version }}"
           
@@ -127,10 +127,12 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          LAST_TAG=$(git describe --tags --match 'v*' --abbrev=0 HEAD^ 2>/dev/null || echo "")
           NEXT_VERSION="${{ steps.next_version.outputs.version }}"
           
           echo "# Release v$NEXT_VERSION" > RELEASE_NOTES.md
+          echo "publish_channel: release" >> RELEASE_NOTES.md
+          echo "version_code: ${{ steps.next_version.outputs.code }}" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           
           if [ -n "$LAST_TAG" ]; then
@@ -155,10 +157,12 @@ jobs:
       
       - name: Verify version alignment
         run: |
+          test "${{ steps.next_version.outputs.version }}" = "${{ steps.current_version.outputs.version }}" || { echo "::error::Tag version must match app versionName"; exit 1; }
           echo "Using version: ${{ steps.next_version.outputs.version }} (code: ${{ steps.next_version.outputs.code }})"
           grep "version" app/build.gradle.kts
       
       - name: Validate Secrets
+        if: ${{ !inputs.dry_run }}
         run: |
           MISSING_SECRETS=""
           if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then MISSING_SECRETS="$MISSING_SECRETS KEYSTORE_BASE64"; fi
@@ -194,7 +198,7 @@ jobs:
         run: |
           # Build standard flavor (for Play Store)
           echo "Building signed standard release APK..."
-          ./gradlew assembleStandardRelease \
+          ./gradlew assembleStandardRelease --no-configuration-cache \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/release.keystore \
             -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
             -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
@@ -202,7 +206,7 @@ jobs:
           
           # Build F-Droid flavor
           echo "Building signed F-Droid release APK..."
-          ./gradlew assembleFdroidRelease \
+          ./gradlew assembleFdroidRelease --no-configuration-cache \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/release.keystore \
             -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
             -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
@@ -321,6 +325,8 @@ jobs:
             app/build/outputs/apk/fdroid/release/Cashiro-fdroid-v${{ steps.next_version.outputs.version }}-universal.apk
           draft: false
           prerelease: ${{ steps.prerelease.outputs.value }}
+          make_latest: ${{ steps.prerelease.outputs.value == 'true' && 'false' || 'true' }}
+          fail_on_unmatched_files: true
       
       - name: Dry Run Summary
         if: ${{ inputs.dry_run }}
@@ -341,7 +347,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "Building signed App Bundle for Play Store..."
-          ./gradlew bundleStandardRelease \
+          ./gradlew bundleStandardRelease --no-configuration-cache \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/release.keystore \
             -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
             -Pandroid.injected.signing.key.alias=$KEY_ALIAS \

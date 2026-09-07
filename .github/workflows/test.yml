@@ -75,8 +75,8 @@ jobs:
           key: ${{ runner.os }}-brokerage-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
           restore-keys: |
             ${{ runner.os }}-brokerage-gradle-
-      - name: Test read-only brokerage integration
-        run: ./gradlew :app:testStandardDebugUnitTest --tests 'com.ritesh.cashiro.data.brokerage.*' --no-configuration-cache
+      - name: Test brokerage and update-channel isolation
+        run: ./gradlew :app:testStandardDebugUnitTest --tests 'com.ritesh.cashiro.data.brokerage.*' --tests 'com.ritesh.cashiro.data.update.*' --no-configuration-cache
       - uses: actions/upload-artifact@v4
         if: always()
         with:

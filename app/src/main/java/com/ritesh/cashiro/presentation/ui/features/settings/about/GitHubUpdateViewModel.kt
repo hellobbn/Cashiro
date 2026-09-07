@@ -6,6 +6,7 @@ import com.ritesh.cashiro.BuildConfig
 import com.ritesh.cashiro.data.update.GitHubRelease
 import com.ritesh.cashiro.data.update.GitHubUpdatePreferences
 import com.ritesh.cashiro.data.update.GitHubUpdateRepository
+import com.ritesh.cashiro.data.update.PublishChannel
 import com.ritesh.cashiro.data.update.UpdateAvailability
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -46,9 +47,9 @@ class GitHubUpdateViewModel @Inject constructor(
             result.fold(
                 onSuccess = { release ->
                     val prompt = UpdateAvailability.shouldPrompt(
-                        remoteCommitCount = release.commitCount,
-                        localCommitCount = BuildConfig.GIT_COMMIT_COUNT,
-                        dismissedCommitCount = preferences.getDismissedCommitCount()
+                        remoteCommitCount = repository.channel.remoteBuild(release),
+                        localCommitCount = if (repository.channel == PublishChannel.DEBUG) BuildConfig.GIT_COMMIT_COUNT else BuildConfig.VERSION_CODE,
+                        dismissedCommitCount = preferences.getDismissedBuild(repository.channel)
                     )
                     _uiState.update {
                         it.copy(
@@ -77,7 +78,7 @@ class GitHubUpdateViewModel @Inject constructor(
         val release = _uiState.value.available
         viewModelScope.launch {
             if (release != null) {
-                preferences.setDismissedCommitCount(release.commitCount)
+                preferences.setDismissedBuild(repository.channel, repository.channel.remoteBuild(release))
             }
             _uiState.update { it.copy(showDialog = false) }
         }

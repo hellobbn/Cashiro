@@ -157,6 +157,7 @@ jobs:
           body: |
             Sideload debug build from `${{ github.sha }}` on `main`.
 
+            publish_channel: debug
             commit_count: ${{ steps.version.outputs.commit_count }}
             commit: ${{ github.sha }}
 

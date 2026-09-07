@@ -123,6 +123,7 @@ android {
     }
     buildTypes {
         debug {
+            buildConfigField("String", "UPDATE_CHANNEL", "\"debug\"")
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
             manifestPlaceholders["appLabel"] = "Cashiro Debug"
@@ -136,6 +137,7 @@ android {
             }
         }
         release {
+            buildConfigField("String", "UPDATE_CHANNEL", "\"release\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
