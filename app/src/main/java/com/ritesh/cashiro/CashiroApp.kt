@@ -3,6 +3,7 @@ package com.ritesh.cashiro
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,7 @@ import com.ritesh.cashiro.presentation.navigation.Settings
 import com.ritesh.cashiro.presentation.navigation.AddTransaction
 import com.ritesh.cashiro.presentation.navigation.TransactionDetail
 import com.ritesh.cashiro.presentation.ui.theme.CashiroTheme
+import com.ritesh.cashiro.presentation.ui.components.GitHubUpdateHost
 import com.ritesh.cashiro.presentation.ui.features.settings.applock.AppLockViewModel
 import com.ritesh.cashiro.presentation.ui.features.settings.appearance.ThemeViewModel
 
@@ -46,11 +48,9 @@ fun CashiroApp(
     val navController = rememberNavController()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Observe lifecycle events and refresh lock state when app resumes from background
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                // App came to foreground - check if it should be locked
                 appLockViewModel.refreshLockState()
             }
         }
@@ -60,24 +60,18 @@ fun CashiroApp(
         }
     }
 
-    // Only render the app once the theme state is loaded
     if (!themeUiState.isLoaded) return
 
-    // Determine initial destination based on persisted onboarding status
     val startDestination = remember {
         if (themeUiState.isOnboardingFinished) Home else OnBoarding
     }
 
-    // Observe lock state changes and navigate to lock screen if needed
-    // But don't navigate when user is actively in Settings configuring app lock
     LaunchedEffect(appLockUiState.isLocked, appLockUiState.isLockEnabled) {
         if (appLockUiState.isLocked && appLockUiState.isLockEnabled) {
             val currentRoute = navController.currentDestination?.route
-            // Don't navigate if already on lock screen or in Settings (user is configuring)
             if (currentRoute != AppLock::class.qualifiedName &&
                 currentRoute != Settings::class.qualifiedName) {
                 navController.navigate(AppLock) {
-                    // Don't add to back stack, force lock screen
                     popUpTo(navController.graph.startDestinationId) { inclusive = false }
                     launchSingleTop = true
                 }
@@ -85,14 +79,12 @@ fun CashiroApp(
         }
     }
     
-    // Navigate to transaction detail when editTransactionId changes
     LaunchedEffect(editTransactionId) {
         editTransactionId?.let { transactionId ->
             navController.navigate(TransactionDetail(transactionId))
         }
     }
 
-    // Navigate to Add screen when addTransactionTab changes
     LaunchedEffect(addTransactionTab, addTransactionType) {
         addTransactionTab?.let { tab ->
             navController.navigate(AddTransaction(initialTab = tab, type = addTransactionType))
@@ -109,10 +101,13 @@ fun CashiroApp(
         appFont = themeUiState.appFont,
         blurEffects = themeUiState.blurEffects
     ) {
-        CashiroNavHost(
-            navController = navController,
-            startDestination = startDestination,
-            onEditComplete = onEditComplete
-        )
+        Box {
+            CashiroNavHost(
+                navController = navController,
+                startDestination = startDestination,
+                onEditComplete = onEditComplete
+            )
+            GitHubUpdateHost()
+        }
     }
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="update_checking">Checking GitHub…</string>
+    <string name="update_up_to_date">This install is current</string>
+    <string name="update_available_status">Update available: %1$s</string>
+    <string name="update_check_failed">Could not reach GitHub</string>
+    <string name="update_available_title">New build on GitHub</string>
+    <string name="update_available_body">%1$s is ready. Download the APK from the GitHub release page and install it over this debug build.</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
+</resources>

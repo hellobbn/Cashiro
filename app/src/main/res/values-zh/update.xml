@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="check_for_updates">检查更新</string>
+    <string name="update_checking">正在检查 GitHub…</string>
+    <string name="update_up_to_date">当前已是最新安装</string>
+    <string name="update_available_status">有新版本：%1$s</string>
+    <string name="update_check_failed">无法连接 GitHub</string>
+    <string name="update_available_title">GitHub 上有新的构建</string>
+    <string name="update_available_body">%1$s 已发布。请从 GitHub Release 下载 APK，覆盖安装当前 debug 包。</string>
+    <string name="update_download">去下载</string>
+    <string name="update_later">稍后</string>
+</resources>

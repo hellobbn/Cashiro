@@ -81,7 +81,9 @@ object Constants {
      */
     object Links {
         const val DISCORD_URL = "https://discord.gg/6qaYgpJTg"
-        const val GITHUB_URL = "https://github.com/ritesh-kanwar/Cashiro"
+        const val GITHUB_URL = "https://github.com/hellobbn/Cashiro"
+        const val UPSTREAM_GITHUB_URL = "https://github.com/ritesh-kanwar/Cashiro"
+        const val DEBUG_RELEASE_URL = "https://github.com/hellobbn/Cashiro/releases/tag/debug-latest"
         const val WEBSITE_URL = "https://ritesh-kanwar.github.io/cashiro.showcase"
         const val PRIVACY_POLICY_URL = "https://ritesh-kanwar.github.io/cashiro.showcase/privacy"
         const val TERMS_OF_SERVICE_URL = "https://ritesh-kanwar.github.io/cashiro.showcase/terms"
