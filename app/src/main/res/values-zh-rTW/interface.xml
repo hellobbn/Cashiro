@@ -6,4 +6,8 @@
     <string name="settings_group_app">關於應用</string>
     <string name="type_current_account">活期帳戶</string>
     <string name="type_investment_account">投資帳戶</string>
+
+    <string name="account_already_exists">已存在名稱和末四碼相同的帳戶。</string>
+    <string name="account_save_failed">無法儲存帳戶。已保留您填寫的內容，請再試一次。</string>
+    <string name="saving_account">正在儲存…</string>
 </resources>

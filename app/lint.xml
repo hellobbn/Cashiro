@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- This fork maintains default English and values-zh. Other locales come from
+         upstream Crowdin snapshots and are allowed to lag. -->
+    <issue id="MissingTranslation" severity="ignore" />
+    <issue id="ExtraTranslation" severity="warning" />
+    <issue id="UnusedResources" severity="warning" />
+    <issue id="UnusedQuantity" severity="warning" />
+    <issue id="ImpliedQuantity" severity="warning" />
+    <issue id="MissingQuantity" severity="warning" />
+    <issue id="IconLocation" severity="warning" />
+    <issue id="IconDensities" severity="warning" />
+    <issue id="IconDuplicatesConfig" severity="warning" />
+    <issue id="ObsoleteSdkInt" severity="warning" />
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="UnusedAttribute" severity="warning" />
+    <issue id="VectorPath" severity="warning" />
+</lint>

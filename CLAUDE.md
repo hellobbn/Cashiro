@@ -1,141 +1,153 @@
 # Cashiro Project Context
 
 ## Project Overview
-Cashiro is a minimalist, AI-powered expense tracker for Android that automatically extracts transaction data from SMS messages using on-device processing.
+
+Cashiro is an Android expense tracker. This repository is a personal fork of
+[ritesh-kanwar/Cashiro](https://github.com/ritesh-kanwar/Cashiro), itself based on
+PennyWise AI.
+
+The fork is for personal, mostly **manual** bookkeeping: accounts, categories,
+budgets, and a Chinese / cross-border institution catalog. SMS parsing remains
+in the tree from upstream but is not the product direction here. Do not add
+Chinese bank SMS parsers unless explicitly requested.
+
+## Identifiers
+
+Do not rename these without an explicit migration plan. Changing `applicationId`
+breaks updates of already-installed builds.
+
+| What | Value |
+|---|---|
+| Gradle project | `cashiro-beta` |
+| App namespace / applicationId | `com.ritesh.cashiro` |
+| App source root | `app/src/main/java/com/ritesh/cashiro/` |
+| Parser module | `parser-core` |
+| Parser package | `com.ritesh.parser.core` |
+| Parser source root | `parser-core/src/main/kotlin/com/ritesh/parser/core/` |
+| Historical Room schema path | `app/schemas/com.pennywiseai.tracker.data.database.PennyWiseDatabase/` |
+| Version name | `2.1.61-beta` |
+| Version code | `94` |
+| Min SDK | 26 |
+| Compile / target SDK | 36 |
+| License | AGPL-3.0 |
+
+Room schemas keep the old `com.pennywiseai.tracker` directory name from the
+PennyWise lineage. Leave that path alone.
 
 ## Important Documents
-Please reference these documents when working on this project:
-- **Architecture**: `/docs/architecture.md` - MVVM + Clean Architecture patterns, layer responsibilities
-- **Design System**: `/docs/design.md` - Material 3 theming, colors, typography, components
-- **PRD**: `/prd.md` - Product requirements, features, timeline
+
+- **Architecture**: `/docs/architecture.md`
+- **Design System**: `/docs/design.md`
+- **Chinese experience**: `/docs/chinese-experience.md`
+- **Validation**: `/docs/validation/chinese-experience/README.md`
 
 ## Key Technical Decisions
-1. **UI Framework**: Jetpack Compose with Material 3
-2. **Architecture**: MVVM with Clean Architecture (UI, Domain, Data layers)
-3. **State Management**: Unidirectional Data Flow with StateFlow
-4. **DI**: Hilt for dependency injection
-5. **Database**: Room for local storage
-6. **AI/ML**: MediaPipe LLM (Qwen 2.5) for on-device processing
-7. **Background**: WorkManager for SMS scanning
+
+1. **UI**: Jetpack Compose + Material 3
+2. **Architecture**: MVVM with UI / Domain / Data layers
+3. **State**: Unidirectional Data Flow with StateFlow
+4. **DI**: Hilt
+5. **Database**: Room
+6. **On-device model**: LiteRT-LM / MediaPipe (optional assistant)
+7. **Background**: WorkManager (upstream SMS scan; not the focus of this fork)
+8. **Flavors**: `standard` (default) and `fdroid`
+
+## Current Direction
+
+Personal Chinese / cross-border manual accounts:
+
+- New installs default to CNY. Existing saved currencies are not overwritten.
+- Institution picker covers CN / HK / SG / US banks and brokers as **name and icon presets only**.
+- Choosing an institution does not add SMS parsing, login, or holdings sync.
+- Prefer account UX, currency defaults, and imports over SMS automation.
 
 ## Design Principles
-- **Material You**: Dynamic color from wallpaper (Android 12+)
-- **Light/Dark Theme**: Full support with semantic color roles
-- **Spacing**: 8dp grid system
-- **Typography**: Material 3 type scale
-- **Navigation**: NavigationBar for phones, NavigationRail for tablets
-- **Edge-to-Edge**: All screens use PennyWiseScaffold with default TopAppBar for consistent system bar handling
-- **Consistent UI**: PennyWiseScaffold provides default TopAppBar with options for title, navigation, actions, and transparency
+
+- Material You dynamic color on Android 12+
+- Light / dark / dynamic themes
+- 8dp grid
+- Material 3 type scale
+- NavigationBar on phones, NavigationRail on tablets
+- Edge-to-edge via the existing scaffold / TopAppBar pattern
+- Chinese UI should avoid awkward letter-spacing and should use `9月1日` style dates
 
 ## Code Style Guidelines
-- Follow Kotlin coding conventions
-- Use meaningful variable names
-- Implement proper error handling with sealed classes
-- Ensure UI components are reusable and testable
-- Always test on both light and dark themes
 
-## Current Phase
-Working on Phase 1: Core Foundation (Project setup, Material 3 theming, Room database, Navigation)
+- Follow Kotlin conventions
+- Use meaningful names
+- Handle errors with sealed classes where the project already does
+- Keep composables reusable
+- Test light and dark themes
+- Never put PII in comments or source
 
-## Commands to Run
-- Build: `./gradlew build`
-- Test: `./gradlew test`
-- Lint: `./gradlew lint`
+## Commands
 
-## Versioning Strategy
-We follow Semantic Versioning (SemVer) - MAJOR.MINOR.PATCH:
-- **MAJOR**: Breaking changes, major UI overhauls, architecture changes
-- **MINOR**: New features, significant improvements
-- **PATCH**: Bug fixes, minor improvements, performance optimizations
+```bash
+./gradlew :app:assembleStandardDebug
+./gradlew :app:testStandardDebugUnitTest
+./gradlew :parser-core:test
+./gradlew :app:lintStandardDebug
+```
 
-Current version: 2.1.3 (versionCode: 13)
+Debug APKs:
 
-Recent version history:
-- 2.1.3: Federal Bank support, Discord community, GitHub issue templates
-- 2.1.2: Spotlight tutorial, SBI/Indian Bank support, auto-scan on launch
-- 2.0.1: Previous release
+- `app/build/outputs/apk/standard/debug/app-standard-arm64-v8a-debug.apk`
+- `app/build/outputs/apk/standard/debug/app-standard-universal-debug.apk`
+
+CI publishes those to the rolling `debug-latest` GitHub Release on every `main` push.
+
+## Versioning
+
+Semantic versions from upstream, currently `2.1.61-beta` (`versionCode` 94).
+
+- **MAJOR**: breaking changes
+- **MINOR**: features
+- **PATCH**: fixes
+
+Bump `versionName` / `versionCode` in `app/build.gradle.kts` together.
 
 ## Module Structure
-The project now uses a multi-module architecture:
-- **app**: Main Android application module
-- **parser-core**: Standalone bank parser module (no Android dependencies)
+
+```
+app/            Android application (namespace com.ritesh.cashiro)
+parser-core/    JVM bank-SMS parsers (package com.ritesh.parser.core)
+```
+
+App packages:
+
+```
+com.ritesh.cashiro
+├── data          Room, repositories, preferences, managers
+├── domain        Use cases and models
+├── presentation  Compose UI, feature ViewModels, navigation
+├── di            Hilt modules
+└── utils
+```
 
 ## Bank Parser Architecture
-Bank parsers are now in the `parser-core` module for reusability across platforms.
 
-### When adding new bank parsers:
-1. **Location**: Add to `parser-core/src/main/kotlin/com/cashiro/parser/core/bank/`
-2. **Base Class**: All bank parsers extend `BankParser` abstract class
-3. **Key Methods**:
-   - `getBankName()`: Returns the bank's display name
-   - `canHandle(sender: String)`: Checks if parser can handle SMS from sender
-   - `parse(smsBody, sender, timestamp)`: Returns `ParsedTransaction` or null
-4. **Override Patterns**: Banks typically override:
-   - `extractAmount()`: Bank-specific amount patterns
-   - `extractMerchant()`: Bank-specific merchant extraction
-   - `extractTransactionType()`: If needed for special cases
-5. **Registration**: Add new parser to `BankParserFactory.parsers` list in parser-core
-6. **Return Type**: Use `ParsedTransaction` from parser-core
-7. **Imports for parser-core**:
-   - `com.ritesh.parser.core.TransactionType`
-   - `com.ritesh.parser.core.ParsedTransaction`
-   - `java.math.BigDecimal` for amounts
+Parsers live in `parser-core` so they stay free of Android dependencies.
+This fork does not prioritize new parsers.
 
-### Integration in main app:
-- Use `com.ritesh.tracker.data.mapper.toEntity()` to convert ParsedTransaction to TransactionEntity
-- The mapper handles type conversions between modules
+### If you must add a parser
 
-## Supported Banks (44 parsers)
-- Airtel Payments Bank
-- **Alinma Bank (Saudi Arabia)** - Arabic SMS support
-- American Express (AMEX)
-- Axis Bank
-- Bank of Baroda
-- Bank of India
-- Canara Bank
-- Central Bank of India
-- City Union Bank
-- DBS Bank
-- Federal Bank
-- HDFC Bank
-- HSBC Bank
-- **Huntington Bank (USA)**
-- ICICI Bank
-- IDBI Bank
-- IDFC First Bank
-- Indian Bank
-- Indian Overseas Bank
-- India Post Payments Bank (IPPB)
-- Jio Payments Bank
-- JioPay
-- Jammu & Kashmir Bank
-- Jupiter Bank
-- Juspay
-- Karnataka Bank
-- Kerala Gramin Bank
-- Kotak Bank
-- LazyPay
-- Mashreq Bank
-- **M-PESA (Kenya)** - Mobile money service
-- **Navy Federal Credit Union (USA)** - NFCU
-- **NMB Bank / Nabil Bank (Nepal)**
-- OneCard
-- **Priorbank (Belarus)** - Russian/Belarusian SMS support
-- Punjab National Bank (PNB)
-- Saraswat Co-operative Bank
-- State Bank of India (SBI)
-- Slice
-- South Indian Bank
-- **Standard Chartered Bank**
-- Union Bank
-- Utkarsh Bank
+1. Add it under `parser-core/src/main/kotlin/com/ritesh/parser/core/bank/`
+2. Extend `BankParser`
+3. Implement `getBankName()`, `canHandle(sender)`, `parse(smsBody, sender, timestamp)`
+4. Override `extractAmount()` / `extractMerchant()` / `extractTransactionType()` as needed
+5. Register it in `BankParserFactory.parsers`
+6. Return `com.ritesh.parser.core.ParsedTransaction`
+7. Map into the app with `com.ritesh.cashiro.data.mapper.toEntity()`
 
-When implementing any feature, please ensure it aligns with the architecture patterns and design system defined in the documentation.
+Parser tests must use the shared helpers in `ParserTestUtils`.
+See `docs/parser-test-standards.md`.
 
+## Lint
 
-# Important
-Never use pii in comments, code anywhere
+`app/lint.xml` plus the `lint {}` block in `app/build.gradle.kts`:
 
-# Test implementation standards for parsers
-- Parser tests must use the shared JUnit helpers under `ParserTestUtils`. For
-  full guidance (examples, migration checklist), read `docs/parser-test-standards.md`.
+- Default English and `values-zh` are the maintained locales
+- `values-zh-rTW` has Traditional Chinese for the new institution/settings strings
+- `MissingTranslation` is ignored so stale Crowdin locales do not fail the build
+- Dependency-version lint is disabled so builds are not blocked by upstream catalog drift
+- `checkReleaseBuilds` is off; debug lint is `./gradlew :app:lintStandardDebug`

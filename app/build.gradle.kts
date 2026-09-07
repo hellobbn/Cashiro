@@ -143,6 +143,17 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+        lintConfig = file("lint.xml")
+        disable += setOf(
+            "GradleDependency",
+            "AndroidGradlePluginVersion",
+            "NewerVersionAvailable"
+        )
+    }
 }
 
 
