@@ -1317,4 +1317,7 @@
         <item quantity="other">Delete %1$d records?</item>
     </plurals>
 
+    <string name="account_already_exists">An account with this name and last four digits already exists.</string>
+    <string name="account_save_failed">Could not save the account. Your details are kept; please try again.</string>
+    <string name="saving_account">Saving…</string>
 </resources>

@@ -131,7 +131,10 @@ fun SharedTransitionScope.TransactionItem(
         }
     }
 
-    val dateTimeFormatter = remember { DateTimeFormatter.ofPattern("MMM d") }
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val dateTimeFormatter = remember(locale) {
+        DateTimeFormatter.ofPattern(if (locale.language == "zh") "M月d日" else "MMM d", locale)
+    }
     val defaultSubtitle = remember(transaction?.dateTime) { 
         transaction?.dateTime?.format(dateTimeFormatter) ?: "" 
     }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_group_personal">Personalization</string>
+    <string name="settings_group_finances">Money management</string>
+    <string name="settings_group_automation">Automation &amp; notifications</string>
+    <string name="settings_group_app">About the app</string>
+    <string name="type_current_account">Current account</string>
+    <string name="type_investment_account">Investment account</string>
+</resources>

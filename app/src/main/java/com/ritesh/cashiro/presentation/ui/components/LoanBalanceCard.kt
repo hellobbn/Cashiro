@@ -74,7 +74,7 @@ fun SharedTransitionScope.LoanBalanceCard(
     summary: LendBorrowSummary,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    currency: String = "INR",
+    currency: String = "CNY",
     blurEffects: Boolean = false,
     hazeState: HazeState = remember { HazeState() },
     animatedContentScope: AnimatedContentScope? = null,

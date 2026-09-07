@@ -13,6 +13,8 @@ object CurrencySymbols {
         "CAD" to "C$",
         "CHF" to "CHF",
         "HKD" to "HK$",
+        "TWD" to "NT$",
+        "MOP" to "MOP$",
         "SGD" to "S$",
         "INR" to "₹",
         "RUB" to "₽",

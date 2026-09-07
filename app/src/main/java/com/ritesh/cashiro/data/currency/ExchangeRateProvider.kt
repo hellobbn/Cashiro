@@ -198,7 +198,7 @@ class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
         val currencies = fetchAllCurrencies()
         return currencies?.keys?.map { it.uppercase() }?.toList() ?: listOf(
             "AED", "USD", "EUR", "GBP", "INR", "THB", "MYR", "SGD", "KWD", "KRW",
-            "CAD", "AUD", "JPY", "CNY", "NPR", "ETB"
+            "CAD", "AUD", "JPY", "CNY", "HKD", "TWD", "MOP", "NPR", "ETB"
         )
     }
 }

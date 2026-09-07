@@ -32,6 +32,7 @@ fun LanguageSelectionBottomSheet(
     onDismiss: () -> Unit
 ) {
     val supportedLanguages = listOf(
+        "zh" to "简体中文",
         "en" to "English",
         "af" to "Afrikaans",
         "ar" to "العربية (Arabic)",
@@ -87,8 +88,7 @@ fun LanguageSelectionBottomSheet(
         "ur" to "اردو (Urdu)",
         "uz" to "Oʻzbekcha (Uzbek)",
         "val" to "Valencian",
-        "vi" to "Tiếng Việt (Vietnamese)",
-        "zh" to "中文 (Chinese)"
+        "vi" to "Tiếng Việt (Vietnamese)"
     )
 
     ModalBottomSheet(

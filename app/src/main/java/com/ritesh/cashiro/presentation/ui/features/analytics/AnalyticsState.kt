@@ -25,8 +25,8 @@ data class AnalyticsUiState(
     val averageAmount: BigDecimal = BigDecimal.ZERO,
     val topCategory: String? = null,
     val topCategoryPercentage: Float = 0f,
-    val currency: String = "INR",
-    val baseCurrency: String = "INR",
+    val currency: String = "CNY",
+    val baseCurrency: String = "CNY",
     val isLoading: Boolean = true,
     val spendingTrend: List<BalancePoint> = emptyList(),
     val convertedMerchantAmounts: Map<String, BigDecimal> = emptyMap()

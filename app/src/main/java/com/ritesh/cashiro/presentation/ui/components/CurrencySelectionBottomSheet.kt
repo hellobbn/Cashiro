@@ -12,6 +12,9 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import com.ritesh.cashiro.R
+import com.ritesh.cashiro.data.model.Currency
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,7 +41,7 @@ fun CurrencySelectionBottomSheet(
                 .padding(bottom = 48.dp)
         ) {
             Text(
-                text = "Select Currency",
+                text = stringResource(R.string.select_currency),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -49,14 +52,7 @@ fun CurrencySelectionBottomSheet(
                 ListItem(
                     headline = {
                         Text(
-                            text = when (currency) {
-                                "INR" -> "Indian Rupee (₹)"
-                                "USD" -> "US Dollar ($)"
-                                "AED" -> "UAE Dirham (AED)"
-                                "NPR" -> "Nepalese Rupee (₨)"
-                                "ETB" -> "Ethiopian Birr (ብር)"
-                                else -> currency
-                            }
+                            text = Currency.getByCode(currency)?.let { "${it.localizedName()} (${it.code})" } ?: currency
                         )
                     },
                     trailing = {

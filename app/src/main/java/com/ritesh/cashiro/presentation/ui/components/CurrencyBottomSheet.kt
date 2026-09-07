@@ -147,10 +147,13 @@ contentDescription = stringResource(R.string.search),
                 ) {
                     val sourceCurrencies =
                         (if (uiState.currencies.isNotEmpty()) uiState.currencies else Currency.SUPPORTED_CURRENCIES)
-                            .sortedBy { it.name }
+                            .sortedWith(compareBy<Currency> {
+                                Currency.POPULAR_CURRENCY_CODES.indexOf(it.code).takeIf { index -> index >= 0 } ?: Int.MAX_VALUE
+                            }.thenBy { it.localizedName() })
                     val filteredCurrencies = sourceCurrencies.filter {
                         it.code.contains(searchQuery.text, ignoreCase = true) ||
                                 it.name.contains(searchQuery.text, ignoreCase = true) ||
+                                it.localizedName().contains(searchQuery.text, ignoreCase = true) ||
                                 it.symbol.contains(searchQuery.text, ignoreCase = true)
                     }
 
@@ -443,7 +446,7 @@ fun CurrencyCard(
                 modifier = Modifier.padding(vertical = 5.dp)
             )
             Text(
-                text = currency.name,
+                text = currency.localizedName(),
                 lineHeight = 10.sp,
                 fontSize = 10.sp,
                 maxLines = 1,

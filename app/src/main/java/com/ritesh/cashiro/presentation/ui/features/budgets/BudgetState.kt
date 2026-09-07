@@ -22,7 +22,7 @@ data class BudgetUiState(
     val selectedBudgetTransactions: List<TransactionEntity> = emptyList(),
     val allAccounts: List<AccountBalanceEntity> = emptyList(),
     val convertedAmounts: Map<Long, BigDecimal> = emptyMap(),
-    val baseCurrency: String = "INR",
+    val baseCurrency: String = "CNY",
     val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap(),
     val error: String? = null
 )
@@ -40,7 +40,7 @@ data class EditBudgetState(
     val budgetType: BudgetType = BudgetType.EXPENSE,
     val accountIds: List<String> = emptyList(),
     val color: String = "#4CAF50",
-    val currency: String = "INR",
+    val currency: String = "CNY",
     val categoryLimits: List<EditCategoryLimit> = emptyList()
 ) {
     val isNewBudget: Boolean get() = budgetId == null

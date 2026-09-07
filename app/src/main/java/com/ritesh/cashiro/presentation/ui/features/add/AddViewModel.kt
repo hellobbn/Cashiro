@@ -361,7 +361,7 @@ constructor(
         _transactionUiState.update { currentState -> 
             currentState.copy(
                 selectedAccount = account,
-                currency = account?.currency ?: "INR"
+                currency = account?.currency ?: "CNY"
             ) 
         }
     }
@@ -571,7 +571,7 @@ constructor(
         _subscriptionUiState.update { currentState -> 
             currentState.copy(
                 selectedAccount = account,
-                currency = account?.currency ?: "INR"
+                currency = account?.currency ?: "CNY"
             ) 
         }
     }
@@ -737,7 +737,7 @@ data class TransactionUiState(
     val isRecurring: Boolean = false,
     val selectedAccount: AccountBalanceEntity? = null,
     val targetAccount: AccountBalanceEntity? = null,
-    val currency: String = "INR",
+    val currency: String = "CNY",
     val isLoading: Boolean = false,
     val error: String? = null,
     val selectedPersonId: Long? = null,
@@ -776,7 +776,7 @@ data class SubscriptionUiState(
     val subcategory: String? = null,
     val categoryError: String? = null,
     val selectedAccount: AccountBalanceEntity? = null,
-    val currency: String = "INR",
+    val currency: String = "CNY",
     val notes: String = "",
     val isCustomCycle: Boolean = false,
     val customCycleCount: Int = 1,

@@ -110,7 +110,7 @@ class HomeViewModel @Inject constructor(
         emptyMap()
 
     private val baseCurrency = currencyRepository.effectiveBaseCurrencyCode
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "INR")
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "CNY")
 
     private val _selectedCurrency = MutableStateFlow<String?>(null)
     private val selectedCurrencyCombined = combine(
@@ -118,7 +118,7 @@ class HomeViewModel @Inject constructor(
         _selectedCurrency
     ) { base, selected ->
         selected ?: base
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "INR")
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "CNY")
 
     init {
         loadHomeData()
@@ -708,8 +708,9 @@ class HomeViewModel @Inject constructor(
             val updatedAvailableCurrencies = (currentAvailableCurrencies + allAccountCurrencies)
                 .sortedWith { a, b ->
                     when {
-                        a == "INR" -> -1
-                        b == "INR" -> 1
+                        a == b -> 0
+                        a == "CNY" -> -1
+                        b == "CNY" -> 1
                         else -> a.compareTo(b)
                     }
                 }
@@ -836,8 +837,9 @@ class HomeViewModel @Inject constructor(
         val allCurrencies = (currentMonthBreakdownMap.keys + lastMonthBreakdownMap.keys + currentYearBreakdownMap.keys + effectiveCurrency).distinct()
         val availableCurrencies = allCurrencies.sortedWith { a, b ->
             when {
-                a == "INR" -> -1 // INR first
-                b == "INR" -> 1
+                a == b -> 0
+                a == "CNY" -> -1 // CNY first
+                b == "CNY" -> 1
                 else -> a.compareTo(b) // Alphabetical for others
             }
         }

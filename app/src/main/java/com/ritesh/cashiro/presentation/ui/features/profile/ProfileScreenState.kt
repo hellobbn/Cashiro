@@ -15,7 +15,7 @@ data class ProfileScreenState(
     val totalIncome: BigDecimal = BigDecimal.ZERO,
     val totalExpense: BigDecimal = BigDecimal.ZERO,
     val activeSubscriptions: Int = 0,
-    val baseCurrency: String = "INR",
+    val baseCurrency: String = "CNY",
     val contacts: List<LendBorrowPerson> = emptyList(),
     val isLoading: Boolean = false,
     val isEditSheetOpen: Boolean = false,

@@ -27,12 +27,12 @@ data class HomeUiState(
     val recentTransactions: List<TransactionEntity> = emptyList(),
     val upcomingSubscriptions: List<SubscriptionEntity> = emptyList(),
     val upcomingSubscriptionsTotal: BigDecimal = BigDecimal.ZERO,
-    val upcomingSubscriptionsCurrency: String = "INR",
+    val upcomingSubscriptionsCurrency: String = "CNY",
     val accountBalances: List<AccountBalanceEntity> = emptyList(),
     val creditCards: List<AccountBalanceEntity> = emptyList(),
     val totalBalance: BigDecimal = BigDecimal.ZERO,
     val totalAvailableCredit: BigDecimal = BigDecimal.ZERO,
-    val selectedCurrency: String = "INR",
+    val selectedCurrency: String = "CNY",
     val availableCurrencies: List<String> = emptyList(),
     val isLoading: Boolean = true,
     val isScanning: Boolean = false,
@@ -47,7 +47,7 @@ data class HomeUiState(
     val balanceHistory: List<BalancePoint> = emptyList(),
     val transactionHeatmap: Map<java.time.LocalDate, Int> = emptyMap(),
     val convertedAmounts: Map<Long, BigDecimal> = emptyMap(),
-    val baseCurrency: String = "INR",
+    val baseCurrency: String = "CNY",
     val lendBorrowSummary: com.ritesh.cashiro.domain.model.LendBorrowSummary = com.ritesh.cashiro.domain.model.LendBorrowSummary(),
     val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap()
 )

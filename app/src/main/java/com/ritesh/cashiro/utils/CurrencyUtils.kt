@@ -10,40 +10,39 @@ import java.util.Locale
  */
 object CurrencyUtils {
     
-    private val indianLocale = Locale.Builder().setLanguage("en").setRegion("IN").build()
-    private val indianCurrencyFormat = NumberFormat.getCurrencyInstance(indianLocale).apply {
-        currency = Currency.getInstance("INR")
-        maximumFractionDigits = 0 // No decimal places for whole amounts
-    }
-    
+    private val defaultLocale = Locale.CHINA
     /**
-     * Formats a BigDecimal amount as Indian Rupees
+     * Formats a BigDecimal amount as Chinese yuan
      * @param amount The amount to format
-     * @return Formatted string like "₹1,234" or "₹1,23,456"
+     * @return Formatted string like "¥1,234" or "¥123,456"
      */
     fun formatCurrency(amount: BigDecimal): String {
         // For amounts with decimals, show them
         return if (amount.stripTrailingZeros().scale() > 0) {
-            val formatter = NumberFormat.getCurrencyInstance(indianLocale).apply {
-                currency = Currency.getInstance("INR")
+            val formatter = NumberFormat.getCurrencyInstance(defaultLocale).apply {
+                currency = Currency.getInstance("CNY")
                 maximumFractionDigits = 2
                 minimumFractionDigits = 1
             }
             formatter.format(amount)
         } else {
-            indianCurrencyFormat.format(amount)
+            NumberFormat.getCurrencyInstance(defaultLocale).apply {
+                currency = Currency.getInstance("CNY")
+                minimumFractionDigits = 0
+                maximumFractionDigits = 0
+            }.format(amount)
         }
     }
     
     /**
-     * Formats a Double amount as Indian Rupees
+     * Formats a Double amount as Chinese yuan
      */
     fun formatCurrency(amount: Double): String {
         return formatCurrency(BigDecimal.valueOf(amount))
     }
     
     /**
-     * Formats an Int amount as Indian Rupees
+     * Formats an Int amount as Chinese yuan
      */
     fun formatCurrency(amount: Int): String {
         return formatCurrency(BigDecimal(amount))
@@ -53,8 +52,8 @@ object CurrencyUtils {
      * Formats an amount with a custom number of decimal places
      */
     fun formatCurrency(amount: BigDecimal, decimalPlaces: Int): String {
-        val formatter = NumberFormat.getCurrencyInstance(indianLocale).apply {
-            currency = Currency.getInstance("INR")
+        val formatter = NumberFormat.getCurrencyInstance(defaultLocale).apply {
+            currency = Currency.getInstance("CNY")
             maximumFractionDigits = decimalPlaces
             minimumFractionDigits = decimalPlaces
         }
@@ -62,23 +61,24 @@ object CurrencyUtils {
     }
 
     /**
-     * Sorts a list of currency codes with INR prioritized first, then alphabetically.
+     * Sorts a list of currency codes with CNY prioritized first, then alphabetically.
      * This is the standard sorting for currency lists throughout the app.
      *
      * @param currencies List of currency codes to sort
-     * @return Sorted list with INR first (if present), then alphabetically
+     * @return Sorted list with CNY first (if present), then alphabetically
      *
      * Example:
      * ```
-     * sortCurrencies(listOf("USD", "EUR", "INR", "GBP"))
-     * // Returns: ["INR", "EUR", "GBP", "USD"]
+     * sortCurrencies(listOf("USD", "EUR", "CNY", "GBP"))
+     * // Returns: ["CNY", "EUR", "GBP", "USD"]
      * ```
      */
     fun sortCurrencies(currencies: List<String>): List<String> {
         return currencies.sortedWith { a, b ->
             when {
-                a == "INR" -> -1 // INR first
-                b == "INR" -> 1
+                a == b -> 0
+                a == "CNY" -> -1 // CNY first
+                b == "CNY" -> 1
                 else -> a.compareTo(b) // Alphabetical for others
             }
         }

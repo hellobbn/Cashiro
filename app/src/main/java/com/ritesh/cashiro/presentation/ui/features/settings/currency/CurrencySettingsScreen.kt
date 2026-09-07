@@ -119,7 +119,7 @@ fun CurrencySettingsScreen(
                     icon = Icons.AutoMirrored.Filled.ShowChart,
                     onClick = {
                         currencyViewModel.loadConversions(
-                            ratesUiState.selectedCurrency?.code ?: "INR"
+                            ratesUiState.selectedCurrency?.code ?: "CNY"
                         )
                         showExchangeRateSheet = true
                     },
@@ -242,7 +242,7 @@ fun CurrencySettingsScreen(
 
     if (showUnifiedCurrencyPicker) {
         CurrencyBottomSheet(
-            selectedCurrency = uiState.unifiedCurrencyCode ?: "INR",
+            selectedCurrency = uiState.unifiedCurrencyCode ?: "CNY",
             onCurrencySelected = { code ->
                 currencySettingsViewModel.setUnifiedCurrency(code)
                 showUnifiedCurrencyPicker = false
@@ -253,7 +253,7 @@ fun CurrencySettingsScreen(
 
     if (showDefaultCurrencyPicker) {
         CurrencyBottomSheet(
-            selectedCurrency = uiState.defaultCurrencyCode ?: "INR",
+            selectedCurrency = uiState.defaultCurrencyCode ?: "CNY",
             onCurrencySelected = { code ->
                 currencySettingsViewModel.setDefaultCurrency(code)
                 showDefaultCurrencyPicker = false

@@ -122,7 +122,7 @@ fun BudgetHistoryScreen(
                                 Column(modifier = Modifier.padding(Spacing.md)) {
                                     SpendingLineChart(
                                         data = uiState.chartPoints,
-                                        currency = uiState.budget?.currency ?: "INR"
+                                        currency = uiState.budget?.currency ?: "CNY"
                                     )
                                 }
                             }

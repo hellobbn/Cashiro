@@ -22,10 +22,10 @@
     <string name="export_data_sub">将数据备份到文件</string>
     <string name="import_data">导入数据</string>
     <string name="import_data_sub">从备份恢复数据</string>
-    <string name="import_pdf_statement">导入PDF账单</string>
-    <string name="import_pdf_statement_sub">扫描GPay或PhonePe PDF账单</string>
-    <string name="pdf_support_warning_title">当前仅支持来自GPay和PhonePe的PDF文件。</string>
-    <string name="pdf_support_warning_sub">余额图表不会从PDF中添加任何银行余额信息，因为账单数据中没有提供。</string>
+    <string name="import_pdf_statement">导入 PDF 账单</string>
+    <string name="import_pdf_statement_sub">导入 GPay 或 PhonePe 的 PDF 账单</string>
+    <string name="pdf_support_warning_title">目前仅支持 GPay 和 PhonePe 的 PDF 账单。</string>
+    <string name="pdf_support_warning_sub">这些账单不包含银行余额，因此导入后不会更新账户余额或余额图表。</string>
     <string name="immediately">立即</string>
     <string name="one_minute">1分钟</string>
     <string name="minutes_format">%1$d分钟</string>
@@ -35,7 +35,7 @@
     <string name="transactional_data">交易数据</string>
     <string name="profile_data">个人资料数据</string>
     <string name="budgets">预算</string>
-    <string name="app_preferences">应用偏好</string>
+    <string name="app_preferences">应用偏好设置</string>
     <string name="enter_amount">输入金额</string>
     <string name="done">完成</string>
     <string name="backspace">退格</string>
@@ -50,7 +50,7 @@
     <string name="merge_option_none">不更改余额</string>
     <string name="merge_option_none_desc">保持当前余额 %1$s</string>
     <string name="merge_confirm_title">最终确认</string>
-    <string name="merge_confirm_message">合并账户：来自合并银行账户的所有当前和过去的交易现将显示在合并后的银行账户中。原账户将被删除。</string>
+    <string name="merge_confirm_message">合并后，所选账户的全部交易记录将移至目标账户，原账户将被删除。</string>
     <string name="merge">合并</string>
     <string name="balance_history_title">余额历史</string>
     <string name="records_count_latest_balance_note">%1$d 条记录 • 最新余额显示在账户中</string>
@@ -59,7 +59,7 @@
     <string name="delete_balance_record_confirm">您确定要删除此余额记录吗？此操作无法撤销。</string>
     <string name="delete">删除</string>
     <string name="edit">编辑</string>
-    <string name="new_balance_label">新增余额</string>
+    <string name="new_balance_label">更新后的余额</string>
     <string name="save">保存</string>
     <string name="source_transaction">交易</string>
     <string name="source_sms">短信</string>
@@ -79,15 +79,15 @@
     <string name="range_last_30_days">过去30天</string>
     <string name="range_last_3_months">过去3个月</string>
     <string name="range_last_6_months">过去6个月</string>
-    <string name="range_last_year">去年</string>
-    <string name="range_all_time">所有时间</string>
+    <string name="range_last_year">过去一年</string>
+    <string name="range_all_time">全部时间</string>
     <string name="add_account_info">添加未通过短信跟踪的账户，如现金、钱包或投资账户。</string>
     <string name="account_type_label">账户类型</string>
     <string name="account_icon_label">账户图标</string>
     <string name="account_name_required_label">账户名称 *</string>
-    <string name="placeholder_bank_name">例如，HDFC银行</string>
-    <string name="placeholder_credit_name">例如，HDFC信用卡</string>
-    <string name="placeholder_wallet_name">例如，现金</string>
+    <string name="placeholder_bank_name">例如：中国银行、招商银行</string>
+    <string name="placeholder_credit_name">例如：招商银行信用卡</string>
+    <string name="placeholder_wallet_name">例如：现金、支付宝、微信钱包</string>
     <string name="last_4_digits_required_label">最后4位数字 *</string>
     <string name="placeholder_last_4_digits">例如，1234</string>
     <string name="enter_last_4_digits_hint">输入账户/卡片的最后4位数字</string>
@@ -340,7 +340,7 @@
     <string name="active_subscriptions_singular">1 个订阅</string>
     <string name="active_subscriptions_plural">%1$d 个订阅</string>
     <string name="app_logo">应用图标</string>
-    <string name="onboarding_subtitle">体验一种无缝方式来跟踪您的资金，分类支出，并更快地实现储蓄目标。</string>
+    <string name="onboarding_subtitle">轻松记录收支、管理多币种账户，让每一笔钱都清清楚楚。</string>
     <string name="set_up_your_profile">设置您的个人资料</string>
     <string name="what_should_we_call_you">我们应该怎么称呼您？</string>
     <string name="stay_updated">保持更新</string>
@@ -359,7 +359,7 @@
     <string name="main_account_info">主账户是您手动交易录入时默认选择的账户。</string>
     <string name="add_your_main_account">添加您的主账户</string>
     <string name="enter_primary_account_details">输入您的主要账户信息以开始使用。</string>
-    <string name="bank_name_hint">银行名称（例如：HDFC、SBI）</string>
+    <string name="bank_name_hint">银行名称（例如：中国银行、Chase）</string>
     <string name="last_4_digits_hint">账户最后4位数字</string>
     <string name="last_4_digits_placeholder">例如 1234</string>
     <string name="get_started">开始使用</string>
@@ -383,7 +383,7 @@
     <string name="active_count_format">%1$d 个活跃</string>
     <string name="monthly">每月</string>
     <string name="yearly">每年</string>
-    <string name="conversion_failure_message_format">%1$d 个订阅无法转换为 %2$s，总数可能不完整。</string>
+    <string name="conversion_failure_message_format">%1$d 个订阅无法换算为 %2$s，合计金额可能不完整。</string>
     <string name="overdue">逾期</string>
     <string name="due_today">今天到期</string>
     <string name="due_tomorrow">明天到期</string>
@@ -649,7 +649,7 @@
     <string name="exchange_rates_notice">汇率公告</string>
     <string name="exchange_rates_disclaimer">本应用中显示的汇率仅供参考，不应用于投资决策。这些汇率为估算值，可能与实际汇率不符。使用本应用即表示您已理解并接受这些限制，并且您对根据应用提供的信息所做的任何决策承担全部责任。</string>
     <string name="exchange_rates">汇率</string>
-    <string name="base_currency">基准</string>
+    <string name="base_currency">基准货币</string>
     <string name="rates_relative_format">相对于 %1$s 的汇率</string>
     <string name="last_updated_format">最后更新：%1$s</string>
     <string name="currency_code_symbol_format">%1$s（%2$s）</string>
@@ -790,11 +790,11 @@
     <string name="exchange_rate">汇率</string>
     <string name="exchange_rate_format">1 %1$s = %2$s %3$s</string>
     <string name="please_fill_all_fields">请用有效数据填写所有字段。</string>
-    <string name="base_currency_hint">基础 = 默认货币或主账户的货币</string>
+    <string name="base_currency_hint">基准货币使用默认货币或主账户的货币</string>
     <string name="save_currency">保存货币</string>
-    <string name="currency_name_hint">美元，印度卢比..</string>
+    <string name="currency_name_hint">人民币、港币、美元…</string>
     <string name="currency_code_hint">USD，INR，EUR...</string>
-    <string name="currency_symbols_hint">$，₹，€，£，₽</string>
+    <string name="currency_symbols_hint">¥、HK$、$、S$、€</string>
     <string name="exchange_rate_hint">1 基础货币 = X 自定义货币</string>
     <string name="exchange_rates_notice_title">汇率通知</string>
     <string name="exchange_rates_notice_text">本应用中显示的汇率仅供参考，不应用于投资决策。这些汇率为估算值，可能与实际汇率不符。使用本应用即表示您理解并接受这些限制。</string>
@@ -848,7 +848,7 @@
     <string name="font_snpro_sub">现代等宽</string>
     <string name="quick_templates">快速模板</string>
     <string name="rule_name_label">规则名称</string>
-    <string name="rule_name_placeholder">例如，₹200 以下的餐饮支出</string>
+    <string name="rule_name_placeholder">例如：200 元以下的餐饮支出</string>
     <string name="description_placeholder">此规则的作用是什么？</string>
     <string name="conditions_title">条件</string>
     <string name="add_condition">添加</string>
@@ -1204,7 +1204,7 @@
     <string name="uzbek">乌兹别克语</string>
     <string name="valencian">瓦伦西亚语</string>
     <string name="vietnamese">越南语</string>
-    <string name="chinese">中文</string>
+    <string name="chinese">简体中文</string>
     <string name="delete_multiple_records_confirm">你确定要删除所选记录吗？</string>
     <string name="import_pdf">导入</string>
     <string name="loan_type_borrowed">已借出</string>
@@ -1254,4 +1254,7 @@
         <item quantity="one">删除记录？</item>
         <item quantity="other">删除 %1$d 条记录？</item>
     </plurals>
+    <string name="account_already_exists">已存在名称和尾号相同的账户。</string>
+    <string name="account_save_failed">保存失败，已保留您填写的内容，请重试。</string>
+    <string name="saving_account">正在保存…</string>
 </resources>

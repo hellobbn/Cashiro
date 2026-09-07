@@ -9,7 +9,7 @@ import java.time.LocalDate
 
 data class TransactionDetailUiState(
     val transaction: TransactionEntity? = null,
-    val primaryCurrency: String = "INR",
+    val primaryCurrency: String = "CNY",
     val convertedAmount: BigDecimal? = null,
     val isEditMode: Boolean = false,
     val editableTransaction: TransactionEntity? = null,

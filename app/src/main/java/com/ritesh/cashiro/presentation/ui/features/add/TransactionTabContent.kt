@@ -177,7 +177,7 @@ fun TransactionTabContent(
             AmountInput(
                 amount = uiState.amount.ifEmpty { "0" },
                 currencySymbol = CurrencyFormatter.getCurrencySymbol(
-                    uiState.selectedAccount?.currency ?: "INR"
+                    uiState.selectedAccount?.currency ?: "CNY"
                 ),
                 onClick = {
                     showNumberPad = true

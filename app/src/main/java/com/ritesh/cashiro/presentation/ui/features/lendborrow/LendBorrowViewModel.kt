@@ -43,7 +43,7 @@ data class LendBorrowUiState(
     val showAddPersonSheet: Boolean = false,
     val showAddTransactionSheet: Boolean = false,
     val selectedPersonForTx: LendBorrowPerson? = null,
-    val baseCurrency: String = "INR",
+    val baseCurrency: String = "CNY",
     val accounts: List<AccountBalanceEntity> = emptyList(),
     val categories: List<CategoryEntity> = emptyList()
 )

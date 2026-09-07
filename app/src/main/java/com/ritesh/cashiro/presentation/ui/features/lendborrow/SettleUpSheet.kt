@@ -167,7 +167,7 @@ fun SettleUpSheet(
                 AmountInput(
                     amount = if (amountText.isBlank()) "0" else amountText,
                     currencySymbol = CurrencyFormatter.getCurrencySymbol(
-                        selectedAccount?.currency ?: "INR"
+                        selectedAccount?.currency ?: "CNY"
                     ),
                     onClick = { showNumberPad = true },
                     modifier = Modifier.fillMaxWidth(),

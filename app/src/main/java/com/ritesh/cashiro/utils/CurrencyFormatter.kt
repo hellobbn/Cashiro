@@ -2,6 +2,7 @@ package com.ritesh.cashiro.utils
 
 import com.ritesh.cashiro.data.currency.model.CurrencySymbols
 import com.ritesh.parser.core.bank.BankParserFactory
+import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -30,6 +31,9 @@ object CurrencyFormatter {
         "AUD" to Locale.Builder().setLanguage("en").setRegion("AU").build(),
         "JPY" to Locale.JAPAN,
         "CNY" to Locale.CHINA,
+        "HKD" to Locale("en", "HK"),
+        "TWD" to Locale.TAIWAN,
+        "MOP" to Locale("zh", "MO"),
         "NPR" to Locale.Builder().setLanguage("ne").setRegion("NP").build(),
         "ETB" to Locale.Builder().setLanguage("am").setRegion("ET").build(),
         "THB" to Locale.Builder().setLanguage("th").setRegion("TH").build(),
@@ -62,7 +66,7 @@ object CurrencyFormatter {
     /**
      * Formats a BigDecimal amount as currency with the specified currency code
      */
-    fun formatCurrency(amount: BigDecimal, currencyCode: String = "INR"): String {
+    fun formatCurrency(amount: BigDecimal, currencyCode: String = "CNY"): String {
         return try {
             val locale = CURRENCY_LOCALES[currencyCode] ?: if (currencyCode == "INR" || currencyCode == "NPR") INDIAN_LOCALE else DEFAULT_LOCALE
             val formatter = NumberFormat.getCurrencyInstance(locale)
@@ -88,7 +92,7 @@ object CurrencyFormatter {
             // we override it to ensure the custom symbol is used.
             if (formatted.contains(currencyCode) || !formatted.contains(customSymbol)) {
                 val cleanAmount = formatAmount(amount, currencyCode)
-                return if (locale == Locale.US || locale == INDIAN_LOCALE || locale == Locale.UK) {
+                return if (locale == Locale.US || locale == INDIAN_LOCALE || locale == Locale.UK || currencyCode in setOf("CNY", "HKD", "SGD", "TWD", "MOP", "JPY")) {
                     "$customSymbol$cleanAmount"
                 } else {
                     "$cleanAmount $customSymbol"
@@ -106,17 +110,17 @@ object CurrencyFormatter {
     /**
      * Formats a Double amount as currency with the specified currency code
      */
-    fun formatCurrency(amount: Double, currencyCode: String = "INR"): String {
+    fun formatCurrency(amount: Double, currencyCode: String = "CNY"): String {
         return formatCurrency(amount.toBigDecimal(), currencyCode)
     }
 
     /**
      * Formats an amount with proper grouping and decimals
-     * Uses Indian grouping (#,##,##0.00) for INR and NPR, standard (#,###.00) otherwise
+     * Uses Indian grouping (#,##,##0.00) for INR and NPR, standard (#,##0.00) otherwise
      */
-    fun formatAmount(amount: BigDecimal, currencyCode: String = "INR"): String {
+    fun formatAmount(amount: BigDecimal, currencyCode: String = "CNY"): String {
         val locale = CURRENCY_LOCALES[currencyCode] ?: if (currencyCode == "INR" || currencyCode == "NPR") INDIAN_LOCALE else DEFAULT_LOCALE
-        val pattern = if (currencyCode == "INR" || currencyCode == "NPR") "#,##,##0.00" else "#,###.00"
+        val pattern = if (currencyCode == "INR" || currencyCode == "NPR") "#,##,##0.00" else "#,##0.00"
         val symbols = DecimalFormatSymbols(locale)
         val formatter = DecimalFormat(pattern, symbols)
         return formatter.format(amount)
@@ -125,7 +129,7 @@ object CurrencyFormatter {
     /**
      * Formats a double amount with proper grouping and decimals
      */
-    fun formatAmount(amount: Double, currencyCode: String = "INR"): String {
+    fun formatAmount(amount: Double, currencyCode: String = "CNY"): String {
         return formatAmount(amount.toBigDecimal(), currencyCode)
     }
 
@@ -138,17 +142,26 @@ object CurrencyFormatter {
 
     /**
      * Gets the base currency for a bank using the BankParserFactory
-     * Returns INR as default for unknown banks
+     * Returns CNY as default for unknown banks
      */
     fun getBankBaseCurrency(bankName: String?): String {
-        if (bankName == null) return "INR"
+        if (bankName == null) return "CNY"
+        // Unqualified legacy identities keep their historical parser currency. Regional
+        // picker titles (for example AMEX US and HSBC HK) are deliberately explicit.
+        val legacyIdentity = bankName.trim().lowercase(Locale.ROOT) in setOf(
+            "amex", "american express", "citi", "citibank", "citi bank", "dbs", "dbs bank", "hsbc", "hsbc bank"
+        )
+        if (legacyIdentity) {
+            return runCatching { BankParserFactory.getParser(bankName)?.getCurrency() }.getOrNull() ?: "INR"
+        }
+        InstitutionCatalog.find(bankName)?.let { return it.currency }
 
         // Try to find a parser that can handle this bank name
         return try {
             val parser = BankParserFactory.getParser(bankName)
-            parser?.getCurrency() ?: "INR"
+            parser?.getCurrency() ?: "CNY"
         } catch (e: Exception) {
-            "INR"
+            "CNY"
         }
     }
 }

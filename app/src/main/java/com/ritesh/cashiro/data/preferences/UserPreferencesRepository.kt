@@ -24,7 +24,10 @@ import kotlinx.serialization.json.Json
 import com.ritesh.cashiro.data.model.CustomCurrency
 
 private val Context.dataStore: DataStore<Preferences> by
-        preferencesDataStore(name = "user_preferences")
+        preferencesDataStore(
+            name = "user_preferences",
+            produceMigrations = { listOf(BaseCurrencyMigration()) }
+        )
 
 @Singleton
 class UserPreferencesRepository
@@ -125,7 +128,7 @@ constructor(@ApplicationContext private val context: Context) {
                 smsScanAllTime = preferences[PreferencesKeys.SMS_SCAN_ALL_TIME]
                     ?: true,
                 baseCurrency = preferences[PreferencesKeys.BASE_CURRENCY]
-                    ?: "INR",
+                    ?: "CNY",
                 isAmoledMode = preferences[PreferencesKeys.IS_AMOLED_MODE] ?: false,
                 userName = preferences[PreferencesKeys.USER_NAME] ?: "User",
                 profileImageUri = preferences[PreferencesKeys.PROFILE_IMAGE_URI],
@@ -182,7 +185,7 @@ constructor(@ApplicationContext private val context: Context) {
 
     val baseCurrency: Flow<String> =
         context.dataStore.data.map { preferences ->
-            preferences[PreferencesKeys.BASE_CURRENCY] ?: "INR"
+            preferences[PreferencesKeys.BASE_CURRENCY] ?: "CNY"
         }
 
     // Currency Settings flows
@@ -840,7 +843,7 @@ data class UserPreferences(
         val hasShownScanTutorial: Boolean = false,
         val smsScanMonths: Int = 3, // Default to 3 months
         val smsScanAllTime: Boolean = true,
-        val baseCurrency: String = "INR", // Default to INR
+        val baseCurrency: String = "CNY", // Default to CNY
         val isAmoledMode: Boolean = false,
         val userName: String = "User",
         val profileImageUri: String? = null,

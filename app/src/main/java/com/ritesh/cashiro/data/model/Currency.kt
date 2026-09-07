@@ -8,11 +8,21 @@ data class Currency(
     val name: String,      // e.g., "US Dollar"
     val symbol: String     // e.g., "$"
 ) {
+    /** Currency names follow the app locale; custom names remain user-defined. */
+    fun localizedName(locale: java.util.Locale = java.util.Locale.getDefault()): String =
+        if (getByCode(code) != null) {
+            runCatching { java.util.Currency.getInstance(code).getDisplayName(locale) }.getOrDefault(name)
+        } else name
+
     companion object {
         /**
          * List of supported currencies based on CurrencyFormatter mappings
          */
         val SUPPORTED_CURRENCIES = listOf(
+            Currency("CNY", "Chinese Yuan", "¥"),
+            Currency("HKD", "Hong Kong Dollar", "HK$"),
+            Currency("TWD", "New Taiwan Dollar", "NT$"),
+            Currency("MOP", "Macanese Pataca", "MOP$"),
             Currency("INR", "Indian Rupee", "₹"),
             Currency("USD", "US Dollar", "$"),
             Currency("EUR", "Euro", "€"),
@@ -22,7 +32,6 @@ data class Currency(
             Currency("CAD", "Canadian Dollar", "C$"),
             Currency("AUD", "Australian Dollar", "A$"),
             Currency("JPY", "Japanese Yen", "¥"),
-            Currency("CNY", "Chinese Yuan", "¥"),
             Currency("NPR", "Nepalese Rupee", "₨"),
             Currency("ETB", "Ethiopian Birr", "ብር"),
             Currency("THB", "Thai Baht", "฿"),
@@ -43,8 +52,8 @@ data class Currency(
          * Popular currency codes for quick access
          */
         val POPULAR_CURRENCY_CODES = listOf(
-            "INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF",
-            "CNY", "SEK", "NZD", "MXN", "SGD", "AED", "KRW"
+            "CNY", "HKD", "USD", "SGD", "TWD", "MOP", "EUR", "GBP",
+            "JPY", "AUD", "CAD", "CHF", "INR", "SEK", "NZD", "MXN", "AED", "KRW"
         )
 
         /**

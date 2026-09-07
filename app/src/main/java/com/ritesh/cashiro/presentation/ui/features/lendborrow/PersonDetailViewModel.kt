@@ -43,7 +43,7 @@ data class PersonDetailUiState(
     val showDeleteTransactionDialog: Boolean = false,
     val isSelectionMode: Boolean = false,
     val selectedRecordIds: Set<Long> = emptySet(),
-    val baseCurrency: String = "INR",
+    val baseCurrency: String = "CNY",
     val accounts: List<AccountBalanceEntity> = emptyList(),
     val categories: List<CategoryEntity> = emptyList()
 )

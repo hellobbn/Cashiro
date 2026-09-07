@@ -283,7 +283,7 @@ fun AddEditLendBorrowTransactionSheet(
                 AmountInput(
                     amount = amountText,
                     currencySymbol = CurrencyFormatter.getCurrencySymbol(
-                        selectedAccount?.currency ?: "INR"
+                        selectedAccount?.currency ?: "CNY"
                     ),
                     onClick = { showNumberPad = true },
                     modifier = Modifier.fillMaxWidth()

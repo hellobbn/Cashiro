@@ -109,7 +109,7 @@ fun WebhookEditorScreen(
     var loaded by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
     var url by remember { mutableStateOf("") }
-    var currency by remember { mutableStateOf("INR") }
+    var currency by remember { mutableStateOf("CNY") }
     var enabled by remember { mutableStateOf(true) }
     var rangePreset by remember { mutableStateOf(WebhookRangePreset.SINCE_LAST_SUCCESS) }
     var customStart by remember { mutableStateOf<LocalDateTime?>(null) }
