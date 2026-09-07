@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last Updated: September 7, 2026**
+**Last Updated: September 8, 2026**
 
 ## Our Commitment to Privacy
 
@@ -8,19 +8,18 @@ Cashiro is built with privacy as the core principle. We believe your financial d
 
 ## Local Processing and Optional Connections
 
-**Core bookkeeping and on-device AI processing happen locally. Optional connections make network requests as described below.** We use MediaPipe's on-device LLM (Qwen 2.5) for AI features, ensuring:
+**Core bookkeeping happens locally. Optional connections make network requests as described below.**
 
 - ✅ **Local by default** - Core bookkeeping does not require a Cashiro server
 - ✅ **User-directed sharing** - Optional integrations transmit the data needed for the features you enable
 - ✅ **No tracking** - No analytics, no telemetry, no user tracking
 - ✅ **No ads** - No advertising networks or tracking pixels
-- ✅ **Offline AI** - Once downloaded, AI works completely offline
+- ✅ **No SMS or notification-listener access** - The app does not read SMS or other apps' notifications
 
 ## Data Storage
 
 ### What We Store (Locally Only)
-- Transaction details extracted from SMS (amount, merchant, date, category)
-- Your custom categories and notes
+- Transactions, accounts, categories, budgets, and notes you enter
 - App preferences and settings
 
 ### Where It's Stored
@@ -36,20 +35,16 @@ Cashiro is built with privacy as the core principle. We believe your financial d
 
 ## Permissions
 
-### SMS Permission (Read-Only)
-- **Purpose**: To read bank transaction SMS messages
-- **Scope**: Read-only access, we cannot send or modify messages
-- **Processing**: SMS parsing happens entirely on-device
-- **Storage**: Only transaction data is extracted and stored, not full messages
-
 ### Internet Permission
-- **Primary Purpose**: To download the AI model (Qwen 2.5) on first use
-- **Model Download**: One-time download of ~1.5GB model file from CloudFront CDN
 - **App Updates**: Google Play Store variant uses Play Services for app updates (F-Droid variant does not)
-- **After Model Download**: AI works completely offline, no internet required for core features
-- **Optional integrations**: Brokerage sync contacts IBKR directly. Configured cloud backups and webhooks use the services selected by the user.
+- **Optional integrations**: Brokerage sync contacts IBKR directly. Configured cloud backups, exchange rates, and webhooks use the services selected by the user.
+
+### Notifications
+- **Purpose**: Optional bill reminders and daily summaries you enable in Settings
+- The app does not request notification-listener access and does not read other apps' notifications
 
 ### No Other Permissions Required
+- No SMS read access
 - No location tracking
 - No contact access
 - No camera or microphone access
@@ -76,7 +71,7 @@ another device requires reconnecting. See [setup and security details](docs/brok
 ## Third-Party Services
 
 Cashiro does **NOT** use analytics or advertising services. Network integrations are listed separately:
-- Optional APIs include model downloads, updates, exchange rates, user-configured backups/webhooks and IBKR Flex. These are separate from analytics or advertising.
+- Optional APIs include updates, exchange rates, user-configured backups/webhooks and IBKR Flex. These are separate from analytics or advertising.
 - ❌ Analytics services (Google Analytics, Firebase, etc.)
 - ❌ Crash reporting services
 - ❌ Advertising networks
@@ -84,16 +79,6 @@ Cashiro does **NOT** use analytics or advertising services. Network integrations
 - ❌ Payment processors
 
 **Note**: The Google Play Store variant includes Play Services for app updates only. The F-Droid variant has no Google services.
-
-## AI Features
-
-### On-Device AI Assistant
-- Uses MediaPipe's Qwen 2.5 model (1.5GB download)
-- Model runs entirely on your device using MediaPipe LLM Inference
-- After initial download, no internet connection required
-- Conversations are not stored or transmitted
-- AI insights are generated locally from your local transaction data
-- Model file stored in app's private storage
 
 ## Data Export
 
@@ -138,4 +123,4 @@ For privacy concerns or questions:
 
 ---
 
-*Cashiro - Privacy-first expense tracking with on-device AI*
+*Cashiro - Privacy-first expense tracking*
