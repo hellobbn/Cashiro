@@ -136,11 +136,32 @@ def sdk_tool(name):
     raise ValueError('Android build tool missing: ' + name)
 
 
+def apk_certificates(report):
+    """Read leaf signer certificates from both legacy and Build Tools 37 reports.
+
+    A certificate can be reported once per signature scheme. Require every
+    reported signer to match the pin; never treat an unparsed report as valid.
+    """
+    certificates = set()
+    for line in report.splitlines():
+        if 'certificate SHA-256 digest:' not in line:
+            continue
+        match = re.fullmatch(
+            r'(?:Signer #\d+|V\d+(?:\.\d+)? Signer(?: #\d+)?):? '
+            r'certificate SHA-256 digest: ([0-9a-fA-F]{64})[ \t]*', line)
+        if not match:
+            raise ValueError('Unrecognized APK signer certificate report')
+        certificates.add(fingerprint(match[1]))
+    if not certificates:
+        raise ValueError('No APK signer certificate found in apksigner report')
+    return certificates
+
+
 def verify_apk(apk):
     expected = fingerprint(os.environ.get('DEBUG_CERT_SHA256', ''))
     report = run([sdk_tool('apksigner'), 'verify', '--print-certs', apk], text=True)
-    certs = re.findall(r'^Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F]+)$', report, re.M)
-    if len(certs) != 1 or fingerprint(certs[0]) != expected:
+    certs = apk_certificates(report)
+    if certs != {expected}:
         raise ValueError('APK signer differs from pinned debug identity')
     badging = run([sdk_tool('aapt2'), 'dump', 'badging', apk], text=True)
     package = re.search(r"^package: name='([^']+)'", badging, re.M)
@@ -148,7 +169,7 @@ def verify_apk(apk):
         raise ValueError('Unexpected debug application ID')
     if "application-label:'Cashiro Debug'" not in badging or 'application-debuggable' not in badging:
         raise ValueError('Unexpected debug application label or build type')
-    print(json.dumps({'package': package[1], 'certificate_sha256': certs[0].lower(),
+    print(json.dumps({'package': package[1], 'certificate_sha256': expected,
                       'label': 'Cashiro Debug', 'signature_verified': True}, indent=2))
 
 

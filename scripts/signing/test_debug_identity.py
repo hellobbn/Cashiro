@@ -115,5 +115,52 @@ class DiagnosticsTest(unittest.TestCase):
                 self.assertEqual(identity.keytool(), str(tool))
 
 
+class ApkCertificateReportTest(unittest.TestCase):
+    digest = 'ab' * 32
+
+    def test_legacy_report(self):
+        self.assertEqual(identity.apk_certificates(
+            f'Signer #1 certificate SHA-256 digest: {self.digest}\n'), {self.digest})
+
+    def test_build_tools_37_report_and_duplicate_schemes(self):
+        report = ''.join(f'{prefix}: certificate SHA-256 digest: {self.digest.upper()}\r\n'
+                         for prefix in ('V2 Signer', 'V3 Signer', 'V3.1 Signer'))
+        self.assertEqual(identity.apk_certificates(report), {self.digest})
+
+    def test_empty_or_unrecognized_certificate_report_fails_closed(self):
+        for report in ('', 'DOES NOT VERIFY',
+                       f'Unknown certificate SHA-256 digest: {self.digest}',
+                       'V2 Signer: certificate SHA-256 digest: invalid'):
+            with self.subTest(report=report), self.assertRaises(ValueError):
+                identity.apk_certificates(report)
+
+    def test_an_extra_unrecognized_signer_is_not_ignored(self):
+        report = (f'V2 Signer: certificate SHA-256 digest: {self.digest}\n'
+                  f'Unknown certificate SHA-256 digest: {"cd" * 32}\n')
+        with self.assertRaises(ValueError):
+            identity.apk_certificates(report)
+
+    def test_wrong_and_additional_signers_still_rejected(self):
+        for report in (f'V2 Signer: certificate SHA-256 digest: {"cd" * 32}\n',
+                       f'Signer #1 certificate SHA-256 digest: {self.digest}\n'
+                       f'Signer #2 certificate SHA-256 digest: {"cd" * 32}\n'):
+            with self.subTest(report=report), \
+                    patch.dict(os.environ, {'DEBUG_CERT_SHA256': self.digest}), \
+                    patch.object(identity, 'sdk_tool', return_value='apksigner'), \
+                    patch.object(identity, 'run', return_value=report), \
+                    self.assertRaisesRegex(ValueError, 'differs from pinned'):
+                identity.verify_apk('fixture.apk')
+
+    def test_new_report_verifies_pin_package_and_label(self):
+        report = f'V2 Signer: certificate SHA-256 digest: {self.digest}\n'
+        badging = "package: name='com.ritesh.cashiro.debug'\napplication-label:'Cashiro Debug'\napplication-debuggable\n"
+        with patch.dict(os.environ, {'DEBUG_CERT_SHA256': self.digest}), \
+                patch.object(identity, 'sdk_tool', side_effect=lambda name: name), \
+                patch.object(identity, 'run', side_effect=[report, badging]), \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            identity.verify_apk('fixture.apk')
+        self.assertIn('"signature_verified": true', output.getvalue())
+
+
 if __name__ == '__main__':
     unittest.main()
