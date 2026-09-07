@@ -264,3 +264,5 @@ val BOTTOM_NAV_ROUTES = setOf(
     Analytics::class.qualifiedName,
     Transactions::class.qualifiedName
 )
+
+@Serializable data class AccountCategoryRoute(val category: String)

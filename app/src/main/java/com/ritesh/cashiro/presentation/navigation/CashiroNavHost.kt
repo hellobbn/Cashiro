@@ -219,7 +219,8 @@ fun CashiroNavHost(
 
                 composable<Investments> {
                     com.ritesh.cashiro.presentation.ui.features.investments.InvestmentsScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onManageManualAccounts = { navController.safeNavigate(AccountCategoryRoute("INVESTMENTS")) }
                     )
                 }
 
@@ -520,6 +521,23 @@ fun CashiroNavHost(
                     )
                 }
 
+
+                composable<AccountCategoryRoute>(
+                    enterTransition = CashiroTransitions.horizontalSlideEnter,
+                    exitTransition = CashiroTransitions.horizontalSlideExit,
+                    popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
+                    popExitTransition = CashiroTransitions.horizontalSlidePopExit
+                ) { entry ->
+                    val selected = com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.entries.firstOrNull {
+                        it.name == entry.toRoute<AccountCategoryRoute>().category
+                    } ?: com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.WALLETS
+                    ManageAccountsScreen(
+                        onNavigateBack = { navController.safePopBackStack() },
+                        onNavigateToAccountDetail = { name, suffix -> navController.safeNavigate(AccountDetail(name, suffix)) },
+                        blurEffects = themeUiState.blurEffects,
+                        category = selected
+                    )
+                }
 
                 composable<ManageAccounts>(
                     enterTransition = CashiroTransitions.horizontalSlideEnter,

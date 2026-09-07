@@ -49,15 +49,17 @@ class BackupImporter @Inject constructor(
      */
     suspend fun importBackup(
         uri: Uri,
-        strategy: ImportStrategy = ImportStrategy.MERGE
+        strategy: ImportStrategy = ImportStrategy.MERGE,
+        restoreOnboardingCompletion: Boolean = true
     ): ImportResult = withContext(Dispatchers.IO) {
-        importBackup(uri, strategy, SelectiveImportFilter.ALL)
+        importBackup(uri, strategy, SelectiveImportFilter.ALL, restoreOnboardingCompletion)
     }
 
     suspend fun importBackup(
         uri: Uri,
         strategy: ImportStrategy,
-        filter: SelectiveImportFilter
+        filter: SelectiveImportFilter,
+        restoreOnboardingCompletion: Boolean = true
     ): ImportResult = withContext(Dispatchers.IO) {
         try {
             // Read and parse the backup file
@@ -71,9 +73,9 @@ class BackupImporter @Inject constructor(
             
             // Import based on strategy
             when (strategy) {
-                ImportStrategy.REPLACE_ALL -> replaceAllData(backup)
-                ImportStrategy.MERGE -> mergeData(backup)
-                ImportStrategy.SELECTIVE -> selectiveImport(backup, filter)
+                ImportStrategy.REPLACE_ALL -> replaceAllData(backup, restoreOnboardingCompletion)
+                ImportStrategy.MERGE -> mergeData(backup, restoreOnboardingCompletion)
+                ImportStrategy.SELECTIVE -> selectiveImport(backup, filter, restoreOnboardingCompletion)
             }
         } catch (e: Exception) {
             Log.e("BackupImporter", "Import failed", e)
@@ -167,7 +169,7 @@ class BackupImporter @Inject constructor(
     /**
      * Replace all existing data with backup data
      */
-    private suspend fun replaceAllData(backup: CashiroBackup): ImportResult {
+    private suspend fun replaceAllData(backup: CashiroBackup, restoreOnboardingCompletion: Boolean): ImportResult {
         var importedTransactions = 0
         var importedCategories = 0
         
@@ -267,7 +269,7 @@ class BackupImporter @Inject constructor(
                 }
                 
                 // Import preferences
-                importPreferences(backup.preferences)
+                importPreferences(backup.preferences, restoreOnboardingCompletion)
                 
                 ImportResult.Success(
                     importedTransactions = importedTransactions,
@@ -283,7 +285,7 @@ class BackupImporter @Inject constructor(
     /**
      * Merge backup data with existing data
      */
-    private suspend fun mergeData(backup: CashiroBackup): ImportResult {
+    private suspend fun mergeData(backup: CashiroBackup, restoreOnboardingCompletion: Boolean): ImportResult {
         var importedTransactions = 0
         var importedCategories = 0
         var skippedDuplicates = 0
@@ -411,7 +413,7 @@ class BackupImporter @Inject constructor(
                 }
                 
                 // Import preferences (merge with existing)
-                importPreferences(backup.preferences)
+                importPreferences(backup.preferences, restoreOnboardingCompletion)
                 
                 ImportResult.Success(
                     importedTransactions = importedTransactions,
@@ -429,7 +431,8 @@ class BackupImporter @Inject constructor(
      */
     private suspend fun selectiveImport(
         backup: CashiroBackup,
-        filter: SelectiveImportFilter
+        filter: SelectiveImportFilter,
+        restoreOnboardingCompletion: Boolean
     ): ImportResult {
         var importedTransactions = 0
         var importedCategories = 0
@@ -545,7 +548,7 @@ class BackupImporter @Inject constructor(
                     importExchangeRatesWithMerge(backup.database.exchangeRates)
                 }
                 if (filter.includePreferences) {
-                    importPreferences(backup.preferences)
+                    importPreferences(backup.preferences, restoreOnboardingCompletion)
                 }
 
                 ImportResult.Success(
@@ -704,7 +707,7 @@ class BackupImporter @Inject constructor(
     /**
      * Import user preferences
      */
-    private suspend fun importPreferences(preferences: PreferencesSnapshot) {
+    private suspend fun importPreferences(preferences: PreferencesSnapshot, restoreOnboardingCompletion: Boolean) {
         // Theme preferences
         preferences.theme.isDarkThemeEnabled?.let {
             userPreferencesRepository.updateDarkTheme(it)
@@ -730,7 +733,10 @@ class BackupImporter @Inject constructor(
         }
         
         // App preferences
-        userPreferencesRepository.updateHasShownScanTutorial(preferences.app.hasShownScanTutorial)
+        // During first-run restore, only the caller may mark setup complete after success.
+        if (restoreOnboardingCompletion) {
+            userPreferencesRepository.updateHasShownScanTutorial(preferences.app.hasShownScanTutorial)
+        }
         preferences.app.firstLaunchTime?.let {
             userPreferencesRepository.updateFirstLaunchTime(it)
         }

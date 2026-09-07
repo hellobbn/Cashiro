@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "esbuild generate.mjs --bundle --platform=node --format=esm --outfile=generated-tool.mjs && node generated-tool.mjs"
+  },
+  "devDependencies": {
+    "@material/material-color-utilities": "0.4.0",
+    "esbuild": "0.25.10"
+  }
+}

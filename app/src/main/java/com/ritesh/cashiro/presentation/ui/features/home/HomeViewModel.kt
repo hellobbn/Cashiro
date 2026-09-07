@@ -225,9 +225,9 @@ class HomeViewModel @Inject constructor(
                     val key = "${account.bankName}_${account.accountLast4}"
                     !hiddenAccounts.contains(key)
                 }
-                // Separate credit cards from regular accounts (hide zero balance accounts)
+                // Keep zero-balance accounts discoverable in the grouped account list.
                 val regularAccounts =
-                    balances.filter { !it.isCreditCard && it.balance != BigDecimal.ZERO }
+                    balances.filter { !it.isCreditCard }
                 val creditCards = balances.filter { it.isCreditCard }
 
                 // Account loading completed
@@ -601,9 +601,9 @@ class HomeViewModel @Inject constructor(
                     !hiddenAccounts.contains(key)
                 }
 
-                // Separate credit cards from regular accounts (hide zero balance accounts)
+                // Keep zero-balance accounts discoverable in the grouped account list.
                 val regularAccounts: List<AccountBalanceEntity> =
-                    visibleBalances.filter { !it.isCreditCard && it.balance != BigDecimal.ZERO }
+                    visibleBalances.filter { !it.isCreditCard }
                 val creditCards: List<AccountBalanceEntity> = visibleBalances.filter { it.isCreditCard }
 
                 // Update UI state
@@ -692,7 +692,7 @@ class HomeViewModel @Inject constructor(
                 val key = "${account.bankName}_${account.accountLast4}"
                 !hiddenAccounts.contains(key)
             }
-            val regularAccounts = balances.filter { !it.isCreditCard && it.balance != BigDecimal.ZERO }
+            val regularAccounts = balances.filter { !it.isCreditCard }
             val creditCards = balances.filter { it.isCreditCard }
 
             val accountCurrencies = regularAccounts.map { it.currency }.distinct()

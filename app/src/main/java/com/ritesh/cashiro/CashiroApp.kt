@@ -95,7 +95,8 @@ fun CashiroApp(
     CashiroTheme(
         darkTheme = darkTheme,
         themeStyle = themeUiState.themeStyle,
-        dynamicColor = themeUiState.isDynamicColorEnabled,
+        // The visible ThemeStyle choice is authoritative; old backups can contain a
+        // contradictory legacy dynamic-color flag. CashiroTheme defaults to enabled.
         isAmoledMode = themeUiState.isAmoledMode,
         accentColor = themeUiState.accentColor,
         appFont = themeUiState.appFont,

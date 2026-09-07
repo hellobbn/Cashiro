@@ -40,10 +40,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -60,6 +65,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -101,7 +107,11 @@ import com.ritesh.cashiro.presentation.navigation.AccountDetail
 import com.ritesh.cashiro.presentation.navigation.NotificationSettings
 import com.ritesh.cashiro.presentation.navigation.UnrecognizedSms
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
-import com.ritesh.cashiro.presentation.ui.components.AccountBalanceList
+import com.ritesh.cashiro.presentation.ui.components.AccountBalanceRow
+import com.ritesh.cashiro.presentation.ui.features.accounts.AccountSectionSummary
+import com.ritesh.cashiro.presentation.ui.features.accounts.AccountSectionToggle
+import com.ritesh.cashiro.presentation.ui.features.accounts.buildAccountSections
+import com.ritesh.cashiro.presentation.ui.features.accounts.listKey
 import com.ritesh.cashiro.presentation.ui.components.BalanceCard
 import com.ritesh.cashiro.presentation.ui.components.BudgetCarousel
 import com.ritesh.cashiro.presentation.ui.components.CurrencySelectionBottomSheet
@@ -148,7 +158,7 @@ import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.presentation.ui.components.LendBorrowCard
 import com.ritesh.cashiro.presentation.ui.features.lendborrow.LendBorrowFilter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
     ExperimentalHazeApi::class
 )
 @Composable
@@ -169,15 +179,26 @@ fun SharedTransitionScope.HomeScreen(
     animatedContentScope: AnimatedContentScope? = null,
 ) {
 
-    val uiState by homeViewModel.uiState.collectAsState()
-    val themeUiState by themeViewModel.themeUiState.collectAsState()
+    val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val themeUiState by themeViewModel.themeUiState.collectAsStateWithLifecycle()
     val deletedTransaction by homeViewModel.deletedTransaction.collectAsState()
     val categoriesMap by homeViewModel.categoriesMap.collectAsStateWithLifecycle()
     val subcategoriesMap by homeViewModel.subcategoriesMap.collectAsStateWithLifecycle()
     val accountsMap by homeViewModel.accountsMap.collectAsStateWithLifecycle()
     val homeWidgets by homeViewModel.homeWidgets.collectAsStateWithLifecycle()
+    val overviewViewModel: com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewViewModel = hiltViewModel()
+    val overviewItems by overviewViewModel.items.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.accountBalances, uiState.creditCards, uiState.selectedCurrency) {
+        overviewViewModel.update(uiState.accountBalances + uiState.creditCards, uiState.selectedCurrency)
+    }
+    val showOverview = homeWidgets.any { it.widget == HomeWidget.ACCOUNT_CAROUSEL && it.isVisible }
+    val hasNetworth = homeWidgets.any { it.widget == HomeWidget.NETWORTH_SUMMARY && it.isVisible }
+    val openCategory: (com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory) -> Unit = { category ->
+        if (category == com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.INVESTMENTS)
+            navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.Investments)
+        else navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.AccountCategoryRoute(category.name))
+    }
     val activity = LocalActivity.current
-    val hazeState = remember { HazeState()}
     val hazeStateBanner = remember { HazeState()}
     val blurEffects = themeUiState.blurEffects
 
@@ -256,97 +277,46 @@ fun SharedTransitionScope.HomeScreen(
     DisposableEffect(Unit) { onDispose { snackbarHostState.currentSnackbarData?.dismiss() } }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val lazyListState = rememberLazyListState()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = Color.Transparent,
         topBar = {
-            CustomTitleTopAppBar(
-                title = stringResource(R.string.cashiro_title),
-                scrollBehaviorSmall = scrollBehaviorSmall,
-                scrollBehaviorLarge = scrollBehavior,
-                hazeState = hazeState,
-                hasBackButton = false,
-                extraInfoCard = {
-                    GreetingCard(
-                        userName = uiState.userName,
-                        profileImageUri = uiState.profileImageUri,
-                        profileBackgroundColor = uiState.profileBackgroundColor,
-                        unreadUpdatesCount = uiState.unreadUpdatesCount,
-                        onProfileClick = onNavigateToSettings,
-                        onNotificationClick = { navController.safeNavigate(NotificationSettings) },
-                        onMoreClick = { showMoreBottomSheet = true },
-                        onUpdatesClick = { navController.safeNavigate(UnrecognizedSms) }
-                    )
-                },
-                navigationContent = {
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 16.dp)
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(uiState.profileBackgroundColor)
-                            .clickable { onNavigateToSettings() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (uiState.profileImageUri != null) {
-                            AsyncImage(
-                                model = uiState.profileImageUri,
-                                contentDescription = stringResource(R.string.profile),
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.avatar_1),
-                                contentDescription = stringResource(R.string.profile),
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+            LargeFlexibleTopAppBar(
+                title = { Text(stringResource(R.string.cashiro_title)) },
+                subtitle = { Text(uiState.userName) },
+                scrollBehavior = scrollBehavior,
+                navigationIcon = {
+                    IconButton(onClick = onNavigateToSettings, shapes = IconButtonDefaults.shapes()) {
+                        Box(
+                            Modifier.size(40.dp).clip(CircleShape).background(uiState.profileBackgroundColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (uiState.profileImageUri != null) {
+                                AsyncImage(
+                                    model = uiState.profileImageUri,
+                                    contentDescription = stringResource(R.string.profile),
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(R.drawable.avatar_1),
+                                    contentDescription = stringResource(R.string.profile),
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
                         }
                     }
                 },
-                actionContent = {
-                    val containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    Box(
-                        modifier =
-                            Modifier.padding(end = 16.dp)
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    color = if (blurEffects) containerColor.copy(0.5f)
-                                    else containerColor,
-                                    shape = CircleShape
-                                )
-                                .then(
-                                    if (blurEffects) Modifier.hazeEffect(
-                                        state = hazeState,
-                                        block = fun HazeEffectScope.() {
-                                            style = HazeDefaults.style(
-                                                backgroundColor = Color.Transparent,
-                                                tint = tint(containerColor),
-                                                blurRadius = 20.dp,
-                                                noiseFactor = -1f,
-                                            )
-                                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                        }
-                                    ) else Modifier
-                                )
-                                .clickable(
-                                    onClick = { showMoreBottomSheet = true },
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.MoreHoriz,
-                            contentDescription = stringResource(R.string.more_options),
-                            tint = MaterialTheme.colorScheme.inverseSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
+                actions = {
+                    IconButton(onClick = { navController.safeNavigate(NotificationSettings) }, shapes = IconButtonDefaults.shapes()) {
+                        Icon(Icons.Rounded.Notifications, contentDescription = stringResource(R.string.notification))
+                    }
+                    IconButton(onClick = { showMoreBottomSheet = true }, shapes = IconButtonDefaults.shapes()) {
+                        Icon(Icons.Outlined.MoreHoriz, contentDescription = stringResource(R.string.more_options))
                     }
                 }
             )
@@ -418,8 +388,7 @@ fun SharedTransitionScope.HomeScreen(
             HomeContentList(
                 state = lazyListState,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .hazeSource(state = hazeState),
+                    .fillMaxSize(),
                 contentPadding =
                     PaddingValues(
                         top = Dimensions.Padding.content + paddingValues.calculateTopPadding(),
@@ -427,12 +396,6 @@ fun SharedTransitionScope.HomeScreen(
                     ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
-                item(key = "investments_shortcut") {
-                    com.ritesh.cashiro.presentation.ui.features.investments.InvestmentsShortcut(
-                        onClick = { navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.Investments) },
-                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
-                    )
-                }
                 homeWidgets.forEach { widgetModel ->
                     if (widgetModel.isVisible) {
                         when (widgetModel.widget) {
@@ -444,7 +407,9 @@ fun SharedTransitionScope.HomeScreen(
                                             homeViewModel.selectCurrency(it)
                                         },
                                         blurEffects = blurEffects && uiState.showBannerImage,
-                                        hazeState = hazeStateBanner
+                                        hazeState = hazeStateBanner,
+                                        overviewItems = if (showOverview) overviewItems else null,
+                                        onOpenCategory = openCategory
                                     )
                                 }
                             }
@@ -499,26 +464,9 @@ fun SharedTransitionScope.HomeScreen(
                                 }
                             }
                             HomeWidget.ACCOUNT_CAROUSEL -> {
-                                if (uiState.creditCards.isNotEmpty() ||
-                                    uiState.accountBalances.isNotEmpty()
-                                ) {
-                                    item(key = "account_balances") {
-                                        AccountBalanceList(
-                                            creditCards = uiState.creditCards,
-                                            bankAccounts = uiState.accountBalances,
-                                            onAccountClick = { bankName, accountLast4 ->
-                                                navController.safeNavigate(
-                                                    AccountDetail(
-                                                        bankName = bankName,
-                                                        accountLast4 = accountLast4
-                                                    )
-                                                )
-                                            },
-                                            animatedContentScope = animatedContentScope,
-                                            blurEffects = blurEffects && uiState.showBannerImage,
-                                            hazeState = hazeStateBanner
-                                        )
-                                    }
+                                if (!hasNetworth) item(key = "account_overview") {
+                                    com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewList(
+                                        overviewItems, openCategory, Modifier.padding(horizontal = Dimensions.Padding.content))
                                 }
                             }
                             HomeWidget.UPCOMING_SUBSCRIPTIONS -> {
@@ -1158,6 +1106,8 @@ private fun NetworthSummaryCards(
     onCurrencySelected: (String) -> Unit = {},
     blurEffects: Boolean,
     hazeState: HazeState = remember { HazeState() },
+    overviewItems: List<com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewItem>? = null,
+    onOpenCategory: (com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory) -> Unit = {},
 ) {
     var showCurrencySheet by remember { mutableStateOf(false) }
 
@@ -1201,7 +1151,7 @@ private fun NetworthSummaryCards(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+    val balanceContent: @Composable (Boolean) -> Unit = { embedded ->
 
         BalanceCard(
             totalBalance = uiState.totalBalance,
@@ -1216,14 +1166,20 @@ private fun NetworthSummaryCards(
             thisYearValue = CurrencyFormatter.formatCurrency(uiState.currentYearTotal, uiState.selectedCurrency),
             availableCurrenciesCount = uiState.availableCurrencies.size,
             onCurrencyClick = { showCurrencySheet = true },
-            blurEffects = blurEffects,
+            blurEffects = blurEffects && !embedded,
+            embedded = embedded,
             hazeState = hazeState,
-            modifier = Modifier.padding(
+            modifier = if (embedded) Modifier else Modifier.padding(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,
             )
         )
     }
+    if (overviewItems != null) {
+        com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewPanel(
+            overviewItems, onOpenCategory, Modifier.padding(horizontal = Dimensions.Padding.content)
+        ) { balanceContent(true) }
+    } else balanceContent(false)
 }
 
 

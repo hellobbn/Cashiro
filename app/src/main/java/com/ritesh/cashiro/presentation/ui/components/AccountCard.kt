@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.ui.res.stringResource
+import com.ritesh.cashiro.presentation.ui.theme.AccountCardElevation
 import com.ritesh.cashiro.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -83,7 +84,7 @@ fun AccountCard(
             containerColor = if (isHidden) MaterialTheme.colorScheme.surfaceVariant
             else MaterialTheme.colorScheme.surfaceContainer
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = AccountCardElevation)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             val context = LocalContext.current
@@ -96,11 +97,6 @@ fun AccountCard(
                 )
             }
 
-            TiledScrollingIconBackground(
-                iconResource = iconResource,
-                opacity = 0.05f,
-                iconSize = 56.dp
-            )
 
             Column(
                 modifier = Modifier.fillMaxWidth(),

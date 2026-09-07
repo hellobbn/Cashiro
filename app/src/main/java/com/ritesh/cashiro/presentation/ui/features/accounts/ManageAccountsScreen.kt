@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.Add
@@ -43,6 +44,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -56,13 +58,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -81,8 +84,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.CardEntity
 import com.ritesh.cashiro.data.database.entity.CardType
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.AccountCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DeleteAccountDialog
@@ -113,9 +114,10 @@ fun ManageAccountsScreen(
     onNavigateToAccountDetail: (String, String) -> Unit,
     manageAccountsViewModel: ManageAccountsViewModel = hiltViewModel(),
     blurEffects: Boolean,
+    category: AccountCategory? = null,
 ) {
-    val uiState by manageAccountsViewModel.uiState.collectAsState()
-    val defaultCurrency by manageAccountsViewModel.defaultCurrencyForNewAccounts.collectAsState()
+    val uiState by manageAccountsViewModel.uiState.collectAsStateWithLifecycle()
+    val defaultCurrency by manageAccountsViewModel.defaultCurrencyForNewAccounts.collectAsStateWithLifecycle()
     var showUpdateDialog by remember { mutableStateOf(false) }
     var selectedAccount by remember { mutableStateOf<Pair<String, String>?>(null) }
     var selectedAccountEntity by remember {
@@ -125,21 +127,42 @@ fun ManageAccountsScreen(
     var historyAccount by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var accountToDelete by remember { mutableStateOf<AccountBalanceEntity?>(null) }
-    var showHiddenAccounts by remember { mutableStateOf(false) }
+    var showHiddenAccounts by rememberSaveable { mutableStateOf(false) }
     var showAddSheet by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
     var accountToEdit by remember {
         mutableStateOf<AccountBalanceEntity?>(null)
     }
 
-    var showFloatingLabel by remember { mutableStateOf(true) }
+    var walletsExpanded by rememberSaveable { mutableStateOf(false) }
+    var banksExpanded by rememberSaveable { mutableStateOf(false) }
+    var creditCardsExpanded by rememberSaveable { mutableStateOf(false) }
+    val categoryAccounts = remember(uiState.accounts, category) {
+        uiState.accounts.filter { category == null || it.category() == category }
+    }
+    val sections = remember(categoryAccounts, uiState.hiddenAccounts) {
+        buildAccountSections(categoryAccounts, uiState.hiddenAccounts)
+    }
+    val walletSection = sections.visible[0]
+    val bankSection = sections.visible[1]
+    val creditSection = sections.visible[2]
+    val wallets = walletSection.visibleAccounts(category != null || walletsExpanded)
+    val visibleRegularAccounts = bankSection.visibleAccounts(category != null || banksExpanded)
+    val visibleCreditCards = creditSection.visibleAccounts(category != null || creditCardsExpanded)
+    val hiddenRegularAccounts = remember(sections) { sections.hidden.filter { !it.isCreditCard } }
+    val hiddenCreditCards = remember(sections) { sections.hidden.filter { it.isCreditCard } }
+    val allRegularAccounts = remember(uiState.accounts) {
+        uiState.accounts.filter { !it.isCreditCard && !it.isWallet }
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
     val lazyListState = rememberLazyListState()
+    val showFloatingLabel by remember {
+        derivedStateOf { lazyListState.firstVisibleItemIndex == 0 }
+    }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Merge Flow States
@@ -154,13 +177,6 @@ fun ManageAccountsScreen(
     }
     var mergeNewBalance by remember { mutableStateOf<BigDecimal?>(null) }
     var selectedCardForLink by remember { mutableStateOf<CardEntity?>(null) }
-
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.firstVisibleItemIndex }.collect { firstVisibleItem ->
-            // Show the label only when the list is scrolled to the top
-            showFloatingLabel = firstVisibleItem == 0
-        }
-    }
 
     // Show snackbar messages
     LaunchedEffect(uiState.successMessage) {
@@ -183,15 +199,16 @@ fun ManageAccountsScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            CustomTitleTopAppBar(
-                title = stringResource(R.string.title_accounts),
-                scrollBehaviorSmall = scrollBehaviorSmall,
-                scrollBehaviorLarge = scrollBehavior,
-                hazeState = hazeState,
-                hasBackButton = true,
-                navigationContent = { NavigationContent(onNavigateBack) },
-                actionContent = {}
-            ) },
+            LargeFlexibleTopAppBar(
+                title = { Text(stringResource(if (category == AccountCategory.INVESTMENTS) R.string.overview_manual_investments else category?.titleRes ?: R.string.title_accounts)) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.account_navigate_back))
+                    }
+                },
+                scrollBehavior = scrollBehavior
+            )
+        },
         floatingActionButton = {
             val fabContainerColor =  MaterialTheme.colorScheme.primaryContainer
             val fabContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -203,24 +220,6 @@ fun ManageAccountsScreen(
                 expanded = showFloatingLabel,
                 icon = { Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.add_account_fab_desc)) },
                 text = { Text(text = stringResource(R.string.add_account_fab_desc)) },
-                shape = if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large,
-                modifier = Modifier
-                    .then(
-                        if (blurEffects) Modifier
-                            .clip(if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large)
-                            .hazeEffect(
-                            state = hazeState,
-                            block = fun HazeEffectScope.() {
-                                style = HazeDefaults.style(
-                                    backgroundColor = Color.Transparent,
-                                    tint = HazeDefaults.tint(fabContainerColor),
-                                    blurRadius = 20.dp,
-                                    noiseFactor = -1f,
-                                )
-                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                            }
-                        ) else Modifier
-                    ),
                 containerColor = fabContainerColor,
                 contentColor = fabContentColor
             ) },
@@ -243,7 +242,7 @@ fun ManageAccountsScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
-            if (uiState.accounts.isEmpty()) {
+            if (categoryAccounts.isEmpty()) {
                 // Empty State
                 Box(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -277,56 +276,26 @@ fun ManageAccountsScreen(
                     state = lazyListState,
                     modifier = Modifier
                         .fillMaxSize()
-                        .hazeSource(state = hazeState)
-                        .overScrollVertical(),
-                    flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                        .then(if (blurEffects) Modifier.hazeSource(state = hazeState) else Modifier),
                     contentPadding = PaddingValues(
                         start = Dimensions.Padding.content,
                         end = Dimensions.Padding.content,
                         top = Dimensions.Padding.content +
                                 paddingValues.calculateTopPadding(),
-                        bottom = Dimensions.Padding.content +
-                                paddingValues.calculateBottomPadding()
+                        bottom = 96.dp + paddingValues.calculateBottomPadding()
                     ),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    // Separate visible and hidden accounts
-                    val visibleRegularAccounts = uiState.accounts.filter {
-                        !it.isCreditCard && !it.isWallet && !manageAccountsViewModel.isAccountHidden(
-                            it.bankName,
-                            it.accountLast4
-                        )
-                    }
-                    val visibleCreditCards = uiState.accounts.filter {
-                        it.isCreditCard && !manageAccountsViewModel.isAccountHidden(
-                            it.bankName,
-                            it.accountLast4
-                        )
-                    }
-                    val hiddenRegularAccounts = uiState.accounts.filter {
-                        !it.isCreditCard && !it.isWallet && manageAccountsViewModel.isAccountHidden(
-                            it.bankName,
-                            it.accountLast4
-                        )
-                    }
-                    val hiddenCreditCards = uiState.accounts.filter {
-                        it.isCreditCard && manageAccountsViewModel.isAccountHidden(
-                            it.bankName,
-                            it.accountLast4
-                        )
-                    }
-                    val allRegularAccounts = uiState.accounts.filter { !it.isCreditCard && !it.isWallet }
-                    val wallets = uiState.accounts.filter { it.isWallet }
-
                     // Wallets Section
-                    if (wallets.isNotEmpty()) {
-                        item {
-                            SectionHeader(
-                                title = stringResource(R.string.section_wallets),
-                                modifier = Modifier.padding(start = 8.dp)
+                    if (walletSection.accounts.isNotEmpty()) {
+                        item(key = "wallet_summary", contentType = "section_summary") {
+                            AccountSectionSummary(
+                                section = walletSection,
+                                expanded = walletsExpanded,
+                                onToggle = if (category == null) ({ walletsExpanded = !walletsExpanded }) else null
                             )
                         }
-                        items(wallets) { account ->
+                        items(wallets, key = { it.listKey() }, contentType = { "bank_account" }) { account ->
                             AccountItem(
                                 account = account,
                                 linkedCards = emptyList(),
@@ -375,20 +344,16 @@ fun ManageAccountsScreen(
                                 }
                             )
                         }
-                        item {
-                            Spacer(modifier = Modifier.height(Spacing.md))
-                        }
                     }
 
+
+
                     // Regular Bank Accounts Section (Visible Only)
-                    if (visibleRegularAccounts.isNotEmpty()) {
-                        item {
-                            SectionHeader(
-                                title = stringResource(R.string.section_bank_accounts),
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
+                    if (bankSection.accounts.isNotEmpty()) {
+                        item(key = "bank_summary", contentType = "section_summary") {
+                            AccountSectionSummary(section = bankSection, expanded = banksExpanded, onToggle = if (category == null) ({ banksExpanded = !banksExpanded }) else null, titleOverride = category?.titleRes)
                         }
-                        items(visibleRegularAccounts) { account ->
+                        items(visibleRegularAccounts, key = { it.listKey() }, contentType = { "bank_account" }) { account ->
                             AccountItem(
                                 account = account,
                                 linkedCards = uiState.linkedCards[account.accountLast4]
@@ -441,40 +406,15 @@ fun ManageAccountsScreen(
                             )
                         }
                     }
-                    // Orphaned Cards Section
-                    if (uiState.orphanedCards.isNotEmpty()) {
-                        item {
-                            Spacer(modifier = Modifier.height(Spacing.md))
 
-                            SectionHeader(
-                                title = stringResource(R.string.section_unlinked_cards),
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                        items(uiState.orphanedCards) { card ->
-                            OrphanedCardItem(
-                                card = card,
-                                accounts = allRegularAccounts,
-                                onLinkToAccount = {
-                                    selectedCardForLink = card
-                                },
-                                onDeleteCard = { cardId ->
-                                    manageAccountsViewModel.deleteCard(cardId)
-                                }
-                            )
-                        }
-                    }
+
                     // Credit Cards Section (Visible Only)
-                    if (visibleCreditCards.isNotEmpty()) {
-                        item {
-                            Spacer(modifier = Modifier.height(Spacing.md))
-                            SectionHeader(
-                                title = stringResource(R.string.section_credit_cards),
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
+                    if (creditSection.accounts.isNotEmpty()) {
+                        item(key = "credit_summary", contentType = "section_summary") {
+                            AccountSectionSummary(section = creditSection, expanded = creditCardsExpanded, onToggle = if (category == null) ({ creditCardsExpanded = !creditCardsExpanded }) else null)
                         }
 
-                        items(visibleCreditCards) { card ->
+                        items(visibleCreditCards, key = { it.listKey() }, contentType = { "credit_account" }) { card ->
                             CreditCardItem(
                                 card = card,
                                 isHidden = false,
@@ -518,6 +458,32 @@ fun ManageAccountsScreen(
                                 onMergeAccount = {
                                     accountForMerge = card
                                     showMergeSelection = true
+                                }
+                            )
+                        }
+                    }
+
+
+
+                    // Orphaned Cards Section
+                    if (category == null && uiState.orphanedCards.isNotEmpty()) {
+                        item {
+                            Spacer(modifier = Modifier.height(Spacing.md))
+
+                            SectionHeader(
+                                title = stringResource(R.string.section_unlinked_cards),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                        items(uiState.orphanedCards, key = { "unlinked:${it.id}" }, contentType = { "unlinked_card" }) { card ->
+                            OrphanedCardItem(
+                                card = card,
+                                accounts = allRegularAccounts,
+                                onLinkToAccount = {
+                                    selectedCardForLink = card
+                                },
+                                onDeleteCard = { cardId ->
+                                    manageAccountsViewModel.deleteCard(cardId)
                                 }
                             )
                         }
@@ -576,7 +542,7 @@ fun ManageAccountsScreen(
                         }
                         if (showHiddenAccounts) {
                             // Hidden Bank Accounts
-                            items(hiddenRegularAccounts) { account ->
+                            items(hiddenRegularAccounts, key = { it.listKey() }, contentType = { "bank_account" }) { account ->
                                 AccountItem(
                                     account = account,
                                     linkedCards = uiState.linkedCards[
@@ -632,7 +598,7 @@ fun ManageAccountsScreen(
                                 )
                             }
                             // Hidden Credit Cards
-                            items(hiddenCreditCards) { card ->
+                            items(hiddenCreditCards, key = { it.listKey() }, contentType = { "credit_account" }) { card ->
                                 CreditCardItem(
                                     card = card,
                                     isHidden = true,
@@ -822,6 +788,7 @@ fun ManageAccountsScreen(
                 account = accountToEdit!!,
                 allAccounts = uiState.accounts,
                 defaultCurrency = defaultCurrency,
+                initialCategory = category,
                 onDismiss = {
                     showEditSheet = false
                     accountToEdit = null
@@ -864,6 +831,7 @@ fun ManageAccountsScreen(
             EditAccountSheet(
                 allAccounts = uiState.accounts,
                 defaultCurrency = defaultCurrency,
+                initialCategory = category,
                 isSaving = uiState.isSavingAccount,
                 saveError = uiState.accountSaveError,
                 onClearSaveError = manageAccountsViewModel::clearAccountSaveError,
@@ -1038,7 +1006,7 @@ private fun CreditCardItem(
             else -> Color(0xFF4CAF50) // Green
         }
 
-    AccountCard(
+    CompactAccountCard(
         account = card,
         isHidden = isHidden,
         onUpdateBalance = onUpdateBalance,
@@ -1130,7 +1098,7 @@ private fun AccountItem(
     onMergeAccount: () -> Unit = {}
 ) {
     Column {
-        AccountCard(
+        CompactAccountCard(
             account = account,
             isHidden = isHidden,
             onUpdateBalance = onUpdateBalance,

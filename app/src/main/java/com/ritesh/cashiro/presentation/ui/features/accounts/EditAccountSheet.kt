@@ -91,6 +91,7 @@ fun EditAccountSheet(
     account: AccountBalanceEntity? = null,
     allAccounts: List<AccountBalanceEntity> = emptyList(),
     defaultCurrency: String = "CNY",
+    initialCategory: AccountCategory? = null,
     isSaving: Boolean = false,
     saveError: String? = null,
     onClearSaveError: () -> Unit = {},
@@ -112,8 +113,8 @@ fun EditAccountSheet(
     var bankName by remember { mutableStateOf(account?.bankName ?: "") }
     var balance by remember { mutableStateOf(account?.balance ?: BigDecimal.ZERO) }
     var creditLimit by remember { mutableStateOf(account?.creditLimit ?: BigDecimal.ZERO) }
-    var isCreditCard by remember { mutableStateOf(account?.isCreditCard ?: false) }
-    var isWallet by remember { mutableStateOf(account?.isWallet ?: false) }
+    var isCreditCard by remember { mutableStateOf(account?.isCreditCard ?: (initialCategory == AccountCategory.CREDIT_CARDS)) }
+    var isWallet by remember { mutableStateOf(account?.isWallet ?: (initialCategory == AccountCategory.WALLETS)) }
     var accountLast4 by remember { mutableStateOf(account?.accountLast4 ?: "") }
     var selectedCurrency by remember { mutableStateOf(account?.currency ?: defaultCurrency) }
     var iconResId by remember {

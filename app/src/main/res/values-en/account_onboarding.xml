@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="account_summary_balance">Total balance</string>
+    <string name="account_summary_outstanding">Total outstanding</string>
+    <string name="account_show_more">Show more (%1$d)</string>
+    <string name="account_show_less">Show less</string>
+    <string name="account_section_expanded">All accounts shown</string>
+    <string name="account_section_collapsed">Summary only; account details are collapsed</string>
+    <string name="onboarding_import_backup">Import old backup</string>
+    <string name="onboarding_import_description">Bring back your accounts, transactions and preferences from a Cashiro ZIP or JSON backup. No new account needed.</string>
+    <string name="onboarding_welcome_title">Your money.\nA fresh perspective.</string>
+    <string name="onboarding_welcome_body">Start a new money journal, or pick up right where you left off.</string>
+    <string name="onboarding_start_fresh">Start fresh</string>
+    <string name="onboarding_notifications_body">Allow reminders for upcoming payments. You can also enable notifications later in Settings.</string>
+    <string name="onboarding_not_now">Not now · finish setup</string>
+    <string name="onboarding_back">Previous step</string>
+    <string name="onboarding_step_count">Step %1$d of %2$d</string>
+    <string name="onboarding_operation_failed">Something went wrong. Please try again.</string>
+    <string name="onboarding_import_failed">The backup could not be imported. Choose a compatible Cashiro ZIP or JSON backup and try again.</string>
+    <string name="onboarding_try_again">Please try again</string>
+    <string name="onboarding_working">Getting things ready…</string>
+    <string name="account_navigate_back">Back</string>
+    <string name="account_section_expand_all">Expand all %1$s</string>
+    <string name="account_section_collapse_all">Collapse %1$s</string>
+    <string name="overview_investments">Investments</string>
+    <string name="overview_connect">Connect account</string>
+    <string name="overview_connect_hint">Not connected · not included</string>
+    <string name="overview_unavailable">View details</string>
+    <string name="overview_sources">View by source</string>
+    <string name="overview_count">%1$d accounts</string>
+    <string name="overview_debt">Outstanding</string>
+    <string name="overview_market_value">Snapshot value</string>
+    <string name="overview_balance">Balance</string>
+    <string name="overview_loading">Loading balances…</string>
+    <string name="overview_snapshot_note">Broker snapshots are separate from net worth. Open Investments for dates and source totals.</string>
+    <string name="overview_manual_investments">Manual investment accounts</string>
+    <string name="overview_manage_manual">Manage manual accounts</string>
+    <string name="overview_snapshot_title">Portfolio snapshots</string>
+    <string name="overview_source_note">Manual balances and broker snapshots stay separate to avoid counting the same portfolio twice.</string>
+    <string name="overview_deduction">Outstanding · deducted</string>
+    <string name="overview_credit_refund">Credit balance</string>
+    <string name="overview_categories">Account categories</string>
+</resources>

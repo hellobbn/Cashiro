@@ -7,7 +7,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +20,10 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -79,8 +82,11 @@ fun BalanceCard(
     availableCurrenciesCount: Int = 0,
     onCurrencyClick: () -> Unit = {},
     blurEffects: Boolean,
-    hazeState: HazeState = remember { HazeState() }
+    hazeState: HazeState = remember { HazeState() },
+    embedded: Boolean = false
 ) {
+    val summaryContentColor = if (embedded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    val summaryContentColorVariant = if (embedded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
     var isExpanded by remember { mutableStateOf(false) }
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 
@@ -114,7 +120,7 @@ fun BalanceCard(
                 ),
             shape = RoundedCornerShape(Spacing.lg),
             colors = CardDefaults.cardColors(
-                containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+                containerColor = if (embedded) Color.Transparent else if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
                 else MaterialTheme.colorScheme.surfaceContainerLow
             ),
             onClick = { isExpanded = !isExpanded }
@@ -139,13 +145,13 @@ fun BalanceCard(
                             Text(
                                 text = stringResource(R.string.net_worth_label),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = summaryContentColorVariant
                             )
                             Text(
                                 text = CurrencyFormatter.formatCurrency(totalBalance, currency),
-                                style = MaterialTheme.typography.headlineSmall,
+                                style = if (embedded) MaterialTheme.typography.displaySmall else MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
+                                color = summaryContentColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.fillMaxWidth()
@@ -160,7 +166,7 @@ fun BalanceCard(
                                 Text(
                                     text = stringResource(R.string.percent_this_month_format, if (monthlyChangePercent >= 0) "+" else "", monthlyChangePercent.toString()),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = summaryContentColor,
                                     fontWeight = FontWeight.Medium
                                 )
                             }
@@ -193,38 +199,7 @@ fun BalanceCard(
                             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                             horizontalAlignment = Alignment.Start
                         ) {
-                            Column {
-                                Text(
-                                    text = abbreviatedName.uppercase(),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.ExtraBold,
-                                )
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
-                                ) {
-                                    Text(
-                                        text = userName,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        text = "•",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.net_worth_label),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-
-                            }
+                            Text(stringResource(R.string.net_worth_label), style = MaterialTheme.typography.labelLarge, color = summaryContentColor)
                             Column(
                                 verticalArrangement = Arrangement.Top,
                                 horizontalAlignment = Alignment.Start
@@ -232,48 +207,16 @@ fun BalanceCard(
                                 Text(
                                     text = CurrencyFormatter.formatCurrency(totalBalance, currency),
                                     style = MaterialTheme.typography.headlineSmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = summaryContentColor,
                                     lineHeight = 24.sp,
                                     fontWeight = FontWeight.Bold,
                                 )
                                 // Currency Selector
                                 BlurredAnimatedVisibility(availableCurrenciesCount > 1) {
-                                    Surface(
-                                        onClick = onCurrencyClick,
-                                        modifier = Modifier
-                                            .padding(horizontal = 12.dp)
-                                            .heightIn(min = 48.dp),
-                                        shape = RoundedCornerShape(Dimensions.Radius.sm),
-                                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(
-                                            alpha = 0.8f
-                                        ),
-                                        border = BorderStroke(
-                                            0.5.dp,
-                                            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                        )
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(
-                                                horizontal = 8.dp,
-                                                vertical = 4.dp
-                                            ),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            Text(
-                                                text = currency,
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onTertiaryContainer
-                                            )
-                                            Icon(
-                                                imageVector = Icons.Default.KeyboardArrowDown,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                                modifier = Modifier.size(14.dp)
-                                            )
-                                        }
-                                    }
+                                    BalanceCurrencySelector(
+                                        currency = currency,
+                                        onClick = onCurrencyClick
+                                    )
                                 }
                             }
                         }
@@ -294,7 +237,7 @@ fun BalanceCard(
                             Text(
                                 text = dateRangeLabel,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface,
+                                color = summaryContentColor,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
@@ -302,7 +245,7 @@ fun BalanceCard(
 
                         Spacer(modifier = Modifier.height(Spacing.sm))
 
-                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        HorizontalDivider(color = summaryContentColor.copy(alpha = 0.1f))
                         Spacer(modifier = Modifier.height(Spacing.md))
                         // horizontal summary items
                         Row(
@@ -313,12 +256,12 @@ fun BalanceCard(
                             SummaryItem(label = stringResource(R.string.this_month_lbl), value = thisMonthValue)
                             VerticalDivider(
                                 modifier = Modifier.height(30.dp),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                                color = summaryContentColor.copy(alpha = 0.1f)
                             )
                             SummaryItem(label = stringResource(R.string.this_year_lbl), value = thisYearValue)
                             VerticalDivider(
                                 modifier = Modifier.height(30.dp),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                                color = summaryContentColor.copy(alpha = 0.1f)
                             )
                             SummaryItem(
                                 label = stringResource(R.string.balance_label),
@@ -334,7 +277,7 @@ fun BalanceCard(
         Icon(
             imageVector = Iconax.LongArrow,
             contentDescription = if (isExpanded) stringResource(R.string.collapse) else stringResource(R.string.expand),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = summaryContentColorVariant,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 4.dp)
@@ -411,6 +354,31 @@ fun BalanceSparkline(
             brush = Brush.verticalGradient(
                 colors = listOf(lineColor.copy(alpha = 0.3f), Color.Transparent)
             )
+        )
+    }
+}
+
+/** Native tonal action: a compact visual capsule with Material's minimum touch target. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun BalanceCurrencySelector(currency: String, onClick: () -> Unit) {
+    val description = stringResource(R.string.select_currency)
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = Modifier.semantics { contentDescription = "$description: $currency" },
+        shapes = ButtonDefaults.shapes(),
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(text = currency, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        Spacer(Modifier.width(4.dp))
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowDown,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
         )
     }
 }

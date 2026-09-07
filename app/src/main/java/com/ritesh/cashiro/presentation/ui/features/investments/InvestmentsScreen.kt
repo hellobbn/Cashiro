@@ -14,6 +14,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.ritesh.cashiro.presentation.ui.theme.AccountSurfaceElevation
+import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.utils.CurrencyFormatter
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -50,8 +54,9 @@ fun InvestmentsShortcut(onClick: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun InvestmentsScreen(onNavigateBack: () -> Unit, viewModel: InvestmentsViewModel = hiltViewModel()) {
+fun InvestmentsScreen(onNavigateBack: () -> Unit, onManageManualAccounts: () -> Unit = {}, viewModel: InvestmentsViewModel = hiltViewModel()) {
     val connections by viewModel.connections.collectAsStateWithLifecycle()
+    val manualAccounts by viewModel.manualAccounts.collectAsStateWithLifecycle()
     val busy by viewModel.busy.collectAsStateWithLifecycle()
     val loaded by viewModel.loaded.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -60,7 +65,8 @@ fun InvestmentsScreen(onNavigateBack: () -> Unit, viewModel: InvestmentsViewMode
 
     InvestmentsContent(connections, busy, loaded, error, onNavigateBack,
         onConnect = { viewModel.clearError(); connecting = true },
-        onRefresh = viewModel::refresh, onDisconnect = { disconnecting = it }, onRetry = viewModel::reload)
+        onRefresh = viewModel::refresh, onDisconnect = { disconnecting = it }, onRetry = viewModel::reload,
+        manualAccounts = manualAccounts, onManageManualAccounts = onManageManualAccounts)
     if (connecting) {
         IbkrConnectDialog(busy, error, onDismiss = { viewModel.cancelConnection(); connecting = false; viewModel.clearError() },
             onConnect = { label, token, query -> viewModel.connect(label, token, query) { connecting = false } })
@@ -78,19 +84,60 @@ fun InvestmentsScreen(onNavigateBack: () -> Unit, viewModel: InvestmentsViewMode
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun InvestmentsContent(
     connections: List<BrokerConnection>, busy: Boolean, loaded: Boolean, error: BrokerageError?,
     onBack: () -> Unit, onConnect: () -> Unit, onRefresh: (String) -> Unit,
-    onDisconnect: (BrokerConnection) -> Unit, onRetry: () -> Unit
+    onDisconnect: (BrokerConnection) -> Unit, onRetry: () -> Unit,
+    manualAccounts: List<AccountBalanceEntity> = emptyList(), onManageManualAccounts: () -> Unit = {}
 ) {
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.investments_title)) },
-        navigationIcon = { IconButton(onClick = onBack) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = { LargeFlexibleTopAppBar(
+        scrollBehavior = scrollBehavior, title = { Text(stringResource(R.string.overview_investments)) },
+        navigationIcon = { IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.investments_back))
         } }) }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("investments_list"),
-            contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp), overscrollEffect = null) {
+            contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (manualAccounts.isNotEmpty()) item(key = "manual_investment_summary") {
+                Card(onClick = onManageManualAccounts, modifier = Modifier.fillMaxWidth(),
+                    shape = androidx.compose.ui.graphics.RectangleShape,
+                    colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AccountSurfaceElevation)) {
+                    Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.overview_manual_investments), style = MaterialTheme.typography.titleLargeEmphasized)
+                        Text(stringResource(R.string.overview_count, manualAccounts.size))
+                        manualAccounts.groupBy { it.currency }.toSortedMap().forEach { (currency, accounts) ->
+                            Text(CurrencyFormatter.formatCurrency(accounts.fold(BigDecimal.ZERO) { n, a -> n + a.balance }, currency) + " · " + currency,
+                                style = MaterialTheme.typography.headlineSmallEmphasized)
+                        }
+                    }
+                }
+            }
+            if (connections.isNotEmpty()) item(key = "investment_market_summary") {
+                Card(Modifier.fillMaxWidth(), shape = androidx.compose.ui.graphics.RectangleShape,
+                    colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AccountSurfaceElevation)) {
+                    Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.overview_snapshot_title), style = MaterialTheme.typography.titleLargeEmphasized)
+                        val accounts = connections.flatMap { it.accounts }
+                        Text(stringResource(R.string.overview_count, accounts.size))
+                        val holdings = accounts.flatMap { it.holdings }
+                        holdings.groupBy { it.currency }.toSortedMap().forEach { (currency, rows) ->
+                            val total = if (rows.all { it.marketValue != null }) rows.fold(BigDecimal.ZERO) { n, h -> n + h.marketValue!!.toBigDecimal() } else null
+                            Text((total?.let { CurrencyFormatter.formatCurrency(it, currency) } ?: "—") + " · " + currency,
+                                style = MaterialTheme.typography.headlineSmallEmphasized)
+                        }
+                        if (holdings.isEmpty()) Text(stringResource(R.string.investments_no_positions))
+                        Text(stringResource(R.string.overview_snapshot_note), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+            item {
+                TextButton(onClick = onManageManualAccounts) { Text(stringResource(R.string.overview_manage_manual)) }
+                if (manualAccounts.isNotEmpty() && connections.isNotEmpty()) Text(stringResource(R.string.overview_source_note), style = MaterialTheme.typography.bodySmall)
+            }
             item {
                 Text(stringResource(R.string.investments_report_hint), style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -104,15 +151,15 @@ internal fun InvestmentsContent(
                 OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.investments_retry)) }
             }
             if (loaded && connections.isEmpty()) item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Card(Modifier.fillMaxWidth(), shape = androidx.compose.ui.graphics.RectangleShape, colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent), elevation = CardDefaults.cardElevation(defaultElevation = AccountSurfaceElevation)) {
+                    Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringResource(R.string.investments_empty_title), style = MaterialTheme.typography.titleLarge)
                         Text(stringResource(R.string.investments_empty_body))
                     }
                 }
             }
             if (loaded) item {
-                Button(onClick = onConnect, enabled = !busy, modifier = Modifier.fillMaxWidth().testTag("connect_broker")) {
+                Button(onClick = onConnect, shapes = ButtonDefaults.shapes(), enabled = !busy, modifier = Modifier.fillMaxWidth().testTag("connect_broker")) {
                     Text(stringResource(R.string.investments_connect_ibkr))
                 }
             }
@@ -157,8 +204,8 @@ internal fun InvestmentsContent(
 
 @Composable
 private fun HoldingCard(holding: Holding) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Card(Modifier.fillMaxWidth(), shape = androidx.compose.ui.graphics.RectangleShape, colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent), elevation = CardDefaults.cardElevation(defaultElevation = AccountSurfaceElevation)) {
+        Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(holding.symbol, modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.titleMedium)
             Text(holding.description, modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.bodySmall)
             if (holding.model.isNotBlank()) Text(holding.model, modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.bodySmall)

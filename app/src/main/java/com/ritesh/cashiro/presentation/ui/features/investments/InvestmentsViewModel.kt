@@ -11,10 +11,27 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import com.ritesh.cashiro.presentation.ui.features.accounts.category
+import com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class InvestmentsViewModel @Inject constructor(private val repository: BrokerageRepository) : ViewModel() {
+class InvestmentsViewModel @Inject constructor(
+    private val repository: BrokerageRepository,
+    accountRepository: com.ritesh.cashiro.data.repository.AccountBalanceRepository,
+    @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context
+) : ViewModel() {
+    private val prefs = context.getSharedPreferences("account_prefs", android.content.Context.MODE_PRIVATE)
+    private val hidden = MutableStateFlow(prefs.getStringSet("hidden_accounts", emptySet()).orEmpty().toSet())
+    private val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "hidden_accounts") hidden.value = prefs.getStringSet(key, emptySet()).orEmpty().toSet()
+    }
+    val manualAccounts = kotlinx.coroutines.flow.combine(accountRepository.getAllLatestBalances(), hidden) { accounts, hiddenKeys ->
+        accounts.filter { it.category() == AccountCategory.INVESTMENTS && "${it.bankName}_${it.accountLast4}" !in hiddenKeys }
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
+    override fun onCleared() { prefs.unregisterOnSharedPreferenceChangeListener(listener); super.onCleared() }
+
     private var operation: Job? = null
     val connections = repository.connections
     private val _busy = MutableStateFlow(false)
@@ -24,7 +41,7 @@ class InvestmentsViewModel @Inject constructor(private val repository: Brokerage
     private val _loaded = MutableStateFlow(false)
     val loaded = _loaded.asStateFlow()
 
-    init { reload() }
+    init { prefs.registerOnSharedPreferenceChangeListener(listener); reload() }
     fun reload() = run { repository.load(); _loaded.value = true }
     fun connect(label: String, token: String, query: String, onSuccess: () -> Unit) = run {
         repository.connect(IbkrFlexProvider.ID, label, BrokerCredentials(mapOf("token" to token.trim(), "queryId" to query.trim())))
