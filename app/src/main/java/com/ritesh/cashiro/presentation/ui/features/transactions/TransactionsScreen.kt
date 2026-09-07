@@ -63,6 +63,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -128,14 +129,13 @@ import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.DateRangeUtils
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
     ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class
 )
 @Composable
-fun SharedTransitionScope.TransactionsScreen(
+fun TransactionsScreen(
     initialCategory: String? = null,
     initialMerchant: String? = null,
     initialPeriod: String? = null,
@@ -149,29 +149,43 @@ fun SharedTransitionScope.TransactionsScreen(
     animatedContentScope: AnimatedVisibilityScope? = null,
     blurEffects: Boolean
 ) {
+    var detailTransactionId by rememberSaveable { mutableStateOf<Long?>(null) }
     val context = LocalContext.current
     val view = LocalView.current
-    val uiState by transactionsViewModel.uiState.collectAsState()
-    val searchQuery by transactionsViewModel.searchQuery.collectAsState()
-    val selectedPeriod by transactionsViewModel.selectedPeriod.collectAsState()
-    val categoryFilter by transactionsViewModel.categoryFilter.collectAsState()
-    val transactionTypeFilter by transactionsViewModel.transactionTypeFilter.collectAsState()
-    val deletedTransaction by transactionsViewModel.deletedTransaction.collectAsState()
-    val categoriesMap by transactionsViewModel.categories.collectAsState()
-    val subcategoriesMap by transactionsViewModel.subcategories.collectAsState()
-    val allSubcategoriesByCategoryId by transactionsViewModel.allSubcategoriesByCategoryId.collectAsState()
-    val accountsMap by transactionsViewModel.accountsMap.collectAsState()
-    val filteredTotals by transactionsViewModel.filteredTotals.collectAsState()
-    val currencyGroupedTotals by transactionsViewModel.currencyGroupedTotals.collectAsState()
-    val availableCurrencies by transactionsViewModel.availableCurrencies.collectAsState()
-    val selectedCurrency by transactionsViewModel.selectedCurrency.collectAsState()
-    val baseCurrency by transactionsViewModel.baseCurrency.collectAsState()
-    val sortOption by transactionsViewModel.sortOption.collectAsState()
-    val smsScanMonths by transactionsViewModel.smsScanMonths.collectAsState()
-    val customDateRange by transactionsViewModel.customDateRange.collectAsState()
-    val selectionMode by transactionsViewModel.selectionMode.collectAsState()
-    val selectedTransactionIds by transactionsViewModel.selectedTransactionIds.collectAsState()
-    val deletedTransactions by transactionsViewModel.deletedTransactions.collectAsState()
+    val uiState by transactionsViewModel.uiState.collectAsStateWithLifecycle()
+    detailTransactionId?.let { id ->
+        val transaction = uiState.transactions.firstOrNull { it.id == id }
+        if (transaction != null) {
+            TransactionSummarySheet(
+                transaction = transaction,
+                onDismiss = { detailTransactionId = null },
+                onOpenDetails = {
+                    detailTransactionId = null
+                    onTransactionClick(id, "transaction_$id")
+                }
+            )
+        }
+    }
+    val searchQuery by transactionsViewModel.searchQuery.collectAsStateWithLifecycle()
+    val selectedPeriod by transactionsViewModel.selectedPeriod.collectAsStateWithLifecycle()
+    val categoryFilter by transactionsViewModel.categoryFilter.collectAsStateWithLifecycle()
+    val transactionTypeFilter by transactionsViewModel.transactionTypeFilter.collectAsStateWithLifecycle()
+    val deletedTransaction by transactionsViewModel.deletedTransaction.collectAsStateWithLifecycle()
+    val categoriesMap by transactionsViewModel.categories.collectAsStateWithLifecycle()
+    val subcategoriesMap by transactionsViewModel.subcategories.collectAsStateWithLifecycle()
+    val allSubcategoriesByCategoryId by transactionsViewModel.allSubcategoriesByCategoryId.collectAsStateWithLifecycle()
+    val accountsMap by transactionsViewModel.accountsMap.collectAsStateWithLifecycle()
+    val filteredTotals by transactionsViewModel.filteredTotals.collectAsStateWithLifecycle()
+    val currencyGroupedTotals by transactionsViewModel.currencyGroupedTotals.collectAsStateWithLifecycle()
+    val availableCurrencies by transactionsViewModel.availableCurrencies.collectAsStateWithLifecycle()
+    val selectedCurrency by transactionsViewModel.selectedCurrency.collectAsStateWithLifecycle()
+    val baseCurrency by transactionsViewModel.baseCurrency.collectAsStateWithLifecycle()
+    val sortOption by transactionsViewModel.sortOption.collectAsStateWithLifecycle()
+    val smsScanMonths by transactionsViewModel.smsScanMonths.collectAsStateWithLifecycle()
+    val customDateRange by transactionsViewModel.customDateRange.collectAsStateWithLifecycle()
+    val selectionMode by transactionsViewModel.selectionMode.collectAsStateWithLifecycle()
+    val selectedTransactionIds by transactionsViewModel.selectedTransactionIds.collectAsStateWithLifecycle()
+    val deletedTransactions by transactionsViewModel.deletedTransactions.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -246,8 +260,7 @@ fun SharedTransitionScope.TransactionsScreen(
             initialCurrency,
             initialType
         )
-        // Delay heavy data loading until transition finished for smoothness
-        delay(500)
+        // Data preparation is dispatched off-main; do not add an artificial half-second wait.
         transactionsViewModel.startLoading()
     }
 
@@ -327,27 +340,7 @@ fun SharedTransitionScope.TransactionsScreen(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehaviorLarge.nestedScrollConnection)
-            .then(
-                if (animatedContentScope != null && (initialCategory != null || initialMerchant != null)) {
-                    Modifier.sharedBounds(
-                        rememberSharedContentState(
-                            key = if (initialCategory != null) {
-                                "category_$initialCategory"
-                            } else {
-                                "merchant_$initialMerchant"
-                            }
-                        ),
-                        animatedVisibilityScope = animatedContentScope,
-                        boundsTransform = { _, _ ->
-                            spring(
-                                stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
-                            )
-                        },
-                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
-                    )
-                } else Modifier
-            ),
+,
         topBar = {
             CustomTitleTopAppBar(
                 title = if (selectionMode) stringResource(R.string.items_selected_format, selectedTransactionIds.size) else stringResource(R.string.transactions),
@@ -677,7 +670,7 @@ fun SharedTransitionScope.TransactionsScreen(
                         )
 
                     ) {
-                        stickyItemHeader {
+                        stickyItemHeader(key = "totals", contentType = "totals") {
                             Surface(
                                 color = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier.fillMaxWidth()
@@ -704,7 +697,7 @@ fun SharedTransitionScope.TransactionsScreen(
                         ).forEach { dateGroup ->
                             uiState.groupedTransactions[dateGroup]?.let { transactions ->
                                 // Date group header
-                                stickyItemHeader {
+                                stickyItemHeader(key = "date_${dateGroup.name}", contentType = "date_header") {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
@@ -744,7 +737,8 @@ fun SharedTransitionScope.TransactionsScreen(
                                 // Transactions in this group
                                 itemsIndexed(
                                     items = transactions,
-                                    key = { _, it -> it.id }
+                                    key = { _, it -> it.id },
+                                    contentType = { _, _ -> "transaction" }
                                 ) { index, transaction ->
                                     val position = ListItemPosition.from(index, transactions.size)
                                     TransactionItem(
@@ -756,9 +750,7 @@ fun SharedTransitionScope.TransactionsScreen(
                                         accountColorHex = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.color,
                                         showDate = dateGroup == DateGroup.EARLIER,
                                         shape = position.toShape(),
-                                        onClick = { onTransactionClick(transaction.id, "transaction_${transaction.id}") },
-                                        animatedContentScope = animatedContentScope,
-                                        sharedElementKey = "transaction_${transaction.id}",
+                                        onClick = { detailTransactionId = transaction.id },
                                         isSelectionMode = selectionMode,
                                         isSelected = selectedTransactionIds.contains(transaction.id),
                                         onSelectionToggle = { transactionsViewModel.toggleTransactionSelection(transaction.id) },

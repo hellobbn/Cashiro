@@ -4,18 +4,20 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import com.ritesh.cashiro.data.preferences.AppIcon
+import com.ritesh.cashiro.MainActivity
 
 object IconSwitchingUtils {
     fun switchAppIcon(context: Context, targetIcon: AppIcon) {
         val packageManager = context.packageManager
-        val packageName = context.packageName
+        // Component class names follow the namespace, not the suffixed application ID.
+        val activityName = MainActivity::class.java.name
 
         val iconComponents = mapOf(
-            AppIcon.ORIGINAL to "$packageName.MainActivityOriginal",
-            AppIcon.ANARCHY to "$packageName.MainActivityAnarchy",
-            AppIcon.ZENITH to "$packageName.MainActivityZenith",
-            AppIcon.MONOCHROME to "$packageName.MainActivityMonochrome",
-            AppIcon.COMIC to "$packageName.MainActivityComic"
+            AppIcon.ORIGINAL to "${activityName}Original",
+            AppIcon.ANARCHY to "${activityName}Anarchy",
+            AppIcon.ZENITH to "${activityName}Zenith",
+            AppIcon.MONOCHROME to "${activityName}Monochrome",
+            AppIcon.COMIC to "${activityName}Comic"
         )
 
         iconComponents.forEach { (icon, componentName) ->

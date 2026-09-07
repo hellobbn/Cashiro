@@ -65,3 +65,6 @@ release.properties
 *.pem
 
 deploy.sh
+
+# Local persistent debug signing configuration (private)
+.debug-signing/

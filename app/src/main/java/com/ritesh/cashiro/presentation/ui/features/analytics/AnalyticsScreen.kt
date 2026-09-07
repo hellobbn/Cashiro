@@ -617,7 +617,7 @@ fun SharedTransitionScope.AnalyticsScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) { index, size, merchant ->
                             val position = ListItemPosition.from(index, size)
-                            this@AnalyticsScreen.TransactionItem(
+                            TransactionItem(
                                 merchantName = merchant.name,
                                 amount = merchant.amount,
                                 amountOverride = CurrencyFormatter.formatCurrency(merchant.amount, uiState.currency),

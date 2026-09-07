@@ -36,13 +36,14 @@ val slimDebug = project.hasProperty("slimDebug")
 
 android {
     namespace = "com.ritesh.cashiro"
-    compileSdk = 36
+    compileSdk = 37
     buildFeatures {
         buildConfig = true
         compose = true
     }
     defaultConfig {
         applicationId = "com.ritesh.cashiro"
+        manifestPlaceholders["appLabel"] = "@string/app_name"
         minSdk = 26
         targetSdk = 36
         versionCode = 94
@@ -66,6 +67,23 @@ android {
         }
     }
     signingConfigs {
+        getByName("debug") {
+            // CI must supply the persistent, debug-only identity. Local IDE builds
+            // may still use their own default debug key unless explicitly required.
+            val names = listOf("DEBUG_STORE_FILE", "DEBUG_STORE_PASSWORD", "DEBUG_KEY_ALIAS", "DEBUG_KEY_PASSWORD")
+            val values = names.associateWith { providers.environmentVariable(it).orNull }
+            val configured = values.values.any { !it.isNullOrBlank() }
+            if (configured || project.hasProperty("requireDebugSigning")) {
+                val missing = names.filter { values[it].isNullOrBlank() }
+                check(missing.isEmpty()) { "Missing persistent debug signing settings: ${missing.joinToString()}" }
+                val keyFile = rootProject.file(values.getValue("DEBUG_STORE_FILE")!!)
+                check(keyFile.isFile) { "Persistent debug keystore does not exist" }
+                storeFile = keyFile
+                storePassword = values.getValue("DEBUG_STORE_PASSWORD")
+                keyAlias = values.getValue("DEBUG_KEY_ALIAS")
+                keyPassword = values.getValue("DEBUG_KEY_PASSWORD")
+            }
+        }
         create("release") {
             val localPropertiesFile = rootProject.file("local.properties")
             if (localPropertiesFile.exists()) {
@@ -105,6 +123,9 @@ android {
     }
     buildTypes {
         debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            manifestPlaceholders["appLabel"] = "Cashiro Debug"
             if (slimDebug) {
                 isMinifyEnabled = true
                 isShrinkResources = true

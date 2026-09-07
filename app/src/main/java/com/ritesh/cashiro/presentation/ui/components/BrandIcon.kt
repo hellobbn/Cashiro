@@ -1,6 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.foundation.Image
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -94,9 +96,14 @@ fun BrandIcon(
     ) {
         when (iconResource) {
             is IconResource.DrawableResource -> {
-                // Brand logo
-                Image(
-                    painter = painterResource(id = iconResource.resId),
+                // Decode bitmap logos off the UI thread at the displayed size.
+                AsyncImage(
+                    model = remember(iconResource.resId, context) {
+                        ImageRequest.Builder(context).data(iconResource.resId)
+                            .fetcherCoroutineContext(Dispatchers.IO)
+                            .decoderCoroutineContext(Dispatchers.IO)
+                            .build()
+                    },
                     contentDescription = merchantName,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -111,10 +118,14 @@ fun BrandIcon(
                 )
             }
             is IconResource.TintedResIcon -> {
-                Icon(
-                    painter = painterResource(id = iconResource.resId),
+                AsyncImage(
+                    model = remember(iconResource.resId, context) {
+                        ImageRequest.Builder(context).data(iconResource.resId)
+                            .fetcherCoroutineContext(Dispatchers.IO)
+                            .decoderCoroutineContext(Dispatchers.IO)
+                            .build()
+                    },
                     contentDescription = merchantName,
-                    tint = Color.Unspecified,
                     modifier = Modifier.fillMaxSize()
                 )
             }

@@ -51,11 +51,12 @@ fun BlurredAnimatedVisibility(
         ) {
             Box(
                 modifier = Modifier.graphicsLayer {
-                    renderEffect = BlurEffect(
+                    // A settled layer needs no offscreen blur pass.
+                    renderEffect = if (blurRadius > 0f) BlurEffect(
                         radiusX = blurRadius,
                         radiusY = blurRadius,
                         edgeTreatment = TileMode.Decal
-                    )
+                    ) else null
                     alpha = 0.95f + (0.05f * (1f - blurRadius / 5f))
                 }
             ) {

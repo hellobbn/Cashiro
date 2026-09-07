@@ -372,7 +372,7 @@ fun SharedTransitionScope.BudgetDetailScreen(
                             val accountKey = "${transaction.bankName}_${transaction.accountNumber}"
                             val account = accountsMap[accountKey]
                             
-                            this@BudgetDetailScreen.TransactionItem(
+                            TransactionItem(
                                 transaction = transaction,
                                 categoryEntity = categoriesMap[transaction.category],
                                 subcategoryEntity = transaction.subcategory?.let { subcategoriesMap[it] },

@@ -231,7 +231,7 @@ fun SharedTransitionScope.AccountDetailScreen(
                     }
                     val shape = position.toShape()
 
-                    this@AccountDetailScreen.TransactionItem(
+                    TransactionItem(
                         transaction = transaction,
                         categoryEntity = categoryEntity,
                         subcategoryEntity = subcategoryEntity,

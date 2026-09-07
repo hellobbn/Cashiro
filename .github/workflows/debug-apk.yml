@@ -15,6 +15,7 @@ concurrency:
 jobs:
   build-debug:
     name: Build and publish debug APK
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -59,12 +60,29 @@ jobs:
           echo "commit_count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
           echo "Debug c$COMMIT_COUNT $VERSION ($CODE) @ $SHORT_SHA"
 
+      - name: Test signing helper
+        run: python3 -m unittest discover -s scripts/signing -p 'test_*.py' -v
+
+      - name: Prepare persistent debug signing
+        env:
+          DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
+          DEBUG_STORE_FILE: ${{ runner.temp }}/cashiro-debug.keystore
+          DEBUG_STORE_PASSWORD: ${{ secrets.DEBUG_STORE_PASSWORD }}
+          DEBUG_KEY_ALIAS: ${{ secrets.DEBUG_KEY_ALIAS }}
+          DEBUG_KEY_PASSWORD: ${{ secrets.DEBUG_KEY_PASSWORD }}
+          DEBUG_CERT_SHA256: ${{ secrets.DEBUG_CERT_SHA256 }}
+        run: python3 scripts/signing/debug_identity.py prepare-ci
+
       - name: Build slim standard debug APK
         env:
           GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx6G"
+          DEBUG_STORE_FILE: ${{ runner.temp }}/cashiro-debug.keystore
+          DEBUG_STORE_PASSWORD: ${{ secrets.DEBUG_STORE_PASSWORD }}
+          DEBUG_KEY_ALIAS: ${{ secrets.DEBUG_KEY_ALIAS }}
+          DEBUG_KEY_PASSWORD: ${{ secrets.DEBUG_KEY_PASSWORD }}
         run: |
           ./gradlew assembleStandardDebug --no-configuration-cache --stacktrace \
-            -PslimDebug \
+            -PslimDebug -PrequireDebugSigning \
             -PgitCommitCount=${{ steps.version.outputs.commit_count }} \
             -PgitSha=${{ steps.version.outputs.short_sha }}
 
@@ -92,6 +110,19 @@ jobs:
             sha256sum *.apk | tee SHA256SUMS
           )
 
+      - name: Verify debug package and pinned signer
+        env:
+          DEBUG_CERT_SHA256: ${{ secrets.DEBUG_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          for apk in dist/debug/*.apk; do
+            python3 scripts/signing/debug_identity.py verify-apk "$apk" | tee dist/debug/SIGNING-CERTIFICATE.json
+          done
+
+      - name: Clean up debug keystore
+        if: always()
+        run: rm -f "${{ runner.temp }}/cashiro-debug.keystore"
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -99,6 +130,7 @@ jobs:
           path: |
             dist/debug/*.apk
             dist/debug/SHA256SUMS
+            dist/debug/SIGNING-CERTIFICATE.json
           retention-days: 14
 
       - name: Drop previous debug assets
@@ -121,6 +153,7 @@ jobs:
           files: |
             dist/debug/*.apk
             dist/debug/SHA256SUMS
+            dist/debug/SIGNING-CERTIFICATE.json
           body: |
             Sideload debug build from `${{ github.sha }}` on `main`.
 
@@ -131,6 +164,8 @@ jobs:
             - Commit count: ${{ steps.version.outputs.commit_count }}
             - ABI: arm64-v8a only
             - Native libs are zip-compressed; debug minify/shrink is on
-            - Signed with the Android debug keystore
+            - Package: `com.ritesh.cashiro.debug` (Cashiro Debug), separate from release data
+            - Signed with the persistent debug-only keystore; fingerprint included in SIGNING-CERTIFICATE.json
+            - First install of this separate package starts with its own data; import an exported backup if needed
 
             Install `Cashiro-debug-c${{ steps.version.outputs.commit_count }}-${{ steps.version.outputs.short_sha }}-arm64-v8a.apk`.

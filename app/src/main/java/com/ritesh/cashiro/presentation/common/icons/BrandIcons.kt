@@ -347,6 +347,9 @@ object BrandIcons {
         "x" to R.drawable.ic_brand_x,
     )
     
+    // Immutable mapping: preserve longest-match precedence without sorting per row.
+    private val longestBrandMatches = brandMappings.entries.sortedByDescending { it.key.length }
+
     fun getIconResource(merchantName: String): Int? {
         InstitutionCatalog.find(merchantName)?.let { return it.iconResId }
         val normalized = merchantName.lowercase()
@@ -355,8 +358,7 @@ object BrandIcons {
             brandMappings["cred"]?.let { return it }
         }
 
-        return brandMappings.entries
-            .sortedByDescending { it.key.length }
+        return longestBrandMatches
             .firstOrNull { (key, _) ->
                 key != "cred" && normalized.contains(key)
             }

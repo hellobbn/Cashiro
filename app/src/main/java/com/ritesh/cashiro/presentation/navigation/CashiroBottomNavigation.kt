@@ -66,6 +66,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
+import androidx.navigation.toRoute
 import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import dev.chrisbanes.haze.ExperimentalHazeApi
@@ -152,10 +153,13 @@ fun CashiroBottomNavigation(
                             selected = selected,
                             onClick = {
                                 view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                                // Keep an already selected root page; contextual routes still reset below.
+                                if (navController.isCurrentMainTabRoot(item)) return@NavigationBarItem
+                                    MainTabTiming.request(item.route)
                                 val startDestId = navController.graph.findStartDestination().id
                                 if (item.destination == Home) {
                                     navController.popBackStack(Home, inclusive = false, saveState = true)
-                                } else if (selected) {
+                                } else if (navController.isCurrentMainTab(item)) {
                                     navController.safeNavigate(item.destination) {
                                         popUpTo(item.destinationType) {
                                             inclusive = true
@@ -270,10 +274,13 @@ fun CashiroBottomNavigation(
                                 checked = selected,
                                 onCheckedChange = {
                                     view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                                    // Keep an already selected root page; contextual routes still reset below.
+                                    if (navController.isCurrentMainTabRoot(item)) return@TonalToggleButton
+                                    MainTabTiming.request(item.route)
                                     val startDestId = navController.graph.findStartDestination().id
                                     if (item.destination == Home) {
                                         navController.popBackStack(Home, inclusive = false, saveState = true)
-                                    } else if (selected) {
+                                    } else if (navController.isCurrentMainTab(item)) {
                                         navController.safeNavigate(item.destination) {
                                             popUpTo(item.destinationType) {
                                                 inclusive = true
@@ -390,4 +397,23 @@ fun CashiroBottomNavigation(
             }
         }
     }
+}
+
+/** Do not confuse a filtered/search transaction route with the default main tab. */
+private fun NavHostController.isCurrentMainTabRoot(item: BottomNavItem): Boolean {
+    val entry = currentBackStackEntry ?: return false
+    val routeName = item.destinationType.qualifiedName ?: return false
+    if (entry.destination.hierarchy.none { it.route?.contains(routeName) == true }) return false
+    return when (item) {
+        BottomNavItem.Transactions -> runCatching {
+            entry.toRoute<Transactions>() == Transactions()
+        }.getOrDefault(false)
+        else -> true
+    }
+}
+
+/** Read live navigation state: a rapid tap may arrive before the selected UI recomposes. */
+private fun NavHostController.isCurrentMainTab(item: BottomNavItem): Boolean {
+    val name = item.destinationType.qualifiedName ?: return false
+    return currentDestination?.hierarchy?.any { it.route?.contains(name) == true } == true
 }

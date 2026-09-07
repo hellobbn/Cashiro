@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="add_transaction"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_add_transaction"
+        android:shortcutShortLabel="@string/add_transaction">
+        <intent
+            android:action="com.ritesh.cashiro.action.ADD_TRANSACTION"
+            android:targetPackage="com.ritesh.cashiro.debug"
+            android:targetClass="com.ritesh.cashiro.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="add_subscription"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_add_subscription"
+        android:shortcutShortLabel="@string/add_subscription">
+        <intent
+            android:action="com.ritesh.cashiro.action.ADD_SUBSCRIPTION"
+            android:targetPackage="com.ritesh.cashiro.debug"
+            android:targetClass="com.ritesh.cashiro.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="add_transfer"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_transfer"
+        android:shortcutShortLabel="@string/add_transfer">
+        <intent
+            android:action="com.ritesh.cashiro.action.ADD_TRANSFER"
+            android:targetPackage="com.ritesh.cashiro.debug"
+            android:targetClass="com.ritesh.cashiro.MainActivity" />
+    </shortcut>
+</shortcuts>

@@ -135,16 +135,17 @@ fun CashiroNavHost(
 ) {
     // Use a stable start destination
     val stableStartDestination = remember { startDestination }
-    
+
     // Get theme settings for bottom nav style
     val themeViewModel: ThemeViewModel = hiltViewModel()
     val themeUiState by themeViewModel.themeUiState.collectAsState()
-    
+
     // Track current destination for bottom nav visibility
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    ObserveMainTabSettled(navBackStackEntry)
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
-    
+
     // Check if current route is in bottom nav routes
     val showBottomNav = BOTTOM_NAV_ROUTES.any { qualifiedName ->
         currentRoute?.contains(qualifiedName ?: "") == true
@@ -179,7 +180,8 @@ fun CashiroNavHost(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        SharedTransitionLayout {
+        // Ordinary navigation must not put every scrolling destination in a shared lookahead layout.
+        Box {
             NavHost(
                 navController = navController,
                 startDestination = stableStartDestination,
@@ -227,60 +229,64 @@ fun CashiroNavHost(
                 /* BOTTOM NAV SCREENS ---- */
                 // Home Screen
                 composable<Home>(
-                    enterTransition = CashiroTransitions.verticalSlideEnter,
-                    exitTransition = CashiroTransitions.verticalSlideExit,
-                    popEnterTransition = CashiroTransitions.verticalSlidePopEnter,
-                    popExitTransition = CashiroTransitions.verticalSlidePopExit
+                    enterTransition = MainTabMotion.enter,
+                    exitTransition = MainTabMotion.exit,
+                    popEnterTransition = MainTabMotion.popEnter,
+                    popExitTransition = MainTabMotion.popExit
                 ) {
-                    HomeScreen(
-                        navController = navController,
-                        onNavigateToSettings = { navController.safeNavigate(Settings) },
-                        onNavigateToChat = { navController.safeNavigate(Chat) },
-                        onNavigateToTransactions = { navController.safeNavigate(Transactions()) },
-                        onNavigateToTransactionsWithSearch = {
-                            navController.safeNavigate(Transactions(focusSearch = true))
-                        },
-                        onNavigateToSubscriptions = { navController.safeNavigate(Subscriptions) },
-                        onNavigateToBudgets = { id ->
-                            if (id != null) {
-                                navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = "budget_card_$id"))
-                            } else {
-                                navController.safeNavigate(Budgets())
-                            }
-                        },
-                        onNavigateToBudgetHistory = { id ->
-                            navController.safeNavigate(BudgetHistory(id))
-                        },
-                        onNavigateToLendBorrow = { filter -> navController.safeNavigate(LendBorrow(filter)) },
-                        onTransactionClick = { transactionId, key ->
-                            navController.safeNavigate(TransactionDetail(transactionId, key))
-                        },
-                        onFullResyncClick = { showFullResyncDialog = true },
-                        animatedContentScope = this@composable,
-                    )
+                    SharedTransitionLayout {
+                        HomeScreen(
+                            navController = navController,
+                            onNavigateToSettings = { navController.safeNavigate(Settings) },
+                            onNavigateToChat = { navController.safeNavigate(Chat) },
+                            onNavigateToTransactions = { navController.safeNavigate(Transactions()) },
+                            onNavigateToTransactionsWithSearch = {
+                                navController.safeNavigate(Transactions(focusSearch = true))
+                            },
+                            onNavigateToSubscriptions = { navController.safeNavigate(Subscriptions) },
+                            onNavigateToBudgets = { id ->
+                                if (id != null) {
+                                    navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = "budget_card_$id"))
+                                } else {
+                                    navController.safeNavigate(Budgets())
+                                }
+                            },
+                            onNavigateToBudgetHistory = { id ->
+                                navController.safeNavigate(BudgetHistory(id))
+                            },
+                            onNavigateToLendBorrow = { filter -> navController.safeNavigate(LendBorrow(filter)) },
+                            onTransactionClick = { transactionId, key ->
+                                navController.safeNavigate(TransactionDetail(transactionId, key))
+                            },
+                            onFullResyncClick = { showFullResyncDialog = true },
+                            animatedContentScope = this@composable,
+                        )
+                    }
                 }
 
                 // Analytics Screen
                 composable<Analytics>(
-                    enterTransition = CashiroTransitions.verticalSlideEnter,
-                    exitTransition = CashiroTransitions.verticalSlideExit,
-                    popEnterTransition = CashiroTransitions.verticalSlidePopEnter,
-                    popExitTransition = CashiroTransitions.verticalSlidePopExit
+                    enterTransition = MainTabMotion.enter,
+                    exitTransition = MainTabMotion.exit,
+                    popEnterTransition = MainTabMotion.popEnter,
+                    popExitTransition = MainTabMotion.popExit
                 ) {
-                    AnalyticsScreen(
-                        onNavigateToTransactions = { category, merchant, period, currency ->
-                            navController.safeNavigate(
-                                Transactions(
-                                    category = category,
-                                    merchant = merchant,
-                                    period = period,
-                                    currency = currency
+                    SharedTransitionLayout {
+                        AnalyticsScreen(
+                            onNavigateToTransactions = { category, merchant, period, currency ->
+                                navController.safeNavigate(
+                                    Transactions(
+                                        category = category,
+                                        merchant = merchant,
+                                        period = period,
+                                        currency = currency
+                                    )
                                 )
-                            )
-                        },
-                        animatedContentScope = this@composable,
-                        blurEffects = themeUiState.blurEffects,
-                    )
+                            },
+                            animatedContentScope = this@composable,
+                            blurEffects = themeUiState.blurEffects,
+                        )
+                    }
                 }
 
                 // Chat Screen
@@ -443,16 +449,18 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
-                    ProfileScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToContacts = { navController.safeNavigate(Contacts()) },
-                        onNavigateToPerson = { personId ->
-                            navController.safeNavigate(
-                                PersonDetail(personId, "person_avatar_$personId")
-                            )
-                        },
-                        animatedContentScope = this@composable
-                    )
+                    SharedTransitionLayout {
+                        ProfileScreen(
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onNavigateToContacts = { navController.safeNavigate(Contacts()) },
+                            onNavigateToPerson = { personId ->
+                                navController.safeNavigate(
+                                    PersonDetail(personId, "person_avatar_$personId")
+                                )
+                            },
+                            animatedContentScope = this@composable
+                        )
+                    }
                 }
 
                 composable<Contacts>(
@@ -461,18 +469,20 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
-                    val contactsRoute = backStackEntry.toRoute<Contacts>()
-                    ContactsScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToPersonDetail = { personId ->
-                            navController.safeNavigate(
-                                PersonDetail(personId, "person_avatar_$personId")
-                            )
-                        },
-                        selectedPersonId = contactsRoute.personId,
-                        animatedContentScope = this@composable,
-                        blurEffects = themeUiState.blurEffects
-                    )
+                    SharedTransitionLayout {
+                        val contactsRoute = backStackEntry.toRoute<Contacts>()
+                        ContactsScreen(
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onNavigateToPersonDetail = { personId ->
+                                navController.safeNavigate(
+                                    PersonDetail(personId, "person_avatar_$personId")
+                                )
+                            },
+                            selectedPersonId = contactsRoute.personId,
+                            animatedContentScope = this@composable,
+                            blurEffects = themeUiState.blurEffects
+                        )
+                    }
                 }
 
                 composable<Appearance>(
@@ -593,7 +603,7 @@ fun CashiroNavHost(
                     val existingRule = remember(createRuleRoute.ruleId, rules) {
                         rules.find { it.id == createRuleRoute.ruleId }
                     }
-                    
+
                     CreateRuleScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onSaveRule = { rule ->
@@ -616,20 +626,22 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.noneEnter,
                     popExitTransition = CashiroTransitions.noneExit
                 ) { backStackEntry ->
-                    val transactionDetail = backStackEntry.toRoute<TransactionDetail>()
-                    TransactionDetailScreen(
-                        transactionId = transactionDetail.transactionId,
-                        sharedElementKey = transactionDetail.sharedElementKey,
-                        onNavigateBack = {
-                            onEditComplete()
-                            navController.safePopBackStack()
-                        },
-                        onNavigateToPersonDetail = { personId ->
-                            navController.safeNavigate(PersonDetail(personId, "person_avatar_$personId"))
-                        },
-                        animatedContentScope = this@composable,
-                        blurEffects = themeUiState.blurEffects,
-                    )
+                    SharedTransitionLayout {
+                        val transactionDetail = backStackEntry.toRoute<TransactionDetail>()
+                        TransactionDetailScreen(
+                            transactionId = transactionDetail.transactionId,
+                            sharedElementKey = transactionDetail.sharedElementKey,
+                            onNavigateBack = {
+                                onEditComplete()
+                                navController.safePopBackStack()
+                            },
+                            onNavigateToPersonDetail = { personId ->
+                                navController.safeNavigate(PersonDetail(personId, "person_avatar_$personId"))
+                            },
+                            animatedContentScope = this@composable,
+                            blurEffects = themeUiState.blurEffects,
+                        )
+                    }
                 }
 
                 composable<AddTransaction>(
@@ -647,13 +659,15 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
-                    val accountDetail = backStackEntry.toRoute<AccountDetail>()
-                    AccountDetailScreen(
-                        navController = navController,
-                        bankName = accountDetail.bankName,
-                        accountLast4 = accountDetail.accountLast4,
-                        animatedContentScope = this@composable
-                    )
+                    SharedTransitionLayout {
+                        val accountDetail = backStackEntry.toRoute<AccountDetail>()
+                        AccountDetailScreen(
+                            navController = navController,
+                            bankName = accountDetail.bankName,
+                            accountLast4 = accountDetail.accountLast4,
+                            animatedContentScope = this@composable
+                        )
+                    }
                 }
 
                 composable<Subscriptions>(
@@ -662,21 +676,23 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.noneEnter,
                     popExitTransition = CashiroTransitions.noneExit
                 ) {
-                    SubscriptionsScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onEditSubscription = { id ->
-                            navController.safeNavigate(AddTransaction(initialTab = 1, subscriptionId = id))
-                        },
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedContentScope = this@composable
-                    )
+                    SharedTransitionLayout {
+                        SubscriptionsScreen(
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onEditSubscription = { id ->
+                                navController.safeNavigate(AddTransaction(initialTab = 1, subscriptionId = id))
+                            },
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedContentScope = this@composable
+                        )
+                    }
                 }
 
                 composable<Transactions>(
-                    enterTransition = CashiroTransitions.verticalSlideEnter,
-                    exitTransition = CashiroTransitions.verticalSlideExit,
-                    popEnterTransition = CashiroTransitions.verticalSlidePopEnter,
-                    popExitTransition = CashiroTransitions.verticalSlidePopExit
+                    enterTransition = MainTabMotion.enter,
+                    exitTransition = MainTabMotion.exit,
+                    popEnterTransition = MainTabMotion.popEnter,
+                    popExitTransition = MainTabMotion.popExit
                 ) { backStackEntry ->
                     val transactions = backStackEntry.toRoute<Transactions>()
                     TransactionsScreen(
@@ -705,19 +721,21 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
-                    val budgets = backStackEntry.toRoute<Budgets>()
-                    BudgetsScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onBudgetClick = { id, key ->
-                            navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = key))
-                        },
-                        onHistoryClick = { id ->
-                            navController.safeNavigate(BudgetHistory(id))
-                        },
-                        animatedContentScope = this@composable,
-                        sharedElementPrefix = budgets.sharedElementPrefix,
-                        blurEffects = themeUiState.blurEffects
-                    )
+                    SharedTransitionLayout {
+                        val budgets = backStackEntry.toRoute<Budgets>()
+                        BudgetsScreen(
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onBudgetClick = { id, key ->
+                                navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = key))
+                            },
+                            onHistoryClick = { id ->
+                                navController.safeNavigate(BudgetHistory(id))
+                            },
+                            animatedContentScope = this@composable,
+                            sharedElementPrefix = budgets.sharedElementPrefix,
+                            blurEffects = themeUiState.blurEffects
+                        )
+                    }
                 }
 
                 composable<BudgetDetail>(
@@ -726,20 +744,22 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
-                    val budgetDetail = backStackEntry.toRoute<BudgetDetail>()
-                    BudgetDetailScreen(
-                        budgetId = budgetDetail.budgetId,
-                        startDate = budgetDetail.startDate,
-                        endDate = budgetDetail.endDate,
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToHistory = { id -> navController.safeNavigate(BudgetHistory(id)) },
-                        onTransactionClick = { transactionId, key ->
-                            navController.safeNavigate(TransactionDetail(transactionId, key))
-                        },
-                        animatedContentScope = this@composable,
-                        sharedElementKey = budgetDetail.sharedElementKey,
-                        blurEffects = themeUiState.blurEffects
-                    )
+                    SharedTransitionLayout {
+                        val budgetDetail = backStackEntry.toRoute<BudgetDetail>()
+                        BudgetDetailScreen(
+                            budgetId = budgetDetail.budgetId,
+                            startDate = budgetDetail.startDate,
+                            endDate = budgetDetail.endDate,
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onNavigateToHistory = { id -> navController.safeNavigate(BudgetHistory(id)) },
+                            onTransactionClick = { transactionId, key ->
+                                navController.safeNavigate(TransactionDetail(transactionId, key))
+                            },
+                            animatedContentScope = this@composable,
+                            sharedElementKey = budgetDetail.sharedElementKey,
+                            blurEffects = themeUiState.blurEffects
+                        )
+                    }
                 }
 
                 composable<BudgetHistory>(
@@ -748,18 +768,20 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
-                    val budgetHistory = backStackEntry.toRoute<BudgetHistory>()
-                    BudgetHistoryScreen(
-                        budgetId = budgetHistory.budgetId,
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToDetail = { id, start, end ->
-                            navController.safeNavigate(BudgetDetail(
-                                budgetId = id,
-                                startDate = start?.toString(),
-                                endDate = end?.toString()
-                            ))
-                        }
-                    )
+                    SharedTransitionLayout {
+                        val budgetHistory = backStackEntry.toRoute<BudgetHistory>()
+                        BudgetHistoryScreen(
+                            budgetId = budgetHistory.budgetId,
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onNavigateToDetail = { id, start, end ->
+                                navController.safeNavigate(BudgetDetail(
+                                    budgetId = id,
+                                    startDate = start?.toString(),
+                                    endDate = end?.toString()
+                                ))
+                            }
+                        )
+                    }
                 }
 
                 composable<LendBorrow>(
@@ -768,16 +790,18 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
-                    LendBorrowScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToPersonDetail = { personId ->
-                            navController.safeNavigate(
-                                PersonDetail(personId, "person_avatar_$personId")
-                            )
-                        },
-                        animatedContentScope = this@composable,
-                        blurEffects = themeUiState.blurEffects
-                    )
+                    SharedTransitionLayout {
+                        LendBorrowScreen(
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onNavigateToPersonDetail = { personId ->
+                                navController.safeNavigate(
+                                    PersonDetail(personId, "person_avatar_$personId")
+                                )
+                            },
+                            animatedContentScope = this@composable,
+                            blurEffects = themeUiState.blurEffects
+                        )
+                    }
                 }
 
                 composable<PersonDetail>(
@@ -786,15 +810,17 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.noneEnter,
                     popExitTransition = CashiroTransitions.noneExit
                 ) { backStackEntry ->
-                    val personDetail = backStackEntry.toRoute<PersonDetail>()
-                    PersonDetailScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onTransactionClick = { transactionId, key ->
-                            navController.safeNavigate(TransactionDetail(transactionId, key))
-                        },
-                        sharedElementKey = personDetail.sharedElementKey,
-                        animatedContentScope = this@composable
-                    )
+                    SharedTransitionLayout {
+                        val personDetail = backStackEntry.toRoute<PersonDetail>()
+                        PersonDetailScreen(
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onTransactionClick = { transactionId, key ->
+                                navController.safeNavigate(TransactionDetail(transactionId, key))
+                            },
+                            sharedElementKey = personDetail.sharedElementKey,
+                            animatedContentScope = this@composable
+                        )
+                    }
                 }
             }
         }
@@ -902,10 +928,10 @@ fun CashiroNavHost(
 
                         // Add FAB
                         FloatingActionButton(
-                            onClick = { 
+                            onClick = {
                                 view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                                 val initialTab = if (isSubscriptionsScreen) 1 else 0
-                                navController.safeNavigate(AddTransaction(initialTab = initialTab)) 
+                                navController.safeNavigate(AddTransaction(initialTab = initialTab))
                             },
                             modifier = Modifier
                                 .then(
@@ -1091,7 +1117,7 @@ fun CashiroNavHost(
                                 text = { Text(
                                     text = addTransactionLbl,
                                 ) },
-                                onClick = { 
+                                onClick = {
                                     view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                                     dismiss()
                                     navController.safeNavigate(AddTransaction(initialTab = 0))
@@ -1104,7 +1130,7 @@ fun CashiroNavHost(
                             )
                         }
 
-                        
+
                         if (isHomeScreen) {
                             Row(
                                 modifier = Modifier

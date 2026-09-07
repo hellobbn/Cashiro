@@ -1,7 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,27 +57,20 @@ fun GreetingCard(
         // Profile Image
         Box(
             modifier = Modifier
-                .size(50.dp)
+                .size(56.dp)
                 .clip(CircleShape)
                 .background(profileBackgroundColor)
                 .clickable(onClick = onProfileClick),
             contentAlignment = Alignment.Center
         ) {
-            if (profileImageUri != null) {
-                AsyncImage(
-                    model = profileImageUri,
-                    contentDescription = stringResource(R.string.profile_desc),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.avatar_1),
-                    contentDescription = stringResource(R.string.profile_desc),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
+            // Resolve the bitmap at the avatar's constraints off the UI thread.
+            // Use the shared Coil cache for both the default and user-selected image.
+            AsyncImage(
+                model = profileImageUri ?: R.drawable.avatar_1,
+                contentDescription = stringResource(R.string.profile_desc),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -93,10 +84,7 @@ fun GreetingCard(
                 text = userName,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp
-                ),
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onBackground
             )
             
@@ -138,7 +126,7 @@ fun GreetingCard(
 
             Text(
                 text = subtitleText,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
@@ -161,7 +149,7 @@ fun GreetingCard(
 //                ) {
 //                    Text(
 //                        text = "$unreadUpdatesCount+ unread updates",
-//                        style = MaterialTheme.typography.bodyMedium,
+//                        style = MaterialTheme.typography.bodyLarge,
 //                        color = Color(0xFF4285F4)
 //                    )
 //                    Spacer(modifier = Modifier.width(4.dp))
@@ -175,7 +163,7 @@ fun GreetingCard(
 //            } else {
 //                Text(
 //                    text = monthStatus ?: greeting,
-//                    style = MaterialTheme.typography.bodyMedium,
+//                    style = MaterialTheme.typography.bodyLarge,
 //                    color = MaterialTheme.colorScheme.onSurfaceVariant
 //                )
 //            }

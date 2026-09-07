@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,7 +39,6 @@ import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
-import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.presentation.ui.icons.Card
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
@@ -63,7 +64,8 @@ import com.ritesh.cashiro.presentation.ui.icons.Paperclip2
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.TransactionItem(
+fun TransactionItem(
+    sharedTransitionScope: SharedTransitionScope? = null,
     modifier: Modifier = Modifier,
     transaction: TransactionEntity? = null,
     merchantName: String? = null,
@@ -154,7 +156,8 @@ fun SharedTransitionScope.TransactionItem(
     }
 
     val itemModifier = modifier.then(
-        if (animatedContentScope != null && sharedElementKey != null) {
+        if (sharedTransitionScope != null && animatedContentScope != null && sharedElementKey != null) {
+            with(sharedTransitionScope) {
             Modifier.sharedBounds(
                 rememberSharedContentState(key = sharedElementKey),
                 animatedVisibilityScope = animatedContentScope,
@@ -169,18 +172,16 @@ fun SharedTransitionScope.TransactionItem(
                 renderInOverlayDuringTransition = false
             )
                 .skipToLookaheadSize()
+            }
         } else Modifier
     )
 
     val leadingContent: @Composable () -> Unit = {
-        BlurredAnimatedVisibility(isSelectionMode) {
-            CashiroCheckbox(
-                checked = isSelected,
-                onCheckedChange = { onSelectionToggle() },
-                modifier = Modifier.size(40.dp)
-            )
-        }
-        BlurredAnimatedVisibility(!isSelectionMode){
+        TransactionLeadingSlot(
+            isSelectionMode = isSelectionMode,
+            isSelected = isSelected,
+            onSelectionToggle = onSelectionToggle
+        ) {
             if (!linkedLoanPersonName.isNullOrBlank() || !linkedLoanPersonAvatar.isNullOrBlank()) {
                 val backgroundColor = remember(linkedLoanPersonColor) {
                     try {
@@ -190,11 +191,13 @@ fun SharedTransitionScope.TransactionItem(
                     }
                 }
                 Box(
-                    modifier = (if (animatedContentScope != null && transaction != null) {
+                    modifier = (if (sharedTransitionScope != null && animatedContentScope != null && transaction != null) {
+                        with(sharedTransitionScope) {
                         Modifier.sharedElement(
                             rememberSharedContentState(key = "brand_icon_${transaction.id}"),
                             animatedVisibilityScope = animatedContentScope
                         )
+                        }
                     } else Modifier)
                         .size(40.dp)
                         .clip(CircleShape)
@@ -229,11 +232,13 @@ fun SharedTransitionScope.TransactionItem(
                     accountIconResId = accountIconResId,
                     accountIconName = accountIconName,
                     accountColorHex = accountColorHex,
-                    modifier = if (animatedContentScope != null && transaction != null) {
+                    modifier = if (sharedTransitionScope != null && animatedContentScope != null && transaction != null) {
+                        with(sharedTransitionScope) {
                         Modifier.sharedElement(
                             rememberSharedContentState(key = "brand_icon_${transaction.id}"),
                             animatedVisibilityScope = animatedContentScope
                         )
+                        }
                     } else Modifier
                 )
             }
@@ -502,3 +507,31 @@ fun SharedTransitionScope.TransactionItem(
 }
 
 
+
+/** A stable 40dp slot avoids two visibility/blur layout trees on every transaction row. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun TransactionLeadingSlot(
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onSelectionToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit
+) {
+    Crossfade(
+        targetState = isSelectionMode,
+        modifier = modifier.size(40.dp),
+        animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+        label = "transactionLeadingSelection"
+    ) { selectionMode ->
+        if (selectionMode) {
+            CashiroCheckbox(
+                checked = isSelected,
+                onCheckedChange = { onSelectionToggle() },
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            icon()
+        }
+    }
+}

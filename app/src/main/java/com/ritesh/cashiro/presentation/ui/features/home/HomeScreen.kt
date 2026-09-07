@@ -41,7 +41,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.BottomSheetDefaults
@@ -276,50 +278,25 @@ fun SharedTransitionScope.HomeScreen(
     // Clear snackbar when navigating away
     DisposableEffect(Unit) { onDispose { snackbarHostState.currentSnackbarData?.dismiss() } }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val lazyListState = rememberLazyListState()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = Color.Transparent,
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.cashiro_title)) },
-                subtitle = { Text(uiState.userName) },
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    IconButton(onClick = onNavigateToSettings, shapes = IconButtonDefaults.shapes()) {
-                        Box(
-                            Modifier.size(40.dp).clip(CircleShape).background(uiState.profileBackgroundColor),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (uiState.profileImageUri != null) {
-                                AsyncImage(
-                                    model = uiState.profileImageUri,
-                                    contentDescription = stringResource(R.string.profile),
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Image(
-                                    painter = painterResource(R.drawable.avatar_1),
-                                    contentDescription = stringResource(R.string.profile),
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        }
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { navController.safeNavigate(NotificationSettings) }, shapes = IconButtonDefaults.shapes()) {
-                        Icon(Icons.Rounded.Notifications, contentDescription = stringResource(R.string.notification))
-                    }
-                    IconButton(onClick = { showMoreBottomSheet = true }, shapes = IconButtonDefaults.shapes()) {
-                        Icon(Icons.Outlined.MoreHoriz, contentDescription = stringResource(R.string.more_options))
-                    }
-                }
-            )
+            Surface(color = MaterialTheme.colorScheme.surface) {
+                GreetingCard(
+                    modifier = Modifier
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .padding(vertical = 12.dp),
+                    userName = uiState.userName,
+                    profileImageUri = uiState.profileImageUri,
+                    profileBackgroundColor = uiState.profileBackgroundColor,
+                    unreadUpdatesCount = 0,
+                    onProfileClick = onNavigateToSettings,
+                    onNotificationClick = { navController.safeNavigate(NotificationSettings) },
+                    onMoreClick = { showMoreBottomSheet = true }
+                )
+            }
         },
         snackbarHost = {
             SnackbarHost(

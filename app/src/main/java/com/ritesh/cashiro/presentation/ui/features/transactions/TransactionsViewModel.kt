@@ -30,6 +30,8 @@ import com.ritesh.cashiro.domain.model.PersonInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -193,7 +195,7 @@ class TransactionsViewModel @Inject constructor(
             netBalance = netBalance,
             transactionCount = state.transactions.size
         )
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = FilteredTotals()
@@ -356,7 +358,8 @@ class TransactionsViewModel @Inject constructor(
  
                  // Get filtered transactions
                  combine(
-                     getFilteredTransactions(query, period, category, subcategory, amountRange, accounts, filterCurrencies, typeFilter),
+                     getFilteredTransactions(query, period, category, subcategory, amountRange, accounts, filterCurrencies, typeFilter)
+                         .flowOn(Dispatchers.Default),
                      lendBorrowRepository.getAllTransactions(),
                      lendBorrowRepository.getPersons()
                  ) { transactions, lbTransactions, persons ->
@@ -369,34 +372,40 @@ class TransactionsViewModel @Inject constructor(
                              tx.id to currencyConversionService.convertAmount(tx.amount, tx.currency, baseCurrencyCode)
                          }
 
-                     // Create person mapping
-                     val personMap = persons.associateBy { it.id }
-                     val transactionPersonMapping = lbTransactions
-                         .filter { it.transactionId != null }
-                         .associate { lb ->
-                             val person = personMap[lb.personId]
-                             lb.transactionId!! to PersonInfo(
-                                 name = person?.name ?: lb.title,
-                                 color = person?.color ?: "#4CAF50",
-                                 avatar = person?.avatar
-                             )
-                         }
-                     
-                     Triple(sortTransactions(currencyFilteredTransactions, sort), converted, transactionPersonMapping)
-                 }.collect { (transactions, converted, personMapping) ->
-                     emit(Triple(transactions, converted, personMapping))
+                     withContext(Dispatchers.Default) {
+                         // Create person mapping
+                         val personMap = persons.associateBy { it.id }
+                         val transactionPersonMapping = lbTransactions
+                             .filter { it.transactionId != null }
+                             .associate { lb ->
+                                 val person = personMap[lb.personId]
+                                 lb.transactionId!! to PersonInfo(
+                                     name = person?.name ?: lb.title,
+                                     color = person?.color ?: "#4CAF50",
+                                     avatar = person?.avatar
+                                 )
+                             }
+
+                         val sorted = sortTransactions(currencyFilteredTransactions, sort)
+                         PreparedTransactionList(
+                             sorted, groupTransactionsByDate(sorted), converted,
+                             transactionPersonMapping, calculateCurrencyGroupedTotals(sorted)
+                         )
+                     }
+                 }.collect { prepared ->
+                     emit(prepared)
                  }
             }
-            .onEach { (transactions, converted, personMapping) ->
+            .onEach { (transactions, groups, converted, personMapping, totals) ->
                 _uiState.value = _uiState.value.copy(
                     transactions = transactions,
-                    groupedTransactions = groupTransactionsByDate(transactions),
+                    groupedTransactions = groups,
                     convertedAmounts = converted,
                     transactionPersonMapping = personMapping,
                     isLoading = false
                 )
                 // Calculate totals for filtered transactions
-                _currencyGroupedTotals.value = calculateCurrencyGroupedTotals(transactions)
+                _currencyGroupedTotals.value = totals
 
                 // Auto-select primary currency if not already selected or if current currency no longer exists
                 val currentCurrency = selectedCurrency.value
@@ -939,82 +948,6 @@ class TransactionsViewModel @Inject constructor(
         }
     }
     
-    private fun sortTransactions(transactions: List<TransactionEntity>, sortOption: SortOption): List<TransactionEntity> {
-        return when (sortOption) {
-            SortOption.DATE_NEWEST -> transactions.sortedByDescending { it.dateTime }
-            SortOption.DATE_OLDEST -> transactions.sortedBy { it.dateTime }
-            SortOption.AMOUNT_HIGHEST -> transactions.sortedByDescending { it.amount }
-            SortOption.AMOUNT_LOWEST -> transactions.sortedBy { it.amount }
-            SortOption.MERCHANT_AZ -> transactions.sortedBy { it.merchantName.lowercase() }
-            SortOption.MERCHANT_ZA -> transactions.sortedByDescending { it.merchantName.lowercase() }
-        }
-    }
-    
-    private fun groupTransactionsByDate(
-        transactions: List<TransactionEntity>
-    ): Map<DateGroup, List<TransactionEntity>> {
-        val today = LocalDate.now()
-        val yesterday = today.minusDays(1)
-        val weekStart = today.minusWeeks(1)
-        
-        return transactions.groupBy { transaction ->
-            val transactionDate = transaction.dateTime.toLocalDate()
-            when {
-                transactionDate == today -> DateGroup.TODAY
-                transactionDate == yesterday -> DateGroup.YESTERDAY
-                transactionDate > weekStart -> DateGroup.THIS_WEEK
-                else -> DateGroup.EARLIER
-            }
-        }
-    }
-    
-    private fun calculateCurrencyGroupedTotals(transactions: List<TransactionEntity>): CurrencyGroupedTotals {
-        // Group transactions by currency
-        val transactionsByCurrency = transactions.groupBy { it.currency }
-
-        val totalsByCurrency = transactionsByCurrency.mapValues { (currency, currencyTransactions) ->
-            val income = currencyTransactions
-                .filter { it.transactionType == TransactionType.INCOME || it.transactionType == TransactionType.BORROWED }
-                .fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
-
-            val expenses = currencyTransactions
-                .filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.LENT }
-                .fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
-
-            val credit = currencyTransactions
-                .filter { it.transactionType == TransactionType.CREDIT }
-                .fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
-
-            val transfer = currencyTransactions
-                .filter { it.transactionType == TransactionType.TRANSFER }
-                .fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
-
-            val investment = currencyTransactions
-                .filter { it.transactionType == TransactionType.INVESTMENT }
-                .fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
-
-            CurrencyTotals(
-                currency = currency,
-                income = income,
-                expenses = expenses,
-                credit = credit,
-                transfer = transfer,
-                investment = investment,
-                transactionCount = currencyTransactions.size
-            )
-        }
-
-        val filteredAvailableCurrencies = CurrencyUtils.sortCurrencies(
-            totalsByCurrency.keys.toList()
-        )
-
-        return CurrencyGroupedTotals(
-            totalsByCurrency = totalsByCurrency,
-            availableCurrencies = filteredAvailableCurrencies,
-            transactionCount = transactions.size
-        )
-    }
-    
     fun getReportUrl(transaction: TransactionEntity): String {
         val smsBody = transaction.smsBody ?: "Transaction: ${transaction.merchantName} - ${transaction.amount}"
         val sender = transaction.smsSender ?: "Unknown Sender"
@@ -1045,3 +978,11 @@ class TransactionsViewModel @Inject constructor(
     }
     
 }
+
+private data class PreparedTransactionList(
+    val transactions: List<TransactionEntity>,
+    val groups: Map<DateGroup, List<TransactionEntity>>,
+    val converted: Map<Long, BigDecimal>,
+    val persons: Map<Long, PersonInfo>,
+    val totals: CurrencyGroupedTotals
+)
