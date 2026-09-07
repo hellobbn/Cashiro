@@ -104,7 +104,7 @@ import com.ritesh.cashiro.presentation.navigation.AccountDetail
 import com.ritesh.cashiro.presentation.navigation.NotificationSettings
 import com.ritesh.cashiro.presentation.navigation.UnrecognizedSms
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
-import com.ritesh.cashiro.presentation.ui.components.AccountCarousel
+import com.ritesh.cashiro.presentation.ui.components.AccountBalanceList
 import com.ritesh.cashiro.presentation.ui.components.BalanceCard
 import com.ritesh.cashiro.presentation.ui.components.BudgetCarousel
 import com.ritesh.cashiro.presentation.ui.components.CurrencySelectionBottomSheet
@@ -501,8 +501,8 @@ fun SharedTransitionScope.HomeScreen(
                                 if (uiState.creditCards.isNotEmpty() ||
                                     uiState.accountBalances.isNotEmpty()
                                 ) {
-                                    item(key = "account_carousel") {
-                                        AccountCarousel(
+                                    item(key = "account_balances") {
+                                        AccountBalanceList(
                                             creditCards = uiState.creditCards,
                                             bankAccounts = uiState.accountBalances,
                                             onAccountClick = { bankName, accountLast4 ->
