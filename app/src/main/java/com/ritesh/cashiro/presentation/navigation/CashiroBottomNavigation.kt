@@ -107,7 +107,9 @@ fun CashiroBottomNavigation(
     hazeState: HazeState = remember { HazeState() },
     fabConfig: FabConfig? = null
 ) {
-    val navigationItems = listOf(BottomNavItem.Home, BottomNavItem.Analytics, BottomNavItem.Transactions)
+    val navigationItems = remember {
+        listOf(BottomNavItem.Home, BottomNavItem.Analytics, BottomNavItem.Transactions)
+    }
     val containerColor = MaterialTheme.colorScheme.surface
     val view = LocalView.current
 
@@ -378,7 +380,7 @@ fun CashiroBottomNavigation(
                                                 inputScale = HazeInputScale.Auto
                                                 style = HazeDefaults.style(
                                                     backgroundColor = Color.Transparent,
-                                                    tint = HazeTint(dropContainerColor.copy(0.5f)),
+                                                    tint = HazeTint(dropContainerColor.copy(0.88f)),
                                                     blurRadius = 36.dp,
                                                     noiseFactor = -1f,
                                                 )
@@ -387,7 +389,7 @@ fun CashiroBottomNavigation(
                                         ) else Modifier
                                     ),
                                     containerColor = dropContainerColor.copy(
-                                        alpha = if (blurEffects) 0.7f else 1f
+                                        alpha = if (blurEffects) 0.96f else 1f
                                     ),
                                     shape = RoundedCornerShape(24.dp)
                                 ) {

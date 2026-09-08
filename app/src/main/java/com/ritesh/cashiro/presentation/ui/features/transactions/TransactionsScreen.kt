@@ -75,6 +75,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -204,6 +205,11 @@ fun TransactionsScreen(
     var showBatchEditSheet by remember { mutableStateOf(false) }
 
     val hazeState = remember { HazeState() }
+    var listReady by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        withFrameNanos { }
+        listReady = true
+    }
 
     
     // Focus management for search field
@@ -645,6 +651,13 @@ fun TransactionsScreen(
 
             // Transaction List
             when {
+                !listReady -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(Dimensions.Padding.content)
+                    )
+                }
                 uiState.isLoading -> {
                     Box(
                         modifier = Modifier

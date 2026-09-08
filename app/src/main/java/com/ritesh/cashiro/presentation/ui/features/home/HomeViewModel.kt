@@ -113,10 +113,34 @@ class HomeViewModel @Inject constructor(
         selected ?: base
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "CNY")
 
+    private var hasRunHomeEntrySideEffects = false
+
     init {
         viewModelScope.launch { runCatching { brokerageRepository.load() } }
         loadHomeData()
         loadUserData()
+    }
+
+    /**
+     * One-shot work that used to live in HomeScreen's LaunchedEffect(Unit).
+     * NavHost disposes and recreates Home on every tab return, so running this
+     * on each enter refreshed balances and Play prompts during the first frames.
+     */
+    fun onHomeVisible(
+        activity: ComponentActivity?,
+        snackbarHostState: SnackbarHostState?,
+        scope: CoroutineScope?
+    ) {
+        if (hasRunHomeEntrySideEffects) return
+        hasRunHomeEntrySideEffects = true
+        activity?.let { componentActivity ->
+            checkForAppUpdate(
+                activity = componentActivity,
+                snackbarHostState = snackbarHostState,
+                scope = scope
+            )
+            checkForInAppReview(componentActivity)
+        }
     }
 
     private fun loadUserData() {
@@ -569,9 +593,13 @@ class HomeViewModel @Inject constructor(
                 val creditCards: List<AccountBalanceEntity> = visibleBalances.filter { it.isCreditCard }
 
                 val selectedCurrency = _uiState.value.selectedCurrency
+                val current = _uiState.value
+                if (current.accountBalances == regularAccounts && current.creditCards == creditCards) {
+                    return@let
+                }
 
                 // Update UI state
-                _uiState.value = _uiState.value.copy(
+                _uiState.value = current.copy(
                     accountBalances = regularAccounts,
                     creditCards = creditCards,
                     // Same rule as the steady-state path: converted, and credit cards are debt.

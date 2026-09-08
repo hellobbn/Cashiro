@@ -96,25 +96,21 @@ fun SpendingLineChart(
             }
         }
     }
-
-    LineChart(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(280.dp)
-            .padding(vertical = Spacing.md),
-        data = listOf(
+    val lineLabel = if (typeFilters.contains(TransactionTypeFilter.ALL) || typeFilters.size > 2) {
+        totalLabel
+    } else {
+        filterLabelStrings.joinToString(" & ")
+    }
+    val chartLines = remember(cashFlowData, lineLabel, themeColors.primary, themeColors.surface) {
+        listOf(
             Line(
-                label = if (typeFilters.contains(TransactionTypeFilter.ALL) || typeFilters.size > 2) {
-                    totalLabel
-                } else {
-                    filterLabelStrings.joinToString(" & ")
-                },
+                label = lineLabel,
                 values = cashFlowData,
                 color = SolidColor(themeColors.primary),
                 firstGradientFillColor = themeColors.primary.copy(alpha = 0.3f),
                 secondGradientFillColor = Color.Transparent,
-                strokeAnimationSpec = tween(1500, easing = EaseInOutCubic),
-                gradientAnimationDelay = 750,
+                strokeAnimationSpec = tween(0),
+                gradientAnimationDelay = 0,
                 drawStyle = DrawStyle.Stroke(width = 2.dp),
                 curvedEdges = true,
                 dotProperties = DotProperties(
@@ -125,7 +121,15 @@ fun SpendingLineChart(
                     strokeColor = SolidColor(themeColors.surface)
                 )
             )
-        ),
+        )
+    }
+
+    LineChart(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(280.dp)
+            .padding(vertical = Spacing.md),
+        data = chartLines,
         dividerProperties = DividerProperties(
             enabled = true,
             xAxisProperties = LineProperties(
@@ -186,7 +190,7 @@ fun SpendingLineChart(
                 color = SolidColor(themeColors.onSurface.copy(alpha = 0.1f))
             )
         ),
-        animationMode = AnimationMode.Together(delayBuilder = { it * 200L }),
+        animationMode = AnimationMode.Together(delayBuilder = { 0 }),
     )
 }
 
@@ -307,10 +311,7 @@ fun SpendingBarChart(
                 color = SolidColor(themeColors.onSurface.copy(alpha = 0.1f))
             )
         ),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
+        animationSpec = snap(),
     )
 }
 
@@ -334,11 +335,8 @@ fun CategoryPieChart(
                 selectedColor = (CategoryMapping.categories[category.name]?.color
                     ?: Color.Gray).copy(alpha = 0.8f),
                 selected = false,
-                scaleAnimEnterSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                colorAnimEnterSpec = tween(500)
+                scaleAnimEnterSpec = snap(),
+                colorAnimEnterSpec = tween(0)
             )
         }
     }
@@ -369,11 +367,8 @@ fun CategoryPieChart(
                     }
                 },
                 selectedScale = 1.1f,
-                scaleAnimEnterSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                colorAnimEnterSpec = tween(500),
+                scaleAnimEnterSpec = snap(),
+                colorAnimEnterSpec = tween(0),
                 style = Pie.Style.Stroke(width = 12.dp)
             )
 

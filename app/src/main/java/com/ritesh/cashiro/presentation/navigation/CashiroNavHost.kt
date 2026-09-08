@@ -51,6 +51,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.ritesh.cashiro.R
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -68,13 +69,11 @@ import com.ritesh.cashiro.presentation.ui.features.accounts.AccountDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.AddAccountScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.ManageAccountsScreen
 import com.ritesh.cashiro.presentation.ui.features.add.AddScreen
-import com.ritesh.cashiro.presentation.ui.features.analytics.AnalyticsScreen
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetHistoryScreen
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetsScreen
 import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesScreen
 import com.ritesh.cashiro.presentation.ui.features.contacts.ContactsScreen
-import com.ritesh.cashiro.presentation.ui.features.home.HomeScreen
 import com.ritesh.cashiro.presentation.ui.features.lendborrow.LendBorrowScreen
 import com.ritesh.cashiro.presentation.ui.features.lendborrow.PersonDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.onboarding.OnBoardingScreen
@@ -157,6 +156,7 @@ fun CashiroNavHost(
     val showFloatingFab = isFloatingNav && (isHomeScreen || isTransactionsScreen || isAnalyticsScreen)
 
     val hazeState = remember { HazeState() }
+    val currentMainTab = navBackStackEntry?.mainTabTag()
 
     Box(
         modifier = modifier
@@ -168,7 +168,14 @@ fun CashiroNavHost(
             NavHost(
                 navController = navController,
                 startDestination = stableStartDestination,
-                modifier = Modifier.fillMaxSize().hazeSource(hazeState),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(if (currentMainTab != null) 0f else 1f)
+                    .then(
+                        if (themeUiState.blurEffects && currentMainTab == null) {
+                            Modifier.hazeSource(hazeState)
+                        } else Modifier
+                    ),
             ) {
                 // App Lock Screen
                 composable<AppLock>(
@@ -217,32 +224,9 @@ fun CashiroNavHost(
                     popEnterTransition = MainTabMotion.popEnter,
                     popExitTransition = MainTabMotion.popExit
                 ) {
-                    SharedTransitionLayout {
-                        HomeScreen(
-                            navController = navController,
-                            onNavigateToSettings = { navController.safeNavigate(Settings) },
-                            onNavigateToTransactions = { navController.safeNavigate(Transactions()) },
-                            onNavigateToTransactionsWithSearch = {
-                                navController.safeNavigate(Transactions(focusSearch = true))
-                            },
-                            onNavigateToSubscriptions = { navController.safeNavigate(Subscriptions) },
-                            onNavigateToBudgets = { id ->
-                                if (id != null) {
-                                    navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = "budget_card_$id"))
-                                } else {
-                                    navController.safeNavigate(Budgets())
-                                }
-                            },
-                            onNavigateToBudgetHistory = { id ->
-                                navController.safeNavigate(BudgetHistory(id))
-                            },
-                            onNavigateToLendBorrow = { filter -> navController.safeNavigate(LendBorrow(filter)) },
-                            onTransactionClick = { transactionId, key ->
-                                navController.safeNavigate(TransactionDetail(transactionId, key))
-                            },
-                            animatedContentScope = this@composable,
-                        )
-                    }
+                    // Content lives in MainTabKeepAlive so leaving this destination
+                    // does not dispose the Home composition.
+                    Box(Modifier.fillMaxSize())
                 }
 
                 // Analytics Screen
@@ -252,22 +236,7 @@ fun CashiroNavHost(
                     popEnterTransition = MainTabMotion.popEnter,
                     popExitTransition = MainTabMotion.popExit
                 ) {
-                    SharedTransitionLayout {
-                        AnalyticsScreen(
-                            onNavigateToTransactions = { category, merchant, period, currency ->
-                                navController.safeNavigate(
-                                    Transactions(
-                                        category = category,
-                                        merchant = merchant,
-                                        period = period,
-                                        currency = currency
-                                    )
-                                )
-                            },
-                            animatedContentScope = this@composable,
-                            blurEffects = themeUiState.blurEffects,
-                        )
-                    }
+                    Box(Modifier.fillMaxSize())
                 }
 
                 /* SETTINGS & SUB-SCREENS ---- */
@@ -587,12 +556,20 @@ fun CashiroNavHost(
                 }
 
                 composable<AddTransaction>(
-                    enterTransition = CashiroTransitions.noneEnter,
-                    exitTransition = CashiroTransitions.noneExit,
-                    popEnterTransition = CashiroTransitions.noneEnter,
-                    popExitTransition = CashiroTransitions.noneExit
-                ) {
-                    Box(Modifier.fillMaxSize())
+                    enterTransition = CashiroTransitions.horizontalSlideEnter,
+                    exitTransition = CashiroTransitions.horizontalSlideExit,
+                    popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
+                    popExitTransition = CashiroTransitions.horizontalSlidePopExit
+                ) { backStackEntry ->
+                    val addTransaction = backStackEntry.toRoute<AddTransaction>()
+                    AddScreen(
+                        onNavigateBack = { navController.safePopBackStack() },
+                        animatedVisibilityScope = this@composable,
+                        initialTab = addTransaction.initialTab,
+                        subscriptionId = addTransaction.subscriptionId,
+                        transactionType = addTransaction.type,
+                        blurEffects = themeUiState.blurEffects,
+                    )
                 }
 
                 composable<AccountDetail>(
@@ -637,24 +614,28 @@ fun CashiroNavHost(
                     popExitTransition = MainTabMotion.popExit
                 ) { backStackEntry ->
                     val transactions = backStackEntry.toRoute<Transactions>()
-                    TransactionsScreen(
-                        transactionsViewModel = transactionsViewModel,
-                        initialCategory = transactions.category,
-                        initialMerchant = transactions.merchant,
-                        initialPeriod = transactions.period,
-                        initialCurrency = transactions.currency,
-                        initialType = transactions.type,
-                        focusSearch = transactions.focusSearch,
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onTransactionClick = { transactionId, key ->
-                            navController.safeNavigate(TransactionDetail(transactionId, key))
-                        },
-                        onNavigateToSettings = {
-                            navController.safeNavigate(Settings)
-                        },
-                        animatedContentScope = this@composable,
-                        blurEffects = themeUiState.blurEffects
-                    )
+                    if (transactions == Transactions()) {
+                        Box(Modifier.fillMaxSize())
+                    } else {
+                        TransactionsScreen(
+                            transactionsViewModel = transactionsViewModel,
+                            initialCategory = transactions.category,
+                            initialMerchant = transactions.merchant,
+                            initialPeriod = transactions.period,
+                            initialCurrency = transactions.currency,
+                            initialType = transactions.type,
+                            focusSearch = transactions.focusSearch,
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onTransactionClick = { transactionId, key ->
+                                navController.safeNavigate(TransactionDetail(transactionId, key))
+                            },
+                            onNavigateToSettings = {
+                                navController.safeNavigate(Settings)
+                            },
+                            animatedContentScope = this@composable,
+                            blurEffects = themeUiState.blurEffects
+                        )
+                    }
                 }
 
                 composable<Budgets>(
@@ -765,31 +746,17 @@ fun CashiroNavHost(
                     }
                 }
             }
+            MainTabKeepAlive(
+                currentTag = currentMainTab,
+                navController = navController,
+                transactionsViewModel = transactionsViewModel,
+                blurEffects = themeUiState.blurEffects,
+                hazeState = hazeState,
+                modifier = Modifier.zIndex(if (currentMainTab != null) 1f else 0f),
+            )
         }
 
-        SharedTransitionLayout {
-            // Add Screen Overlay - Handled here for shared transition from FAB
-            AnimatedVisibility(
-                visible = isAddTransactionScreen,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                val addTransaction = if (isAddTransactionScreen) {
-                    try { navBackStackEntry?.toRoute<AddTransaction>() ?: AddTransaction() }
-                    catch (_: Exception) { AddTransaction() }
-                } else AddTransaction()
-
-                AddScreen(
-                    onNavigateBack = { navController.safePopBackStack() },
-                    animatedVisibilityScope = this@AnimatedVisibility,
-                    initialTab = addTransaction.initialTab,
-                    subscriptionId = addTransaction.subscriptionId,
-                    transactionType = addTransaction.type,
-                    blurEffects = themeUiState.blurEffects,
-                )
-            }
-
+        Box {
             // FABs Container - Shown on Home, Transactions, Subscriptions, and Budget Detail
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -844,41 +811,23 @@ fun CashiroNavHost(
                                 val initialTab = if (isSubscriptionsScreen) 1 else 0
                                 navController.safeNavigate(AddTransaction(initialTab = initialTab))
                             },
-                            modifier = Modifier
-                                .then(
-                                    Modifier.sharedBounds(
-                                        rememberSharedContentState(key = "fab_to_add"),
-                                        animatedVisibilityScope = this@AnimatedVisibility,
-                                        boundsTransform = { _, _ ->
-                                            spring(
-                                                stiffness = Spring.StiffnessLow,
-                                                dampingRatio = Spring.DampingRatioLowBouncy
+                            modifier = Modifier.then(
+                                if (themeUiState.blurEffects) Modifier
+                                    .clip(MaterialTheme.shapes.large)
+                                    .hazeEffect(
+                                        state = hazeState,
+                                        block = fun HazeEffectScope.() {
+                                            inputScale = HazeInputScale.Auto
+                                            style = HazeDefaults.style(
+                                                backgroundColor = Color.Transparent,
+                                                tint = HazeDefaults.tint(fabContainerColor),
+                                                blurRadius = 20.dp,
+                                                noiseFactor = -1f,
                                             )
-                                        },
-                                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                            contentScale = ContentScale.FillBounds,
-                                            alignment = Alignment.Center
-                                        )
-                                    )
-                                        .skipToLookaheadSize()
-                                )
-                                .then(
-                                    if (themeUiState.blurEffects) Modifier
-                                        .clip(MaterialTheme.shapes.large)
-                                        .hazeEffect(
-                                            state = hazeState,
-                                            block = fun HazeEffectScope.() {
-                                                inputScale = HazeInputScale.Auto
-                                                style = HazeDefaults.style(
-                                                    backgroundColor = Color.Transparent,
-                                                    tint = HazeDefaults.tint(fabContainerColor),
-                                                    blurRadius = 20.dp,
-                                                    noiseFactor = -1f,
-                                                )
-                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                            }
-                                        ) else Modifier
-                                ),
+                                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                                        }
+                                    ) else Modifier
+                            ),
                             containerColor = fabContainerColor,
                             contentColor = fabContentColor,
                         ) {
@@ -933,7 +882,7 @@ fun CashiroNavHost(
                             )
                             HorizontalDivider(
                                 thickness = 1.5.dp,
-                                color = MaterialTheme.colorScheme.surface.copy(0.6f)
+                                color = MaterialTheme.colorScheme.outlineVariant
                             )
                         }
 

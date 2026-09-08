@@ -2,11 +2,7 @@ package com.ritesh.cashiro.presentation.ui.features.analytics
 
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -56,17 +52,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -116,9 +113,9 @@ enum class BreakdownType {
     PIE, LIST
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SharedTransitionScope.AnalyticsScreen(
+fun AnalyticsScreen(
     analyticsViewModel: AnalyticsViewModel = hiltViewModel(),
     onNavigateToTransactions: (category: String?, merchant: String?, period: String?, currency: String?) -> Unit = { _, _, _, _ -> },
     animatedContentScope: AnimatedContentScope? = null,
@@ -153,6 +150,11 @@ fun SharedTransitionScope.AnalyticsScreen(
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val lazyListState = rememberLazyListState()
     val hazeState = remember { HazeState() }
+    var heavyContentReady by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        withFrameNanos { }
+        heavyContentReady = true
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -302,6 +304,8 @@ fun SharedTransitionScope.AnalyticsScreen(
                         )
                     }
                 }
+
+                if (!heavyContentReady) return@LazyColumn
 
                 item{
                     Spacer(Modifier.height(Spacing.md))
@@ -585,7 +589,6 @@ fun SharedTransitionScope.AnalyticsScreen(
                                              uiState.currency
                                          )
                                         },
-                                        animatedContentScope = animatedContentScope
                                     )
                                 }
                             }
@@ -688,15 +691,13 @@ fun SharedTransitionScope.AnalyticsScreen(
 }
 
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.CategoryProgressItem(
+fun CategoryProgressItem(
     name: String,
     amount: BigDecimal,
     percentage: Float,
     currency: String,
     onClick: () -> Unit,
-    animatedContentScope: AnimatedContentScope? = null
 ) {
     val categoryInfo = CategoryMapping.categories[name]
         ?: CategoryMapping.categories["Miscellaneous"]!!
@@ -705,21 +706,6 @@ fun SharedTransitionScope.CategoryProgressItem(
         modifier = Modifier
             .animateContentSize()
             .fillMaxWidth()
-            .then(
-                if (animatedContentScope != null) {
-                    Modifier.sharedBounds(
-                        rememberSharedContentState(key = "category_$name"),
-                        animatedVisibilityScope = animatedContentScope,
-                        boundsTransform = { _, _ ->
-                            spring(
-                                stiffness =  Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioNoBouncy
-                            )
-                        },
-                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
-                    )
-                } else Modifier
-            )
             .clickable(onClick = onClick)
             .padding(horizontal = Spacing.sm, vertical = Spacing.md)
     ) {

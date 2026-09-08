@@ -9,9 +9,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -159,11 +157,9 @@ import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.presentation.ui.components.LendBorrowCard
 import com.ritesh.cashiro.presentation.ui.features.lendborrow.LendBorrowFilter
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
-    ExperimentalHazeApi::class
-)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class, ExperimentalHazeApi::class)
 @Composable
-fun SharedTransitionScope.HomeScreen(
+fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel(),
     navController: NavController,
@@ -225,23 +221,12 @@ fun SharedTransitionScope.HomeScreen(
     val view = LocalView.current
 
 
-    // Check for app updates and reviews when the screen is first displayed
     LaunchedEffect(Unit) {
-        // Refresh account balances to ensure proper currency conversion
-        homeViewModel.refreshAccountBalances()
-
-        // Check for app updates
-        activity?.let {
-            val componentActivity = it as ComponentActivity
-            homeViewModel.checkForAppUpdate(
-                activity = componentActivity,
-                snackbarHostState = snackbarHostState,
-                scope = scope
-            )
-
-            // Check for in-app review eligibility
-            homeViewModel.checkForInAppReview(componentActivity)
-        }
+        homeViewModel.onHomeVisible(
+            activity = activity as? ComponentActivity,
+            snackbarHostState = snackbarHostState,
+            scope = scope
+        )
     }
 
     // ensures changes from ManageAccountsScreen are reflected immediately
@@ -388,17 +373,19 @@ fun SharedTransitionScope.HomeScreen(
                             }
                             HomeWidget.LOANS -> {
                                 item(key = "loans") {
-                                    LendBorrowCard(
-                                        summary = uiState.lendBorrowSummary,
-                                        onClick = { onNavigateToLendBorrow(null) },
-                                        onLentClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_GET.name) },
-                                        onBorrowedClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_OWE.name) },
-                                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content),
-                                        currency = uiState.baseCurrency,
-                                        blurEffects = blurEffects && uiState.showBannerImage,
-                                        hazeState = hazeStateBanner,
-                                        animatedContentScope = animatedContentScope
-                                    )
+                                    SharedTransitionLayout {
+                                        LendBorrowCard(
+                                            summary = uiState.lendBorrowSummary,
+                                            onClick = { onNavigateToLendBorrow(null) },
+                                            onLentClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_GET.name) },
+                                            onBorrowedClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_OWE.name) },
+                                            modifier = Modifier.padding(horizontal = Dimensions.Padding.content),
+                                            currency = uiState.baseCurrency,
+                                            blurEffects = blurEffects && uiState.showBannerImage,
+                                            hazeState = hazeStateBanner,
+                                            animatedContentScope = null
+                                        )
+                                    }
                                 }
                             }
                             HomeWidget.TRANSACTION_HEATMAP -> {
@@ -414,25 +401,27 @@ fun SharedTransitionScope.HomeScreen(
                                 if (uiState.activeBudgets.isNotEmpty()) {
                                     item(key = "budget_carousel") {
                                         var lastBudgetClickTime by remember { mutableLongStateOf(0L) }
-                                        BudgetCarousel(
-                                            budgets = uiState.activeBudgets,
-                                            onBudgetClick = {
-                                                val currentTime = System.currentTimeMillis()
-                                                if (currentTime - lastBudgetClickTime > 500) {
-                                                    lastBudgetClickTime = currentTime
-                                                    onNavigateToBudgets(it)
-                                                }
-                                            },
-                                            onEditClick = {
-                                                val currentTime = System.currentTimeMillis()
-                                                if (currentTime - lastBudgetClickTime > 500) {
-                                                    lastBudgetClickTime = currentTime
-                                                    onNavigateToBudgets(it)
-                                                }
-                                            },
-                                            onHistoryClick = onNavigateToBudgetHistory,
-                                            animatedVisibilityScope = animatedContentScope,
-                                        )
+                                        SharedTransitionLayout {
+                                            BudgetCarousel(
+                                                budgets = uiState.activeBudgets,
+                                                onBudgetClick = {
+                                                    val currentTime = System.currentTimeMillis()
+                                                    if (currentTime - lastBudgetClickTime > 500) {
+                                                        lastBudgetClickTime = currentTime
+                                                        onNavigateToBudgets(it)
+                                                    }
+                                                },
+                                                onEditClick = {
+                                                    val currentTime = System.currentTimeMillis()
+                                                    if (currentTime - lastBudgetClickTime > 500) {
+                                                        lastBudgetClickTime = currentTime
+                                                        onNavigateToBudgets(it)
+                                                    }
+                                                },
+                                                onHistoryClick = onNavigateToBudgetHistory,
+                                                animatedVisibilityScope = null,
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -450,46 +439,17 @@ fun SharedTransitionScope.HomeScreen(
                                             end = Dimensions.Padding.content,
                                         )
 
-                                        if (animatedContentScope != null) {
-                                            UpcomingSubscriptionsCard(
-                                                subscriptions = uiState.upcomingSubscriptions,
-                                                totalAmount = uiState.upcomingSubscriptionsTotal,
-                                                currency = uiState.upcomingSubscriptionsCurrency,
-                                                categoriesMap = categoriesMap,
-                                                subcategoriesMap = subcategoriesMap,
-                                                onClick = onNavigateToSubscriptions,
-                                                blurEffects = blurEffects && uiState.showBannerImage,
-                                                hazeState = hazeStateBanner,
-                                                modifier = cardModifier.sharedBounds(
-                                                    rememberSharedContentState(key = "upcoming_subscriptions_card"),
-                                                    animatedVisibilityScope = animatedContentScope,
-                                                    boundsTransform = { _, _ ->
-                                                        spring(
-                                                            stiffness = Spring.StiffnessLow,
-                                                            dampingRatio = Spring.DampingRatioNoBouncy
-                                                        )
-                                                    },
-                                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                                        contentScale = ContentScale.Fit,
-                                                        alignment = Alignment.Center
-                                                    ),
-                                                    renderInOverlayDuringTransition = false
-                                                )
-                                                    .skipToLookaheadSize()
-                                            )
-                                        } else {
-                                            UpcomingSubscriptionsCard(
-                                                subscriptions = uiState.upcomingSubscriptions,
-                                                totalAmount = uiState.upcomingSubscriptionsTotal,
-                                                currency = uiState.upcomingSubscriptionsCurrency,
-                                                categoriesMap = categoriesMap,
-                                                subcategoriesMap = subcategoriesMap,
-                                                onClick = onNavigateToSubscriptions,
-                                                blurEffects = blurEffects && uiState.showBannerImage,
-                                                hazeState = hazeStateBanner,
-                                                modifier = cardModifier
-                                            )
-                                        }
+                                        UpcomingSubscriptionsCard(
+                                            subscriptions = uiState.upcomingSubscriptions,
+                                            totalAmount = uiState.upcomingSubscriptionsTotal,
+                                            currency = uiState.upcomingSubscriptionsCurrency,
+                                            categoriesMap = categoriesMap,
+                                            subcategoriesMap = subcategoriesMap,
+                                            onClick = onNavigateToSubscriptions,
+                                            blurEffects = blurEffects && uiState.showBannerImage,
+                                            hazeState = hazeStateBanner,
+                                            modifier = cardModifier
+                                        )
                                     }
                                 }
                             }
@@ -533,26 +493,6 @@ fun SharedTransitionScope.HomeScreen(
                                                             // Search button
                                                             TextButton(
                                                                 onClick = onNavigateToTransactionsWithSearch,
-                                                                modifier = Modifier.then(
-                                                                    if (animatedContentScope != null) {
-                                                                        Modifier.sharedBounds(
-                                                                            rememberSharedContentState(key = "transactions_search"),
-                                                                            animatedVisibilityScope = animatedContentScope,
-                                                                            boundsTransform = { _, _ ->
-                                                                                spring(
-                                                                                    stiffness = Spring.StiffnessLow,
-                                                                                    dampingRatio = Spring.DampingRatioNoBouncy
-                                                                                )
-                                                                            },
-                                                                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                                                                contentScale = ContentScale.None,
-                                                                                alignment = Alignment.Center
-                                                                            ),
-                                                                            renderInOverlayDuringTransition = false
-                                                                        )
-                                                                            .skipToLookaheadSize()
-                                                                    } else Modifier
-                                                                )
                                                             ) {
                                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                                     Icon(
@@ -654,26 +594,6 @@ fun SharedTransitionScope.HomeScreen(
                                             TextButton(
                                                 onClick = onNavigateToTransactions,
                                                 modifier = Modifier
-                                                    .then(
-                                                        if (animatedContentScope != null) {
-                                                            Modifier.sharedBounds(
-                                                                rememberSharedContentState(key = "transactions_screen"),
-                                                                animatedVisibilityScope = animatedContentScope,
-                                                                boundsTransform = { _, _ ->
-                                                                    spring(
-                                                                        stiffness = Spring.StiffnessLow,
-                                                                        dampingRatio = Spring.DampingRatioNoBouncy
-                                                                    )
-                                                                },
-                                                                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                                                    contentScale = ContentScale.None,
-                                                                    alignment = Alignment.Center
-                                                                ),
-                                                                renderInOverlayDuringTransition = false
-                                                            )
-                                                                .skipToLookaheadSize()
-                                                        } else Modifier
-                                                    )
                                                     .clip(RoundedCornerShape(Dimensions.Radius.lg))
                                                     .then(
                                                         if (blurEffects && uiState.showBannerImage) Modifier.hazeEffect(
