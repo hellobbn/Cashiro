@@ -12,6 +12,7 @@ private const val SOURCE_TRANSACTION_SMS_BALANCE = "TRANSACTION_SMS_BALANCE"
 private const val SOURCE_MANUAL = "MANUAL"
 private const val SOURCE_MANUAL_EDIT = "MANUAL_EDIT"
 private const val SOURCE_SMS_BALANCE = "SMS_BALANCE"
+const val SOURCE_BALANCE_CALIBRATION = "BALANCE_CALIBRATION"
 
 @Dao
 abstract class AccountBalanceDao {
@@ -56,7 +57,10 @@ abstract class AccountBalanceDao {
             ab.is_credit_card AS isCreditCard,
             ab.transaction_id AS transactionId,
             t.amount AS transactionAmount,
-            t.transaction_type AS transactionType,
+            CASE WHEN t.transaction_type = 'TRANSFER' THEN
+                CASE WHEN t.bank_name = ab.bank_name AND t.account_number = ab.account_last4
+                    THEN 'EXPENSE' ELSE 'INCOME' END
+                ELSE t.transaction_type END AS transactionType,
             t.balance_after AS transactionBalanceAfter,
             t.is_deleted AS isDeleted
         FROM account_balances ab
@@ -70,6 +74,44 @@ abstract class AccountBalanceDao {
         accountLast4: String,
         timestamp: LocalDateTime
     ): List<AccountBalanceTransactionInfo>
+
+    @Query("SELECT is_deleted FROM transactions WHERE id = :id")
+    abstract suspend fun getTransactionDeletedState(id: Long): Boolean?
+
+    @Query("UPDATE transactions SET is_deleted = :deleted WHERE id = :id")
+    abstract suspend fun setTransactionDeletedState(id: Long, deleted: Boolean)
+
+    @Query("DELETE FROM transactions WHERE id = :id")
+    abstract suspend fun hardDeleteLedgerTransaction(id: Long)
+
+    @Query("SELECT * FROM account_balances WHERE transaction_id = :id ORDER BY timestamp, id")
+    abstract suspend fun getBalancesForTransaction(id: Long): List<AccountBalanceEntity>
+
+    /** State changes and both sides of a transfer are committed in one Room transaction. */
+    @Transaction
+    open suspend fun changeTransactionDeletion(ids: List<Long>, deleted: Boolean, hardDelete: Boolean = false) {
+        require(!hardDelete || deleted)
+        val affected = mutableListOf<AccountBalanceEntity>()
+        for (id in ids.distinct()) {
+            val wasDeleted = getTransactionDeletedState(id) ?: continue
+            if (wasDeleted != deleted) {
+                affected += getBalancesForTransaction(id)
+                setTransactionDeletedState(id, deleted)
+            }
+            if (hardDelete) hardDeleteLedgerTransaction(id)
+        }
+        // Revisit each affected point: one batch may straddle an authoritative anchor.
+        // Read the predecessor after earlier recalculations, never from a stale UI entity.
+        for (entry in affected.distinctBy { it.id }.sortedWith(compareBy({ it.timestamp }, { it.id }))) {
+            if (entry.sourceType == SOURCE_TRANSACTION_SMS_BALANCE ||
+                entry.sourceType == SOURCE_SMS_BALANCE || entry.sourceType == SOURCE_BALANCE_CALIBRATION) continue
+            val previous = getBalanceHistoryForAccount(entry.bankName, entry.accountLast4)
+                .filter { it.timestamp < entry.timestamp }
+                .maxWithOrNull(compareBy({ it.timestamp }, { it.id }))
+                ?: error("Missing opening balance for historical transaction; review balance history before deleting")
+            recalculateBalancesAfter(entry.bankName, entry.accountLast4, previous.timestamp, previous.balance)
+        }
+    }
 
     /**
      * Inserts a balance entry linked to a transaction, and sequentially recalculates succeeding balances.
@@ -109,6 +151,19 @@ abstract class AccountBalanceDao {
         val previousForBalance = previous ?: run {
             val earliest = getEarliestBalance(bankName, accountLast4)
             if (earliest?.sourceType == SOURCE_MANUAL) earliest else null
+        }
+
+        if (previous == null && explicitBalance == null) {
+            insertBalance(AccountBalanceEntity(
+                bankName = bankName, accountLast4 = accountLast4,
+                balance = previousForBalance?.balance ?: BigDecimal.ZERO,
+                timestamp = timestamp.minusNanos(1_000_000),
+                sourceType = "OPENING_BALANCE", currency = currency,
+                isCreditCard = isCreditCard || (previousForBalance?.isCreditCard ?: false),
+                creditLimit = previousForBalance?.creditLimit ?: latest?.creditLimit,
+                iconResId = latest?.iconResId ?: 0, iconName = latest?.iconName ?: "",
+                isWallet = latest?.isWallet ?: false, color = latest?.color ?: "#33B5E5"
+            ))
         }
 
         val accountIsCreditCard = isCreditCard || (previousForBalance?.isCreditCard ?: false)
@@ -184,7 +239,8 @@ abstract class AccountBalanceDao {
             // Bank-reported explicit balances (SMS) are authoritative anchors — stop here.
             val isExplicitBalance = row.transactionBalanceAfter != null ||
                     sourceType == SOURCE_TRANSACTION_SMS_BALANCE ||
-                    sourceType == SOURCE_SMS_BALANCE
+                    sourceType == SOURCE_SMS_BALANCE ||
+                    sourceType == SOURCE_BALANCE_CALIBRATION
 
             if (isExplicitBalance) {
                 break
@@ -432,7 +488,7 @@ private fun calculateTransactionBalance(
         isCreditCard -> currentBalance + amount
         transactionType == TransactionType.INCOME || transactionType == TransactionType.CREDIT || transactionType == TransactionType.BORROWED -> currentBalance + amount
         transactionType == TransactionType.EXPENSE || transactionType == TransactionType.INVESTMENT || transactionType == TransactionType.LENT ->
-            (currentBalance - amount).max(BigDecimal.ZERO)
+            currentBalance - amount
         else -> currentBalance
     }
 }

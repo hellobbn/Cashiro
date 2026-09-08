@@ -496,16 +496,34 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 
-    fun deleteTransaction(transaction: TransactionEntity) {
+    private val _balanceOperationError = MutableStateFlow<String?>(null)
+    val balanceOperationError = _balanceOperationError.asStateFlow()
+
+    fun clearBalanceOperationError() { _balanceOperationError.value = null }
+
+    private fun launchBalanceOperation(block: suspend () -> Unit) {
         viewModelScope.launch {
-            _deletedTransaction.value = transaction
+            try {
+                block()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("TransactionsViewModel", "Ledger operation rolled back", e)
+                _balanceOperationError.value = context.getString(com.ritesh.cashiro.R.string.balance_operation_failed)
+            }
+        }
+    }
+
+    fun deleteTransaction(transaction: TransactionEntity) {
+        launchBalanceOperation {
             transactionRepository.deleteTransaction(transaction)
+            _deletedTransaction.value = transaction
         }
     }
     
     fun undoDelete() {
         _deletedTransaction.value?.let { transaction ->
-            viewModelScope.launch {
+            launchBalanceOperation {
                 transactionRepository.undoDeleteTransaction(transaction)
                 _deletedTransaction.value = null
             }
@@ -513,7 +531,7 @@ class TransactionsViewModel @Inject constructor(
     }
     
     fun undoDeleteTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch {
+        launchBalanceOperation {
             transactionRepository.undoDeleteTransaction(transaction)
         }
     }
@@ -549,13 +567,13 @@ class TransactionsViewModel @Inject constructor(
     }
     
     fun deleteSelectedTransactions() {
-        viewModelScope.launch {
+        launchBalanceOperation {
             val selectedIds = _selectedTransactionIds.value
-            if (selectedIds.isEmpty()) return@launch
+            if (selectedIds.isEmpty()) return@launchBalanceOperation
             
             val transactionsToDelete = _uiState.value.transactions.filter { it.id in selectedIds }
-            _deletedTransactions.value = transactionsToDelete
             transactionRepository.deleteTransactions(transactionsToDelete)
+            _deletedTransactions.value = transactionsToDelete
             
             // Clear selection and exit selection mode
             _selectedTransactionIds.value = emptySet()
@@ -564,7 +582,7 @@ class TransactionsViewModel @Inject constructor(
     }
     
     fun undoDeleteTransactions(transactions: List<TransactionEntity>) {
-        viewModelScope.launch {
+        launchBalanceOperation {
             transactionRepository.undoDeleteTransactions(transactions)
         }
     }
@@ -630,7 +648,7 @@ class TransactionsViewModel @Inject constructor(
 
                     val linkedEntry = accountBalanceRepository.getBalanceByTransactionId(txn.id)
                     if (linkedEntry != null) {
-                        val newBalance = (linkedEntry.balance - oldEffect + newEffect).max(BigDecimal.ZERO)
+                        val newBalance = (linkedEntry.balance - oldEffect + newEffect).let { if (linkedEntry.isCreditCard) it.max(BigDecimal.ZERO) else it }
                         accountBalanceRepository.updateBalance(linkedEntry.copy(balance = newBalance))
                         accountBalanceRepository.recalculateBalancesAfter(bankName, accountLast4, timestamp, newBalance)
                     }

@@ -19,6 +19,18 @@ class AccountBalanceRepository @Inject constructor(
     private val accountBalanceDao: AccountBalanceDao,
     @ApplicationContext private val context: Context
 ) {
+    suspend fun changeTransactionDeletion(ids: List<Long>, deleted: Boolean, hardDelete: Boolean = false) {
+        accountBalanceDao.changeTransactionDeletion(ids, deleted, hardDelete)
+    }
+
+    suspend fun projectedExpenseBalance(bankName: String, accountLast4: String, timestamp: LocalDateTime, amount: BigDecimal): BigDecimal? {
+        val previous = accountBalanceDao.getLatestBalanceOnOrBefore(bankName, accountLast4, timestamp)
+            ?: accountBalanceDao.getEarliestBalance(bankName, accountLast4)?.takeIf { it.sourceType == "MANUAL" }
+        val account = previous ?: accountBalanceDao.getLatestBalance(bankName, accountLast4)
+        if (account?.isCreditCard == true) return null
+        return (previous?.balance ?: BigDecimal.ZERO) - amount
+    }
+
     suspend fun insertBalance(balance: AccountBalanceEntity): Long {
         val balanceWithIconName = if (balance.iconName.isEmpty() && balance.iconResId != 0) {
             balance.copy(iconName = IconResolutionUtils.resIdToName(context, balance.iconResId))

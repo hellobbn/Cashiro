@@ -253,8 +253,13 @@ constructor(
         _transactionUiState.update { currentState -> currentState.copy(isRecurring = isRecurring) }
     }
 
-    fun saveTransaction(onSuccess: () -> Unit) {
+    fun dismissOverdraftWarning() {
+        _transactionUiState.update { it.copy(overdraftBalance = null) }
+    }
+
+    fun saveTransaction(allowOverdraft: Boolean = false, onSuccess: () -> Unit) {
         val state = _transactionUiState.value
+        if (state.isLoading) return
 
         val isLoanType = state.transactionType == TransactionType.LENT ||
             state.transactionType == TransactionType.BORROWED
@@ -299,6 +304,19 @@ constructor(
                 _transactionUiState.update { it.copy(isLoading = true) }
 
                 val amount = BigDecimal(state.amount)
+
+                val account = state.selectedAccount
+                val spendsMoney = state.transactionType in setOf(TransactionType.EXPENSE,
+                    TransactionType.INVESTMENT, TransactionType.LENT, TransactionType.TRANSFER)
+                if (!allowOverdraft && spendsMoney && account != null) {
+                    val projected = accountBalanceRepository.projectedExpenseBalance(
+                        account.bankName, account.accountLast4, state.date, amount)
+                    if (projected != null && projected < BigDecimal.ZERO) {
+                        _transactionUiState.update { it.copy(overdraftBalance = projected, isLoading = false) }
+                        return@launch
+                    }
+                }
+                _transactionUiState.update { it.copy(overdraftBalance = null) }
 
                 val transactionId = addTransactionUseCase.execute(
                     amount = amount,
@@ -716,6 +734,7 @@ data class TransactionUiState(
     val currency: String = "CNY",
     val isLoading: Boolean = false,
     val error: String? = null,
+    val overdraftBalance: BigDecimal? = null,
     val selectedPersonId: Long? = null,
     val dueDate: LocalDateTime? = null
 ) {

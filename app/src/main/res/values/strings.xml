@@ -1322,4 +1322,9 @@
     <string name="account_already_exists">An account with this name and last four digits already exists.</string>
     <string name="account_save_failed">Could not save the account. Your details are kept; please try again.</string>
     <string name="saving_account">Saving…</string>
+    <string name="balance_overdraft_title">Balance below zero</string>
+    <string name="balance_overdraft_message">This expense exceeds the book balance at the transaction date. The balance after this entry will be %1$s %2$s. Save anyway?</string>
+    <string name="balance_overdraft_continue">Save anyway</string>
+    <string name="balance_calibration">Calibrate current balance</string>
+    <string name="balance_operation_failed">The change was not saved. Check the balance history: older entries may be missing their opening balance.</string>
 </resources>
