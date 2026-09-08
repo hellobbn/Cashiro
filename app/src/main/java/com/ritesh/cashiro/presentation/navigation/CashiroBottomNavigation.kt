@@ -22,7 +22,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.toRoute
-import com.ritesh.cashiro.presentation.ui.features.settings.appearance.NavigationBarStyle
+import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import dev.chrisbanes.haze.HazeState
 
 /** Kept for API compatibility; the standard bar has no attached FAB. */
