@@ -1,6 +1,10 @@
 # UI motion and rendering cost review
 
-## Scope
+A subsequent measured correction is documented in [tab routing and row layout](lag-fix.md).
+The inventory and compile-only validation below describe the initial `1ad3500a` pass.
+The follow-up has separately authorized, isolated real-device tests.
+
+## Initial motion-pass scope
 
 82 production Kotlin paths: 80 modified, one added (`OptionalHazeSource.kt`),
 one removed (`Overscroll.kt`). These are code-inspection findings and reductions
@@ -60,7 +64,7 @@ not copied source or a migration to InstallerX's Miuix stack. Android's
 [predictive-back](https://developer.android.com/develop/ui/compose/system/predictive-back)
 guidance informed the adaptation.
 
-## Final validation: compile only
+## Initial-pass validation: compile only
 
 ```sh
 JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home \

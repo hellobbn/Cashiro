@@ -7,7 +7,6 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerBasedShape
@@ -137,8 +136,8 @@ fun TransactionItem(
     val dateTimeFormatter = remember(locale) {
         DateTimeFormatter.ofPattern(if (locale.language == "zh") "M月d日" else "MMM d", locale)
     }
-    val defaultSubtitle = remember(transaction?.dateTime) { 
-        transaction?.dateTime?.format(dateTimeFormatter) ?: "" 
+    val defaultSubtitle = remember(transaction?.dateTime, dateTimeFormatter, showDate) {
+        if (showDate) transaction?.dateTime?.format(dateTimeFormatter).orEmpty() else ""
     }
     val amountText = remember(transaction, amountOverride, finalAmount, effectiveSign) {
         amountOverride ?: transaction?.let { 
@@ -245,34 +244,33 @@ fun TransactionItem(
         }
     }
 
-    // Build subtitle parts
-    val recurringStr = stringResource(R.string.recurring)
-    val balanceAfterStr = balanceAfter?.let { balance ->
-        stringResource(R.string.balance_after_format, CurrencyFormatter.formatCurrency(balance, balanceCurrency ?: "INR"))
-    }
-    val (subtitleParts, subtitleFinal) = remember(
-        subtitleOverride,
-        defaultSubtitle,
-        isRecurring,
-        recurringStr,
-        balanceAfterStr
-    ) {
-        val parts = buildList {
-            if (subtitleOverride != null) {
-                add(subtitleOverride)
-            } else {
-                if (defaultSubtitle.isNotEmpty()) {
-                    add(defaultSubtitle)
-                }
-                if (isRecurring) add(recurringStr)
-
-                balanceAfterStr?.let { add(it) }
-            }
-        }
-        parts to parts.joinToString(" • ")
-    }
-
     if (useCardStyle) {
+        // Card-only subtitle text: ordinary list rows already draw metadata tags.
+        val recurringStr = stringResource(R.string.recurring)
+        val balanceAfterStr = balanceAfter?.let { balance ->
+            stringResource(R.string.balance_after_format, CurrencyFormatter.formatCurrency(balance, balanceCurrency ?: "INR"))
+        }
+        val subtitleFinal = remember(
+            subtitleOverride,
+            defaultSubtitle,
+            isRecurring,
+            recurringStr,
+            balanceAfterStr
+        ) {
+            val parts = buildList {
+                if (subtitleOverride != null) {
+                    add(subtitleOverride)
+                } else {
+                    if (defaultSubtitle.isNotEmpty()) {
+                        add(defaultSubtitle)
+                    }
+                    if (isRecurring) add(recurringStr)
+
+                    balanceAfterStr?.let { add(it) }
+                }
+            }
+            parts.joinToString(" • ")
+        }
         ListItemCard(
             title = finalMerchantName,
             subtitle = subtitleFinal,
@@ -290,8 +288,9 @@ fun TransactionItem(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.basicMarquee(iterations = 1)
+                    // Bound width normally: marquee adds an unbounded-width measurement and
+                    // prevents the intended two-line title layout in every visible row.
+                    overflow = TextOverflow.Ellipsis
                 )
             },
             supporting = {
@@ -306,10 +305,11 @@ fun TransactionItem(
                     @Composable
                     fun TagSeparator() {
                         if (needsSeparator) {
-                            Text(
-                                text = "•",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f)
+                            Spacer(
+                                Modifier.size(2.dp).background(
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f),
+                                    CircleShape
+                                )
                             )
                         }
                     }

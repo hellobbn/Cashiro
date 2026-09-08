@@ -737,14 +737,17 @@ fun TransactionsScreen(
                                     contentType = { _, _ -> "transaction" }
                                 ) { index, transaction ->
                                     val position = ListItemPosition.from(index, transactions.size)
+                                    val account = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]
                                     TransactionItem(
                                         transaction = transaction,
                                         categoryEntity = categoriesMap[transaction.category],
                                         subcategoryEntity = transaction.subcategory?.let { subcategoriesMap[it] },
-                                        accountIconResId = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.iconResId ?: 0,
-                                        accountIconName = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.iconName,
-                                        accountColorHex = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.color,
-                                        showDate = dateGroup == DateGroup.EARLIER,
+                                        accountIconResId = account?.iconResId ?: 0,
+                                        accountIconName = account?.iconName,
+                                        accountColorHex = account?.color,
+                                        // Today/Yesterday already identify the exact date. Other groups can
+                                        // contain multiple dates, so keep the per-row date there.
+                                        showDate = dateGroup == DateGroup.THIS_WEEK || dateGroup == DateGroup.EARLIER,
                                         shape = position.toShape(),
                                         onClick = { detailTransactionId = transaction.id },
                                         isSelectionMode = selectionMode,
