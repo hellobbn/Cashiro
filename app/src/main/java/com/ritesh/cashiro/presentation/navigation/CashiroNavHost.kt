@@ -863,23 +863,7 @@ fun CashiroNavHost(
                                     )
                                         .skipToLookaheadSize()
                                 )
-                                .then(
-                                    if (themeUiState.blurEffects) Modifier
-                                        .clip(MaterialTheme.shapes.large)
-                                        .hazeEffect(
-                                            state = hazeState,
-                                            block = fun HazeEffectScope.() {
-                                                inputScale = HazeInputScale.Auto
-                                                style = HazeDefaults.style(
-                                                    backgroundColor = Color.Transparent,
-                                                    tint = HazeDefaults.tint(fabContainerColor),
-                                                    blurRadius = 20.dp,
-                                                    noiseFactor = -1f,
-                                                )
-                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                            }
-                                        ) else Modifier
-                                ),
+                                .clip(MaterialTheme.shapes.large),
                             containerColor = fabContainerColor,
                             contentColor = fabContentColor,
                         ) {

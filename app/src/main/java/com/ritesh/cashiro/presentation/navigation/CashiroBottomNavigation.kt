@@ -85,7 +85,6 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 
 data class FabConfig(
@@ -251,28 +250,14 @@ fun CashiroBottomNavigation(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    // Solid container: the translucent + blurred variant showed the content
+                    // behind the bar as dark patches between the tabs.
                     HorizontalFloatingToolbar(
                         modifier = Modifier
                             .clip(FloatingToolbarDefaults.ContainerShape)
-                            .then(
-                                if (blurEffects) Modifier.hazeEffect(
-                                    state = hazeState,
-                                    block = fun HazeEffectScope.() {
-                                        inputScale = HazeInputScale.Auto
-                                        style = HazeDefaults.style(
-                                            backgroundColor = Color.Transparent,
-                                            blurRadius = 20.dp,
-                                            noiseFactor = -1f,
-                                        )
-                                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                    }
-                                ) else Modifier
-                            )
                             .zIndex(1000f),
                         colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                            toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(
-                                alpha = if (blurEffects) 0.7f else 1f
-                            ),
+                            toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ),
                         expanded = true,
                     ) {
@@ -311,7 +296,6 @@ fun CashiroBottomNavigation(
                                 item = item,
                                 selected = selected,
                                 hideLabel = hideLabels,
-                                blurEffects = blurEffects,
                                 onClick = onSelect
                             )
                         }
@@ -341,6 +325,8 @@ fun CashiroBottomNavigation(
                                     }
                                 },
                                 shape = CircleShape,
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(50.dp)
                             ) {
                                 Icon(
@@ -355,26 +341,8 @@ fun CashiroBottomNavigation(
                                 DropdownMenu(
                                     expanded = expanded,
                                     onDismissRequest = { expanded = false },
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(24.dp))
-                                        .then(
-                                        if (blurEffects) Modifier.hazeEffect(
-                                            state = hazeState,
-                                            block = fun HazeEffectScope.() {
-                                                inputScale = HazeInputScale.Auto
-                                                style = HazeDefaults.style(
-                                                    backgroundColor = Color.Transparent,
-                                                    tint = HazeTint(dropContainerColor.copy(0.5f)),
-                                                    blurRadius = 36.dp,
-                                                    noiseFactor = -1f,
-                                                )
-                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                            }
-                                        ) else Modifier
-                                    ),
-                                    containerColor = dropContainerColor.copy(
-                                        alpha = if (blurEffects) 0.7f else 1f
-                                    ),
+                                    modifier = Modifier.clip(RoundedCornerShape(24.dp)),
+                                    containerColor = dropContainerColor,
                                     shape = RoundedCornerShape(24.dp)
                                 ) {
                                     capturedDropdown.invoke(this) { expanded = false }
@@ -400,17 +368,12 @@ private fun FloatingTabItem(
     item: BottomNavItem,
     selected: Boolean,
     hideLabel: Boolean,
-    blurEffects: Boolean,
     onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(20.dp)
-    val containerColor = when {
-        selected -> MaterialTheme.colorScheme.tertiaryContainer
-        blurEffects -> MaterialTheme.colorScheme.surfaceBright.copy(0.6f)
-        else -> MaterialTheme.colorScheme.surfaceBright
-    }
-    val contentColor = if (selected) MaterialTheme.colorScheme.onTertiaryContainer
-    else MaterialTheme.colorScheme.inverseSurface
+    val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+    else MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         modifier = Modifier
             .padding(horizontal = 4.dp)
