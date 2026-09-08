@@ -57,8 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.navigation.TransactionDetail
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
 import com.ritesh.cashiro.presentation.navigation.safePopBackStack
@@ -79,7 +78,7 @@ import com.ritesh.cashiro.presentation.ui.icons.ReceiptItem
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -111,7 +110,7 @@ fun SharedTransitionScope.AccountDetailScreen(
                         boundsTransform = { _, _ ->
                             spring(
                                 stiffness =  Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
+                                dampingRatio = Spring.DampingRatioNoBouncy
                             )
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
@@ -136,9 +135,8 @@ fun SharedTransitionScope.AccountDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
-                .hazeSource(state = hazeState),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                .optionalHazeSource(state = hazeState),
+            flingBehavior = ScrollableDefaults.flingBehavior(),
             contentPadding = PaddingValues(
                 top = Dimensions.Padding.content + paddingValues.calculateTopPadding()
             ),

@@ -4,8 +4,7 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
@@ -14,28 +13,11 @@ import androidx.compose.ui.Modifier
 val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
 val LocalAnimatedContentScope = compositionLocalOf<AnimatedContentScope?> { null }
 
-// Shared bounds transform configurations
+// A single bounded transform for the remaining explicit shared-element flows.
 object SharedTransitionTransforms {
-    val smooth: BoundsTransform = BoundsTransform { _, _ ->
-        spring(
-            stiffness = Spring.StiffnessLow,
-            dampingRatio = Spring.DampingRatioNoBouncy
-        )
-    }
-    
-    val snappy: BoundsTransform = BoundsTransform { _, _ ->
-        spring(
-            stiffness = Spring.StiffnessMediumLow,
-            dampingRatio = Spring.DampingRatioLowBouncy
-        )
-    }
-    
-    val quick: BoundsTransform = BoundsTransform { _, _ ->
-        spring(
-            stiffness = Spring.StiffnessMedium,
-            dampingRatio = Spring.DampingRatioNoBouncy
-        )
-    }
+    val smooth: BoundsTransform = BoundsTransform { _, _ -> tween(220) }
+    val snappy: BoundsTransform = BoundsTransform { _, _ -> tween(160) }
+    val quick: BoundsTransform = BoundsTransform { _, _ -> tween(120) }
 }
 
 @Composable

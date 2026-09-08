@@ -1,8 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.categories
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -81,8 +79,7 @@ import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.CategoryItem
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
@@ -101,7 +98,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -150,17 +147,8 @@ fun CategoriesScreen(
     var showFloatingLabel by remember { mutableStateOf(true) }
     var showFilterMenu by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("All") }
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
-
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
 
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemIndex }.collect { firstVisibleItem ->
@@ -278,9 +266,8 @@ fun CategoriesScreen(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
-                .hazeSource(state = hazeState),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                .optionalHazeSource(state = hazeState),
+            flingBehavior = ScrollableDefaults.flingBehavior(),
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,
@@ -297,35 +284,7 @@ fun CategoriesScreen(
                         categoriesViewModel.updateSearchQuery(it.text)
                     },
                     label = {
-                        AnimatedContent(
-                            targetState = labels[currentLabelIndex],
-                            transitionSpec = {
-                                (fadeIn(animationSpec = tween(400, delayMillis = 100)) +
-                                        slideInVertically(
-                                            initialOffsetY = { it },
-                                            animationSpec = tween(400, delayMillis = 100)
-                                        ))
-                                    .togetherWith(
-                                        fadeOut(animationSpec = tween(400)) +
-                                                slideOutVertically(
-                                                    targetOffsetY = { -it },
-                                                    animationSpec = tween(400)
-                                                )
-                                    )
-                            },
-                            label = "SearchBarLabelAnimation"
-                        ) { labelText ->
-                            Text(
-                                text = labelText,
-                                fontSize = 14.sp,
-                                lineHeight = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                fontStyle = FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.inverseSurface.copy(0.5f),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+                        Text(text = stringResource(com.ritesh.cashiro.R.string.search))
                     },
                     leadingIcon = { },
                     trailingIcon = if (searchInput.text.isNotEmpty()) {
@@ -356,37 +315,26 @@ fun CategoriesScreen(
                     // Show all categories without headers
                     items(
                         items = categories, // Use the latest categories state directly
-                        key = { "all-${it.id}" }) { category ->
-                        AnimatedContent(
-                            targetState = category,
-                            transitionSpec = {
-                                fadeIn(animationSpec = tween(220, delayMillis = 90)) +
-                                        scaleIn(
-                                            initialScale = 0.92f,
-                                            animationSpec = tween(220, delayMillis = 90)
-                                        ) togetherWith fadeOut(animationSpec = tween(90))
-                            },
-                            label = "CategoryItemAnimation"
-                        ) { animatedCategory ->
-                            val categorySubcategories = subcategories[animatedCategory.id] ?: emptyList()
+                        key = { "all-${it.id}" }, contentType = { "category" }) { category ->
+                                                    val categorySubcategories = subcategories[category.id] ?: emptyList()
                             val displayedSubs = if (searchQuery.isNotBlank()) {
-                                val catMatches = animatedCategory.name.contains(searchQuery, ignoreCase = true)
+                                val catMatches = category.name.contains(searchQuery, ignoreCase = true)
                                 if (catMatches) categorySubcategories
                                 else categorySubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
                             } else {
                                 categorySubcategories
                             }
                             SwipeableCategoryItem(
-                                category = animatedCategory,
+                                category = category,
                                 subcategories = displayedSubs,
-                                onEdit = { categoriesViewModel.showEditDialog(animatedCategory) },
-                                onDelete = { categoriesViewModel.deleteCategory(animatedCategory) },
+                                onEdit = { categoriesViewModel.showEditDialog(category) },
+                                onDelete = { categoriesViewModel.deleteCategory(category) },
                                 onAddSubcategory = {
-                                    categoriesViewModel.showAddSubcategoryDialog(animatedCategory.id)
+                                    categoriesViewModel.showAddSubcategoryDialog(category.id)
                                 },
                                 onEditSubcategory = { categoriesViewModel.showEditSubcategoryDialog(it) },
                             )
-                        }
+
                     }
                 }
 
@@ -402,7 +350,7 @@ fun CategoriesScreen(
 
                         items(
                             items = dispExpenseCategories,
-                            key = { "expense-${it.id}" }) { category ->
+                            key = { "expense-${it.id}" }, contentType = { "category" }) { category ->
                             val categorySubcategories = subcategories[category.id] ?: emptyList()
                             val displayedSubs = if (searchQuery.isNotBlank()) {
                                 val catMatches = category.name.contains(searchQuery, ignoreCase = true)
@@ -438,7 +386,7 @@ fun CategoriesScreen(
                         }
                         items(
                             items = dispIncomeCategories,
-                            key = { "income-${it.id}" }) { category ->
+                            key = { "income-${it.id}" }, contentType = { "category" }) { category ->
                             val categorySubcategories = subcategories[category.id] ?: emptyList()
                             val displayedSubs = if (searchQuery.isNotBlank()) {
                                 val catMatches = category.name.contains(searchQuery, ignoreCase = true)
@@ -641,7 +589,6 @@ private fun SwipeableCategoryItem(
 fun NavigationContent(onNavigateBack: () -> Unit) {
     Box(
         modifier = Modifier
-            .animateContentSize()
             .padding(start = 16.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },

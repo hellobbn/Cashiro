@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -257,8 +256,7 @@ private fun HistoryRecordItem(
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (isLatest) {
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)

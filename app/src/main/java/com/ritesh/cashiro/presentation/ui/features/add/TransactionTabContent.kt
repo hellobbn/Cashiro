@@ -2,7 +2,6 @@ package com.ritesh.cashiro.presentation.ui.features.add
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -77,7 +76,6 @@ import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.ui.features.lendborrow.AddEditPersonSheet
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -92,8 +90,7 @@ import coil3.compose.AsyncImage
 import androidx.core.graphics.toColorInt
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
@@ -110,7 +107,6 @@ import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.IconResolutionUtils
-import com.ritesh.cashiro.utils.horizontalFadingEdge
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
 import java.time.ZoneOffset
@@ -142,15 +138,7 @@ fun TransactionTabContent(
         transactionSubcategories.find { it.name == uiState.subcategory }
     }
 
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -161,13 +149,11 @@ fun TransactionTabContent(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .animateContentSize()
                 .fillMaxSize()
-                .overScrollVertical()
                 .imePadding() // Handle keyboard properly
                 .verticalScroll(
                     state = scrollState,
-                    flingBehavior = rememberOverscrollFlingBehavior { scrollState },
+                    flingBehavior = ScrollableDefaults.flingBehavior(),
                     enabled = !isTransitioning
                 )
                 .padding(horizontal = 16.dp, vertical = 16.dp),
@@ -286,7 +272,7 @@ fun TransactionTabContent(
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.basicMarquee()
+                                modifier = Modifier.basicMarquee(iterations = 1)
                             )
                         }
                     }
@@ -405,7 +391,7 @@ fun TransactionTabContent(
                                 color = if (uiState.dueDate != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.basicMarquee()
+                                modifier = Modifier.basicMarquee(iterations = 1)
                             )
                         }
                         if (uiState.dueDate != null) {
@@ -475,10 +461,6 @@ fun TransactionTabContent(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalFadingEdge(
-                                canScrollBackward = personLazyListState.canScrollBackward,
-                                canScrollForward = personLazyListState.canScrollForward
-                            )
                     ) {
                         item {
                             Column(
@@ -729,7 +711,6 @@ fun TransactionTabContent(
                             Box(
                                 modifier = Modifier
                                     .size(28.dp)
-                                    .shadow(elevation = 3.dp, shape = CircleShape)
                                     .clip(CircleShape)
                                     .background(
                                         MaterialTheme.colorScheme.surface,
@@ -816,7 +797,7 @@ fun TransactionTabContent(
             BlurredAnimatedVisibility(uiState.transactionType != TransactionType.TRANSFER){
                 // Non-Transfer Type UI: Original layout with connected sections
                 Column(
-                    modifier = Modifier.animateContentSize().fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
                     Card(

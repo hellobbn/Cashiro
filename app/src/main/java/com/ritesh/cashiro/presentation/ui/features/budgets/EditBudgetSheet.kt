@@ -83,7 +83,6 @@ import com.ritesh.cashiro.data.database.entity.BudgetType
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.utils.titlecaseFirst
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.BudgetAnimatedGradientMeshCard
@@ -100,7 +99,7 @@ import com.ritesh.cashiro.presentation.ui.icons.Wallet3
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Instant
@@ -346,13 +345,12 @@ fun EditBudgetSheet(
         }
     }
     
-    Box(modifier = Modifier.fillMaxWidth().hazeSource(hazeState)) {
+    Box(modifier = Modifier.fillMaxWidth().optionalHazeSource(hazeState)) {
         Column(
             modifier = Modifier
                 .imePadding()
                 .fillMaxSize()
                 .clip(RoundedCornerShape(28.dp))
-                .overScrollVertical()
                 .verticalScroll(
                     state = rememberScrollState()
                 )

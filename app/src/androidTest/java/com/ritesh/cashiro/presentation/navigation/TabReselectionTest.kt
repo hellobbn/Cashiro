@@ -33,7 +33,13 @@ class TabReselectionTest {
     @Test fun normalNavigationRetainsCurrentEntry() = exercise(NavigationBarStyle.NORMAL)
     @Test fun floatingNavigationRetainsCurrentEntry() = exercise(NavigationBarStyle.FLOATING)
 
-    private fun exercise(style: NavigationBarStyle) {
+    @Test fun normalNavigationAfterOnboardingRetainsCurrentEntry() = exercise(NavigationBarStyle.NORMAL, fromOnboarding = true)
+    @Test fun floatingNavigationAfterOnboardingRetainsCurrentEntry() = exercise(NavigationBarStyle.FLOATING, fromOnboarding = true)
+
+    @Test fun normalNavigationRepairsLegacySavedPeerStack() = exercise(NavigationBarStyle.NORMAL, legacyPeerStack = true)
+    @Test fun floatingNavigationRepairsLegacySavedPeerStack() = exercise(NavigationBarStyle.FLOATING, legacyPeerStack = true)
+
+    private fun exercise(style: NavigationBarStyle, fromOnboarding: Boolean = false, legacyPeerStack: Boolean = false) {
         lateinit var nav: NavHostController
         lateinit var transactions: String
         lateinit var analytics: String
@@ -56,7 +62,8 @@ class TabReselectionTest {
                 )
             }) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
-                    NavHost(nav, startDestination = Home) {
+                    NavHost(nav, startDestination = if (fromOnboarding) OnBoarding else Home) {
+                        composable<OnBoarding> { Text("Onboarding fixture") }
                         composable<Home>(enterTransition = MainTabMotion.enter, exitTransition = MainTabMotion.exit, popEnterTransition = MainTabMotion.popEnter, popExitTransition = MainTabMotion.popExit) { Text("Home fixture") }
                         composable<Analytics>(enterTransition = MainTabMotion.enter, exitTransition = MainTabMotion.exit, popEnterTransition = MainTabMotion.popEnter, popExitTransition = MainTabMotion.popExit) { Text("Analytics fixture") }
                         composable<Transactions>(enterTransition = MainTabMotion.enter, exitTransition = MainTabMotion.exit, popEnterTransition = MainTabMotion.popEnter, popExitTransition = MainTabMotion.popExit) { Text("Transactions fixture") }
@@ -64,8 +71,30 @@ class TabReselectionTest {
                 }
             }
         } }
+        if (fromOnboarding) {
+            rule.runOnIdle {
+                nav.navigate(Home) { popUpTo(OnBoarding) { inclusive = true } }
+            }
+            rule.waitForIdle()
+            // The graph still starts at OnBoarding, but that entry is no longer in its stack.
+            rule.runOnIdle { assertEquals("home", nav.currentBackStackEntry!!.mainTabTag()) }
+        }
+        if (legacyPeerStack) {
+            rule.runOnIdle {
+                // Reproduce the saved [Transactions, Analytics] stack left by the old anchor.
+                nav.navigate(Transactions())
+                nav.currentBackStackEntry!!.savedStateHandle["legacy_marker"] = 73
+                nav.navigate(Analytics)
+                nav.popBackStack(Home, inclusive = false, saveState = true)
+            }
+            rule.waitForIdle()
+        }
         rule.onNodeWithContentDescription(transactions, useUnmergedTree = true).performClick()
         rule.waitForIdle()
+        rule.runOnIdle {
+            assertEquals("transactions", nav.currentBackStackEntry!!.mainTabTag())
+            if (legacyPeerStack) assertEquals(73, nav.currentBackStackEntry!!.savedStateHandle.get<Int>("legacy_marker"))
+        }
         var originalId = ""
         rule.runOnIdle {
             originalId = nav.currentBackStackEntry!!.id
@@ -81,8 +110,25 @@ class TabReselectionTest {
         rule.waitForIdle()
         rule.onNodeWithContentDescription(transactions, useUnmergedTree = true).performClick()
         rule.waitForIdle()
-        val restoredMarker = rule.runOnIdle { nav.currentBackStackEntry!!.savedStateHandle.get<Int>("test_scroll_marker") }
+        val restoredMarker = rule.runOnIdle {
+            assertEquals("transactions", nav.currentBackStackEntry!!.mainTabTag())
+            nav.currentBackStackEntry!!.savedStateHandle.get<Int>("test_scroll_marker")
+        }
         assertEquals(42, restoredMarker)
+        repeat(3) {
+            rule.onNodeWithContentDescription(home, useUnmergedTree = true).performClick()
+            rule.waitForIdle()
+            rule.runOnIdle { assertEquals("home", nav.currentBackStackEntry!!.mainTabTag()) }
+            rule.onNodeWithContentDescription(analytics, useUnmergedTree = true).performClick()
+            rule.waitForIdle()
+            rule.runOnIdle { assertEquals("analytics", nav.currentBackStackEntry!!.mainTabTag()) }
+            rule.onNodeWithContentDescription(transactions, useUnmergedTree = true).performClick()
+            rule.waitForIdle()
+            rule.runOnIdle {
+                assertEquals("transactions", nav.currentBackStackEntry!!.mainTabTag())
+                assertEquals(42, nav.currentBackStackEntry!!.savedStateHandle.get<Int>("test_scroll_marker"))
+            }
+        }
         rule.runOnIdle { nav.navigate(Transactions(category = "test-category", focusSearch = true)) }
         rule.waitForIdle()
         rule.onNodeWithContentDescription(transactions, useUnmergedTree = true).performClick()

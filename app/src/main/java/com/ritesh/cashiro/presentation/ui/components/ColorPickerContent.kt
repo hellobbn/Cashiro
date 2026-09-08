@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.animation.animateContentSize
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -133,7 +132,7 @@ fun ColorPickerContent(
     val lazyListState = rememberLazyListState()
 
     Column(
-        modifier = modifier.animateContentSize().fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
 

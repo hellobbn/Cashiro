@@ -1,7 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -42,23 +40,7 @@ fun TransactionTotalsCard(
     isEstimated: Boolean = false,
     isLoading: Boolean = false,
 ) {
-    val incomeAlpha by animateFloatAsState(
-        targetValue = if (isLoading) 0.5f else 1f,
-        animationSpec = tween(300),
-        label = "income_alpha"
-    )
-    
-    val expenseAlpha by animateFloatAsState(
-        targetValue = if (isLoading) 0.5f else 1f,
-        animationSpec = tween(300),
-        label = "expense_alpha"
-    )
-    
-    val netAlpha by animateFloatAsState(
-        targetValue = if (isLoading) 0.5f else 1f,
-        animationSpec = tween(300),
-        label = "net_alpha"
-    )
+    val contentAlpha = if (isLoading) 0.5f else 1f
 
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -113,7 +95,7 @@ fun TransactionTotalsCard(
                             amount = formattedIncome,
                             color = if (!isSystemInDarkTheme()) income_light else income_dark,
                             modifier = Modifier
-                                .alpha(incomeAlpha)
+                                .alpha(contentAlpha)
                         )
                     }
 
@@ -160,7 +142,7 @@ fun TransactionTotalsCard(
                             amount = formattedExpenses,
                             color = if (!isSystemInDarkTheme()) expense_light else expense_dark,
                             modifier = Modifier
-                                .alpha(expenseAlpha)
+                                .alpha(contentAlpha)
                         )
                     }
 
@@ -216,7 +198,7 @@ fun TransactionTotalsCard(
                             amount = formattedNet,
                             color = netColor,
                             modifier = Modifier
-                                .alpha(netAlpha)
+                                .alpha(contentAlpha)
                         )
                     }
                 }
@@ -259,7 +241,7 @@ private fun TotalColumn(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.basicMarquee(
-                iterations = Int.MAX_VALUE
+                iterations = 1
             )
         )
     }

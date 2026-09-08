@@ -82,8 +82,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
@@ -103,7 +102,7 @@ import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.SubscriptionUtils
 import com.ritesh.cashiro.utils.formatAmount
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -166,7 +165,7 @@ fun SubscriptionsScreen(
                         boundsTransform = { _, _ ->
                             spring(
                                 stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
+                                dampingRatio = Spring.DampingRatioNoBouncy
                             )
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
@@ -230,9 +229,8 @@ fun SubscriptionsScreen(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(state = hazeState)
-                .overScrollVertical(),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                .optionalHazeSource(state = hazeState),
+            flingBehavior = ScrollableDefaults.flingBehavior(),
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,
@@ -394,7 +392,7 @@ private fun TotalSubscriptionsSummary(
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
                         modifier = Modifier.fillMaxWidth().basicMarquee(
-                            iterations = Int.MAX_VALUE,
+                            iterations = 1,
                             repeatDelayMillis = 2000
                         )
                     )
@@ -430,7 +428,7 @@ private fun TotalSubscriptionsSummary(
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
                         modifier = Modifier.fillMaxWidth().basicMarquee(
-                            iterations = Int.MAX_VALUE,
+                            iterations = 1,
                             repeatDelayMillis = 2000
                         )
                     )

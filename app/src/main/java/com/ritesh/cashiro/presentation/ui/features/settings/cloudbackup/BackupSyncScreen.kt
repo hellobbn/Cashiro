@@ -5,7 +5,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -97,7 +96,6 @@ import com.ritesh.cashiro.data.cloud.BackupSchedule
 import com.ritesh.cashiro.data.cloud.CloudFileInfo
 import com.ritesh.cashiro.data.cloud.CloudProviderType
 import com.ritesh.cashiro.data.cloud.SyncStatus
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CashiroCheckbox
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DeleteCloudSnapshotDialog
@@ -131,7 +129,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -327,8 +325,7 @@ fun BackupSyncScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
-                    .overScrollVertical()
+                    .optionalHazeSource(state = hazeState)
                     .imePadding()
                     .verticalScroll(rememberScrollState())
                     .padding(top = paddingValues.calculateTopPadding())
@@ -349,587 +346,578 @@ fun BackupSyncScreen(
                         .padding(top = Spacing.sm)
                 )
 
-                AnimatedContent(
-                    targetState = selectedTab,
-                    transitionSpec = {
-                        slideInVertically { height -> height } + fadeIn() togetherWith
-                        slideOutVertically { height -> -height } + fadeOut()
-                    },
-                    contentAlignment = Alignment.TopStart,
-                    label = "backupRestoreContent"
-                ) { tab ->
-                    if (tab == 0) {
-                        // BACKUP TAB
+                if (selectedTab == 0) {
+                    // BACKUP TAB
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(Spacing.md),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+
+                        // Cloud Provider Selection Section
+                        SectionHeader(
+                            title = stringResource(R.string.storage_provider),
+                            modifier = Modifier.padding(start = Spacing.md, top = Spacing.md)
+                        )
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(Spacing.md),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(1.5.dp)
                         ) {
-
-                            // Cloud Provider Selection Section
-                            SectionHeader(
-                                title = stringResource(R.string.storage_provider),
-                                modifier = Modifier.padding(start = Spacing.md, top = Spacing.md)
+                            ProviderOptionItem(
+                                title = CloudProviderType.LOCAL_ONLY.getLocalizedDisplayName(),
+                                subtitle = stringResource(R.string.store_backups_local_desc),
+                                providerType = CloudProviderType.LOCAL_ONLY,
+                                isSelected = uiState.activeProviderType == CloudProviderType.LOCAL_ONLY,
+                                position = ListItemPosition.Top,
+                                onClick = { viewModel.setActiveProviderType(CloudProviderType.LOCAL_ONLY) }
                             )
-                            Column(
+                            ProviderOptionItem(
+                                title = CloudProviderType.WEBDAV.getLocalizedDisplayName(),
+                                subtitle = stringResource(R.string.webdav_provider_desc),
+                                providerType = CloudProviderType.WEBDAV,
+                                isSelected = uiState.activeProviderType == CloudProviderType.WEBDAV,
+                                position = ListItemPosition.Middle,
+                                onClick = { viewModel.setActiveProviderType(CloudProviderType.WEBDAV) }
+                            )
+                            ProviderOptionItem(
+                                title = CloudProviderType.GOOGLE_DRIVE.getLocalizedDisplayName(),
+                                subtitle = stringResource(R.string.google_drive_provider_desc),
+                                providerType = CloudProviderType.GOOGLE_DRIVE,
+                                isSelected = uiState.activeProviderType == CloudProviderType.GOOGLE_DRIVE,
+                                position = ListItemPosition.Bottom,
+                                onClick = { viewModel.setActiveProviderType(CloudProviderType.GOOGLE_DRIVE) }
+                            )
+                        }
+
+                        // WebDAV Configuration Card
+                        AnimatedVisibility(visible = uiState.activeProviderType == CloudProviderType.WEBDAV) {
+                            Surface(
                                 modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                                shape = MaterialTheme.shapes.large
                             ) {
-                                ProviderOptionItem(
-                                    title = CloudProviderType.LOCAL_ONLY.getLocalizedDisplayName(),
-                                    subtitle = stringResource(R.string.store_backups_local_desc),
-                                    providerType = CloudProviderType.LOCAL_ONLY,
-                                    isSelected = uiState.activeProviderType == CloudProviderType.LOCAL_ONLY,
-                                    position = ListItemPosition.Top,
-                                    onClick = { viewModel.setActiveProviderType(CloudProviderType.LOCAL_ONLY) }
-                                )
-                                ProviderOptionItem(
-                                    title = CloudProviderType.WEBDAV.getLocalizedDisplayName(),
-                                    subtitle = stringResource(R.string.webdav_provider_desc),
-                                    providerType = CloudProviderType.WEBDAV,
-                                    isSelected = uiState.activeProviderType == CloudProviderType.WEBDAV,
-                                    position = ListItemPosition.Middle,
-                                    onClick = { viewModel.setActiveProviderType(CloudProviderType.WEBDAV) }
-                                )
-                                ProviderOptionItem(
-                                    title = CloudProviderType.GOOGLE_DRIVE.getLocalizedDisplayName(),
-                                    subtitle = stringResource(R.string.google_drive_provider_desc),
-                                    providerType = CloudProviderType.GOOGLE_DRIVE,
-                                    isSelected = uiState.activeProviderType == CloudProviderType.GOOGLE_DRIVE,
-                                    position = ListItemPosition.Bottom,
-                                    onClick = { viewModel.setActiveProviderType(CloudProviderType.GOOGLE_DRIVE) }
-                                )
-                            }
-
-                            // WebDAV Configuration Card
-                            AnimatedVisibility(visible = uiState.activeProviderType == CloudProviderType.WEBDAV) {
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                                    shape = MaterialTheme.shapes.large
+                                Column(
+                                    modifier = Modifier.padding(Spacing.md),
+                                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                                 ) {
-                                    Column(
-                                        modifier = Modifier.padding(Spacing.md),
-                                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                                    Text(
+                                        text = stringResource(R.string.webdav_credentials_title),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    TextField(
+                                        value = webDavUrl,
+                                        onValueChange = { webDavUrl = it },
+                                        label = { Text(stringResource(R.string.server_url_hint)) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = TextFieldDefaults.colors(
+                                            focusedContainerColor = MaterialTheme.colorScheme.surface.copy(
+                                                0.5f
+                                            ),
+                                            unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(
+                                                0.5f
+                                            ),
+                                            focusedIndicatorColor = Color.Transparent,
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                            focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                0.5f
+                                            ),
+                                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                0.5f
+                                            ),
+                                        ),
+                                    )
+                                    TextField(
+                                        value = webDavUser,
+                                        onValueChange = { webDavUser = it },
+                                        label = { Text(stringResource(R.string.username)) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = TextFieldDefaults.colors(
+                                            focusedContainerColor = MaterialTheme.colorScheme.surface.copy(
+                                                0.5f
+                                            ),
+                                            unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(
+                                                0.5f
+                                            ),
+                                            focusedIndicatorColor = Color.Transparent,
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                            focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                0.5f
+                                            ),
+                                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                0.5f
+                                            ),
+                                        ),
+                                    )
+                                    TextField(
+                                        value = webDavPass,
+                                        onValueChange = { webDavPass = it },
+                                        label = { Text(stringResource(R.string.password_or_token)) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true,
+                                        visualTransformation = PasswordVisualTransformation(),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = TextFieldDefaults.colors(
+                                            focusedContainerColor = MaterialTheme.colorScheme.surface.copy(
+                                                0.5f
+                                            ),
+                                            unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(
+                                                0.5f
+                                            ),
+                                            focusedIndicatorColor = Color.Transparent,
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                            focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                0.5f
+                                            ),
+                                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                0.5f
+                                            ),
+                                        ),
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = stringResource(R.string.webdav_credentials_title),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        TextField(
-                                            value = webDavUrl,
-                                            onValueChange = { webDavUrl = it },
-                                            label = { Text(stringResource(R.string.server_url_hint)) },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            singleLine = true,
-                                            shape = RoundedCornerShape(16.dp),
-                                            colors = TextFieldDefaults.colors(
-                                                focusedContainerColor = MaterialTheme.colorScheme.surface.copy(
-                                                    0.5f
-                                                ),
-                                                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(
-                                                    0.5f
-                                                ),
-                                                focusedIndicatorColor = Color.Transparent,
-                                                unfocusedIndicatorColor = Color.Transparent,
-                                                focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                    0.5f
-                                                ),
-                                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                    0.5f
-                                                ),
+                                        Button(
+                                            onClick = {
+                                                viewModel.testConnection(
+                                                    CloudProviderType.WEBDAV
+                                                )
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                             ),
-                                        )
-                                        TextField(
-                                            value = webDavUser,
-                                            onValueChange = { webDavUser = it },
-                                            label = { Text(stringResource(R.string.username)) },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            singleLine = true,
-                                            shape = RoundedCornerShape(16.dp),
-                                            colors = TextFieldDefaults.colors(
-                                                focusedContainerColor = MaterialTheme.colorScheme.surface.copy(
-                                                    0.5f
-                                                ),
-                                                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(
-                                                    0.5f
-                                                ),
-                                                focusedIndicatorColor = Color.Transparent,
-                                                unfocusedIndicatorColor = Color.Transparent,
-                                                focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                    0.5f
-                                                ),
-                                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                    0.5f
-                                                ),
-                                            ),
-                                        )
-                                        TextField(
-                                            value = webDavPass,
-                                            onValueChange = { webDavPass = it },
-                                            label = { Text(stringResource(R.string.password_or_token)) },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            singleLine = true,
-                                            visualTransformation = PasswordVisualTransformation(),
-                                            shape = RoundedCornerShape(16.dp),
-                                            colors = TextFieldDefaults.colors(
-                                                focusedContainerColor = MaterialTheme.colorScheme.surface.copy(
-                                                    0.5f
-                                                ),
-                                                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(
-                                                    0.5f
-                                                ),
-                                                focusedIndicatorColor = Color.Transparent,
-                                                unfocusedIndicatorColor = Color.Transparent,
-                                                focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                    0.5f
-                                                ),
-                                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                    0.5f
-                                                ),
-                                            ),
-                                        )
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-                                            verticalAlignment = Alignment.CenterVertically
+                                            modifier = Modifier.weight(1f),
                                         ) {
-                                            Button(
-                                                onClick = {
-                                                    viewModel.testConnection(
-                                                        CloudProviderType.WEBDAV
-                                                    )
-                                                },
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                                ),
-                                                modifier = Modifier.weight(1f),
-                                            ) {
-                                                Text(stringResource(R.string.test_connection))
-                                            }
-                                            Button(
-                                                onClick = {
-                                                    viewModel.updateWebDavConfig(
-                                                        webDavUrl,
-                                                        webDavUser,
-                                                        webDavPass,
-                                                        true
-                                                    )
-                                                },
-                                                modifier = Modifier.weight(1f),
-                                            ) {
-                                                Text(stringResource(R.string.save_configuration))
-                                            }
+                                            Text(stringResource(R.string.test_connection))
                                         }
-                                    }
-                                }
-                            }
-
-                            // Google Drive Configuration Card
-                            AnimatedVisibility(visible = uiState.activeProviderType == CloudProviderType.GOOGLE_DRIVE) {
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                                    shape = MaterialTheme.shapes.large
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = stringResource(R.string.google_drive_configuration),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            modifier = Modifier.padding(Spacing.md,),
-                                        )
-
-                                        if (uiState.isGoogleDriveSignedIn) {
-                                            ListItem(
-                                                headline = { Text(uiState.googleDriveConfig.accountEmail) },
-                                                supporting = { Text(stringResource(R.string.connected_to_google_drive)) },
-                                                leading = {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .size(48.dp)
-                                                            .background(green_light, CircleShape),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Icon(
-                                                            Icons.Default.Email,
-                                                            contentDescription = null,
-                                                            tint = green_dark
-                                                        )
-                                                    }
-                                                },
-                                                padding = PaddingValues(0.dp)
-                                            )
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                                                horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-                                            ) {
-                                                Button(
-                                                    onClick = {
-                                                        gDriveSignInClient.signOut()
-                                                        viewModel.onGoogleDriveSignOut()
-                                                    },
-                                                    modifier = Modifier.weight(1f),
-                                                ) {
-                                                    Text(stringResource(R.string.sign_out))
-                                                }
-                                                Button(
-                                                    onClick = {
-                                                        viewModel.testConnection(
-                                                            CloudProviderType.GOOGLE_DRIVE
-                                                        )
-                                                    },
-                                                    modifier = Modifier.weight(1f),
-                                                    colors = ButtonDefaults.buttonColors(
-                                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                                    ),
-                                                ) {
-                                                    Text(stringResource(R.string.test_connection))
-                                                }
-                                            }
-                                        } else {
-                                            Text(
-                                                text = stringResource(R.string.google_drive_signin_desc),
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                                            )
-                                            Spacer(modifier = Modifier.size(Spacing.sm))
-                                            Button(
-                                                onClick = {
-                                                    gDriveSignInLauncher.launch(gDriveSignInClient.signInIntent)
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(horizontal = Spacing.md)
-                                                    .padding(bottom = Spacing.md)
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Email,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(18.dp)
+                                        Button(
+                                            onClick = {
+                                                viewModel.updateWebDavConfig(
+                                                    webDavUrl,
+                                                    webDavUser,
+                                                    webDavPass,
+                                                    true
                                                 )
-                                                Spacer(modifier = Modifier.size(8.dp))
-                                                Text(stringResource(R.string.sign_in_with_google))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (uiState.activeProviderType == CloudProviderType.LOCAL_ONLY) {
-                                SectionHeader(
-                                    title = stringResource(R.string.local_backup_section),
-                                    modifier = Modifier.padding(start = Spacing.md)
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                                ) {
-                                    // Export Data
-                                    ListItem(
-                                        headline = { Text(stringResource(R.string.export_data)) },
-                                        supporting = { Text(stringResource(R.string.export_data_sub)) },
-                                        leading = {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(48.dp)
-                                                    .background(yellow_light, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    Iconax.DirectboxSend,
-                                                    contentDescription = null,
-                                                    tint = yellow_dark
-                                                )
-                                            }
-                                        },
-                                        trailing = {
-                                            Icon(
-                                                Icons.Rounded.ChevronRight,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        },
-                                        onClick = { showExportDialog = true },
-                                        shape = ListItemPosition.Single.toShape(),
-                                        padding = PaddingValues(0.dp)
-                                    )
-                                }
-                            } else {
-                                // When Nextcloud/WebDAV or Google Drive is selected, show Encryption & Automation, Manual Actions, Cloud Snapshot sections
-                                // E2E Security & Schedules
-                                SectionHeader(
-                                    title = stringResource(R.string.encryption_and_automation),
-                                    modifier = Modifier.padding(start = Spacing.md)
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                                ) {
-                                    PreferenceSwitch(
-                                        title = stringResource(R.string.e2e_encryption),
-                                        subtitle = if (uiState.isE2eEnabled) stringResource(R.string.e2e_enabled_desc) else stringResource(
-                                            R.string.e2e_disabled_desc
-                                        ),
-                                        checked = uiState.isE2eEnabled,
-                                        onCheckedChange = { enabled ->
-                                            if (enabled) {
-                                                e2ePassphraseInput = uiState.e2ePassphrase
-                                                showE2eDialog = true
-                                            } else {
-                                                viewModel.setE2eEncryption(false, "")
-                                            }
-                                        },
-                                        leadingIcon = {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(48.dp)
-                                                    .background(green_light, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Security,
-                                                    contentDescription = null,
-                                                    tint = green_dark
-                                                )
-                                            }
-                                        },
-                                        padding = PaddingValues(0.dp),
-                                        isFirst = true
-                                    )
-
-                                    ListItem(
-                                        headline = { Text(stringResource(R.string.automatic_backup_schedule)) },
-                                        supporting = { Text(uiState.backupSchedule.getLocalizedDisplayName()) },
-                                        leading = {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(48.dp)
-                                                    .background(yellow_light, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.CloudSync,
-                                                    contentDescription = null,
-                                                    tint = yellow_dark
-                                                )
-                                            }
-                                        },
-                                        trailing = {
-                                            Icon(
-                                                Icons.Default.ChevronRight,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        },
-                                        onClick = { showScheduleDialog = true },
-                                        shape = ListItemPosition.Middle.toShape(),
-                                        padding = PaddingValues(0.dp)
-                                    )
-
-                                    ListItem(
-                                        headline = { Text(stringResource(R.string.backup_retention_limit)) },
-                                        supporting = {
-                                            Text(
-                                                stringResource(
-                                                    R.string.keep_snapshots_format,
-                                                    uiState.retentionLimit
-                                                )
-                                            )
-                                        },
-                                        leading = {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(48.dp)
-                                                    .background(orange_light, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.Storage,
-                                                    contentDescription = null,
-                                                    tint = orange_dark
-                                                )
-                                            }
-                                        },
-                                        trailing = {
-                                            Icon(
-                                                Icons.Default.ChevronRight,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        },
-                                        onClick = { showRetentionDialog = true },
-                                        shape = ListItemPosition.Bottom.toShape(),
-                                        padding = PaddingValues(0.dp)
-                                    )
-                                }
-
-                                // Manual Operations
-                                SectionHeader(
-                                    title = stringResource(R.string.manual_actions),
-                                    modifier = Modifier.padding(start = Spacing.md)
-                                )
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-                                ) {
-                                    Button(
-                                        onClick = { viewModel.performManualBackup() },
-                                        modifier = Modifier.weight(1f),
-                                        enabled = uiState.syncStatus is SyncStatus.Idle
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Cloud,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.size(8.dp))
-                                        Text(stringResource(R.string.create_backup))
-                                    }
-                                    Button(
-                                        onClick = { viewModel.performManualSync() },
-                                        modifier = Modifier.weight(1f),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                        ),
-                                        enabled = uiState.syncStatus is SyncStatus.Idle
-                                    ) {
-                                        Icon(
-                                            Icons.Default.CloudDone,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.size(8.dp))
-                                        Text(stringResource(R.string.sync_devices))
-                                    }
-                                }
-
-                                // Remote Cloud Snapshots Section
-                                SectionHeader(
-                                    title = stringResource(R.string.cloud_snapshots),
-                                    modifier = Modifier.padding(start = Spacing.md)
-                                )
-                                if (uiState.isLoadingSnapshots) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(Spacing.lg),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CircularProgressIndicator()
-                                    }
-                                } else if (uiState.remoteSnapshots.isEmpty()) {
-                                    Surface(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        color = MaterialTheme.colorScheme.surfaceContainerLow,
-                                        shape = MaterialTheme.shapes.large
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.no_cloud_snapshots),
-                                            modifier = Modifier.padding(Spacing.md),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                } else {
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                                    ) {
-                                        uiState.remoteSnapshots.forEachIndexed { index, snapshot ->
-                                            val pos = when {
-                                                uiState.remoteSnapshots.size == 1 -> ListItemPosition.Single
-                                                index == 0 -> ListItemPosition.Top
-                                                index == uiState.remoteSnapshots.size - 1 -> ListItemPosition.Bottom
-                                                else -> ListItemPosition.Middle
-                                            }
-                                            SnapshotListItem(
-                                                snapshot = snapshot,
-                                                position = pos,
-                                                onRestore = { viewModel.restoreSnapshot(snapshot) },
-                                                onDelete = { snapshotToDelete = snapshot }
-                                            )
+                                            },
+                                            modifier = Modifier.weight(1f),
+                                        ) {
+                                            Text(stringResource(R.string.save_configuration))
                                         }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if (tab == 1) {
-                    // RESTORE TAB
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                    ) {
-                        // Import Data
-                        ListItem(
-                            headline = { Text(stringResource(R.string.import_data)) },
-                            supporting = { Text(stringResource(R.string.import_data_sub)) },
-                            leading = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .background(green_light, CircleShape),
-                                    contentAlignment = Alignment.Center
+                        // Google Drive Configuration Card
+                        AnimatedVisibility(visible = uiState.activeProviderType == CloudProviderType.GOOGLE_DRIVE) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                                shape = MaterialTheme.shapes.large
+                            ) {
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.google_drive_configuration),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.padding(Spacing.md,),
+                                    )
+
+                                    if (uiState.isGoogleDriveSignedIn) {
+                                        ListItem(
+                                            headline = { Text(uiState.googleDriveConfig.accountEmail) },
+                                            supporting = { Text(stringResource(R.string.connected_to_google_drive)) },
+                                            leading = {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(48.dp)
+                                                        .background(green_light, CircleShape),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Email,
+                                                        contentDescription = null,
+                                                        tint = green_dark
+                                                    )
+                                                }
+                                            },
+                                            padding = PaddingValues(0.dp)
+                                        )
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                                            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+                                        ) {
+                                            Button(
+                                                onClick = {
+                                                    gDriveSignInClient.signOut()
+                                                    viewModel.onGoogleDriveSignOut()
+                                                },
+                                                modifier = Modifier.weight(1f),
+                                            ) {
+                                                Text(stringResource(R.string.sign_out))
+                                            }
+                                            Button(
+                                                onClick = {
+                                                    viewModel.testConnection(
+                                                        CloudProviderType.GOOGLE_DRIVE
+                                                    )
+                                                },
+                                                modifier = Modifier.weight(1f),
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                                ),
+                                            ) {
+                                                Text(stringResource(R.string.test_connection))
+                                            }
+                                        }
+                                    } else {
+                                        Text(
+                                            text = stringResource(R.string.google_drive_signin_desc),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                                        )
+                                        Spacer(modifier = Modifier.size(Spacing.sm))
+                                        Button(
+                                            onClick = {
+                                                gDriveSignInLauncher.launch(gDriveSignInClient.signInIntent)
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = Spacing.md)
+                                                .padding(bottom = Spacing.md)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Email,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.size(8.dp))
+                                            Text(stringResource(R.string.sign_in_with_google))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (uiState.activeProviderType == CloudProviderType.LOCAL_ONLY) {
+                            SectionHeader(
+                                title = stringResource(R.string.local_backup_section),
+                                modifier = Modifier.padding(start = Spacing.md)
+                            )
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                            ) {
+                                // Export Data
+                                ListItem(
+                                    headline = { Text(stringResource(R.string.export_data)) },
+                                    supporting = { Text(stringResource(R.string.export_data_sub)) },
+                                    leading = {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .background(yellow_light, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Iconax.DirectboxSend,
+                                                contentDescription = null,
+                                                tint = yellow_dark
+                                            )
+                                        }
+                                    },
+                                    trailing = {
+                                        Icon(
+                                            Icons.Rounded.ChevronRight,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    },
+                                    onClick = { showExportDialog = true },
+                                    shape = ListItemPosition.Single.toShape(),
+                                    padding = PaddingValues(0.dp)
+                                )
+                            }
+                        } else {
+                            // When Nextcloud/WebDAV or Google Drive is selected, show Encryption & Automation, Manual Actions, Cloud Snapshot sections
+                            // E2E Security & Schedules
+                            SectionHeader(
+                                title = stringResource(R.string.encryption_and_automation),
+                                modifier = Modifier.padding(start = Spacing.md)
+                            )
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                            ) {
+                                PreferenceSwitch(
+                                    title = stringResource(R.string.e2e_encryption),
+                                    subtitle = if (uiState.isE2eEnabled) stringResource(R.string.e2e_enabled_desc) else stringResource(
+                                        R.string.e2e_disabled_desc
+                                    ),
+                                    checked = uiState.isE2eEnabled,
+                                    onCheckedChange = { enabled ->
+                                        if (enabled) {
+                                            e2ePassphraseInput = uiState.e2ePassphrase
+                                            showE2eDialog = true
+                                        } else {
+                                            viewModel.setE2eEncryption(false, "")
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .background(green_light, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Security,
+                                                contentDescription = null,
+                                                tint = green_dark
+                                            )
+                                        }
+                                    },
+                                    padding = PaddingValues(0.dp),
+                                    isFirst = true
+                                )
+
+                                ListItem(
+                                    headline = { Text(stringResource(R.string.automatic_backup_schedule)) },
+                                    supporting = { Text(uiState.backupSchedule.getLocalizedDisplayName()) },
+                                    leading = {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .background(yellow_light, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.CloudSync,
+                                                contentDescription = null,
+                                                tint = yellow_dark
+                                            )
+                                        }
+                                    },
+                                    trailing = {
+                                        Icon(
+                                            Icons.Default.ChevronRight,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    },
+                                    onClick = { showScheduleDialog = true },
+                                    shape = ListItemPosition.Middle.toShape(),
+                                    padding = PaddingValues(0.dp)
+                                )
+
+                                ListItem(
+                                    headline = { Text(stringResource(R.string.backup_retention_limit)) },
+                                    supporting = {
+                                        Text(
+                                            stringResource(
+                                                R.string.keep_snapshots_format,
+                                                uiState.retentionLimit
+                                            )
+                                        )
+                                    },
+                                    leading = {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .background(orange_light, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Storage,
+                                                contentDescription = null,
+                                                tint = orange_dark
+                                            )
+                                        }
+                                    },
+                                    trailing = {
+                                        Icon(
+                                            Icons.Default.ChevronRight,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    },
+                                    onClick = { showRetentionDialog = true },
+                                    shape = ListItemPosition.Bottom.toShape(),
+                                    padding = PaddingValues(0.dp)
+                                )
+                            }
+
+                            // Manual Operations
+                            SectionHeader(
+                                title = stringResource(R.string.manual_actions),
+                                modifier = Modifier.padding(start = Spacing.md)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+                            ) {
+                                Button(
+                                    onClick = { viewModel.performManualBackup() },
+                                    modifier = Modifier.weight(1f),
+                                    enabled = uiState.syncStatus is SyncStatus.Idle
                                 ) {
                                     Icon(
-                                        Iconax.DirectboxReceive,
+                                        Icons.Default.Cloud,
                                         contentDescription = null,
-                                        tint = green_dark
+                                        modifier = Modifier.size(18.dp)
                                     )
+                                    Spacer(modifier = Modifier.size(8.dp))
+                                    Text(stringResource(R.string.create_backup))
                                 }
-                            },
-                            trailing = {
-                                Icon(
-                                    Icons.Rounded.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = { importLauncher.launch("*/*") },
-                            shape = ListItemPosition.Top.toShape(),
-                            padding = PaddingValues(0.dp)
-                        )
-
-                        // Import from Cashew
-                        ListItem(
-                            headline = { Text(stringResource(R.string.import_cashew_backup)) },
-                            supporting = { Text(stringResource(R.string.import_cashew_backup_sub)) },
-                            leading = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .background(blue_light, CircleShape),
-                                    contentAlignment = Alignment.Center
+                                Button(
+                                    onClick = { viewModel.performManualSync() },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    ),
+                                    enabled = uiState.syncStatus is SyncStatus.Idle
                                 ) {
                                     Icon(
-                                        imageVector = Iconax.ImportArrow01,
+                                        Icons.Default.CloudDone,
                                         contentDescription = null,
-                                        tint = blue_dark
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.size(8.dp))
+                                    Text(stringResource(R.string.sync_devices))
+                                }
+                            }
+
+                            // Remote Cloud Snapshots Section
+                            SectionHeader(
+                                title = stringResource(R.string.cloud_snapshots),
+                                modifier = Modifier.padding(start = Spacing.md)
+                            )
+                            if (uiState.isLoadingSnapshots) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(Spacing.lg),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            } else if (uiState.remoteSnapshots.isEmpty()) {
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                                    shape = MaterialTheme.shapes.large
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.no_cloud_snapshots),
+                                        modifier = Modifier.padding(Spacing.md),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                            },
-                            trailing = {
-                                Icon(
-                                    Icons.Rounded.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = { cashewImportLauncher.launch("*/*") },
-                            shape = ListItemPosition.Bottom.toShape(),
-                            padding = PaddingValues(0.dp)
-                        )
-                    }
+                            } else {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                                ) {
+                                    uiState.remoteSnapshots.forEachIndexed { index, snapshot ->
+                                        val pos = when {
+                                            uiState.remoteSnapshots.size == 1 -> ListItemPosition.Single
+                                            index == 0 -> ListItemPosition.Top
+                                            index == uiState.remoteSnapshots.size - 1 -> ListItemPosition.Bottom
+                                            else -> ListItemPosition.Middle
+                                        }
+                                        SnapshotListItem(
+                                            snapshot = snapshot,
+                                            position = pos,
+                                            onRestore = { viewModel.restoreSnapshot(snapshot) },
+                                            onDelete = { snapshotToDelete = snapshot }
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+
+                if (selectedTab == 1) {
+                // RESTORE TAB
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                ) {
+                    // Import Data
+                    ListItem(
+                        headline = { Text(stringResource(R.string.import_data)) },
+                        supporting = { Text(stringResource(R.string.import_data_sub)) },
+                        leading = {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(green_light, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Iconax.DirectboxReceive,
+                                    contentDescription = null,
+                                    tint = green_dark
+                                )
+                            }
+                        },
+                        trailing = {
+                            Icon(
+                                Icons.Rounded.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        onClick = { importLauncher.launch("*/*") },
+                        shape = ListItemPosition.Top.toShape(),
+                        padding = PaddingValues(0.dp)
+                    )
+
+                    // Import from Cashew
+                    ListItem(
+                        headline = { Text(stringResource(R.string.import_cashew_backup)) },
+                        supporting = { Text(stringResource(R.string.import_cashew_backup_sub)) },
+                        leading = {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(blue_light, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Iconax.ImportArrow01,
+                                    contentDescription = null,
+                                    tint = blue_dark
+                                )
+                            }
+                        },
+                        trailing = {
+                            Icon(
+                                Icons.Rounded.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        onClick = { cashewImportLauncher.launch("*/*") },
+                        shape = ListItemPosition.Bottom.toShape(),
+                        padding = PaddingValues(0.dp)
+                    )
+                }
+                }
+
 
                 Spacer(modifier = Modifier.size(Spacing.xl))
             }

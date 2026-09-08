@@ -36,7 +36,7 @@ import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
@@ -98,7 +98,7 @@ fun SharedTransitionScope.AddScreen(
                 boundsTransform = { _, _ ->
                     spring(
                         stiffness = Spring.StiffnessLow,
-                        dampingRatio = Spring.DampingRatioLowBouncy
+                        dampingRatio = Spring.DampingRatioNoBouncy
                     )
                 },
                 resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
@@ -126,7 +126,7 @@ fun SharedTransitionScope.AddScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
+                    .optionalHazeSource(state = hazeState)
                     .padding(
                         start = Dimensions.Padding.content,
                         end = Dimensions.Padding.content,

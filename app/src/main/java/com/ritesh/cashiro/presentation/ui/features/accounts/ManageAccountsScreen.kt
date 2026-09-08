@@ -73,7 +73,6 @@ import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontFamily
@@ -103,7 +102,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -285,7 +284,7 @@ fun ManageAccountsScreen(
                     state = lazyListState,
                     modifier = Modifier
                         .fillMaxSize()
-                        .then(if (blurEffects) Modifier.hazeSource(state = hazeState) else Modifier),
+                        .then(if (blurEffects) Modifier.optionalHazeSource(state = hazeState) else Modifier),
                     contentPadding = PaddingValues(
                         start = Dimensions.Padding.content,
                         end = Dimensions.Padding.content,
@@ -1409,15 +1408,12 @@ private fun OrphanedCardItem(
                                 onLinkToAccount("")
                             },
                             modifier = Modifier
-                                .shadow(
-                                    elevation = 2.dp,
-                                    shape = RoundedCornerShape(
+                                .clip(RoundedCornerShape(
                                         topStart = 16.dp,
                                         topEnd = 16.dp,
                                         bottomStart = 4.dp,
                                         bottomEnd = 4.dp
-                                    )
-                                )
+                                    ))
                                 .background(
                                     color = MaterialTheme.colorScheme.surfaceContainer,
                                     shape = RoundedCornerShape(
@@ -1449,15 +1445,12 @@ private fun OrphanedCardItem(
                                 onDeleteCard(card.id)
                             },
                             modifier = Modifier
-                                .shadow(
-                                    elevation = 2.dp,
-                                    shape = RoundedCornerShape(
+                                .clip(RoundedCornerShape(
                                         topStart = 4.dp,
                                         topEnd = 4.dp,
                                         bottomStart = 16.dp,
                                         bottomEnd = 16.dp
-                                    )
-                                )
+                                    ))
                                 .background(
                                     color = MaterialTheme.colorScheme.errorContainer,
                                     shape = RoundedCornerShape(

@@ -1,7 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.appearance
 
 import android.os.Build
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -68,14 +67,13 @@ import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.data.preferences.ThemeStyle
 import com.ritesh.cashiro.utils.IconSwitchingUtils
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.*
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -111,8 +109,7 @@ fun AppearanceScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
-                    .overScrollVertical()
+                    .optionalHazeSource(state = hazeState)
                     .verticalScroll(rememberScrollState())
                     .padding(
                         top = Dimensions.Padding.content + paddingValues.calculateTopPadding()
@@ -120,10 +117,7 @@ fun AppearanceScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 Column(
-                    modifier = Modifier
-                        .animateContentSize(
-                            MaterialTheme.motionScheme.fastSpatialSpec()
-                        ),
+                    modifier = Modifier,
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
                     Row(
@@ -376,9 +370,6 @@ fun AppearanceScreen(
                         enter = fadeIn() + slideInVertically{-it},
                         exit = fadeOut() + slideOutVertically{-it},
                         modifier = Modifier
-                            .animateContentSize(
-                            MaterialTheme.motionScheme.defaultSpatialSpec()
-                            )
                             .zIndex(-1f)
                     ) {
                         val isDark = themeUiState.isDarkTheme ?: isSystemInDarkTheme()
@@ -541,9 +532,6 @@ fun AppearanceScreen(
                 )
                 Column(
                     modifier = Modifier
-                        .animateContentSize(
-                            MaterialTheme.motionScheme.defaultSpatialSpec()
-                        )
                         .fillMaxWidth()
                         .padding(horizontal = Spacing.md),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)

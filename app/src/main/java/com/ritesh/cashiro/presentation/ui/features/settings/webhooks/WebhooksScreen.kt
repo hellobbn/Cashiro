@@ -65,7 +65,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItem
@@ -88,7 +87,7 @@ import com.ritesh.cashiro.presentation.ui.theme.green_light
 import com.ritesh.cashiro.presentation.ui.theme.purple_dark
 import com.ritesh.cashiro.presentation.ui.theme.purple_light
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -117,9 +116,8 @@ fun WebhooksScreen(
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .hazeSource(hazeState)
+                .optionalHazeSource(hazeState)
                 .fillMaxWidth()
-                .overScrollVertical()
                 .verticalScroll(state = rememberScrollState())
                 .padding(
                     start = Dimensions.Padding.content,

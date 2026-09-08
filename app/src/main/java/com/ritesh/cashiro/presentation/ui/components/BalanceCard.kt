@@ -1,7 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -35,6 +34,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -90,7 +90,7 @@ fun BalanceCard(
     var isExpanded by remember { mutableStateOf(false) }
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 
-    val rotation by animateFloatAsState(
+    val rotation = animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
         label = "chevron_rotation"
     )
@@ -99,9 +99,6 @@ fun BalanceCard(
         CashiroCard(
             modifier = modifier
                 .fillMaxWidth()
-                .animateContentSize(
-                    MaterialTheme.motionScheme.fastSpatialSpec()
-                )
                 .clip(RoundedCornerShape(Dimensions.Radius.lg))
                 .then(
                     if (blurEffects) Modifier.hazeEffect(
@@ -284,7 +281,7 @@ fun BalanceCard(
                 .padding(bottom = 4.dp)
                 .height(28.dp)
                 .width(40.dp)
-                .rotate(rotation)
+                .graphicsLayer { rotationZ = rotation.value }
         )
     }
 }

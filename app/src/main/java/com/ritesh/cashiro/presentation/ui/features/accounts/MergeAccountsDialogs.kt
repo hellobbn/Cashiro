@@ -177,7 +177,7 @@ fun AccountSelectionItem(account: AccountBalanceEntity, isSelected: Boolean, onC
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.basicMarquee(
-                        iterations = Int.MAX_VALUE
+                        iterations = 1
                     )
                 )
                 Text(
@@ -195,7 +195,7 @@ fun AccountSelectionItem(account: AccountBalanceEntity, isSelected: Boolean, onC
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.basicMarquee()
+                modifier = Modifier.basicMarquee(iterations = 1)
             )
             Icon(
                 imageVector = if (isSelected) Icons.Filled.CheckCircle

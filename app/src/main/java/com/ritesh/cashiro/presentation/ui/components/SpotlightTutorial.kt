@@ -1,7 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -14,7 +12,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -34,12 +31,6 @@ fun SpotlightTutorial(
 ) {
     if (!isVisible || targetPosition == null) return
     
-    val alpha by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = 300),
-        label = "spotlight_alpha"
-    )
-    
     val density = LocalDensity.current
     val padding = with(density) { 12.dp.toPx() }
     
@@ -51,7 +42,6 @@ fun SpotlightTutorial(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { this.alpha = alpha }
                 .pointerInput(targetPosition, padding) {
                     awaitEachGesture {
                         val down = awaitFirstDown()

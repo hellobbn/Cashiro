@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -753,7 +752,7 @@ private fun PreviewAccountCard(
         shape = RoundedCornerShape(24.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().animateContentSize(),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Balance/Outstanding Section

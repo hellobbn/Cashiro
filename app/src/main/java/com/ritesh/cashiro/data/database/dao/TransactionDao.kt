@@ -12,6 +12,14 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE is_deleted = 0 ORDER BY date_time DESC")
     fun getAllTransactions(): Flow<List<TransactionEntity>>
 
+    @Query("""
+        SELECT * FROM transactions
+        WHERE is_deleted = 0 AND transaction_type != 'BALANCE_UPDATE'
+        ORDER BY date_time DESC, id DESC
+        LIMIT :limit
+    """)
+    fun getRecentTransactions(limit: Int): Flow<List<TransactionEntity>>
+
     @Query("SELECT COUNT(*) FROM transactions WHERE is_deleted = 0")
     fun getTransactionCount(): Flow<Int>
 

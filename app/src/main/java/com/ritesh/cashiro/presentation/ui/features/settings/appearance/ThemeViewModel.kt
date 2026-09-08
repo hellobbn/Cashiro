@@ -123,7 +123,7 @@ data class ThemeUiState(
     val accentColor: AccentColor = AccentColor.BLUE,
     val hideNavigationLabels: Boolean = false,
     val hidePillIndicator: Boolean = false,
-    val blurEffects: Boolean = true,
+    val blurEffects: Boolean = false,
     val isOnboardingFinished: Boolean = false,
     val currentAppIcon: AppIcon = AppIcon.ORIGINAL,
     val isLoaded: Boolean = false

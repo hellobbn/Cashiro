@@ -1,20 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.categories
 
 import android.content.Context
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,8 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,35 +15,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.ui.components.SearchBarBox
 
@@ -93,130 +73,72 @@ fun IconSelector(
                 }
             }
 
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
-
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         SearchBarBox(
             searchQuery = searchQuery,
             onSearchQueryChange = { searchQuery = it },
             label = {
-                AnimatedContent(
-                    targetState = labels[currentLabelIndex],
-                    transitionSpec = {
-                        (fadeIn(animationSpec = tween(400, delayMillis = 100)) +
-                                slideInVertically(
-                                    initialOffsetY = { it },
-                                    animationSpec = tween(400, delayMillis = 100)
-                                ))
-                            .togetherWith(
-                                fadeOut(animationSpec = tween(400)) +
-                                        slideOutVertically(targetOffsetY = { -it }, animationSpec = tween(400))
-                            )
-                    },
-                    label = "SearchBarLabelAnimation"
-                ) { labelText ->
-                    Text(
-                        text = labelText,
-                        fontSize = 14.sp,
-                        lineHeight = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        fontStyle = FontStyle.Italic,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.inverseSurface.copy(0.5f),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.search),
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        AnimatedContent(
-                targetState = filteredIcons,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(220, delayMillis = 90)) +
-                            scaleIn(
-                                    initialScale = 0.92f,
-                                    animationSpec = tween(220, delayMillis = 90)
-                            ) togetherWith fadeOut(animationSpec = tween(90))
-                },
-                label = "Filtered Icon animated"
-        ) { iconsToDisplay ->
-            IconFlowLayout(
-                    icons = iconsToDisplay,
-                    selectedIconName = selectedIconName,
-                    onIconSelected = onIconSelected,
-            )
-        }
+        IconGrid(
+            icons = filteredIcons,
+            selectedIconName = selectedIconName,
+            onIconSelected = onIconSelected,
+        )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
+/** Each icon is a lazy item, rather than composing an entire category FlowRow at once. */
 @Composable
-private fun IconFlowLayout(
+internal fun IconGrid(
     icons: List<IconItem>,
     selectedIconName: String?,
     onIconSelected: (String) -> Unit,
 ) {
     val themeColors = MaterialTheme.colorScheme
-    val groupedIcons = icons.groupBy { it.category }
+    // The catalog contains duplicate resources and search aliases. Filter first, then display
+    // each resource once per category so lazy keys remain unique without losing alias search.
+    val groupedIcons = remember(icons) {
+        icons.distinctBy { it.category to it.iconName }.groupBy { it.category }
+    }
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp.dp
-
-    LazyColumn(
-            modifier = Modifier.height(screenHeight),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 32.dp)
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(64.dp),
+        modifier = Modifier.height(screenHeight),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 32.dp)
     ) {
         groupedIcons.forEach { (category, iconsInCategory) ->
-            stickyItemHeader(key = "$category header") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    themeColors.surface,
-                                    themeColors.surface.copy(alpha = 0.9f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text(
-                            text = category.uppercase(),
-                            color = themeColors.primary,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                    )
-                }
+            item(key = "header:$category", contentType = "header", span = { GridItemSpan(maxLineSpan) }) {
+                Text(
+                    text = category.uppercase(),
+                    color = themeColors.primary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                )
             }
-
-            item(key = category) {
-                FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                ) {
-                    iconsInCategory.forEach { icon ->
-                        IconItemView(
-                                icon = icon,
-                                isSelected = icon.iconName == selectedIconName,
-                                onClick = { onIconSelected(icon.iconName) }
-                        )
-                    }
-                }
+            items(
+                items = iconsInCategory,
+                key = { "icon:${it.category}:${it.iconName}" },
+                contentType = { "icon" }
+            ) { icon ->
+                IconItemView(
+                    icon = icon,
+                    isSelected = icon.iconName == selectedIconName,
+                    onClick = { onIconSelected(icon.iconName) }
+                )
             }
         }
     }
@@ -229,34 +151,11 @@ private fun IconItemView(
     onClick: () -> Unit,
 ) {
     val themeColors = MaterialTheme.colorScheme
-    val infiniteTransition = rememberInfiniteTransition(label = "Selected Glow animation")
-
-    val animatedColor by
-            infiniteTransition.animateColor(
-                initialValue = themeColors.primary.copy(alpha = 0.5f),
-                targetValue = themeColors.secondary.copy(alpha = 0.5f),
-                animationSpec =
-                    infiniteRepeatable(
-                        animation = tween(2000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                label = "Selected Glow animation"
-            )
-
     Box(
         modifier = Modifier
             .then(
                 if (isSelected) {
-                    Modifier
-                        .shadow(
-                            8.dp,
-                            RoundedCornerShape(16.dp),
-                            spotColor = animatedColor
-                        ).border(
-                        2.dp,
-                        animatedColor,
-                        RoundedCornerShape(16.dp)
-                    )
+                    Modifier.border(2.dp, themeColors.primary, RoundedCornerShape(16.dp))
                 } else {
                     Modifier
                 }

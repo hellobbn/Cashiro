@@ -102,7 +102,7 @@ fun SpendingLineChart(
             .fillMaxWidth()
             .height(280.dp)
             .padding(vertical = Spacing.md),
-        data = listOf(
+        data = remember(cashFlowData, typeFilters, totalLabel, filterLabelStrings, themeColors) { listOf(
             Line(
                 label = if (typeFilters.contains(TransactionTypeFilter.ALL) || typeFilters.size > 2) {
                     totalLabel
@@ -113,8 +113,9 @@ fun SpendingLineChart(
                 color = SolidColor(themeColors.primary),
                 firstGradientFillColor = themeColors.primary.copy(alpha = 0.3f),
                 secondGradientFillColor = Color.Transparent,
-                strokeAnimationSpec = tween(1500, easing = EaseInOutCubic),
-                gradientAnimationDelay = 750,
+                strokeAnimationSpec = snap(),
+                gradientAnimationSpec = snap(),
+                gradientAnimationDelay = 0,
                 drawStyle = DrawStyle.Stroke(width = 2.dp),
                 curvedEdges = true,
                 dotProperties = DotProperties(
@@ -125,7 +126,8 @@ fun SpendingLineChart(
                     strokeColor = SolidColor(themeColors.surface)
                 )
             )
-        ),
+        ) },
+
         dividerProperties = DividerProperties(
             enabled = true,
             xAxisProperties = LineProperties(
@@ -186,7 +188,7 @@ fun SpendingLineChart(
                 color = SolidColor(themeColors.onSurface.copy(alpha = 0.1f))
             )
         ),
-        animationMode = AnimationMode.Together(delayBuilder = { it * 200L }),
+        animationMode = AnimationMode.Together(delayBuilder = { 0L }),
     )
 }
 
@@ -203,7 +205,7 @@ fun SpendingBarChart(
     val totalLabel = stringResource(R.string.total)
     val filterLabelStrings = typeFilters.map { stringResource(it.labelRes) }
 
-    val columnData = remember(data) {
+    val columnData = remember(data, typeFilters, totalLabel, filterLabelStrings, themeColors.primary) {
         val isYearly = data.size > 1 && data.all { it.timestamp.dayOfYear == 1 }
         val isMonthly = !isYearly && data.all { it.timestamp.dayOfMonth == 1 }
         val spansMultipleYears = if (data.isNotEmpty()) {
@@ -307,10 +309,7 @@ fun SpendingBarChart(
                 color = SolidColor(themeColors.onSurface.copy(alpha = 0.1f))
             )
         ),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
+        animationSpec = snap(),
     )
 }
 
@@ -334,11 +333,8 @@ fun CategoryPieChart(
                 selectedColor = (CategoryMapping.categories[category.name]?.color
                     ?: Color.Gray).copy(alpha = 0.8f),
                 selected = false,
-                scaleAnimEnterSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                colorAnimEnterSpec = tween(500)
+                scaleAnimEnterSpec = tween(120),
+                colorAnimEnterSpec = tween(120)
             )
         }
     }
@@ -369,11 +365,8 @@ fun CategoryPieChart(
                     }
                 },
                 selectedScale = 1.1f,
-                scaleAnimEnterSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                colorAnimEnterSpec = tween(500),
+                scaleAnimEnterSpec = tween(120),
+                colorAnimEnterSpec = tween(120),
                 style = Pie.Style.Stroke(width = 12.dp)
             )
 

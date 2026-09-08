@@ -7,8 +7,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 
 fun Modifier.bottomFade(
     fadeHeightPercentage: Float = 0.3f
@@ -24,37 +22,4 @@ fun Modifier.bottomFade(
             ),
             blendMode = BlendMode.DstIn
         )
-    }
-
-fun Modifier.horizontalFadingEdge(
-    canScrollBackward: Boolean,
-    canScrollForward: Boolean,
-    edgeWidth: Dp = 16.dp
-): Modifier = this
-    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-    .drawWithContent {
-        drawContent()
-        val edgeWidthPx = edgeWidth.toPx()
-
-        if (canScrollBackward) {
-            drawRect(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(Color.Transparent, Color.Black),
-                    startX = 0f,
-                    endX = edgeWidthPx
-                ),
-                blendMode = BlendMode.DstIn
-            )
-        }
-
-        if (canScrollForward) {
-            drawRect(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(Color.Black, Color.Transparent),
-                    startX = size.width - edgeWidthPx,
-                    endX = size.width
-                ),
-                blendMode = BlendMode.DstIn
-            )
-        }
     }

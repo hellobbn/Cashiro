@@ -111,7 +111,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeApi::class)
 @Composable
@@ -168,7 +168,9 @@ fun CashiroNavHost(
             NavHost(
                 navController = navController,
                 startDestination = stableStartDestination,
-                modifier = Modifier.fillMaxSize().hazeSource(hazeState),
+                modifier = Modifier.fillMaxSize().then(
+                    if (themeUiState.blurEffects) Modifier.optionalHazeSource(hazeState) else Modifier
+                ),
             ) {
                 // App Lock Screen
                 composable<AppLock>(
@@ -217,32 +219,30 @@ fun CashiroNavHost(
                     popEnterTransition = MainTabMotion.popEnter,
                     popExitTransition = MainTabMotion.popExit
                 ) {
-                    SharedTransitionLayout {
-                        HomeScreen(
-                            navController = navController,
-                            onNavigateToSettings = { navController.safeNavigate(Settings) },
-                            onNavigateToTransactions = { navController.safeNavigate(Transactions()) },
-                            onNavigateToTransactionsWithSearch = {
-                                navController.safeNavigate(Transactions(focusSearch = true))
-                            },
-                            onNavigateToSubscriptions = { navController.safeNavigate(Subscriptions) },
-                            onNavigateToBudgets = { id ->
-                                if (id != null) {
-                                    navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = "budget_card_$id"))
-                                } else {
-                                    navController.safeNavigate(Budgets())
-                                }
-                            },
-                            onNavigateToBudgetHistory = { id ->
-                                navController.safeNavigate(BudgetHistory(id))
-                            },
-                            onNavigateToLendBorrow = { filter -> navController.safeNavigate(LendBorrow(filter)) },
-                            onTransactionClick = { transactionId, key ->
-                                navController.safeNavigate(TransactionDetail(transactionId, key))
-                            },
-                            animatedContentScope = this@composable,
-                        )
-                    }
+                    HomeScreen(
+                        navController = navController,
+                        onNavigateToSettings = { navController.safeNavigate(Settings) },
+                        onNavigateToTransactions = { navController.safeNavigate(Transactions()) },
+                        onNavigateToTransactionsWithSearch = {
+                            navController.safeNavigate(Transactions(focusSearch = true))
+                        },
+                        onNavigateToSubscriptions = { navController.safeNavigate(Subscriptions) },
+                        onNavigateToBudgets = { id ->
+                            if (id != null) {
+                                navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = "budget_card_$id"))
+                            } else {
+                                navController.safeNavigate(Budgets())
+                            }
+                        },
+                        onNavigateToBudgetHistory = { id ->
+                            navController.safeNavigate(BudgetHistory(id))
+                        },
+                        onNavigateToLendBorrow = { filter -> navController.safeNavigate(LendBorrow(filter)) },
+                        onTransactionClick = { transactionId, key ->
+                            navController.safeNavigate(TransactionDetail(transactionId, key))
+                        },
+                    )
+
                 }
 
                 // Analytics Screen
@@ -852,7 +852,7 @@ fun CashiroNavHost(
                                         boundsTransform = { _, _ ->
                                             spring(
                                                 stiffness = Spring.StiffnessLow,
-                                                dampingRatio = Spring.DampingRatioLowBouncy
+                                                dampingRatio = Spring.DampingRatioNoBouncy
                                             )
                                         },
                                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(

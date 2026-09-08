@@ -2,7 +2,6 @@ package com.ritesh.cashiro.presentation.ui.features.add
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,10 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,9 +29,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.util.Locale
-import kotlin.math.pow
-import kotlin.math.roundToLong
 
 @Composable
 fun AmountInput(
@@ -88,12 +81,12 @@ fun AnimatedCounterText(
     fontSize: TextUnit = 24.sp,
     maxLines: Int = 1,
     fontWeight: FontWeight? = FontWeight.Normal,
-    animationSpec: AnimationSpec<Float> = spring(
-        dampingRatio = Spring.DampingRatioLowBouncy,
+    @Suppress("UNUSED_PARAMETER") animationSpec: AnimationSpec<Float> = spring(
+        dampingRatio = Spring.DampingRatioNoBouncy,
         stiffness = Spring.StiffnessLow
     ),
     textStyle: TextStyle = TextStyle(
-        textMotion = TextMotion.Animated,
+        textMotion = TextMotion.Static,
         lineBreak = LineBreak.Simple,
         textAlign = TextAlign.Start,
     ),
@@ -101,63 +94,14 @@ fun AnimatedCounterText(
     onAnimationComplete: () -> Unit = {},
     enableDynamicSizing: Boolean = true
 ) {
-    // Parse the input amount and clean it up
-    val cleanedAmount = if (amount.isEmpty() || amount.any { it in specialKeys } || amount.all { it == '0' }) {
-        "0"
-    } else {
-        val trimmedInput = amount.trimStart('0').ifEmpty { "0" }
-        if (trimmedInput.contains('.')) {
-            val (integerPart, fractionalPart) = trimmedInput.split('.')
-            val cleanedFractionalPart = fractionalPart.trimEnd('0')
-            if (cleanedFractionalPart.isEmpty()) {
-                integerPart
-            } else {
-                "$integerPart.$cleanedFractionalPart"
-            }
-        } else {
-            trimmedInput
-        }
-    }
-
-    // Convert to numeric value for animation
-    val targetValue = try {
-        cleanedAmount.toFloat()
-    } catch (e: NumberFormatException) {
-        0f
-    }
-
-    // Track first appearance to ensure animation runs on initial display
-    var isFirstAppearance by remember { mutableStateOf(true) }
-
-    // Remember the previous amount to force animation when mode changes
-    var previousAmount by remember { mutableStateOf("") }
-
-    // Force animation start from zero on first appearance or mode change
-    val startValue = if (isFirstAppearance || previousAmount != amount) 0f else targetValue
-
-    // Animation target state with key to force recomposition
-    val animatedValue by animateFloatAsState(
-        targetValue = startValue,
-        animationSpec = animationSpec,
-        label = "Counter Animation",
-        finishedListener = { onAnimationComplete() }
-    )
-
-    // Update tracking states after composition
-    LaunchedEffect(amount) {
-        if (previousAmount != amount) {
-            previousAmount = amount
-            if (isFirstAppearance) {
-                isFirstAppearance = false
-            }
-        }
-    }
-
-    // Format the animated value properly
-    val displayText = formatAnimatedValue(animatedValue, cleanedAmount)
+    // Never count through intermediate money values: format once per input, retaining
+    // decimal precision and avoiding per-frame text measurement/font-size changes.
+    val displayText = remember(amount, specialKeys) { formatCounterAmount(amount, specialKeys) }
+    val completion = androidx.compose.runtime.rememberUpdatedState(onAnimationComplete)
+    LaunchedEffect(amount) { completion.value() }
 
     // Calculate dynamic font size based on display text length
-    val dynamicFontSize = remember(displayText, enableDynamicSizing) {
+    val dynamicFontSize = remember(displayText, enableDynamicSizing, fontSize) {
         if (enableDynamicSizing) {
             calculateDynamicFontSizeForAnimatedCounterText(displayText)
         } else {
@@ -180,31 +124,14 @@ fun AnimatedCounterText(
     )
 }
 
-// Helper function to format the animated value to match the target format
-private fun formatAnimatedValue(value: Float, targetString: String): String {
-    val hasDecimal = targetString.contains('.')
-    return if (hasDecimal) {
-        val decimalPart = targetString.substringAfter('.', "")
-        val decimalPlaces = decimalPart.length
-        val factor = 10.0.pow(decimalPlaces.toDouble()).toFloat()
-        val roundedValue = (value * factor).roundToLong() / factor
-
-        // Special handling for trailing zeros, similar to the reference code
-        if (decimalPart.all { it == '0' }) {
-            // If all decimal places are zeros, format as integer with commas
-            String.format(Locale.US, "%,d", roundedValue.roundToLong())
-        } else if (roundedValue.roundToLong().toFloat() != roundedValue) {
-            // If there's a meaningful decimal part
-            val pattern = "%,.${decimalPlaces}f"
-            String.format(Locale.US, pattern, roundedValue)
-        } else {
-            // Otherwise, round to whole number with commas
-            String.format(Locale.US, "%,d", roundedValue.roundToLong())
-        }
-    } else {
-        // Format integer with commas
-        String.format(Locale.US, "%,d", value.roundToLong())
-    }
+internal fun formatCounterAmount(amount: String, specialKeys: Set<Char>): String {
+    if (amount.isBlank() || amount.any { it in specialKeys }) return "0"
+    val value = amount.toBigDecimalOrNull()?.stripTrailingZeros() ?: return "0"
+    val plain = value.toPlainString()
+    val integer = plain.substringBefore('.')
+    val sign = if (integer.startsWith('-')) "-" else ""
+    val grouped = sign + integer.removePrefix("-").reversed().chunked(3).joinToString(",").reversed()
+    return if ('.' in plain) "$grouped.${plain.substringAfter('.')}" else grouped
 }
 
 // Calculate dynamic font size based on amount length

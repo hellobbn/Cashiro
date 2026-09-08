@@ -55,8 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.BudgetCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
@@ -69,7 +68,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
@@ -290,7 +289,7 @@ fun SharedTransitionScope.BudgetsScreen(
     ) { paddingValues ->
         Box(
             modifier = Modifier.fillMaxSize()
-                .hazeSource(state = hazeState)
+                .optionalHazeSource(state = hazeState)
         ) {
             when {
                 uiState.isLoading -> {
@@ -355,9 +354,8 @@ private fun SharedTransitionScope.BudgetsList(
         state = lazyListState,
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .overScrollVertical(),
-        flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+            .background(MaterialTheme.colorScheme.background),
+        flingBehavior = ScrollableDefaults.flingBehavior(),
         contentPadding = PaddingValues(
             start = Spacing.md,
             end = Spacing.md,

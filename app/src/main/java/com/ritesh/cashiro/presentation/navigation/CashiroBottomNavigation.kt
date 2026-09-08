@@ -1,9 +1,7 @@
 package com.ritesh.cashiro.presentation.navigation
 
 import android.view.HapticFeedbackConstants
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -154,28 +152,7 @@ fun CashiroBottomNavigation(
                             selected = selected,
                             onClick = {
                                 view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                // Keep an already selected root page; contextual routes still reset below.
-                                if (navController.isCurrentMainTabRoot(item)) return@NavigationBarItem
-                                    MainTabTiming.request(item.route)
-                                val startDestId = navController.graph.findStartDestination().id
-                                if (item.destination == Home) {
-                                    navController.popBackStack(Home, inclusive = false, saveState = true)
-                                } else if (navController.isCurrentMainTab(item)) {
-                                    navController.safeNavigate(item.destination) {
-                                        popUpTo(item.destinationType) {
-                                            inclusive = true
-                                        }
-                                        launchSingleTop = true
-                                    }
-                                } else {
-                                    navController.safeNavigate(item.destination) {
-                                        popUpTo(startDestId) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
+                                navController.navigateToMainTab(item)
                             },
                             icon = {
                                 Icon(
@@ -256,10 +233,7 @@ fun CashiroBottomNavigation(
                                     }
                                 ) else Modifier
                             )
-                            .zIndex(1000f)
-                            .animateContentSize(
-                                MaterialTheme.motionScheme.fastSpatialSpec()
-                            ),
+                            .zIndex(1000f),
                         colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
                             toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(
                                 alpha = if (blurEffects) 0.7f else 1f
@@ -276,28 +250,7 @@ fun CashiroBottomNavigation(
                                 checked = selected,
                                 onCheckedChange = {
                                     view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    // Keep an already selected root page; contextual routes still reset below.
-                                    if (navController.isCurrentMainTabRoot(item)) return@TonalToggleButton
-                                    MainTabTiming.request(item.route)
-                                    val startDestId = navController.graph.findStartDestination().id
-                                    if (item.destination == Home) {
-                                        navController.popBackStack(Home, inclusive = false, saveState = true)
-                                    } else if (navController.isCurrentMainTab(item)) {
-                                        navController.safeNavigate(item.destination) {
-                                            popUpTo(item.destinationType) {
-                                                inclusive = true
-                                            }
-                                            launchSingleTop = true
-                                        }
-                                    } else {
-                                        navController.safeNavigate(item.destination) {
-                                            popUpTo(startDestId) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
+                                    navController.navigateToMainTab(item)
                                 },
                                 shapes = ToggleButtonDefaults.shapes(
                                     shape = FloatingToolbarDefaults.ContainerShape,
@@ -395,6 +348,42 @@ fun CashiroBottomNavigation(
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Home is the persistent bottom-tab anchor, even when this graph originally started at
+ * OnBoarding. Using graph.findStartDestination() after onboarding has been popped leaves
+ * peer tabs stacked on each other and can restore Analytics when Transactions was tapped.
+ */
+internal fun NavHostController.navigateToMainTab(item: BottomNavItem) {
+    if (isCurrentMainTabRoot(item)) return
+    MainTabTiming.request(item.route)
+    when {
+        item.destination == Home -> popBackStack(Home, inclusive = false, saveState = true)
+        isCurrentMainTab(item) -> safeNavigate(item.destination) {
+            // A filtered/search entry is not the root tab requested by this button.
+            popUpTo(item.destinationType) { inclusive = true }
+            launchSingleTop = true
+        }
+        else -> {
+            safeNavigate(item.destination) {
+                popUpTo(Home) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+            // An older session may already have saved several peer tabs under one key.
+            // Keep the requested root's state, but discard the incorrectly restored peers.
+            if (!isCurrentMainTabRoot(item)) {
+                val restoredRoot = popBackStack(item.destination, inclusive = false)
+                if (!restoredRoot || !isCurrentMainTabRoot(item)) {
+                    safeNavigate(item.destination) {
+                        popUpTo(Home)
+                        launchSingleTop = true
                     }
                 }
             }

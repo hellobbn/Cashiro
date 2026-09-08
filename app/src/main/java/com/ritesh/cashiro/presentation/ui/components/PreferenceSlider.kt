@@ -1,6 +1,4 @@
 package com.ritesh.cashiro.presentation.ui.components
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -49,10 +47,7 @@ fun PreferenceSlider(
     selectedListColor: Color = MaterialTheme.colorScheme.primaryContainer
 
 ) {
-    val alpha by animateFloatAsState(
-        targetValue = if (!isFaded) 1f else 0.4f,
-        label = "width_alpha"
-    )
+    val alpha = if (!isFaded) 1f else 0.4f
     ListItem(
         headline = {
             Row(
@@ -77,7 +72,7 @@ fun PreferenceSlider(
         },
         supporting = {
             Row(
-                modifier = Modifier.animateContentSize().fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {

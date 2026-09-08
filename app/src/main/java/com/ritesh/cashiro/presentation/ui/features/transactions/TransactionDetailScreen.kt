@@ -19,7 +19,6 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -138,7 +137,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -181,7 +179,6 @@ import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.presentation.common.icons.BrandIcons
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
@@ -236,7 +233,7 @@ import com.ritesh.cashiro.utils.SubscriptionUtils
 import com.ritesh.cashiro.utils.formatAmount
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.AnnotatedString
@@ -440,7 +437,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                     boundsTransform = { _, _ ->
                         spring(
                             stiffness =  Spring.StiffnessLow,
-                            dampingRatio = Spring.DampingRatioLowBouncy
+                            dampingRatio = Spring.DampingRatioNoBouncy
                         )
                     },
                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Inside, Alignment.Center),
@@ -473,7 +470,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                     if(!isEditMode){
                         Box(
                             modifier = Modifier
-                                .animateContentSize()
                                 .padding(end = 16.dp)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
@@ -943,7 +939,6 @@ private fun TransactionNavigationContent(
 ) {
     Box(
         modifier = Modifier
-            .animateContentSize()
             .padding(start = 16.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -1050,8 +1045,7 @@ private fun TransactionDetailContent(
         modifier = modifier
             .fillMaxSize()
             .imePadding()
-            .hazeSource(state = hazeState)
-            .overScrollVertical()
+            .optionalHazeSource(state = hazeState)
             .verticalScroll(
                 state = rememberScrollState()
             )
@@ -1075,9 +1069,6 @@ private fun TransactionDetailContent(
 
             Column(
                 modifier =  Modifier
-                    .animateContentSize(
-                        MaterialTheme.motionScheme.fastSpatialSpec()
-                    )
             ) {
                 EditableTransactionHeader(
                     transaction = transaction,
@@ -1169,10 +1160,6 @@ private fun TransactionDetailContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(80.dp)
-                            .shadow(
-                                2.dp,
-                                shape = RoundedCornerShape(24.dp)
-                            )
                             .clip(RoundedCornerShape(24.dp))
                             .background(
                                 color = Color.Black,
@@ -1569,10 +1556,7 @@ private fun EditableExtractedInfoCard(
                 // Transfer Type UI
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .animateContentSize(
-                            MaterialTheme.motionScheme.fastSpatialSpec()
-                        ),
+                        .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Box(
@@ -1701,7 +1685,6 @@ private fun EditableExtractedInfoCard(
                             Box(
                                 modifier = Modifier
                                     .size(28.dp)
-                                    .shadow(elevation = 3.dp, shape = CircleShape)
                                     .clip(CircleShape)
                                     .background(
                                         MaterialTheme.colorScheme.surface,
@@ -1740,9 +1723,6 @@ private fun EditableExtractedInfoCard(
                 // Non-Transfer Type UI
                 Column(
                     modifier = Modifier
-                        .animateContentSize(
-                            MaterialTheme.motionScheme.fastSpatialSpec()
-                        )
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
@@ -1816,7 +1796,6 @@ private fun EditableExtractedInfoCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateContentSize(MaterialTheme.motionScheme.fastSpatialSpec())
             ) {
                 Row(
                     modifier = Modifier
@@ -1883,7 +1862,6 @@ private fun EditableExtractedInfoCard(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .animateContentSize(MaterialTheme.motionScheme.fastSpatialSpec())
                 ) {
                     Row(
                         modifier = Modifier
@@ -2292,7 +2270,7 @@ private fun DateTimeField(
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.basicMarquee()
+                        modifier = Modifier.basicMarquee(iterations = 1)
                     )
                 }
             }
@@ -2457,14 +2435,6 @@ private fun TransactionReceipt(
         // Main Receipt Card
         Surface(
             modifier = Modifier
-                .shadow(
-                    elevation = 4.dp,
-                    shape = receiptShape,
-                    clip = false
-                )
-                .animateContentSize(
-                    animationSpec = tween(durationMillis = 300)
-                )
                 .fillMaxWidth(),
             shape = receiptShape,
             color = containerColor
@@ -2746,9 +2716,6 @@ private fun TransactionReceipt(
                             .fillMaxWidth()
                             .padding(horizontal = Dimensions.Padding.content)
                             .padding(top = Spacing.md)
-                            .animateContentSize(
-                                MaterialTheme.motionScheme.fastSpatialSpec()
-                            )
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
@@ -2814,9 +2781,6 @@ private fun TransactionReceipt(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateContentSize(
-                                MaterialTheme.motionScheme.fastSpatialSpec()
-                            )
                             .padding(horizontal = Dimensions.Padding.content)
                             .padding(top = Spacing.md)
                             .clickable(
@@ -3543,7 +3507,6 @@ private fun MatchPreviewSheetContent(
     Box( modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
-                .animateContentSize()
                 .fillMaxWidth()
                 .navigationBarsPadding()
         ) {

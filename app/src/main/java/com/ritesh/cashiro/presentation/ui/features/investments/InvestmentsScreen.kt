@@ -72,7 +72,6 @@ import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.domain.brokerage.BrokerageAccount
 import com.ritesh.cashiro.domain.brokerage.BrokerageError
 import com.ritesh.cashiro.domain.brokerage.Holding
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
@@ -93,7 +92,7 @@ import com.ritesh.cashiro.presentation.ui.theme.income_dark
 import com.ritesh.cashiro.presentation.ui.theme.income_light
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import java.math.BigDecimal
 import java.text.DateFormat
 import java.text.NumberFormat
@@ -317,8 +316,7 @@ internal fun InvestmentsContent(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
-                    .overScrollVertical()
+                    .optionalHazeSource(state = hazeState)
                     .padding(horizontal = Dimensions.Padding.content)
                     .testTag("investments_list"),
                 contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 96.dp),
@@ -652,7 +650,7 @@ internal fun IbkrConnectDialog(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
+                    .optionalHazeSource(state = hazeState)
                     .padding(padding)
                     .imePadding()
                     .verticalScroll(rememberScrollState())

@@ -32,7 +32,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 
 @OptIn(ExperimentalHazeApi::class)
 @Composable
@@ -128,7 +128,7 @@ fun DatePicker(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .hazeSource(state = hazeState)
+                .optionalHazeSource(state = hazeState)
                 .padding(Dimensions.Radius.sm)
                 .clip(RoundedCornerShape(Dimensions.Radius.md))
                 .background(color = MaterialTheme.colorScheme.surfaceContainerLow),

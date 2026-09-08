@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.rules
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -77,8 +76,7 @@ import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.domain.model.rule.RuleCondition
 import com.ritesh.cashiro.domain.model.rule.TransactionField
 import com.ritesh.cashiro.domain.model.rule.TransactionRule
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
@@ -90,7 +88,7 @@ import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import java.util.UUID
@@ -225,10 +223,8 @@ fun CreateRuleScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .animateContentSize()
-                    .hazeSource(state = hazeState)
-                    .imePadding()
-                    .overScrollVertical(),
+                    .optionalHazeSource(state = hazeState)
+                    .imePadding(),
                 state = lazyListState,
                 contentPadding = PaddingValues(
                     start = Dimensions.Padding.content,
@@ -237,7 +233,7 @@ fun CreateRuleScreen(
                     bottom = 0.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState }
+                flingBehavior = ScrollableDefaults.flingBehavior()
             ) {
                 // Quick templates
                 item {
@@ -252,8 +248,7 @@ fun CreateRuleScreen(
                         )
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .overScrollVertical(false),
+                                .fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                         ) {
                             FlowRow(

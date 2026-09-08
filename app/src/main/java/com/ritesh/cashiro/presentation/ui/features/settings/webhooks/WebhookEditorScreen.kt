@@ -75,7 +75,6 @@ import com.ritesh.cashiro.data.database.entity.WebhookRangePreset
 import com.ritesh.cashiro.data.webhook.WebhookHeader
 import com.ritesh.cashiro.data.webhook.WebhookProfileDraft
 import com.ritesh.cashiro.data.webhook.WebhookValidation
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DatePicker
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
@@ -85,7 +84,7 @@ import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -167,9 +166,8 @@ fun WebhookEditorScreen(
         Box {
             Column(
                 modifier = Modifier
-                    .hazeSource(hazeState)
+                    .optionalHazeSource(hazeState)
                     .fillMaxSize()
-                    .overScrollVertical()
                     .imePadding()
                     .verticalScroll(state = rememberScrollState())
                     .padding(

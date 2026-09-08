@@ -66,7 +66,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -85,8 +84,7 @@ import com.ritesh.cashiro.data.database.entity.LendBorrowType
 import com.ritesh.cashiro.domain.model.LendBorrowPerson
 import com.ritesh.cashiro.domain.model.LendBorrowTransactionItem
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CashiroCheckbox
@@ -117,7 +115,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
@@ -325,9 +323,8 @@ fun SharedTransitionScope.PersonDetailScreen(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
-                .hazeSource(state = hazeState),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                .optionalHazeSource(state = hazeState),
+            flingBehavior = ScrollableDefaults.flingBehavior(),
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,
@@ -769,7 +766,6 @@ private fun SharedTransitionScope.PersonHeaderCard(
             modifier = Modifier
                 .then(sharedModifier)
                 .size(84.dp)
-                .shadow(2.dp, CircleShape)
                 .clip(CircleShape)
                 .background(Color(colorInt)),
             contentAlignment = Alignment.Center
@@ -1004,7 +1000,7 @@ fun SharedTransitionScope.LendBorrowTransactionListItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-                modifier = Modifier.basicMarquee()
+                modifier = Modifier.basicMarquee(iterations = 1)
             ) {
                 Text(
                     text = typeLabel,

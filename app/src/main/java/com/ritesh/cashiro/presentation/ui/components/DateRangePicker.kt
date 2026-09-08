@@ -33,7 +33,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeApi::class)
@@ -159,7 +159,7 @@ fun DateRangePickerDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .hazeSource(state = hazeState)
+                .optionalHazeSource(state = hazeState)
                 .padding(Dimensions.Radius.sm)
                 .clip(RoundedCornerShape(Dimensions.Radius.md))
                 .background(color = MaterialTheme.colorScheme.surfaceContainerLow),

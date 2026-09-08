@@ -5,9 +5,6 @@ import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.Lifecycle
@@ -27,22 +24,22 @@ internal fun NavBackStackEntry.mainTabTag(): String? {
     }
 }
 
-/** Peer tabs use a brief interruptible fade; contextual/detail routes keep their old motion. */
+/** Peer tabs switch immediately; contextual/detail routes retain directional back feedback. */
 internal object MainTabMotion {
     private fun AnimatedContentTransitionScope<NavBackStackEntry>.isPeerSwitch() =
         initialState.mainTabTag() != null && targetState.mainTabTag() != null
 
     val enter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
-        if (isPeerSwitch()) fadeIn(tween(150)) else CashiroTransitions.verticalSlideEnter(this)
+        if (isPeerSwitch()) EnterTransition.None else CashiroTransitions.verticalSlideEnter(this)
     }
     val exit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
-        if (isPeerSwitch()) fadeOut(tween(150)) else CashiroTransitions.verticalSlideExit(this)
+        if (isPeerSwitch()) ExitTransition.None else CashiroTransitions.verticalSlideExit(this)
     }
     val popEnter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
-        if (isPeerSwitch()) fadeIn(tween(150)) else CashiroTransitions.verticalSlidePopEnter(this)
+        if (isPeerSwitch()) EnterTransition.None else CashiroTransitions.verticalSlidePopEnter(this)
     }
     val popExit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
-        if (isPeerSwitch()) fadeOut(tween(150)) else CashiroTransitions.verticalSlidePopExit(this)
+        if (isPeerSwitch()) ExitTransition.None else CashiroTransitions.verticalSlidePopExit(this)
     }
 }
 

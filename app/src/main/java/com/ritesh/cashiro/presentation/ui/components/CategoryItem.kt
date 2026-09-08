@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -32,12 +31,11 @@ fun CategoryItem(
 
     CashiroCard(
         modifier = modifier
-            .animateContentSize()
             .fillMaxWidth(),
         onClick = onClick,
         contentPadding = 0.dp
     ) {
-        Column(modifier = Modifier.animateContentSize().fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(Dimensions.Padding.content),
                 verticalAlignment = Alignment.CenterVertically
