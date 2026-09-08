@@ -37,6 +37,18 @@ class AccountOverviewTest {
         val result = buildOverview(listOf(account("Visa",value="-12.20",credit=true)),emptyList(),"CNY",true,false) { _,_->null }
         assertEquals(BigDecimal("-12.20"),result[2].amount)
     }
+    @Test fun `snapshot includes cash and margin debit`() = runBlocking {
+        val connection = BrokerConnection("fixture", "ibkr", "Demo", listOf(
+            BrokerageAccount(
+                "U1",
+                "2026-09-07",
+                listOf(Holding("1", "DEMO", "Demo", "USD", "2", "100.00")),
+                listOf(CashBalance("USD", "-20.00"))
+            )
+        ), 0)
+        val result = buildOverview(emptyList(), listOf(connection), "USD", true, false) { _, _ -> null }.last()
+        assertEquals(BigDecimal("80.00"), result.amount)
+    }
     @Test fun `snapshot only investment uses actual market value`() = runBlocking {
         val result = buildOverview(emptyList(),listOf(connection()),"USD",true,false) { _,_->null }.last()
         assertEquals(BigDecimal("120.25"),result.amount);assertTrue(result.isSnapshot);assertEquals(1,result.count)

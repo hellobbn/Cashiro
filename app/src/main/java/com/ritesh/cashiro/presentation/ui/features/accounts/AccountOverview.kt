@@ -59,8 +59,15 @@ internal suspend fun buildOverview(
     } else {
         val brokerAccounts = connections.flatMap { it.accounts }
         val holdings = brokerAccounts.flatMap { it.holdings }
-        val snapshotTotals = holdings.groupBy { it.currency }.mapValues { (_, rows) ->
-            rows.fold(BigDecimal.ZERO) { n, h -> n + (h.marketValue?.toBigDecimalOrNull() ?: BigDecimal.ZERO) }
+        val snapshotTotals = mutableMapOf<String, BigDecimal>()
+        holdings.groupBy { it.currency }.forEach { (source, rows) ->
+            snapshotTotals[source] = rows.fold(BigDecimal.ZERO) { n, h ->
+                n + (h.marketValue?.toBigDecimalOrNull() ?: BigDecimal.ZERO)
+            }
+        }
+        brokerAccounts.flatMap { it.cashBalances }.forEach { cash ->
+            val amount = cash.endingCash.toBigDecimalOrNull() ?: return@forEach
+            snapshotTotals[cash.currency] = (snapshotTotals[cash.currency] ?: BigDecimal.ZERO) + amount
         }
         val status = when {
             brokerFailed -> OverviewStatus.UNAVAILABLE

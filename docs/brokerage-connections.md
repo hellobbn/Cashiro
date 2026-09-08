@@ -11,18 +11,22 @@
 3. 添加 **Open Positions**，选择 **Summary** 层级，勾选全部字段。不要仅选 Lots。
    必须包含 Account ID、Conid、Symbol、Currency、Quantity、Report Date、Level of Detail；
    建议包含 Description、Asset Class、Model、Position Value、Cost Basis Money、FIFO Unrealized PNL。
-4. 保存后记下 **Query ID**。在 Flex Web Service Configuration 中启用服务并生成 **Token**。
-5. 回到 Cashiro 填写连接名称、Token 和 Query ID，点击「连接并同步」。
+4. 添加 **Cash Report**（按币种），勾选 Ending Cash / Ending Settled Cash。
+   保证金账户的现金可为负，表示融资欠款；正数是账户里的闲置现金。
+5. 保存后记下 **Query ID**。在 Flex Web Service Configuration 中启用服务并生成 **Token**。
+6. 回到 Cashiro 填写连接名称、Token 和 Query ID，点击「连接并同步」。
 
 界面内也有配置说明与 IBKR 官方文档链接。此版本严格接受 Open Positions 汇总节；
 如果你的空仓报表省略了该节，应用会提示调整查询，而不是把已有持仓错误清零。
+Cash Report 可选：没有该节时仍能显示持仓，但不会显示现金或融资欠款。
 
 ## 显示和同步语义
 
 - 只读报表：显示标的、数量、原币市值、原币成本和原币浮动盈亏。没有返回的可选金额显示「—」，不伪造为 0。
 - 数量与金额使用十进制定点字符串保存，计算使用 BigDecimal，支持碎股、空头和合约。
 - 直接使用券商报告的 positionValue，不用数量乘价格重新推算，以免遗漏期权等合约乘数。
-- 持仓按币种分别汇总，**不包含现金，也不是净资产**。目前不做跨币种折算，不自动写入记账余额或交易。
+- 若查询包含 Cash Report，按币种显示 Ending Cash：正数为现金，负数为融资欠款。快照 = 持仓市值 + 现金（含负数）。
+- 持仓与现金按币种分别汇总，**不是完整 NAV**（不含期货盯市等到账项）。目前不做跨币种折算，不自动写入记账余额或交易。
 - 投资持仓不计入首页净资产，避免与已有手工券商账户重复；现有账户名称/图标预设不自动连接。
 - 一个 Flex 查询可以返回多个账户。账户 ID 限定在连接中，标的 ID 限定在账户中；多日期数据仅保留最新快照。
 - 同一账户同一天的重复 Summary 行会报错；Lot 行不与 Summary 行叠加。不同 Model 保留为独立持仓行。
@@ -76,4 +80,5 @@ CI 的 Tests 工作流新增 brokerage-tests 作业。测试仅使用明确的�
 - [生成报表与限流](https://www.interactivebrokers.com/docs/web-api/flex-web-service/using-flex-web-service/generate-the-report)
 - [获取报表](https://www.interactivebrokers.com/docs/web-api/api-reference/get-statement)
 - [Open Positions 字段](https://www.ibkrguides.com/reportingreference/reportguide/open%20positionsfq.htm)
+- [Cash Report 字段](https://guides.interactivebrokers.com/reportingreference/reportguide/cash%20reportfq.htm)
 - [错误码](https://www.ibkrguides.com/complianceportal/flex3error.htm)

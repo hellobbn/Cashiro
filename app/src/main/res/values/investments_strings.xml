@@ -2,7 +2,7 @@
 <resources>
     <string name="investments_title">Investments</string>
     <string name="investments_shortcut">Connect a broker · View holdings</string>
-    <string name="investments_report_hint">Read-only report snapshots, not live prices. Holdings exclude cash and are not added to home net worth, avoiding duplicate brokerage balances.</string>
+    <string name="investments_report_hint">Read-only report snapshots, not live prices. Not added to home net worth, so manual brokerage accounts are not counted twice.</string>
     <string name="investments_syncing">Reading the brokerage report. This may take a minute…</string>
     <string name="investments_retry">Retry</string>
     <string name="investments_empty_title">Your holdings, in one place</string>
@@ -10,7 +10,11 @@
     <string name="investments_connect_ibkr">Connect IBKR</string>
     <string name="investments_synced">Last synced: %1$s</string>
     <string name="investments_as_of">Report date: %1$s · Not live</string>
-    <string name="investments_market_total">Holdings value (excludes cash) %1$s %2$s</string>
+    <string name="investments_market_total">Positions %1$s %2$s</string>
+    <string name="investments_cash">Cash %1$s %2$s</string>
+    <string name="investments_margin_debit">Margin debit %1$s %2$s</string>
+    <string name="investments_snapshot_total">Snapshot %1$s %2$s</string>
+    <string name="investments_cash_missing">Add Cash Report to the Flex Query to include cash and margin.</string>
     <string name="investments_no_positions">No open positions in this report</string>
     <string name="investments_refresh">Refresh holdings</string>
     <string name="investments_disconnect">Disconnect</string>
@@ -21,7 +25,7 @@
     <string name="investments_value">Market value: %1$s %2$s</string>
     <string name="investments_cost">Cost basis: %1$s %2$s</string>
     <string name="investments_pnl">Unrealized P/L: %1$s %2$s</string>
-    <string name="investments_setup">In IBKR Client Portal, open Reports → Flex Queries and create an Activity Flex Query:\n\n• Format: XML; date format: yyyyMMdd; period: Last Business Day\n• Add Open Positions, choose Summary and all fields, not Lots\n• Save the Query ID; enable Flex Web Service and generate a token\n\nKeep the empty Open Positions section when there are no holdings.</string>
+    <string name="investments_setup">In IBKR Client Portal, open Reports → Flex Queries and create an Activity Flex Query:\n\n• Format: XML; date format: yyyyMMdd; period: Last Business Day\n• Add Open Positions, choose Summary and all fields, not Lots\n• Add Cash Report with currency breakdown so idle cash and margin debit are included\n• Save the Query ID; enable Flex Web Service and generate a token\n\nKeep empty Open Positions and Cash Report sections when those balances are zero.</string>
     <string name="investments_privacy">The token grants access to reports. Keep it private. Credentials and holdings are encrypted on this device, excluded from backups, and sent directly to IBKR, not a Cashiro server. Reconnect after reinstalling.</string>
     <string name="investments_help">IBKR setup instructions</string>
     <string name="investments_label">Connection name</string>
@@ -29,7 +33,7 @@
     <string name="investments_error_credentials">Check the Flex Token and Query ID, and enable Flex Web Service.</string>
     <string name="investments_error_expired">The token expired. Generate a new token in IBKR, disconnect this connection and add it again.</string>
     <string name="investments_error_ip">IBKR restricted this IP. Check the token IP restrictions.</string>
-    <string name="investments_error_query">Use an XML Activity Flex Query with Open Positions (Summary) and all fields.</string>
+    <string name="investments_error_query">Use an XML Activity Flex Query with Open Positions (Summary) and all fields. Add Cash Report to include cash and margin.</string>
     <string name="investments_error_pending">The report is not ready. Refresh later. Existing holdings are retained.</string>
     <string name="investments_error_rate">Too many requests. Wait at least a minute before refreshing.</string>
     <string name="investments_error_network">Connection failed. Check your network and retry. Existing holdings are retained.</string>

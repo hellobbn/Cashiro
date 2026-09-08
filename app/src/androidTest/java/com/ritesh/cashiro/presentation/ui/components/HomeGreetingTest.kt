@@ -29,7 +29,7 @@ class HomeGreetingTest {
             notificationLabel = stringResource(R.string.notification)
             moreLabel = stringResource(R.string.more_options)
             GreetingCard(userName = "Hachichi", profileImageUri = null, profileBackgroundColor = Color.Transparent,
-                unreadUpdatesCount = 0, onProfileClick = { profile++ },
+                onProfileClick = { profile++ },
                 onNotificationClick = { notification++ }, onMoreClick = { more++ })
         } }
         val name = rule.onNodeWithText("Hachichi").assertIsDisplayed()
@@ -52,7 +52,7 @@ class HomeGreetingTest {
                 notificationLabel = stringResource(R.string.notification)
                 moreLabel = stringResource(R.string.more_options)
                 GreetingCard(Modifier.width(320.dp), "很长的用户名 Hachichi Hachichi", null,
-                    Color.Transparent, 0, onMoreClick = { clicked = true })
+                    Color.Transparent, onMoreClick = { clicked = true })
             }
         } }
         rule.onNodeWithText("很长的用户名 Hachichi Hachichi").assertIsDisplayed()

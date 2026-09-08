@@ -25,10 +25,18 @@ import org.junit.runner.RunWith
 class InvestmentsScreenTest {
     @get:Rule val rule = createComposeRule()
     private val connection = BrokerConnection("demo", "ibkr_flex", "IBKR · Demo", listOf(
-        BrokerageAccount("DEMO_ACCOUNT", "2026-09-04", listOf(
-            Holding("1", "AAPL", "Apple Inc. · Demo", "USD", "10.5", "2100.00", "1800.00", "300.00"),
-            Holding("2", "0700", "Tencent · Demo", "HKD", "100", "40000.00")
-        ))), 1788508800000L)
+        BrokerageAccount(
+            "DEMO_ACCOUNT",
+            "2026-09-04",
+            listOf(
+                Holding("1", "AAPL", "Apple Inc. · Demo", "USD", "10.5", "2100.00", "1800.00", "300.00"),
+                Holding("2", "0700", "Tencent · Demo", "HKD", "100", "40000.00")
+            ),
+            listOf(
+                CashBalance("USD", "-150.00", "-150.00"),
+                CashBalance("HKD", "500.00")
+            )
+        )), 1788508800000L)
     @Composable private fun Content(connections: List<BrokerConnection> = listOf(connection), busy: Boolean = false,
         error: BrokerageError? = null, onConnect: () -> Unit = {}, onRefresh: (String) -> Unit = {},
         onDisconnect: (BrokerConnection) -> Unit = {}) {
@@ -42,16 +50,20 @@ class InvestmentsScreenTest {
         rule.onNodeWithText("DEMO_ACCOUNT").assertDoesNotExist()
     }
     @Test fun holdingsKeepCurrenciesAndReportDateVisible() {
-        var date = ""; var usd = ""; var hkd = ""
+        var date = ""; var usd = ""; var hkd = ""; var margin = ""; var cash = ""
         rule.setContent { MaterialTheme {
             date = stringResource(R.string.investments_as_of, "2026-09-04")
             usd = stringResource(R.string.investments_market_total, "USD", "2,100.00")
             hkd = stringResource(R.string.investments_market_total, "HKD", "40,000.00")
+            margin = stringResource(R.string.investments_margin_debit, "USD", "150.00")
+            cash = stringResource(R.string.investments_cash, "HKD", "500.00")
             Content()
         } }
         rule.onNodeWithText(date).performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText(usd).performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText(hkd).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(usd, substring = true).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(hkd, substring = true).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(margin, substring = true).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(cash, substring = true).performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("AAPL").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("0700").performScrollTo().assertIsDisplayed()
     }

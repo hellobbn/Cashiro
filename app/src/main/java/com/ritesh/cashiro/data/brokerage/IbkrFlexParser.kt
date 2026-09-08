@@ -78,11 +78,38 @@ class IbkrFlexParser @Inject constructor() {
             }
             val keys = positions.map { listOf(it.instrumentId, it.currency, it.model) }
             if (keys.distinct().size != keys.size) invalid()
-            BrokerageAccount(account, asOf, positions.sortedWith(compareBy({ it.currency }, { it.symbol }, { it.model })))
+            BrokerageAccount(
+                accountId = account,
+                asOf = asOf,
+                holdings = positions.sortedWith(compareBy({ it.currency }, { it.symbol }, { it.model })),
+                cashBalances = parseCash(statement, account)
+            )
         }.groupBy { it.accountId }.map { (_, snapshots) ->
             val latest = snapshots.maxOf { it.asOf }
             snapshots.filter { it.asOf == latest }.singleOrNull() ?: invalid()
         }.sortedBy { it.accountId }
+    }
+
+    /**
+     * Cash Report is optional so older queries still parse. BASE_SUMMARY is a
+     * converted total, not a real currency, and must not be stored as cash.
+     */
+    private fun parseCash(statement: Element, account: String): List<CashBalance> {
+        val section = statement.children("CashReport").singleOrNull() ?: return emptyList()
+        val byCurrency = linkedMapOf<String, CashBalance>()
+        for (row in section.children("CashReportCurrency")) {
+            val currency = row.getAttribute("currency").trim()
+            if (!currency.matches(Regex("[A-Z]{3}"))) continue
+            val rowAccount = row.getAttribute("accountId")
+            if (rowAccount.isNotEmpty() && rowAccount != account) invalid()
+            val ending = row.decimal("endingCash") ?: continue
+            byCurrency[currency] = CashBalance(
+                currency = currency,
+                endingCash = ending,
+                endingSettledCash = row.decimal("endingSettledCash")
+            )
+        }
+        return byCurrency.values.sortedBy { it.currency }
     }
 
     private fun checkError(root: Element) {

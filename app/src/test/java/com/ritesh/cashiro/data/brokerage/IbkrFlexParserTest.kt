@@ -75,6 +75,33 @@ class IbkrFlexParserTest {
         assertEquals("123", parser.reference("<FlexStatementResponse><Status>Success</Status><ReferenceCode>123</ReferenceCode><url>https://invalid.example</url></FlexStatementResponse>"))
         assertBrokerError(BrokerageError.INVALID_REPORT) { parser.reference("<FlexStatementResponse><Status>Success</Status><ReferenceCode>bad</ReferenceCode></FlexStatementResponse>") }
     }
+    @Test fun parsesCashAndNegativeMarginDebit() {
+        val xml = flexReport().replace(
+            "</OpenPositions></FlexStatement>",
+            """</OpenPositions><CashReport>
+                <CashReportCurrency accountId="TEST_ACCOUNT" currency="USD" endingCash="-250.5" endingSettledCash="-200"/>
+                <CashReportCurrency currency="HKD" endingCash="80.00"/>
+                <CashReportCurrency currency="BASE_SUMMARY" endingCash="1"/>
+            </CashReport></FlexStatement>"""
+        )
+        val cash = parser.parse(xml).single().cashBalances
+        assertEquals(listOf("HKD", "USD"), cash.map { it.currency })
+        assertEquals("-250.5", cash.single { it.currency == "USD" }.endingCash)
+        assertEquals("-200", cash.single { it.currency == "USD" }.endingSettledCash)
+        assertEquals("80.00", cash.single { it.currency == "HKD" }.endingCash)
+    }
+    @Test fun missingCashReportLeavesCashEmpty() {
+        assertTrue(parser.parse(flexReport()).single().cashBalances.isEmpty())
+    }
+    @Test fun rejectsCashRowsFromAnotherAccount() {
+        val xml = flexReport().replace(
+            "</OpenPositions></FlexStatement>",
+            """</OpenPositions><CashReport>
+                <CashReportCurrency accountId="OTHER" currency="USD" endingCash="1"/>
+            </CashReport></FlexStatement>"""
+        )
+        assertBrokerError(BrokerageError.INVALID_REPORT) { parser.parse(xml) }
+    }
     @Test fun classifiesErrorsWithoutExposingServerText() {
         mapOf("1012" to BrokerageError.EXPIRED_CREDENTIALS, "1013" to BrokerageError.IP_RESTRICTED,
             "1014" to BrokerageError.INVALID_QUERY, "1015" to BrokerageError.INVALID_CREDENTIALS,

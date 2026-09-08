@@ -17,11 +17,23 @@ data class Holding(
     val model: String = ""
 )
 
+/**
+ * Trade-date cash from the Flex Cash Report.
+ * Negative [endingCash] is a margin debit, not missing cash.
+ */
+@Serializable
+data class CashBalance(
+    val currency: String,
+    val endingCash: String,
+    val endingSettledCash: String? = null
+)
+
 @Serializable
 data class BrokerageAccount(
     val accountId: String,
     val asOf: String,
-    val holdings: List<Holding>
+    val holdings: List<Holding>,
+    val cashBalances: List<CashBalance> = emptyList()
 )
 
 /** Providers translate their API into a common, read-only snapshot. No trading methods. */
