@@ -493,6 +493,7 @@ fun CashiroNavHost(
                     ManageAccountsScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToAccountDetail = { name, suffix -> navController.safeNavigate(AccountDetail(name, suffix)) },
+                        onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
                         blurEffects = themeUiState.blurEffects,
                         category = selected
                     )
@@ -509,6 +510,7 @@ fun CashiroNavHost(
                         onNavigateToAccountDetail = { bankName, last4 ->
                             navController.safeNavigate(AccountDetail(bankName, last4))
                         },
+                        onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
                         blurEffects = themeUiState.blurEffects
                     )
                 }
@@ -518,9 +520,13 @@ fun CashiroNavHost(
                     exitTransition = CashiroTransitions.horizontalSlideExit,
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
-                ) {
+                ) { entry ->
+                    val initialCategory = entry.toRoute<AddAccount>().category?.let { name ->
+                        com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.entries.firstOrNull { it.name == name }
+                    }
                     AddAccountScreen(
-                        onNavigateBack = { navController.safePopBackStack() }
+                        onNavigateBack = { navController.safePopBackStack() },
+                        initialCategory = initialCategory
                     )
                 }
 

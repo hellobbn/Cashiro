@@ -208,7 +208,7 @@ data class Transactions(
 
 @Serializable object DeveloperOptions
 
-@Serializable object AddAccount
+@Serializable data class AddAccount(val category: String? = null)
 
 
 
