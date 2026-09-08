@@ -97,7 +97,6 @@ import com.ritesh.cashiro.data.cloud.BackupSchedule
 import com.ritesh.cashiro.data.cloud.CloudFileInfo
 import com.ritesh.cashiro.data.cloud.CloudProviderType
 import com.ritesh.cashiro.data.cloud.SyncStatus
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CashiroCheckbox
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DeleteCloudSnapshotDialog
@@ -328,7 +327,6 @@ fun BackupSyncScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(state = hazeState)
-                    .overScrollVertical()
                     .imePadding()
                     .verticalScroll(rememberScrollState())
                     .padding(top = paddingValues.calculateTopPadding())

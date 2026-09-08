@@ -86,8 +86,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
@@ -231,9 +229,7 @@ fun SubscriptionsScreen(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(state = hazeState)
-                .overScrollVertical(),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                .hazeSource(state = hazeState),
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,

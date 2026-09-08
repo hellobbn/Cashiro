@@ -41,8 +41,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.BuildConfig
 import com.ritesh.cashiro.R
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.*
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.features.settings.SettingsViewModel
@@ -118,10 +116,8 @@ fun AboutScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(state = hazeState)
-                    .overScrollVertical()
                     .verticalScroll(
                         state = scrollState,
-                        flingBehavior = rememberOverscrollFlingBehavior { scrollState }
                     )
                     .padding(
                         start = Dimensions.Padding.content,

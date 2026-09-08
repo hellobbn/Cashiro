@@ -73,8 +73,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
@@ -148,11 +146,9 @@ fun SubscriptionTabContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
                 .imePadding() // Handle keyboard properly
                 .verticalScroll(
                     state = scrollState,
-                    flingBehavior = rememberOverscrollFlingBehavior { scrollState },
                     enabled = !isTransitioning
                 )
                 .padding(horizontal = 16.dp, vertical = 16.dp),

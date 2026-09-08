@@ -92,8 +92,6 @@ import coil3.compose.AsyncImage
 import androidx.core.graphics.toColorInt
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
@@ -153,11 +151,9 @@ fun TransactionTabContent(
             modifier = Modifier
                 .animateContentSize()
                 .fillMaxSize()
-                .overScrollVertical()
                 .imePadding() // Handle keyboard properly
                 .verticalScroll(
                     state = scrollState,
-                    flingBehavior = rememberOverscrollFlingBehavior { scrollState },
                     enabled = !isTransitioning
                 )
                 .padding(horizontal = 16.dp, vertical = 16.dp),

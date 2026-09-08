@@ -81,8 +81,6 @@ import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CategoryItem
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
@@ -270,9 +268,7 @@ fun CategoriesScreen(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
                 .hazeSource(state = hazeState),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,

@@ -89,8 +89,6 @@ import com.ritesh.cashiro.data.database.entity.LendBorrowType
 import com.ritesh.cashiro.domain.model.LendBorrowPerson
 import com.ritesh.cashiro.domain.model.LendBorrowTransactionItem
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CashiroCheckbox
@@ -329,9 +327,7 @@ fun SharedTransitionScope.PersonDetailScreen(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
                 .hazeSource(state = hazeState),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,

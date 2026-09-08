@@ -103,8 +103,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.common.TimePeriod
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BatchEditTransactionsBottomSheet
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CurrencySelectionBottomSheet
@@ -664,9 +662,7 @@ fun TransactionsScreen(
                             .weight(1f)
                             .padding(horizontal = Dimensions.Padding.content)
                             .padding(top = Spacing.sm)
-                            .clip(RoundedCornerShape(20.dp))
-                            .overScrollVertical(),
-                        flingBehavior = rememberOverscrollFlingBehavior { listState },
+                            .clip(RoundedCornerShape(20.dp)),
                         contentPadding = PaddingValues(
                             bottom = 150.dp
                         )

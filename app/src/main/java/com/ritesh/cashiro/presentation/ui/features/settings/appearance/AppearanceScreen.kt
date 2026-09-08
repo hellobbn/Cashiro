@@ -68,7 +68,6 @@ import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.data.preferences.ThemeStyle
 import com.ritesh.cashiro.utils.IconSwitchingUtils
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
@@ -112,7 +111,6 @@ fun AppearanceScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(state = hazeState)
-                    .overScrollVertical()
                     .verticalScroll(rememberScrollState())
                     .padding(
                         top = Dimensions.Padding.content + paddingValues.calculateTopPadding()

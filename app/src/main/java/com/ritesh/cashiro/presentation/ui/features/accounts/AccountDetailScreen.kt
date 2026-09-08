@@ -61,8 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.navigation.TransactionDetail
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
 import com.ritesh.cashiro.presentation.navigation.safePopBackStack
@@ -137,9 +135,7 @@ fun SharedTransitionScope.AccountDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
                 .hazeSource(state = hazeState),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
             contentPadding = PaddingValues(
                 top = Dimensions.Padding.content + paddingValues.calculateTopPadding()
             ),

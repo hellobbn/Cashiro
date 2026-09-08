@@ -59,8 +59,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BudgetCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
@@ -356,9 +354,7 @@ private fun SharedTransitionScope.BudgetsList(
         state = lazyListState,
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .overScrollVertical(),
-        flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
             start = Spacing.md,
             end = Spacing.md,

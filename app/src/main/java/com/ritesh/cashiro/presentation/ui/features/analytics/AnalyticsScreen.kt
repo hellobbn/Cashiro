@@ -80,8 +80,6 @@ import com.ritesh.cashiro.presentation.common.TimePeriod
 import com.ritesh.cashiro.presentation.common.TransactionTypeFilter
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CategoryIcon
 import com.ritesh.cashiro.presentation.ui.components.CollapsibleFilterRow
@@ -179,9 +177,7 @@ fun SharedTransitionScope.AnalyticsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(state = hazeState)
-                    .background(MaterialTheme.colorScheme.background)
-                    .overScrollVertical(),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                    .background(MaterialTheme.colorScheme.background),
                 contentPadding = PaddingValues(
                     start = 0.dp,
                     end = 0.dp,

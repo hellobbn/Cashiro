@@ -85,8 +85,6 @@ import com.ritesh.cashiro.domain.model.LendBorrowPerson
 import com.ritesh.cashiro.domain.model.LendBorrowSummary
 import com.ritesh.cashiro.domain.model.PersonCategory
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CashiroCheckbox
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DeleteMultiplePersonsDialog
@@ -292,9 +290,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                 state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .overScrollVertical()
                     .hazeSource(state = hazeState),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
                 contentPadding = PaddingValues(
                     start = Dimensions.Padding.content,
                     end = Dimensions.Padding.content,

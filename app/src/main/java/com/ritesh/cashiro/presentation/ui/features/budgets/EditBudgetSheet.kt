@@ -83,7 +83,6 @@ import com.ritesh.cashiro.data.database.entity.BudgetType
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.utils.titlecaseFirst
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.BudgetAnimatedGradientMeshCard
@@ -352,7 +351,6 @@ fun EditBudgetSheet(
                 .imePadding()
                 .fillMaxSize()
                 .clip(RoundedCornerShape(28.dp))
-                .overScrollVertical()
                 .verticalScroll(
                     state = rememberScrollState()
                 )

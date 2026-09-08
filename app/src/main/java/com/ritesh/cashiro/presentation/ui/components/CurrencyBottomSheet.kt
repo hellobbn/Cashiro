@@ -35,7 +35,6 @@ import com.ritesh.cashiro.data.currency.model.CurrencyConversion
 import com.ritesh.cashiro.data.model.Currency
 import com.ritesh.cashiro.presentation.accounts.CurrencyViewModel
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
@@ -142,7 +141,6 @@ contentDescription = stringResource(R.string.search),
                         .fillMaxSize()
                         .verticalScroll(
                             state = scrollState,
-                            flingBehavior = rememberOverscrollFlingBehavior { scrollState }
                         )
                 ) {
                     val sourceCurrencies =
@@ -819,7 +817,6 @@ fun AddCustomCurrencyBottomSheet(
                     .fillMaxWidth()
                     .verticalScroll(
                         state = scrollState,
-                        flingBehavior = rememberOverscrollFlingBehavior { scrollState }
                     )
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)

@@ -156,7 +156,10 @@ fun CashiroNavHost(
     val isSubscriptionsScreen = currentRoute?.contains(Subscriptions::class.qualifiedName ?: "") == true
     val isBudgetDetailScreen = currentRoute?.contains(BudgetDetail::class.qualifiedName ?: "") == true
 
-    val isFloatingNav = themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING
+    // Only the standard Material navigation bar is rendered now; the saved style preference is
+    // ignored so the FAB layout below always follows the NORMAL rules.
+    val navigationBarStyle = NavigationBarStyle.NORMAL
+    val isFloatingNav = false
     val hideFabsForFloatingNav = isFloatingNav && (isHomeScreen || isTransactionsScreen)
     val showFloatingFab = isFloatingNav && (isHomeScreen || isTransactionsScreen || isAnalyticsScreen)
 
@@ -806,7 +809,7 @@ fun CashiroNavHost(
                         .align(Alignment.BottomEnd)
                         .padding(Dimensions.Padding.content)
                         .padding(
-                            bottom = when (themeUiState.navigationBarStyle) {
+                            bottom = when (navigationBarStyle) {
                                 NavigationBarStyle.FLOATING if showBottomNav -> 56.dp
                                 NavigationBarStyle.NORMAL if showBottomNav -> 84.dp
                                 else -> 10.dp
@@ -952,11 +955,20 @@ fun CashiroNavHost(
             } else null
         }
 
+        // Block pointer input while a navigation transition is in progress so a quick tap
+        // meant for the destination screen doesn't hit the still-composed outgoing screen.
+        // Placed under the navigation bar so tab taps are never swallowed: switching tabs
+        // rapidly used to drop taps that landed during the previous tab's fade.
+        NavigationTransitionInputBlocker(
+            navController = navController,
+            isAddTransactionScreen = isAddTransactionScreen
+        )
+
         // Bottom Navigation
         CashiroBottomNavigation(
             navController = navController,
             currentDestination = currentDestination,
-            navigationBarStyle = themeUiState.navigationBarStyle,
+            navigationBarStyle = navigationBarStyle,
             hideLabels = themeUiState.hideNavigationLabels,
             hidePill = themeUiState.hidePillIndicator,
             blurEffects = themeUiState.blurEffects,
@@ -964,13 +976,6 @@ fun CashiroNavHost(
             modifier = Modifier.align(Alignment.BottomCenter),
             hazeState = hazeState,
             fabConfig = fabConfig
-        )
-
-        // Block pointer input while a navigation transition is in progress so a quick tap
-        // meant for the destination screen doesn't hit the still-composed outgoing screen.
-        NavigationTransitionInputBlocker(
-            navController = navController,
-            isAddTransactionScreen = isAddTransactionScreen
         )
     }
 }

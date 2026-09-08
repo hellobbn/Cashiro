@@ -184,7 +184,6 @@ import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.presentation.common.icons.BrandIcons
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
@@ -1051,7 +1050,6 @@ private fun TransactionDetailContent(
             .fillMaxSize()
             .imePadding()
             .hazeSource(state = hazeState)
-            .overScrollVertical()
             .verticalScroll(
                 state = rememberScrollState()
             )

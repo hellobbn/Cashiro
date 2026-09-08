@@ -82,8 +82,6 @@ import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.domain.model.LendBorrowPerson
 import com.ritesh.cashiro.domain.model.PersonCategory
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
@@ -250,7 +248,7 @@ fun SharedTransitionScope.ProfileContent(
         }
         LazyColumn(
             state = listState,
-            modifier = modifier.fillMaxSize().overScrollVertical(),
+            modifier = modifier.fillMaxSize(),
             contentPadding = PaddingValues(
 //                start = Dimensions.Padding.content,
 //                end = Dimensions.Padding.content,
@@ -258,7 +256,6 @@ fun SharedTransitionScope.ProfileContent(
                         contentPadding.calculateTopPadding(),
                 bottom = 120.dp + contentPadding.calculateBottomPadding()
             ),
-            flingBehavior = rememberOverscrollFlingBehavior { listState },
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {

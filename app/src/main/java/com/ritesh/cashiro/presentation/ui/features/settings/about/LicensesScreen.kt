@@ -23,8 +23,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.features.settings.SettingsViewModel
@@ -453,9 +451,7 @@ fun LicensesScreen(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(state = hazeState)
-                .overScrollVertical(),
-            flingBehavior = rememberOverscrollFlingBehavior { listState },
+                .hazeSource(state = hazeState),
             contentPadding =
                 PaddingValues(
                     top = Dimensions.Padding.content + paddingValues.calculateTopPadding(),
