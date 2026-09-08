@@ -57,6 +57,7 @@ import com.ritesh.cashiro.presentation.ui.icons.*
 import com.ritesh.cashiro.presentation.ui.theme.*
 import androidx.compose.foundation.clickable
 import com.ritesh.cashiro.core.Constants
+import com.ritesh.cashiro.data.update.PublishChannel
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
@@ -71,6 +72,7 @@ fun AboutScreen(
     onNavigateToLicenses: () -> Unit,
     onNavigateToDeveloper: () -> Unit,
     settingsViewModel: SettingsViewModel = hiltViewModel(),
+    updateViewModel: GitHubUpdateViewModel = hiltViewModel(),
     blurEffects: Boolean
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -78,6 +80,8 @@ fun AboutScreen(
     val hazeState = remember { HazeState() }
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showChannelDialog by remember { mutableStateOf(false) }
+    val updateState by updateViewModel.uiState.collectAsState()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -171,6 +175,43 @@ fun AboutScreen(
                         text = stringResource(R.string.version_format, BuildConfig.VERSION_NAME, settingsViewModel.databaseVersion),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
+                    )
+                }
+
+                val showChannelPicker = updateState.selectableChannels.size > 1
+                val updateStatusText = when (updateState.status) {
+                    GitHubUpdateStatus.Idle -> stringResource(R.string.update_check_desc)
+                    GitHubUpdateStatus.Checking -> stringResource(R.string.update_checking)
+                    GitHubUpdateStatus.UpToDate -> stringResource(R.string.update_up_to_date)
+                    GitHubUpdateStatus.Available -> stringResource(
+                        R.string.update_available_status,
+                        updateState.available?.title.orEmpty()
+                    )
+                    GitHubUpdateStatus.Failed -> stringResource(R.string.update_check_failed)
+                }
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                ) {
+                    if (showChannelPicker) {
+                        AboutListItem(
+                            title = stringResource(R.string.update_channel),
+                            subtitle = channelLabel(updateState.selectedChannel),
+                            icon = Iconax.HierarchySquare3,
+                            iconColor = blue_dark,
+                            iconBackground = blue_light,
+                            onClick = { showChannelDialog = true },
+                            position = ListItemPosition.Top
+                        )
+                    }
+                    AboutListItem(
+                        title = stringResource(R.string.check_for_updates),
+                        subtitle = updateStatusText,
+                        icon = Iconax.RefreshCircle,
+                        iconColor = cyan_dark,
+                        iconBackground = cyan_light,
+                        onClick = { updateViewModel.checkForUpdate(promptIfAvailable = true) },
+                        position = if (showChannelPicker) ListItemPosition.Bottom else ListItemPosition.Single
                     )
                 }
 
@@ -505,6 +546,33 @@ fun AboutScreen(
         }
     }
 
+    val availableRelease = updateState.available
+    if (updateState.showDialog && availableRelease != null) {
+        GitHubUpdateDialog(
+            release = availableRelease,
+            onDismiss = { updateViewModel.dismissDialog() },
+            onDownload = { item ->
+                updateViewModel.hideDialog()
+                val target = item.apkUrl ?: item.htmlUrl
+                if (target.isNotBlank()) {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, target.toUri()))
+                }
+            }
+        )
+    }
+
+    if (showChannelDialog) {
+        UpdateChannelDialog(
+            selected = updateState.selectedChannel,
+            options = updateState.selectableChannels,
+            onSelect = { channel ->
+                updateViewModel.selectChannel(channel)
+                showChannelDialog = false
+            },
+            onDismiss = { showChannelDialog = false }
+        )
+    }
+
     if (showDeleteDialog) {
         val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         AlertDialog(
@@ -604,6 +672,71 @@ fun AboutScreen(
             shape = MaterialTheme.shapes.large
         )
     }
+}
+
+@Composable
+private fun channelLabel(channel: PublishChannel): String = stringResource(
+    when (channel) {
+        PublishChannel.DEBUG -> R.string.update_channel_debug
+        PublishChannel.TESTING -> R.string.update_channel_testing
+        PublishChannel.RELEASE -> R.string.update_channel_release
+    }
+)
+
+@Composable
+private fun channelDescription(channel: PublishChannel): String = stringResource(
+    when (channel) {
+        PublishChannel.DEBUG -> R.string.update_channel_debug_desc
+        PublishChannel.TESTING -> R.string.update_channel_testing_desc
+        PublishChannel.RELEASE -> R.string.update_channel_release_desc
+    }
+)
+
+@Composable
+private fun UpdateChannelDialog(
+    selected: PublishChannel,
+    options: List<PublishChannel>,
+    onSelect: (PublishChannel) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.update_channel)) },
+        text = {
+            Column {
+                options.forEach { channel ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(channel) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = selected == channel,
+                            onClick = { onSelect(channel) }
+                        )
+                        Column(modifier = Modifier.padding(start = 8.dp)) {
+                            Text(
+                                text = channelLabel(channel),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = channelDescription(channel),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }
 
 @Composable

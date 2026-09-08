@@ -48,4 +48,14 @@ class UpdateAvailabilityTest {
         )
         assertEquals(1842, count)
     }
+
+    @Test
+    fun parseCommitCountFromTestingApkName() {
+        val count = DebugBuildIdentity.parseCommitCount(
+            title = "Testing build",
+            body = null,
+            assetNames = listOf("Cashiro-testing-c1901-b73f2c3-arm64-v8a.apk")
+        )
+        assertEquals(1901, count)
+    }
 }

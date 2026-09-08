@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.about
 
+import android.content.Context
+import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.BuildConfig
@@ -9,6 +11,7 @@ import com.ritesh.cashiro.data.update.GitHubUpdateRepository
 import com.ritesh.cashiro.data.update.PublishChannel
 import com.ritesh.cashiro.data.update.UpdateAvailability
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +23,9 @@ data class GitHubUpdateUiState(
     val isChecking: Boolean = false,
     val available: GitHubRelease? = null,
     val showDialog: Boolean = false,
-    val status: GitHubUpdateStatus = GitHubUpdateStatus.Idle
+    val status: GitHubUpdateStatus = GitHubUpdateStatus.Idle,
+    val selectedChannel: PublishChannel = PublishChannel.fromBuildConfig(),
+    val selectableChannels: List<PublishChannel> = PublishChannel.selectable()
 )
 
 enum class GitHubUpdateStatus {
@@ -34,22 +39,53 @@ enum class GitHubUpdateStatus {
 @HiltViewModel
 class GitHubUpdateViewModel @Inject constructor(
     private val repository: GitHubUpdateRepository,
-    private val preferences: GitHubUpdatePreferences
+    private val preferences: GitHubUpdatePreferences,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GitHubUpdateUiState())
     val uiState: StateFlow<GitHubUpdateUiState> = _uiState.asStateFlow()
 
-    fun checkForUpdate(promptIfAvailable: Boolean) {
+    init {
         viewModelScope.launch {
-            _uiState.update { it.copy(isChecking = true, status = GitHubUpdateStatus.Checking) }
-            val result = repository.fetchLatestRelease()
+            val selected = preferences.getSelectedChannel()
+            _uiState.update { it.copy(selectedChannel = selected) }
+        }
+    }
+
+    fun selectChannel(channel: PublishChannel) {
+        viewModelScope.launch {
+            preferences.setSelectedChannel(channel)
+            val selected = preferences.getSelectedChannel()
+            _uiState.update {
+                it.copy(
+                    selectedChannel = selected,
+                    available = null,
+                    showDialog = false,
+                    status = GitHubUpdateStatus.Idle
+                )
+            }
+        }
+    }
+
+    fun checkForUpdate(promptIfAvailable: Boolean) {
+        if (_uiState.value.isChecking) return
+        viewModelScope.launch {
+            val channel = preferences.getSelectedChannel()
+            _uiState.update {
+                it.copy(
+                    isChecking = true,
+                    selectedChannel = channel,
+                    status = GitHubUpdateStatus.Checking
+                )
+            }
+            val result = repository.fetchLatestRelease(channel)
             result.fold(
                 onSuccess = { release ->
                     val prompt = UpdateAvailability.shouldPrompt(
-                        remoteCommitCount = repository.channel.remoteBuild(release),
-                        localCommitCount = if (repository.channel == PublishChannel.DEBUG) BuildConfig.GIT_COMMIT_COUNT else BuildConfig.VERSION_CODE,
-                        dismissedCommitCount = preferences.getDismissedBuild(repository.channel)
+                        remoteCommitCount = channel.remoteBuild(release),
+                        localCommitCount = channel.localBuild(installedVersionCode()),
+                        dismissedCommitCount = preferences.getDismissedBuild(channel)
                     )
                     _uiState.update {
                         it.copy(
@@ -76,9 +112,10 @@ class GitHubUpdateViewModel @Inject constructor(
 
     fun dismissDialog() {
         val release = _uiState.value.available
+        val channel = _uiState.value.selectedChannel
         viewModelScope.launch {
             if (release != null) {
-                preferences.setDismissedBuild(repository.channel, repository.channel.remoteBuild(release))
+                preferences.setDismissedBuild(channel, channel.remoteBuild(release))
             }
             _uiState.update { it.copy(showDialog = false) }
         }
@@ -86,5 +123,14 @@ class GitHubUpdateViewModel @Inject constructor(
 
     fun hideDialog() {
         _uiState.update { it.copy(showDialog = false) }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun installedVersionCode(): Int {
+        return try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionCode
+        } catch (_: PackageManager.NameNotFoundException) {
+            BuildConfig.VERSION_CODE
+        }
     }
 }

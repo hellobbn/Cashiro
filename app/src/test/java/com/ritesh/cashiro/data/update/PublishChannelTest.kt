@@ -68,4 +68,68 @@ class PublishChannelTest {
         assertTrue(check(PublishChannel.RELEASE, payload("v2.2.0", "Cashiro-v2.2.0-universal.apk", body = "old notes")).isFailure)
         assertEquals(0, PublishChannel.parseVersionCode("version_code: 9999999999999999999"))
     }
+
+    @Test fun testingUsesOnlyRollingTagAndCommitIdentity() = runTest {
+        val release = check(
+            PublishChannel.TESTING,
+            payload("testing-latest", "Cashiro-testing-c1200-abc-arm64-v8a.apk", true, "commit_count: 1200")
+        ).getOrThrow()
+        assertEquals(1200, PublishChannel.TESTING.remoteBuild(release))
+        assertEquals(0, release.versionCode)
+    }
+
+    @Test fun testingRejectsOtherChannelsAndAssets() = runTest {
+        assertTrue(
+            check(
+                PublishChannel.TESTING,
+                payload("debug-latest", "Cashiro-debug-c9-arm64-v8a.apk", true, "commit_count: 9")
+            ).isFailure
+        )
+        assertTrue(check(PublishChannel.TESTING, payload("v2.2.0", "Cashiro-v2.2.0-arm64-v8a.apk")).isFailure)
+        assertTrue(
+            check(
+                PublishChannel.RELEASE,
+                payload("testing-latest", "Cashiro-testing-c9-arm64-v8a.apk", true, "commit_count: 9")
+            ).isFailure
+        )
+        assertTrue(
+            check(
+                PublishChannel.DEBUG,
+                payload("testing-latest", "Cashiro-testing-c9-arm64-v8a.apk", true, "commit_count: 9")
+            ).isFailure
+        )
+        assertTrue(
+            check(
+                PublishChannel.TESTING,
+                payload("testing-latest", "Cashiro-debug-c9-arm64-v8a.apk", true, "commit_count: 9")
+            ).isFailure
+        )
+    }
+
+    @Test fun missingCommitCountFailsTestingChannel() = runTest {
+        assertTrue(
+            check(
+                PublishChannel.TESTING,
+                payload("testing-latest", "Cashiro-testing-universal.apk", true, "old notes")
+            ).isFailure
+        )
+    }
+
+    @Test fun selectableChannelsDependOnBuild() {
+        assertEquals(listOf(PublishChannel.DEBUG), PublishChannel.selectable(PublishChannel.DEBUG))
+        assertEquals(
+            listOf(PublishChannel.RELEASE, PublishChannel.TESTING),
+            PublishChannel.selectable(PublishChannel.RELEASE)
+        )
+        assertEquals(
+            listOf(PublishChannel.RELEASE, PublishChannel.TESTING),
+            PublishChannel.selectable(PublishChannel.TESTING)
+        )
+    }
+
+    @Test fun fromIdIsCaseInsensitiveAndRejectsUnknown() {
+        assertEquals(PublishChannel.TESTING, PublishChannel.fromId("TESTING"))
+        assertEquals(PublishChannel.RELEASE, PublishChannel.fromIdOrNull("release"))
+        assertEquals(null, PublishChannel.fromIdOrNull("nightly"))
+    }
 }

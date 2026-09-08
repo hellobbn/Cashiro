@@ -31,6 +31,7 @@ object Constants {
         const val GITHUB_URL = "https://github.com/hellobbn/Cashiro"
         const val UPSTREAM_GITHUB_URL = "https://github.com/ritesh-kanwar/Cashiro"
         const val DEBUG_RELEASE_URL = "https://github.com/hellobbn/Cashiro/releases/tag/debug-latest"
+        const val TESTING_RELEASE_URL = "https://github.com/hellobbn/Cashiro/releases/tag/testing-latest"
         const val WEBSITE_URL = "https://ritesh-kanwar.github.io/cashiro.showcase"
         const val PRIVACY_POLICY_URL = "https://ritesh-kanwar.github.io/cashiro.showcase/privacy"
         const val TERMS_OF_SERVICE_URL = "https://ritesh-kanwar.github.io/cashiro.showcase/terms"

@@ -3,7 +3,7 @@ package com.ritesh.cashiro.data.update
 object DebugBuildIdentity {
     private val bodyCount = Regex("(?im)^commit_count:\\s*(\\d+)\\s*$")
     private val titleCount = Regex("\\bc(\\d+)\\b")
-    private val apkCount = Regex("Cashiro-debug-c(\\d+)-", RegexOption.IGNORE_CASE)
+    private val apkCount = Regex("Cashiro-(?:debug|testing)-c(\\d+)-", RegexOption.IGNORE_CASE)
 
     fun parseCommitCount(
         title: String,

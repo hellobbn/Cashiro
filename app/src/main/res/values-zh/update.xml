@@ -6,7 +6,16 @@
     <string name="update_available_status">有新版本：%1$s</string>
     <string name="update_check_failed">无法连接 GitHub</string>
     <string name="update_available_title">GitHub 上有新的构建</string>
-    <string name="update_available_body">%1$s 已发布。请从 GitHub Release 下载 APK，覆盖安装当前 debug 包。</string>
+    <string name="update_available_body">%1$s 已发布。请从 GitHub Release 下载 APK，覆盖安装当前应用。</string>
     <string name="update_download">去下载</string>
     <string name="update_later">稍后</string>
+    <string name="update_check_desc">在 GitHub 上查找更新的安装包</string>
+    <string name="update_channel">更新渠道</string>
+    <string name="update_channel_desc">选择要跟随的 GitHub 发布通道</string>
+    <string name="update_channel_debug">调试</string>
+    <string name="update_channel_testing">测试</string>
+    <string name="update_channel_release">正式版</string>
+    <string name="update_channel_debug_desc">滚动发布的 debug APK，独立包名和签名。</string>
+    <string name="update_channel_testing_desc">与正式版相同签名的压缩包。之后若正式版 versionCode 更小，需先卸载才能回去。</string>
+    <string name="update_channel_release_desc">官方稳定版 APK。</string>
 </resources>

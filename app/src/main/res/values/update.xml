@@ -6,7 +6,16 @@
     <string name="update_available_status">Update available: %1$s</string>
     <string name="update_check_failed">Could not reach GitHub</string>
     <string name="update_available_title">New build on GitHub</string>
-    <string name="update_available_body">%1$s is ready. Download the APK from the GitHub release page and install it over this debug build.</string>
+    <string name="update_available_body">%1$s is ready. Download the APK from the GitHub release page and install it over this app.</string>
     <string name="update_download">Download</string>
     <string name="update_later">Later</string>
+    <string name="update_check_desc">Look for a newer APK on GitHub</string>
+    <string name="update_channel">Update channel</string>
+    <string name="update_channel_desc">Choose which GitHub lane to follow</string>
+    <string name="update_channel_debug">Debug</string>
+    <string name="update_channel_testing">Testing</string>
+    <string name="update_channel_release">Release</string>
+    <string name="update_channel_debug_desc">Rolling debug APKs. Separate package and signing key.</string>
+    <string name="update_channel_testing_desc">Minified APKs with the same signing key as release. A later official release with a lower version code cannot replace a testing install.</string>
+    <string name="update_channel_release_desc">Official stable APKs.</string>
 </resources>

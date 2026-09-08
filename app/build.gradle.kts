@@ -147,6 +147,16 @@ android {
             signingConfig = signingConfigs.getByName("release")
             ndk { debugSymbolLevel = "SYMBOL_TABLE" }
         }
+        // AGP forbids build type names that start with "test".
+        // The GitHub / in-app channel is still "testing".
+        create("preview") {
+            initWith(getByName("release"))
+            matchingFallbacks += "release"
+            versionNameSuffix = "-testing"
+            manifestPlaceholders["appLabel"] = "Cashiro Testing"
+            buildConfigField("String", "UPDATE_CHANNEL", "\"testing\"")
+            signingConfig = signingConfigs.getByName("release")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -174,6 +184,15 @@ android {
         checkReleaseBuilds = false
         lintConfig = file("lint.xml")
         disable += setOf("GradleDependency", "AndroidGradlePluginVersion", "NewerVersionAvailable")
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("preview")) { variant ->
+        val count = gitCommitCount().coerceAtLeast(1)
+        variant.outputs.forEach { output ->
+            output.versionCode.set(count)
+        }
     }
 }
 
