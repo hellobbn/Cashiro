@@ -304,17 +304,6 @@ fun AddAccountScreen(
             )
         }
 
-        if (showCurrencySheet) {
-            CurrencyBottomSheet(
-                selectedCurrency = formState.currency,
-                onCurrencySelected = {
-                    manageAccountsViewModel.updateCurrency(it)
-                    showCurrencySheet = false
-                },
-                onDismiss = { showCurrencySheet = false }
-            )
-        }
-
         if (formState.accountType == AccountType.CREDIT) {
             item {
                 OutlinedTextField(
@@ -350,6 +339,17 @@ fun AddAccountScreen(
         }
 
         item { Spacer(modifier = Modifier.height(16.dp)) }
+    }
+
+    if (showCurrencySheet) {
+        CurrencyBottomSheet(
+            selectedCurrency = formState.currency,
+            onCurrencySelected = {
+                manageAccountsViewModel.updateCurrency(it)
+                showCurrencySheet = false
+            },
+            onDismiss = { showCurrencySheet = false }
+        )
     }
 }
 
