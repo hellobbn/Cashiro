@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.navigation
 
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
 
@@ -13,9 +12,7 @@ fun NavController.safeNavigate(
     route: Any,
     builder: NavOptionsBuilder.() -> Unit = {}
 ) {
-    if (currentBackStackEntry?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.STARTED) == true) {
-        navigate(route, builder)
-    }
+    navigate(route, builder)
 }
 
 /**
@@ -23,7 +20,7 @@ fun NavController.safeNavigate(
  * Prevents race conditions during transitions by checking lifecycle state.
  */
 fun NavController.safePopBackStack() {
-    if (currentBackStackEntry?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.STARTED) == true) {
+    if (currentBackStackEntry != null) {
         popBackStack()
     }
 }
