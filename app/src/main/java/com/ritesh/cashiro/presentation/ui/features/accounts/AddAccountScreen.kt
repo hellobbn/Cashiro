@@ -262,7 +262,7 @@ fun AddAccountScreen(
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number
                 )
-            }
+            )
         }
 
         item {
@@ -322,7 +322,7 @@ fun AddAccountScreen(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Decimal
                     )
-                }
+                )
             }
         }
 
