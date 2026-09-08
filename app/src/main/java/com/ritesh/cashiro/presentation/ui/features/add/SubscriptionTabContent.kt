@@ -2,7 +2,6 @@ package com.ritesh.cashiro.presentation.ui.features.add
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -73,8 +72,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
@@ -148,11 +146,10 @@ fun SubscriptionTabContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
                 .imePadding() // Handle keyboard properly
                 .verticalScroll(
                     state = scrollState,
-                    flingBehavior = rememberOverscrollFlingBehavior { scrollState },
+                    flingBehavior = ScrollableDefaults.flingBehavior(),
                     enabled = !isTransitioning
                 )
                 .padding(horizontal = 16.dp, vertical = 16.dp),
@@ -225,7 +222,7 @@ fun SubscriptionTabContent(
             // Billing Cycle Dropdown and Date Selection
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth().animateContentSize(),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -345,7 +342,7 @@ fun SubscriptionTabContent(
                                     style = MaterialTheme.typography.bodyLarge,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.basicMarquee()
+                                    modifier = Modifier.basicMarquee(iterations = 1)
                                 )
                             }
 
@@ -373,7 +370,7 @@ fun SubscriptionTabContent(
 
             // Accounts Section
             Column(
-                modifier = Modifier.fillMaxWidth().animateContentSize(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(1.5.dp)
             ) {
                 OutlinedCard(

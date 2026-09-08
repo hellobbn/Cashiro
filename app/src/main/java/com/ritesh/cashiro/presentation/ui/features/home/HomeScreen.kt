@@ -1,10 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
-import android.app.Activity
 import android.view.HapticFeedbackConstants
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
@@ -150,7 +147,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -203,19 +200,8 @@ fun SharedTransitionScope.HomeScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     
-    var lastBackPressTime by remember { mutableLongStateOf(0L) }
     val context = LocalContext.current
-    
-    
-    BackHandler {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastBackPressTime < 2000) {
-            (context as? Activity)?.finish()
-        } else {
-            lastBackPressTime = currentTime
-            Toast.makeText(context, context.getString(R.string.press_back_again_to_close), Toast.LENGTH_SHORT).show()
-        }
-    }
+    // Let the activity/system own back-to-home, including predictive preview and cancellation.
     val scope = rememberCoroutineScope()
 
     var showMoreBottomSheet by remember { mutableStateOf(false) }
@@ -336,10 +322,9 @@ fun SharedTransitionScope.HomeScreen(
                                 contentDescription = stringResource(R.string.banner),
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .hazeSource(hazeStateBanner)
                                     .alpha(0.5f)
                                     .bottomFade(0.4f)
-                                    .hazeSource(hazeStateBanner),
+                                    .optionalHazeSource(hazeStateBanner),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
@@ -350,7 +335,7 @@ fun SharedTransitionScope.HomeScreen(
                                     .fillMaxSize()
                                     .alpha(0.5f)
                                     .bottomFade(0.4f)
-                                    .hazeSource(hazeStateBanner),
+                                    .optionalHazeSource(hazeStateBanner),
                                 contentScale = ContentScale.Crop
                             )
                         }

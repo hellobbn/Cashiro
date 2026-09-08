@@ -3,7 +3,6 @@ package com.ritesh.cashiro.presentation.navigation
 import android.view.HapticFeedbackConstants
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -256,10 +255,7 @@ fun CashiroBottomNavigation(
                                     }
                                 ) else Modifier
                             )
-                            .zIndex(1000f)
-                            .animateContentSize(
-                                MaterialTheme.motionScheme.fastSpatialSpec()
-                            ),
+                            .zIndex(1000f),
                         colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
                             toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(
                                 alpha = if (blurEffects) 0.7f else 1f

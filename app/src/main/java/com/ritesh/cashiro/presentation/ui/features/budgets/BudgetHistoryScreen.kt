@@ -38,8 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
@@ -49,7 +48,7 @@ import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 
@@ -89,7 +88,7 @@ fun BudgetHistoryScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(state = hazeState)
+                .optionalHazeSource(state = hazeState)
         ) {
             if (uiState.isLoading) {
                 LoadingCircle(modifier = Modifier.align(Alignment.Center))
@@ -102,8 +101,8 @@ fun BudgetHistoryScreen(
             } else {
                 LazyColumn(
                     state = lazyListState,
-                    flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
-                    modifier = Modifier.fillMaxSize().overScrollVertical(),
+                    flingBehavior = ScrollableDefaults.flingBehavior(),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
                         top = paddingValues.calculateTopPadding() + Spacing.md,
                         bottom = 100.dp

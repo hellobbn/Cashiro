@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,15 +40,7 @@ fun CategorySelectionSheet(
     onSelectionComplete: (CategoryEntity, SubcategoryEntity?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val labels = listOf("Search Fruits", "Search Shopping", "Search Fitness", "Search Sports")
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     
     // Filter categories based on search
@@ -91,35 +83,7 @@ fun CategorySelectionSheet(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it },
                  label = {
-                     AnimatedContent(
-                         targetState = labels[currentLabelIndex],
-                         transitionSpec = {
-                             (fadeIn(animationSpec = tween(400, delayMillis = 100)) +
-                                     slideInVertically(
-                                         initialOffsetY = { it },
-                                         animationSpec = tween(400, delayMillis = 100)
-                                     ))
-                                 .togetherWith(
-                                     fadeOut(animationSpec = tween(400)) +
-                                             slideOutVertically(
-                                                 targetOffsetY = { -it },
-                                                 animationSpec = tween(400)
-                                             )
-                                 )
-                         },
-                         label = "SearchBarLabelAnimation"
-                     ) { labelText ->
-                         Text(
-                             text = labelText,
-                             fontSize = 14.sp,
-                             lineHeight = 14.sp,
-                             fontWeight = FontWeight.SemiBold,
-                             fontStyle = FontStyle.Italic,
-                             textAlign = TextAlign.Center,
-                             color = MaterialTheme.colorScheme.inverseSurface.copy(0.5f),
-                             modifier = Modifier.fillMaxWidth()
-                         )
-                     }
+                     Text(text = stringResource(com.ritesh.cashiro.R.string.search))
                  },
                 leadingIcon = {},
                 trailingIcon = if (searchQuery.text.isNotEmpty()) {
@@ -156,7 +120,8 @@ fun CategorySelectionSheet(
             ) {
                 items(
                     items = filteredCategories,
-                    key = { it.id }
+                    key = { it.id },
+                    contentType = { "category" }
                 ) { category ->
                     val subs = subcategoriesMap[category.id] ?: emptyList()
                     
@@ -176,37 +141,29 @@ fun CategorySelectionSheet(
                         emptyList()
                     }
 
-                    AnimatedContent(
-                        targetState = category,
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(220)) +
-                                    scaleIn(initialScale = 0.95f) togetherWith fadeOut(animationSpec = tween(90))
-                        },
-                        label = "CategoryItemAnimation"
-                    ) { animatedCategory ->
-                         CategoryItem(
-                            category = animatedCategory,
+                    CategoryItem(
+                            category = category,
                             subcategories = displayedSubcategories,
                             onClick = {
                                 if (subs.isNotEmpty()) {
                                     if (isExpanded) {
                                         // If already expanded, select the category itself
-                                        onSelectionComplete(animatedCategory, null)
+                                        onSelectionComplete(category, null)
                                     } else {
                                         // Otherwise, expand to show subcategories
-                                        expandedStates[animatedCategory.id] = true
+                                        expandedStates[category.id] = true
                                     }
                                 } else {
-                                    onSelectionComplete(animatedCategory, null)
+                                    onSelectionComplete(category, null)
                                 }
                             },
                             onAddSubcategory = {},
                             onEditSubcategory = { sub ->
-                                onSelectionComplete(animatedCategory, sub)
+                                onSelectionComplete(category, sub)
                             },
                             showAddSubcategoryButton = false
                         )
-                    }
+
                 }
                 item {
                     Spacer(modifier = Modifier.height(Spacing.xxl))

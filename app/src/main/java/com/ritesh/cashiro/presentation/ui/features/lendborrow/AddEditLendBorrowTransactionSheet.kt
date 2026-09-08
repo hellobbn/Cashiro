@@ -94,9 +94,8 @@ import com.ritesh.cashiro.presentation.ui.theme.LocalBlurEffects
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import com.ritesh.cashiro.utils.IconResolutionUtils
-import com.ritesh.cashiro.utils.horizontalFadingEdge
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -215,7 +214,7 @@ fun AddEditLendBorrowTransactionSheet(
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle() },
     ) {
-        Box(modifier = Modifier.fillMaxWidth().hazeSource(hazeState)) {
+        Box(modifier = Modifier.fillMaxWidth().optionalHazeSource(hazeState)) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -335,7 +334,7 @@ fun AddEditLendBorrowTransactionSheet(
                                     style = MaterialTheme.typography.bodyLarge,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.basicMarquee()
+                                    modifier = Modifier.basicMarquee(iterations = 1)
                                 )
                             }
                         }
@@ -477,10 +476,6 @@ fun AddEditLendBorrowTransactionSheet(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .horizontalFadingEdge(
-                                    canScrollBackward = personLazyListState.canScrollBackward,
-                                    canScrollForward = personLazyListState.canScrollForward
-                                )
                         ) {
                             item {
                                 Column(

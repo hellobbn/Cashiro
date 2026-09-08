@@ -11,8 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.animation.core.*
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -57,14 +55,7 @@ fun BalanceChart(
     val lineColor = MaterialTheme.colorScheme.primary
     val gridColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
 
-    val animationProgress = remember { Animatable(0f) }
-    LaunchedEffect(balanceHistory) {
-        animationProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 1500, easing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1f))
-        )
-    }
-    
+    // Draw the complete series immediately instead of redrawing all paths for a 1.5s reveal.
     // Calculate min and max for scaling using smoothed data
     val maxBalance = smoothedHistory.maxOf { it.balance }
     val minBalance = smoothedHistory.minOf { it.balance }
@@ -169,7 +160,7 @@ fun BalanceChart(
                         }
                         
                         // Draw the line and fill with animation
-                        clipRect(right = canvasWidth * animationProgress.value) {
+                        clipRect(right = canvasWidth * 1f) {
                             // Draw gradient fill under the line
                             val fillPath = Path().apply {
                                 addPath(path)
@@ -204,7 +195,7 @@ fun BalanceChart(
 
                         // Draw points
                         points.forEachIndexed { index, point ->
-                            val pointProgress = (animationProgress.value * points.size - index).coerceIn(0f, 1f)
+                            val pointProgress = (1f * points.size - index).coerceIn(0f, 1f)
                             if (pointProgress > 0f) {
                                 drawCircle(
                                     color = lineColor,

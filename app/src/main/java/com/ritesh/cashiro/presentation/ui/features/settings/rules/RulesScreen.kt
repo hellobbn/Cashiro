@@ -59,8 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.domain.model.rule.TransactionRule
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
@@ -76,7 +75,7 @@ import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -167,8 +166,7 @@ fun RulesScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
-                    .overScrollVertical(),
+                    .optionalHazeSource(state = hazeState),
                 contentPadding = PaddingValues(
                     start = Dimensions.Padding.content,
                     end = Dimensions.Padding.content,
@@ -176,7 +174,7 @@ fun RulesScreen(
                     bottom = 0.dp
                 ),
                 state = lazyListState,
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                flingBehavior = ScrollableDefaults.flingBehavior(),
 
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
@@ -357,7 +355,7 @@ private fun RuleCard(
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+                    modifier = Modifier.basicMarquee(iterations = 1)
                 )
 
                 rule.description?.let { description ->

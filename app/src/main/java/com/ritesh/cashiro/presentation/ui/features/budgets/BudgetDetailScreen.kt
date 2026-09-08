@@ -47,8 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.BudgetCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DashedLine
@@ -65,7 +64,7 @@ import com.ritesh.cashiro.presentation.ui.icons.Edit2
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import java.time.format.DateTimeFormatter
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
@@ -226,7 +225,7 @@ fun SharedTransitionScope.BudgetDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(state = hazeState)
+                .optionalHazeSource(state = hazeState)
         ) {
             if (budgetWithSpending == null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -235,8 +234,8 @@ fun SharedTransitionScope.BudgetDetailScreen(
             } else {
                 LazyColumn(
                     state = lazyListState,
-                    flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
-                    modifier = Modifier.fillMaxSize().overScrollVertical(),
+                    flingBehavior = ScrollableDefaults.flingBehavior(),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
                         top = paddingValues.calculateTopPadding() + Spacing.md,
                         bottom = 100.dp

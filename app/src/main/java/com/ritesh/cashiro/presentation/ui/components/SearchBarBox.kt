@@ -9,7 +9,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,10 +35,6 @@ fun SearchBarBox(
         placeholder = { label() },
         modifier = modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 0.dp,
-                shape = RoundedCornerShape(75.dp)
-            )
             .background(themeColors.surfaceContainerLow, shape = RoundedCornerShape(75.dp)),
         singleLine = true,
         leadingIcon = leadingIcon,

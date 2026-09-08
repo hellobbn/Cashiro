@@ -76,8 +76,7 @@ import com.ritesh.cashiro.R
 import com.ritesh.cashiro.domain.model.LendBorrowPerson
 import com.ritesh.cashiro.domain.model.PersonCategory
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.components.CashiroCheckbox
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DeleteMultiplePersonsDialog
@@ -103,7 +102,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalHazeApi::class, ExperimentalSharedTransitionApi::class)
@@ -263,9 +262,8 @@ fun SharedTransitionScope.ContactsScreen(
                 state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .overScrollVertical()
-                    .hazeSource(state = hazeState),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                    .optionalHazeSource(state = hazeState),
+                flingBehavior = ScrollableDefaults.flingBehavior(),
                 contentPadding = PaddingValues(
                     start = Dimensions.Padding.content,
                     end = Dimensions.Padding.content,

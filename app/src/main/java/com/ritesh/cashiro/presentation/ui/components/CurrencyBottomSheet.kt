@@ -18,7 +18,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -35,7 +34,7 @@ import com.ritesh.cashiro.data.currency.model.CurrencyConversion
 import com.ritesh.cashiro.data.model.Currency
 import com.ritesh.cashiro.presentation.accounts.CurrencyViewModel
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
@@ -142,7 +141,7 @@ contentDescription = stringResource(R.string.search),
                         .fillMaxSize()
                         .verticalScroll(
                             state = scrollState,
-                            flingBehavior = rememberOverscrollFlingBehavior { scrollState }
+                            flingBehavior = ScrollableDefaults.flingBehavior()
                         )
                 ) {
                     val sourceCurrencies =
@@ -294,13 +293,6 @@ contentDescription = stringResource(R.string.search),
                 ) {
                     Box(
                         modifier = Modifier
-                            .shadow(
-                                elevation = 25.dp,
-                                RoundedCornerShape(15.dp),
-                                clip = true,
-                                spotColor = Color.Black,
-                                ambientColor = Color.Black
-                            )
                             .fillMaxWidth(0.85f)
                             .clip(RoundedCornerShape(15.dp))
                             .background(
@@ -458,7 +450,7 @@ fun CurrencyCard(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .basicMarquee(
-                        iterations = Int.MAX_VALUE,
+                        iterations = 1,
                         animationMode = MarqueeAnimationMode.Immediately,
                         initialDelayMillis = 1000,
                         velocity = 30.dp
@@ -819,7 +811,7 @@ fun AddCustomCurrencyBottomSheet(
                     .fillMaxWidth()
                     .verticalScroll(
                         state = scrollState,
-                        flingBehavior = rememberOverscrollFlingBehavior { scrollState }
+                        flingBehavior = ScrollableDefaults.flingBehavior()
                     )
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)

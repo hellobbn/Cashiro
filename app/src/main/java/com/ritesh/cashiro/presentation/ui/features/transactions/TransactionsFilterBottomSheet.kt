@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
@@ -116,7 +115,6 @@ fun TransactionsFilterBottomSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .animateContentSize()
                 ) {
                     Spacer(modifier = Modifier.height(Spacing.xl))
                     //Transaction Types
@@ -673,7 +671,7 @@ private fun FilterCategoryItem(
             maxLines = 1,
             textAlign = TextAlign.Center,
             modifier = Modifier.basicMarquee(
-                iterations = Int.MAX_VALUE,
+                iterations = 1,
                 repeatDelayMillis = 1000,
             )
         )

@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,19 +39,18 @@ fun GenericTypeSwitcher(
     ) {
         val maxWidth = maxWidth
         val indicatorWidth = maxWidth / options.size
-        val indicatorOffset by animateDpAsState(
+        val indicatorOffset = animateDpAsState(
             targetValue = indicatorWidth * selectedIndex,
-            animationSpec = tween(durationMillis = 300),
+            animationSpec = tween(durationMillis = 150),
             label = "Indicator offset"
         )
 
         // Animated Indicator
         Box(
             modifier = Modifier
-                .offset(x = indicatorOffset)
+                .offset { androidx.compose.ui.unit.IntOffset(indicatorOffset.value.roundToPx(), 0) }
                 .width(indicatorWidth)
                 .fillMaxHeight()
-                .shadow(2.dp, RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
                 .background(if (isDarkTheme) themeColors.surface else Color.White)
         )

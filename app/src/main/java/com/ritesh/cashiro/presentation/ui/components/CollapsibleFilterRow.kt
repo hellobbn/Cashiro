@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,7 +38,7 @@ fun CollapsibleFilterRow(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val rotationAngle by animateFloatAsState(
+    val rotationAngle = animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
         label = "filter_rotation"
     )
@@ -80,7 +81,7 @@ fun CollapsibleFilterRow(
                 contentDescription = if (isExpanded) stringResource(R.string.collapse_cd) else stringResource(R.string.expand_cd),
                 modifier = Modifier
                     .size(20.dp)
-                    .rotate(rotationAngle),
+                    .graphicsLayer { rotationZ = rotationAngle.value },
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

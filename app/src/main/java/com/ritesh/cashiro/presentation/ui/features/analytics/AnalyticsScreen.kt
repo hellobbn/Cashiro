@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
@@ -76,8 +75,6 @@ import com.ritesh.cashiro.presentation.common.TimePeriod
 import com.ritesh.cashiro.presentation.common.TransactionTypeFilter
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CategoryIcon
 import com.ritesh.cashiro.presentation.ui.components.CollapsibleFilterRow
@@ -100,7 +97,7 @@ import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.DateRangeUtils
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import java.math.BigDecimal
 import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
@@ -174,10 +171,9 @@ fun SharedTransitionScope.AnalyticsScreen(
                 state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
-                    .background(MaterialTheme.colorScheme.background)
-                    .overScrollVertical(),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                    .then(if (blurEffects) Modifier.optionalHazeSource(state = hazeState) else Modifier)
+                    .background(MaterialTheme.colorScheme.background),
+                overscrollEffect = null,
                 contentPadding = PaddingValues(
                     start = 0.dp,
                     end = 0.dp,
@@ -386,7 +382,6 @@ fun SharedTransitionScope.AnalyticsScreen(
                                         start = Dimensions.Padding.content,
                                         end = Dimensions.Padding.content,
                                     )
-                                    .animateContentSize()
                             ) {
 
                                 BlurredAnimatedVisibility(
@@ -456,39 +451,26 @@ fun SharedTransitionScope.AnalyticsScreen(
                                     start = Dimensions.Padding.content,
                                     end = Dimensions.Padding.content,
                                 )
-                                .animateContentSize()
                         ) {
                             Column{
 
                                 when (selectedChartType) {
 
-                                    ChartType.LINE ->  AnimatedVisibility(
-                                        visible = true,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically()
-                                    ) {
+                                    ChartType.LINE -> {
                                         SpendingLineChart(
                                             data = uiState.spendingTrend,
                                             currency = uiState.currency,
                                             typeFilters = transactionTypeFilter
                                         )
                                     }
-                                    ChartType.BAR ->  AnimatedVisibility(
-                                        visible = true,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically()
-                                    ) {
+                                    ChartType.BAR -> {
                                         SpendingBarChart(
                                             data = uiState.spendingTrend,
                                             currency = uiState.currency,
                                             typeFilters = transactionTypeFilter
                                         )
                                     }
-                                    ChartType.HEATMAP ->  AnimatedVisibility(
-                                        visible = true,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically()
-                                    ) {
+                                    ChartType.HEATMAP -> {
                                         SpendingHeatmap(
                                             data = uiState.spendingTrend
                                         )
@@ -541,7 +523,6 @@ fun SharedTransitionScope.AnalyticsScreen(
                     item {
                         Column(
                             modifier = Modifier
-                                .animateContentSize()
                                 .padding(
                                     start = Dimensions.Padding.content,
                                     end = Dimensions.Padding.content,
@@ -555,7 +536,6 @@ fun SharedTransitionScope.AnalyticsScreen(
                             ) {
                                 CashiroCard(
                                     modifier = Modifier
-                                        .animateContentSize()
                                         .fillMaxWidth()
                                 ) {
                                     Column{
@@ -703,7 +683,6 @@ fun SharedTransitionScope.CategoryProgressItem(
 
     Column(
         modifier = Modifier
-            .animateContentSize()
             .fillMaxWidth()
             .then(
                 if (animatedContentScope != null) {

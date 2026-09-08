@@ -78,7 +78,7 @@ fun AccountFilterChip(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        modifier = Modifier.basicMarquee()
+                        modifier = Modifier.basicMarquee(iterations = 1)
                     )
                     Text(
                         text = if (account.isWallet) "wallet" else account.accountLast4,

@@ -45,7 +45,7 @@ import com.ritesh.cashiro.presentation.ui.theme.grey_dark
 import com.ritesh.cashiro.presentation.ui.theme.grey_light
 import androidx.compose.material.icons.rounded.Webhook
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +104,7 @@ fun DeveloperScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
+                    .optionalHazeSource(state = hazeState)
                     .padding(
                         start = Dimensions.Padding.content,
                         end = Dimensions.Padding.content,

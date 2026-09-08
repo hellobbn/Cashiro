@@ -291,7 +291,7 @@ fun TransactionItem(
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.basicMarquee()
+                    modifier = Modifier.basicMarquee(iterations = 1)
                 )
             },
             supporting = {

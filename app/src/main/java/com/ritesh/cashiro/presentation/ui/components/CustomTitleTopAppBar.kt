@@ -64,7 +64,7 @@ fun CustomTitleTopAppBar(
     actionContent: @Composable () -> Unit = {},
     navigationContent: @Composable () -> Unit = {},
     extraInfoCard: @Composable () -> Unit = {},
-    hazeState: HazeState = HazeState(),
+    hazeState: HazeState = remember { HazeState() },
     blurEffects: Boolean = LocalBlurEffects.current,
     showTitleInLargeBar: Boolean = true
 ) {
@@ -114,7 +114,7 @@ fun CustomTitleTopAppBar(
 
 
 @Composable
-private fun Modifier.animatedOffsetModifier(
+private fun Modifier.titleOffsetModifier(
     hasBackButton: Boolean,
     hasActionButton: Boolean = false,
     isHomeScreen: Boolean = false,
@@ -131,21 +131,6 @@ private fun Modifier.animatedOffsetModifier(
     val density = LocalDensity.current
     val targetOffsetXPx = with(density) { targetOffsetX.toPx() }
 
-    val transition = updateTransition(
-        targetState = Triple(hasBackButton, false, targetOffsetXPx), // false for isInSelectionMode
-        label = "offsetTransition"
-    )
-
-    val animatedOffsetX by transition.animateFloat(
-        transitionSpec = {
-            spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMediumLow
-            )
-        },
-        label = "offsetX"
-    ) { (_, _, offset) -> offset }
-
     // Apply offset directly as a float value instead of rounding to Int
     return this
         .fillMaxWidth()
@@ -153,7 +138,7 @@ private fun Modifier.animatedOffsetModifier(
             val placeable = measurable.measure(constraints)
             layout(placeable.width, placeable.height) {
                 // Use the exact float value for positioning
-                placeable.placeRelative(x = animatedOffsetX.toInt(), y = 0)
+                placeable.placeRelative(x = targetOffsetXPx.toInt(), y = 0)
             }
         }
 }
@@ -170,7 +155,7 @@ private fun LargerTopAppBar(
     actionContent: @Composable () -> Unit = {},
     navigationContent: @Composable () -> Unit = {},
     hazeState: HazeState,
-    blurEffects: Boolean = true,
+    blurEffects: Boolean = false,
     themeColors: ColorScheme,
     showTitleInLargeBar: Boolean = true
     ){
@@ -307,7 +292,7 @@ private fun RegularTopAppBar(
     collapsedFraction: () -> Float,
     isCollapsed: Boolean,
     hazeState: HazeState,
-    blurEffects: Boolean = true,
+    blurEffects: Boolean = false,
     showTitle: Boolean = true
 ){
     BlurredAnimatedVisibility(
@@ -329,7 +314,7 @@ private fun RegularTopAppBar(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.animatedOffsetModifier(
+                        modifier = Modifier.titleOffsetModifier(
                             hasBackButton = hasBackButton,
                             hasActionButton = hasActionButton,
                             isHomeScreen = title == "Cashiro",

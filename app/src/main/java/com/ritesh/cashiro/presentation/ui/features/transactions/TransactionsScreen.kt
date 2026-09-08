@@ -100,8 +100,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.common.TimePeriod
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BatchEditTransactionsBottomSheet
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CurrencySelectionBottomSheet
@@ -128,7 +126,7 @@ import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.DateRangeUtils
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
@@ -424,7 +422,7 @@ fun TransactionsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
+                    .then(if (blurEffects) Modifier.optionalHazeSource(state = hazeState) else Modifier)
                     .padding(top = paddingValues.calculateTopPadding())
             ) {
             // Search Bar with Sort Button
@@ -661,9 +659,8 @@ fun TransactionsScreen(
                             .weight(1f)
                             .padding(horizontal = Dimensions.Padding.content)
                             .padding(top = Spacing.sm)
-                            .clip(RoundedCornerShape(20.dp))
-                            .overScrollVertical(),
-                        flingBehavior = rememberOverscrollFlingBehavior { listState },
+                            .clip(RoundedCornerShape(20.dp)),
+                        overscrollEffect = null,
                         contentPadding = PaddingValues(
                             bottom = 150.dp
                         )

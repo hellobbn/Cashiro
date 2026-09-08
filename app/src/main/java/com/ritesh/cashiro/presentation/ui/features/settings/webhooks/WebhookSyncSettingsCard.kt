@@ -1,6 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.webhooks
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -103,52 +102,35 @@ fun WebhookSyncSettingsCard(
 
         Spacer(modifier = Modifier.height(Spacing.md))
 
-        AnimatedContent(
-            targetState = selectedMode,
-            transitionSpec = {
-                // Simultaneous crossfade with no delay to prevent the "flicker gap"
-                fadeIn(animationSpec = tween(220))
-                    .togetherWith(fadeOut(animationSpec = tween(180)))
-                    .using(
-                        SizeTransform(
-                            clip = false,
-                            sizeAnimationSpec = { _, _ -> tween(300) }
+        when (selectedMode) {
+            WebhookSyncMode.INTERVAL -> {
+                IntervalDetail(
+                    initialHours = settings.intervalHours,
+                    onCommit = { hours ->
+                        onSettingsChange(
+                            settings.copy(
+                                syncMode = WebhookSyncMode.INTERVAL,
+                                intervalHours = hours
+                            )
                         )
-                    )
-            },
-            contentAlignment = Alignment.TopStart,
-            modifier = Modifier.fillMaxWidth(),
-            label = "SyncSettingsContent"
-        ) { mode ->
-            when (mode) {
-                WebhookSyncMode.INTERVAL -> {
-                    IntervalDetail(
-                        initialHours = settings.intervalHours,
-                        onCommit = { hours ->
-                            onSettingsChange(
-                                settings.copy(
-                                    syncMode = WebhookSyncMode.INTERVAL,
-                                    intervalHours = hours
-                                )
+                    }
+                )
+            }
+            WebhookSyncMode.SCHEDULED -> {
+                ScheduledDetail(
+                    times = settings.scheduledTimes,
+                    onTimesChange = { newTimes ->
+                        onSettingsChange(
+                            settings.copy(
+                                syncMode = WebhookSyncMode.SCHEDULED,
+                                scheduledTimes = newTimes
                             )
-                        }
-                    )
-                }
-                WebhookSyncMode.SCHEDULED -> {
-                    ScheduledDetail(
-                        times = settings.scheduledTimes,
-                        onTimesChange = { newTimes ->
-                            onSettingsChange(
-                                settings.copy(
-                                    syncMode = WebhookSyncMode.SCHEDULED,
-                                    scheduledTimes = newTimes
-                                )
-                            )
-                        }
-                    )
-                }
+                        )
+                    }
+                )
             }
         }
+
     }
 }
 

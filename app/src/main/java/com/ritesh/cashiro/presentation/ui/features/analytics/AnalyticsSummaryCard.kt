@@ -1,7 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.features.analytics
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -53,11 +51,7 @@ fun AnalyticsSummaryCard(
     currency: String,
     isLoading: Boolean = false,
 ) {
-    val alpha by animateFloatAsState(
-        targetValue = if (isLoading) 0.5f else 1f,
-        animationSpec = tween(300),
-        label = "summary_alpha"
-    )
+    val alpha = if (isLoading) 0.5f else 1f
 
     Box(
         modifier = modifier
@@ -99,7 +93,7 @@ fun AnalyticsSummaryCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.basicMarquee(
-                            iterations = Int.MAX_VALUE
+                            iterations = 1
                         )
                     )
                 }

@@ -111,7 +111,7 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import com.ritesh.cashiro.presentation.effects.optionalHazeSource
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeApi::class)
 @Composable
@@ -168,7 +168,9 @@ fun CashiroNavHost(
             NavHost(
                 navController = navController,
                 startDestination = stableStartDestination,
-                modifier = Modifier.fillMaxSize().hazeSource(hazeState),
+                modifier = Modifier.fillMaxSize().then(
+                    if (themeUiState.blurEffects) Modifier.optionalHazeSource(hazeState) else Modifier
+                ),
             ) {
                 // App Lock Screen
                 composable<AppLock>(
@@ -852,7 +854,7 @@ fun CashiroNavHost(
                                         boundsTransform = { _, _ ->
                                             spring(
                                                 stiffness = Spring.StiffnessLow,
-                                                dampingRatio = Spring.DampingRatioLowBouncy
+                                                dampingRatio = Spring.DampingRatioNoBouncy
                                             )
                                         },
                                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
