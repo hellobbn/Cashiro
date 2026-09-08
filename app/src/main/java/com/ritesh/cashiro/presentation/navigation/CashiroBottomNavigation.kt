@@ -1,9 +1,20 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import androidx.compose.foundation.gestures.detectTapGestures
+
+import androidx.compose.ui.input.pointer.pointerInput
+
+import androidx.compose.ui.text.style.TextOverflow
+
+import androidx.compose.ui.semantics.Role
+
+import androidx.compose.foundation.layout.height
+
+import androidx.compose.foundation.selection.selectable
+
 import android.view.HapticFeedbackConstants
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,8 +53,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.TonalToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -217,10 +226,13 @@ fun CashiroBottomNavigation(
             exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
+            // The whole gradient area, including a dead zone above the toolbar, swallows taps so a
+            // finger aimed at the tabs cannot land on list content peeking out behind them.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
+                    .pointerInput(Unit) { detectTapGestures { } }
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
@@ -235,7 +247,7 @@ fun CashiroBottomNavigation(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .navigationBarsPadding()
-                        .padding(bottom = 0.dp),
+                        .padding(top = FloatingBarDeadZone),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -256,10 +268,7 @@ fun CashiroBottomNavigation(
                                     }
                                 ) else Modifier
                             )
-                            .zIndex(1000f)
-                            .animateContentSize(
-                                MaterialTheme.motionScheme.fastSpatialSpec()
-                            ),
+                            .zIndex(1000f),
                         colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
                             toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(
                                 alpha = if (blurEffects) 0.7f else 1f
@@ -272,12 +281,10 @@ fun CashiroBottomNavigation(
                                 it.route?.contains(item.destinationType.qualifiedName ?: "") == true
                             } == true
 
-                            TonalToggleButton(
-                                checked = selected,
-                                onCheckedChange = {
-                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    // Keep an already selected root page; contextual routes still reset below.
-                                    if (navController.isCurrentMainTabRoot(item)) return@TonalToggleButton
+                            val onSelect: () -> Unit = {
+                                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                                // Keep an already selected root page; contextual routes still reset below.
+                                if (!navController.isCurrentMainTabRoot(item)) {
                                     MainTabTiming.request(item.route)
                                     val startDestId = navController.graph.findStartDestination().id
                                     if (item.destination == Home) {
@@ -298,36 +305,15 @@ fun CashiroBottomNavigation(
                                             restoreState = true
                                         }
                                     }
-                                },
-                                shapes = ToggleButtonDefaults.shapes(
-                                    shape = FloatingToolbarDefaults.ContainerShape,
-                                    checkedShape = RoundedCornerShape(30.dp)
-                                ),
-                                colors = ToggleButtonDefaults.toggleButtonColors(
-                                    containerColor = if(blurEffects)
-                                        MaterialTheme.colorScheme.surfaceBright.copy(0.6f)
-                                    else MaterialTheme.colorScheme.surfaceBright,
-                                    contentColor = MaterialTheme.colorScheme.inverseSurface,
-                                    disabledContainerColor = MaterialTheme.colorScheme.surfaceBright.copy(0.7f),
-                                    disabledContentColor = MaterialTheme.colorScheme.inverseSurface.copy(0.5f),
-                                    checkedContainerColor =  MaterialTheme.colorScheme.tertiaryContainer,
-                                    checkedContentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                ),
-                                modifier = Modifier
-                                    .padding(horizontal = 4.dp)
-                            ) {
-                                Icon(imageVector = item.icon, contentDescription = stringResource(item.titleRes))
-                                AnimatedVisibility(
-                                    visible = selected,
-                                    enter = fadeIn() + expandHorizontally(MaterialTheme.motionScheme.fastSpatialSpec()),
-                                    exit = fadeOut() + shrinkHorizontally(MaterialTheme.motionScheme.fastSpatialSpec())
-                                ) {
-                                    Text(
-                                        text = stringResource(item.titleRes),
-                                        modifier = Modifier.padding(start = 8.dp)
-                                    )
                                 }
                             }
+                            FloatingTabItem(
+                                item = item,
+                                selected = selected,
+                                hideLabel = hideLabels,
+                                blurEffects = blurEffects,
+                                onClick = onSelect
+                            )
                         }
                     }
                     BlurredAnimatedVisibility(
@@ -401,6 +387,65 @@ fun CashiroBottomNavigation(
         }
     }
 }
+
+/**
+ * One tab of the floating toolbar. Every tab has the same fixed width and a fixed shape, with
+ * the label under the icon, so selecting a tab never changes the toolbar's size or corner radius.
+ * (The previous toggle-button layout expanded the selected tab horizontally to fit its label,
+ * which wrapped onto a second line for longer localized titles and made the bar jump in height,
+ * and morphed its corner shape on press.)
+ */
+@Composable
+private fun FloatingTabItem(
+    item: BottomNavItem,
+    selected: Boolean,
+    hideLabel: Boolean,
+    blurEffects: Boolean,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(20.dp)
+    val containerColor = when {
+        selected -> MaterialTheme.colorScheme.tertiaryContainer
+        blurEffects -> MaterialTheme.colorScheme.surfaceBright.copy(0.6f)
+        else -> MaterialTheme.colorScheme.surfaceBright
+    }
+    val contentColor = if (selected) MaterialTheme.colorScheme.onTertiaryContainer
+    else MaterialTheme.colorScheme.inverseSurface
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .width(FloatingTabWidth)
+            .height(FloatingTabHeight)
+            .clip(shape)
+            .background(containerColor, shape)
+            .selectable(selected = selected, onClick = onClick, role = Role.Tab),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = item.icon,
+            contentDescription = stringResource(item.titleRes),
+            tint = contentColor,
+            modifier = Modifier.size(24.dp)
+        )
+        if (!hideLabel) {
+            Text(
+                text = stringResource(item.titleRes),
+                color = contentColor,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                softWrap = false,
+                modifier = Modifier.padding(top = 2.dp, start = 4.dp, end = 4.dp)
+            )
+        }
+    }
+}
+
+private val FloatingTabWidth = 72.dp
+/** Non-interactive strip above the floating toolbar; taps here are consumed and go nowhere. */
+private val FloatingBarDeadZone = 24.dp
+private val FloatingTabHeight = 56.dp
 
 /** Do not confuse a filtered/search transaction route with the default main tab. */
 private fun NavHostController.isCurrentMainTabRoot(item: BottomNavItem): Boolean {

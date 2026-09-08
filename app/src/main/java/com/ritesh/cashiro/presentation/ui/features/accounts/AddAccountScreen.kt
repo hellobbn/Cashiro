@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -51,14 +50,13 @@ fun AddAccountScreen(
 
     // A fast fling that hits the end of this form used to stutter: the platform stretch
     // overscroll re-renders the whole form (a dozen text fields) through a shader on every
-    // frame of the bounce, while the slide/fade screen transition may still be running.
-    // The form is short, so the bounce adds nothing; drop it.
-    CompositionLocalProvider(LocalOverscrollFactory provides null) {
+    // frame of the bounce. The form is short, so the bounce adds nothing; disable it on the
+    // scroll container itself.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState(), overscrollEffect = null)
             .padding(Dimensions.Padding.content),
         verticalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
@@ -345,7 +343,6 @@ fun AddAccountScreen(
 
         // Add some bottom padding for better scroll experience
         Spacer(modifier = Modifier.height(16.dp))
-    }
     }
 }
 
