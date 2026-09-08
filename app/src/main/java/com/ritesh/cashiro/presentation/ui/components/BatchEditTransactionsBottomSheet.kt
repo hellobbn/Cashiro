@@ -49,8 +49,6 @@ import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
 import com.ritesh.cashiro.presentation.ui.icons.Calendar
 import com.ritesh.cashiro.presentation.ui.icons.DocumentText2
@@ -125,10 +123,8 @@ fun BatchEditTransactionsBottomSheet(
                     .fillMaxWidth()
                     .padding(horizontal = Dimensions.Padding.content)
                     .padding(bottom = 0.dp)
-                    .imePadding()
-                    .overScrollVertical(),
+                    .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState }
             ) {
                 // Header
                 item {

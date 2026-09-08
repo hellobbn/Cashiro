@@ -72,7 +72,6 @@ import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.domain.brokerage.BrokerageAccount
 import com.ritesh.cashiro.domain.brokerage.BrokerageError
 import com.ritesh.cashiro.domain.brokerage.Holding
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
@@ -318,7 +317,6 @@ internal fun InvestmentsContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(state = hazeState)
-                    .overScrollVertical()
                     .padding(horizontal = Dimensions.Padding.content)
                     .testTag("investments_list"),
                 contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 96.dp),

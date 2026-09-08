@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -17,24 +21,15 @@ val LocalAnimatedContentScope = compositionLocalOf<AnimatedContentScope?> { null
 // Shared bounds transform configurations
 object SharedTransitionTransforms {
     val smooth: BoundsTransform = BoundsTransform { _, _ ->
-        spring(
-            stiffness = Spring.StiffnessLow,
-            dampingRatio = Spring.DampingRatioNoBouncy
-        )
+        tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
     }
     
     val snappy: BoundsTransform = BoundsTransform { _, _ ->
-        spring(
-            stiffness = Spring.StiffnessMediumLow,
-            dampingRatio = Spring.DampingRatioLowBouncy
-        )
+        tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
     }
     
     val quick: BoundsTransform = BoundsTransform { _, _ ->
-        spring(
-            stiffness = Spring.StiffnessMedium,
-            dampingRatio = Spring.DampingRatioNoBouncy
-        )
+        tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
     }
 }
 

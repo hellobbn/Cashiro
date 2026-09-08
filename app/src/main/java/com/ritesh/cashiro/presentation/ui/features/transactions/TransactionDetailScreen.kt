@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -181,7 +184,6 @@ import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.presentation.common.icons.BrandIcons
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
@@ -438,10 +440,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                     rememberSharedContentState(key = sharedElementKey ?: "transaction_$transactionId"),
                     animatedVisibilityScope = animatedContentScope,
                     boundsTransform = { _, _ ->
-                        spring(
-                            stiffness =  Spring.StiffnessLow,
-                            dampingRatio = Spring.DampingRatioLowBouncy
-                        )
+                        tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                     },
                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Inside, Alignment.Center),
                     clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(Spacing.xxl))
@@ -1051,7 +1050,6 @@ private fun TransactionDetailContent(
             .fillMaxSize()
             .imePadding()
             .hazeSource(state = hazeState)
-            .overScrollVertical()
             .verticalScroll(
                 state = rememberScrollState()
             )

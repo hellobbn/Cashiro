@@ -2,11 +2,6 @@ package com.ritesh.cashiro.presentation.ui.features.categories
 
 import android.content.Context
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -39,7 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,7 +53,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.ui.components.SearchBarBox
 
@@ -93,15 +86,7 @@ fun IconSelector(
                 }
             }
 
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
+    val searchLabel = stringResource(R.string.search_fruits)
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         SearchBarBox(
@@ -109,7 +94,7 @@ fun IconSelector(
             onSearchQueryChange = { searchQuery = it },
             label = {
                 AnimatedContent(
-                    targetState = labels[currentLabelIndex],
+                    targetState = searchLabel,
                     transitionSpec = {
                         (fadeIn(animationSpec = tween(400, delayMillis = 100)) +
                                 slideInVertically(
@@ -229,19 +214,9 @@ private fun IconItemView(
     onClick: () -> Unit,
 ) {
     val themeColors = MaterialTheme.colorScheme
-    val infiniteTransition = rememberInfiniteTransition(label = "Selected Glow animation")
-
-    val animatedColor by
-            infiniteTransition.animateColor(
-                initialValue = themeColors.primary.copy(alpha = 0.5f),
-                targetValue = themeColors.secondary.copy(alpha = 0.5f),
-                animationSpec =
-                    infiniteRepeatable(
-                        animation = tween(2000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                label = "Selected Glow animation"
-            )
+    // Static selection highlight: the previous infinite colour pulse kept the whole grid
+    // invalidating every frame while the selector was open.
+    val animatedColor = themeColors.primary.copy(alpha = 0.5f)
 
     Box(
         modifier = Modifier

@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -235,10 +239,7 @@ fun SharedTransitionScope.LoanSummaryItem(
             rememberSharedContentState(key = sharedElementKey),
             animatedVisibilityScope = animatedContentScope,
             boundsTransform = { _, _ ->
-                spring(
-                    stiffness = Spring.StiffnessLow,
-                    dampingRatio = Spring.DampingRatioNoBouncy
-                )
+                tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
             },
             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                 contentScale = ContentScale.Crop,

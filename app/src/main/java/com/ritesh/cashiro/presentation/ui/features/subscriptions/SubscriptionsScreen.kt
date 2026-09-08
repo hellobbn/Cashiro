@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.subscriptions
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -82,8 +86,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
@@ -164,10 +166,7 @@ fun SubscriptionsScreen(
                         rememberSharedContentState(key = "upcoming_subscriptions_card"),
                         animatedVisibilityScope = animatedContentScope,
                         boundsTransform = { _, _ ->
-                            spring(
-                                stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
-                            )
+                            tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                             contentScale = ContentScale.Fit
@@ -230,9 +229,7 @@ fun SubscriptionsScreen(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(state = hazeState)
-                .overScrollVertical(),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                .hazeSource(state = hazeState),
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,

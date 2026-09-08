@@ -92,8 +92,6 @@ import coil3.compose.AsyncImage
 import androidx.core.graphics.toColorInt
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
@@ -142,16 +140,6 @@ fun TransactionTabContent(
         transactionSubcategories.find { it.name == uiState.subcategory }
     }
 
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
-
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showCategoryMenu by remember { mutableStateOf(false) }
@@ -163,11 +151,9 @@ fun TransactionTabContent(
             modifier = Modifier
                 .animateContentSize()
                 .fillMaxSize()
-                .overScrollVertical()
                 .imePadding() // Handle keyboard properly
                 .verticalScroll(
                     state = scrollState,
-                    flingBehavior = rememberOverscrollFlingBehavior { scrollState },
                     enabled = !isTransitioning
                 )
                 .padding(horizontal = 16.dp, vertical = 16.dp),

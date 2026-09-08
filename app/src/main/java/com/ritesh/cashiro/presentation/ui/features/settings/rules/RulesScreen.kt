@@ -59,8 +59,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.domain.model.rule.TransactionRule
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
@@ -167,8 +165,7 @@ fun RulesScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(state = hazeState)
-                    .overScrollVertical(),
+                    .hazeSource(state = hazeState),
                 contentPadding = PaddingValues(
                     start = Dimensions.Padding.content,
                     end = Dimensions.Padding.content,
@@ -176,7 +173,6 @@ fun RulesScreen(
                     bottom = 0.dp
                 ),
                 state = lazyListState,
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
 
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {

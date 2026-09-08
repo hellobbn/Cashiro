@@ -165,7 +165,7 @@ constructor(@ApplicationContext private val context: Context) {
                 },
                 hideNavigationLabels = preferences[PreferencesKeys.HIDE_NAVIGATION_LABELS] ?: false,
                 hidePillIndicator = preferences[PreferencesKeys.HIDE_PILL_INDICATOR] ?: false,
-                blurEffects = preferences[PreferencesKeys.BLUR_EFFECTS] ?: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S),
+                blurEffects = preferences[PreferencesKeys.BLUR_EFFECTS] ?: false,
                 isSampleDataSeeded = preferences[PreferencesKeys.IS_SAMPLE_DATA_SEEDED] ?: false,
                 appIcon = try {
                     AppIcon.valueOf(
@@ -825,7 +825,7 @@ data class UserPreferences(
         val accentColor: AccentColor = AccentColor.BLUE,
         val hideNavigationLabels: Boolean = false,
         val hidePillIndicator: Boolean = false,
-        val blurEffects: Boolean = true,
+        val blurEffects: Boolean = false,
         val isSampleDataSeeded: Boolean = false,
         val appIcon: AppIcon = AppIcon.ORIGINAL,
         // Currency Settings preferences

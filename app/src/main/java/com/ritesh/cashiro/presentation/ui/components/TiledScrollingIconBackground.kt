@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.presentation.common.icons.IconResource
 
 /**
- * A background component that tiles an icon and scrolls it vertically.
- * Provides a premium look with reduced opacity and animation.
+ * A background component that tiles an icon behind card content.
+ * Static; [animationDuration] is kept for call-site compatibility and ignored.
  */
 @Composable
 fun TiledScrollingIconBackground(
@@ -41,8 +41,8 @@ fun TiledScrollingIconBackground(
 }
 
 /**
- * A background component that tiles multiple icons and scrolls them vertically.
- * Icons alternate in both columns and rows.
+ * A background component that tiles multiple icons behind card content.
+ * Icons alternate in both columns and rows. Static; [animationDuration] is ignored.
  */
 @Composable
 fun TiledScrollingIconBackground(
@@ -53,19 +53,9 @@ fun TiledScrollingIconBackground(
     rotation: Float = -20f,
     animationDuration: Int = 15000
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "TiledBackground")
-    // Held as State rather than read with `by`: the read happens inside the draw lambda below,
-    // so the tiles repaint without recomposing this composable every animation frame.
-    val scrollOffset = infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(animationDuration, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "ScrollAnimation"
-    )
-
+    // The tiles are drawn once and stay static. The former infinite scroll animation redrew
+    // hundreds of vector icons per card on every frame for as long as the card was on screen,
+    // which is a large, constant GPU load on the home screen.
     // painterResource / rememberVectorPainter must stay in composition, but the list itself is
     // rebuilt on every recomposition otherwise.
     val paintersWithTint = iconResources.map { iconResource ->
@@ -88,8 +78,7 @@ fun TiledScrollingIconBackground(
         val spacing = sizePx * 0.4f
         val step = sizePx + spacing
 
-        // Offset ranges from 0 to step
-        val offsetY = scrollOffset.value * step
+        val offsetY = 0f
 
         // Calculate how many items we need to cover the area
         // We add extra to handle rotation and overflow

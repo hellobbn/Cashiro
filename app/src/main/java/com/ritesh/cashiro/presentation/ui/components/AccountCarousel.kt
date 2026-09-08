@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -162,10 +166,7 @@ fun SharedTransitionScope.AccountCarouselCard(
                         rememberSharedContentState(key = "account_${bankName}_${accountLast4}"),
                         animatedVisibilityScope = animatedContentScope,
                         boundsTransform = { _, _ ->
-                            spring(
-                                stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioNoBouncy
-                            )
+                            tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                             contentScale = ContentScale.Fit,

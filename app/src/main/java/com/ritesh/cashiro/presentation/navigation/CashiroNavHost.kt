@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -152,7 +156,10 @@ fun CashiroNavHost(
     val isSubscriptionsScreen = currentRoute?.contains(Subscriptions::class.qualifiedName ?: "") == true
     val isBudgetDetailScreen = currentRoute?.contains(BudgetDetail::class.qualifiedName ?: "") == true
 
-    val isFloatingNav = themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING
+    // Only the standard Material navigation bar is rendered now; the saved style preference is
+    // ignored so the FAB layout below always follows the NORMAL rules.
+    val navigationBarStyle = NavigationBarStyle.NORMAL
+    val isFloatingNav = false
     val hideFabsForFloatingNav = isFloatingNav && (isHomeScreen || isTransactionsScreen)
     val showFloatingFab = isFloatingNav && (isHomeScreen || isTransactionsScreen || isAnalyticsScreen)
 
@@ -486,6 +493,7 @@ fun CashiroNavHost(
                     ManageAccountsScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToAccountDetail = { name, suffix -> navController.safeNavigate(AccountDetail(name, suffix)) },
+                        onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
                         blurEffects = themeUiState.blurEffects,
                         category = selected
                     )
@@ -502,6 +510,7 @@ fun CashiroNavHost(
                         onNavigateToAccountDetail = { bankName, last4 ->
                             navController.safeNavigate(AccountDetail(bankName, last4))
                         },
+                        onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
                         blurEffects = themeUiState.blurEffects
                     )
                 }
@@ -511,9 +520,13 @@ fun CashiroNavHost(
                     exitTransition = CashiroTransitions.horizontalSlideExit,
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
-                ) {
+                ) { entry ->
+                    val initialCategory = entry.toRoute<AddAccount>().category?.let { name ->
+                        com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.entries.firstOrNull { it.name == name }
+                    }
                     AddAccountScreen(
-                        onNavigateBack = { navController.safePopBackStack() }
+                        onNavigateBack = { navController.safePopBackStack() },
+                        initialCategory = initialCategory
                     )
                 }
 
@@ -802,7 +815,7 @@ fun CashiroNavHost(
                         .align(Alignment.BottomEnd)
                         .padding(Dimensions.Padding.content)
                         .padding(
-                            bottom = when (themeUiState.navigationBarStyle) {
+                            bottom = when (navigationBarStyle) {
                                 NavigationBarStyle.FLOATING if showBottomNav -> 56.dp
                                 NavigationBarStyle.NORMAL if showBottomNav -> 84.dp
                                 else -> 10.dp
@@ -850,10 +863,7 @@ fun CashiroNavHost(
                                         rememberSharedContentState(key = "fab_to_add"),
                                         animatedVisibilityScope = this@AnimatedVisibility,
                                         boundsTransform = { _, _ ->
-                                            spring(
-                                                stiffness = Spring.StiffnessLow,
-                                                dampingRatio = Spring.DampingRatioLowBouncy
-                                            )
+                                            tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                                         },
                                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                                             contentScale = ContentScale.FillBounds,
@@ -862,23 +872,7 @@ fun CashiroNavHost(
                                     )
                                         .skipToLookaheadSize()
                                 )
-                                .then(
-                                    if (themeUiState.blurEffects) Modifier
-                                        .clip(MaterialTheme.shapes.large)
-                                        .hazeEffect(
-                                            state = hazeState,
-                                            block = fun HazeEffectScope.() {
-                                                inputScale = HazeInputScale.Auto
-                                                style = HazeDefaults.style(
-                                                    backgroundColor = Color.Transparent,
-                                                    tint = HazeDefaults.tint(fabContainerColor),
-                                                    blurRadius = 20.dp,
-                                                    noiseFactor = -1f,
-                                                )
-                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                            }
-                                        ) else Modifier
-                                ),
+                                .clip(MaterialTheme.shapes.large),
                             containerColor = fabContainerColor,
                             contentColor = fabContentColor,
                         ) {
@@ -967,11 +961,20 @@ fun CashiroNavHost(
             } else null
         }
 
+        // Block pointer input while a navigation transition is in progress so a quick tap
+        // meant for the destination screen doesn't hit the still-composed outgoing screen.
+        // Placed under the navigation bar so tab taps are never swallowed: switching tabs
+        // rapidly used to drop taps that landed during the previous tab's fade.
+        NavigationTransitionInputBlocker(
+            navController = navController,
+            isAddTransactionScreen = isAddTransactionScreen
+        )
+
         // Bottom Navigation
         CashiroBottomNavigation(
             navController = navController,
             currentDestination = currentDestination,
-            navigationBarStyle = themeUiState.navigationBarStyle,
+            navigationBarStyle = navigationBarStyle,
             hideLabels = themeUiState.hideNavigationLabels,
             hidePill = themeUiState.hidePillIndicator,
             blurEffects = themeUiState.blurEffects,
@@ -979,13 +982,6 @@ fun CashiroNavHost(
             modifier = Modifier.align(Alignment.BottomCenter),
             hazeState = hazeState,
             fabConfig = fabConfig
-        )
-
-        // Block pointer input while a navigation transition is in progress so a quick tap
-        // meant for the destination screen doesn't hit the still-composed outgoing screen.
-        NavigationTransitionInputBlocker(
-            navController = navController,
-            isAddTransactionScreen = isAddTransactionScreen
         )
     }
 }

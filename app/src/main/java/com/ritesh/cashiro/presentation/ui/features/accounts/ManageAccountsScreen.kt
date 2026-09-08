@@ -114,6 +114,7 @@ import java.math.BigDecimal
 fun ManageAccountsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAccountDetail: (String, String) -> Unit,
+    onNavigateToAddAccount: (AccountCategory?) -> Unit = {},
     manageAccountsViewModel: ManageAccountsViewModel = hiltViewModel(),
     blurEffects: Boolean,
     category: AccountCategory? = null,
@@ -130,7 +131,6 @@ fun ManageAccountsScreen(
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var accountToDelete by remember { mutableStateOf<AccountBalanceEntity?>(null) }
     var showHiddenAccounts by rememberSaveable { mutableStateOf(false) }
-    var showAddSheet by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
     var accountToEdit by remember {
         mutableStateOf<AccountBalanceEntity?>(null)
@@ -224,7 +224,7 @@ fun ManageAccountsScreen(
             ExtendedFloatingActionButton(
                 onClick = {
                     manageAccountsViewModel.clearAccountSaveError()
-                    showAddSheet = true
+                    onNavigateToAddAccount(category)
                 },
                 expanded = showFloatingLabel,
                 icon = { Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.add_account_fab_desc)) },
@@ -913,41 +913,6 @@ fun ManageAccountsScreen(
                     )
                     showEditSheet = false
                     accountToEdit = null
-                }
-            )
-        }
-    }
-
-    // Add Account Sheet
-    if (showAddSheet) {
-        ModalBottomSheet(
-            sheetState = sheetState,
-            onDismissRequest = { if (!uiState.isSavingAccount) showAddSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            EditAccountSheet(
-                allAccounts = uiState.accounts,
-                defaultCurrency = defaultCurrency,
-                initialCategory = category,
-                isSaving = uiState.isSavingAccount,
-                saveError = uiState.accountSaveError,
-                onClearSaveError = manageAccountsViewModel::clearAccountSaveError,
-                onDismiss = { if (!uiState.isSavingAccount) showAddSheet = false },
-                onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency ->
-                    manageAccountsViewModel.addAccount(
-                        bankName = bankName,
-                        balance = balance,
-                        accountLast4 = last4,
-                        iconResId = iconResId,
-                        iconName = iconName,
-                        colorHex = color,
-                        isCreditCard = isCC,
-                        isWallet = isWallet,
-                        creditLimit = limit,
-                        currency = currency,
-                        onSaved = { showAddSheet = false }
-                    )
                 }
             )
         }

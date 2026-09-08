@@ -77,8 +77,6 @@ import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.domain.model.rule.RuleCondition
 import com.ritesh.cashiro.domain.model.rule.TransactionField
 import com.ritesh.cashiro.domain.model.rule.TransactionRule
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
@@ -227,8 +225,7 @@ fun CreateRuleScreen(
                     .fillMaxSize()
                     .animateContentSize()
                     .hazeSource(state = hazeState)
-                    .imePadding()
-                    .overScrollVertical(),
+                    .imePadding(),
                 state = lazyListState,
                 contentPadding = PaddingValues(
                     start = Dimensions.Padding.content,
@@ -237,7 +234,6 @@ fun CreateRuleScreen(
                     bottom = 0.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState }
             ) {
                 // Quick templates
                 item {
@@ -252,8 +248,7 @@ fun CreateRuleScreen(
                         )
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .overScrollVertical(false),
+                                .fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                         ) {
                             FlowRow(

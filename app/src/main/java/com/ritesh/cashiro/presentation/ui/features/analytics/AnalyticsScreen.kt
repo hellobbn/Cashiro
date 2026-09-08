@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.analytics
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -76,8 +80,6 @@ import com.ritesh.cashiro.presentation.common.TimePeriod
 import com.ritesh.cashiro.presentation.common.TransactionTypeFilter
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CategoryIcon
 import com.ritesh.cashiro.presentation.ui.components.CollapsibleFilterRow
@@ -175,9 +177,7 @@ fun SharedTransitionScope.AnalyticsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(state = hazeState)
-                    .background(MaterialTheme.colorScheme.background)
-                    .overScrollVertical(),
-                flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+                    .background(MaterialTheme.colorScheme.background),
                 contentPadding = PaddingValues(
                     start = 0.dp,
                     end = 0.dp,
@@ -711,10 +711,7 @@ fun SharedTransitionScope.CategoryProgressItem(
                         rememberSharedContentState(key = "category_$name"),
                         animatedVisibilityScope = animatedContentScope,
                         boundsTransform = { _, _ ->
-                            spring(
-                                stiffness =  Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioNoBouncy
-                            )
+                            tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
                     )

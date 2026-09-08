@@ -38,8 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
@@ -102,8 +100,7 @@ fun BudgetHistoryScreen(
             } else {
                 LazyColumn(
                     state = lazyListState,
-                    flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
-                    modifier = Modifier.fillMaxSize().overScrollVertical(),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
                         top = paddingValues.calculateTopPadding() + Spacing.md,
                         bottom = 100.dp
