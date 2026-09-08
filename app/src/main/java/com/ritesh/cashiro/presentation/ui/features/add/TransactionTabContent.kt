@@ -142,16 +142,6 @@ fun TransactionTabContent(
         transactionSubcategories.find { it.name == uiState.subcategory }
     }
 
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
-
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showCategoryMenu by remember { mutableStateOf(false) }

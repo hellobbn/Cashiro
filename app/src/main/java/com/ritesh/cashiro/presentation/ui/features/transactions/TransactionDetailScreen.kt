@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -438,10 +441,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                     rememberSharedContentState(key = sharedElementKey ?: "transaction_$transactionId"),
                     animatedVisibilityScope = animatedContentScope,
                     boundsTransform = { _, _ ->
-                        spring(
-                            stiffness =  Spring.StiffnessLow,
-                            dampingRatio = Spring.DampingRatioLowBouncy
-                        )
+                        tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                     },
                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Inside, Alignment.Center),
                     clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(Spacing.xxl))

@@ -31,7 +31,6 @@ import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
-import kotlinx.coroutines.delay
 
 @Composable
 fun CategorySelectionSheet(
@@ -40,15 +39,7 @@ fun CategorySelectionSheet(
     onSelectionComplete: (CategoryEntity, SubcategoryEntity?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val labels = listOf("Search Fruits", "Search Shopping", "Search Fitness", "Search Sports")
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
+    val searchLabel = "Search Fruits"
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     
     // Filter categories based on search
@@ -92,7 +83,7 @@ fun CategorySelectionSheet(
                 onSearchQueryChange = { searchQuery = it },
                  label = {
                      AnimatedContent(
-                         targetState = labels[currentLabelIndex],
+                         targetState = searchLabel,
                          transitionSpec = {
                              (fadeIn(animationSpec = tween(400, delayMillis = 100)) +
                                      slideInVertically(

@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -109,10 +113,7 @@ fun SharedTransitionScope.AccountDetailScreen(
                         rememberSharedContentState(key = "account_${bankName}_${accountLast4}"),
                         animatedVisibilityScope = animatedContentScope,
                         boundsTransform = { _, _ ->
-                            spring(
-                                stiffness =  Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
-                            )
+                            tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
                     )

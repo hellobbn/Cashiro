@@ -1,11 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.profile
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.net.Uri
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -68,7 +66,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -429,21 +426,9 @@ fun DisplayUserNameAndSubtitles(userName: String, totalTransactions: Int) {
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.width(Spacing.sm))
-            val infiniteTransition = rememberInfiniteTransition(label = "rotation")
-            val rotation by infiniteTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = 360f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(3000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "rotation"
-            )
-
             Box(
                 modifier = Modifier
                     .size(20.dp)
-                    .rotate(rotation)
                     .background(
                         color = MaterialTheme.colorScheme.primary,
                         shape = MaterialShapes.Cookie9Sided.toShape()
@@ -454,7 +439,7 @@ fun DisplayUserNameAndSubtitles(userName: String, totalTransactions: Int) {
                     imageVector = Icons.Default.Check,
                     contentDescription = "Enabled",
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.rotate(-rotation).size(12.dp)
+                    modifier = Modifier.size(12.dp)
                 )
             }
         }
@@ -613,10 +598,7 @@ private fun SharedTransitionScope.ContactCarouselCard(
             rememberSharedContentState(key = sharedElementKey),
             animatedVisibilityScope = animatedContentScope,
             boundsTransform = { _, _ ->
-                spring(
-                    stiffness = Spring.StiffnessLow,
-                    dampingRatio = Spring.DampingRatioNoBouncy
-                )
+                tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
             },
             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                 contentScale = ContentScale.Crop,

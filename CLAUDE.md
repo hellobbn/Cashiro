@@ -25,8 +25,8 @@ breaks updates of already-installed builds.
 | Parser package | `com.ritesh.parser.core` |
 | Parser source root | `parser-core/src/main/kotlin/com/ritesh/parser/core/` |
 | Historical Room schema path | `app/schemas/com.pennywiseai.tracker.data.database.PennyWiseDatabase/` |
-| Version name | `2.1.62` |
-| Version code | `96` |
+| Version name | `2.1.63` |
+| Version code | `97` |
 | Min SDK | 26 |
 | Compile / target SDK | 36 |
 | License | AGPL-3.0 |
@@ -99,7 +99,7 @@ CI publishes those to the rolling `debug-latest` GitHub Release on every `main` 
 
 ## Versioning
 
-Semantic versions from upstream, currently `2.1.62` (`versionCode` 96).
+Semantic versions from upstream, currently `2.1.63` (`versionCode` 97).
 
 - **MAJOR**: breaking changes
 - **MINOR**: features

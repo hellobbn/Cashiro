@@ -150,17 +150,9 @@ fun CategoriesScreen(
     var showFloatingLabel by remember { mutableStateOf(true) }
     var showFilterMenu by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("All") }
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
+    val searchLabel = stringResource(R.string.search_fruits)
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
 
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemIndex }.collect { firstVisibleItem ->
@@ -298,7 +290,7 @@ fun CategoriesScreen(
                     },
                     label = {
                         AnimatedContent(
-                            targetState = labels[currentLabelIndex],
+                            targetState = searchLabel,
                             transitionSpec = {
                                 (fadeIn(animationSpec = tween(400, delayMillis = 100)) +
                                         slideInVertically(

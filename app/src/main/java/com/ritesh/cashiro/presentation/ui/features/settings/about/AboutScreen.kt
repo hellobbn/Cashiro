@@ -1,11 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.about
 
 import android.content.Intent
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -215,17 +209,6 @@ fun AboutScreen(
                     )
                 }
 
-                val infiniteTransition = rememberInfiniteTransition(label = "rotation")
-                val rotation by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 360f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(8000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
-                    ),
-                    label = "rotation"
-                )
-
                 AboutDeveloperItem(
                     title = stringResource(R.string.developed_by),
                     subtitle = "modestcat0309@gmail.com",
@@ -241,7 +224,6 @@ fun AboutScreen(
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
-                                .rotate(rotation)
                                 .clip(
                                     shape = MaterialShapes.Cookie9Sided.toShape()
                                 ),
@@ -251,7 +233,6 @@ fun AboutScreen(
                                 painter = painterResource(id = R.drawable.lead_developer),
                                 contentDescription = stringResource(R.string.lead_developer_cd),
                                 modifier = Modifier
-                                    .rotate(-rotation)
                                     .size(48.dp)
                             )
                         }

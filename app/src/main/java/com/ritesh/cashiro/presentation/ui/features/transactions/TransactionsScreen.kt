@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import androidx.compose.animation.core.tween
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -779,8 +782,8 @@ fun TransactionsScreen(
             // Floating Pill Shape Button for Batch Edit
             AnimatedVisibility(
                 visible = selectionMode && selectedTransactionIds.isNotEmpty(),
-                enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) + slideInVertically(spring(stiffness = Spring.StiffnessLow)) { it / 2 },
-                exit = fadeOut(spring(stiffness = Spring.StiffnessLow)) + slideOutVertically(spring(stiffness = Spring.StiffnessLow)) { it / 2 },
+                enter = fadeIn(tween(durationMillis = MotionDurations.standard)) + slideInVertically(tween(durationMillis = MotionDurations.standard)) { it / 2 },
+                exit = fadeOut(tween(durationMillis = MotionDurations.standard)) + slideOutVertically(tween(durationMillis = MotionDurations.standard)) { it / 2 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 92.dp)

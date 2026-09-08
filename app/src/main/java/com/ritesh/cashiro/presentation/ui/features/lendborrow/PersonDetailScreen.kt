@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.lendborrow
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -745,10 +749,7 @@ private fun SharedTransitionScope.PersonHeaderCard(
             rememberSharedContentState(key = sharedElementKey),
             animatedVisibilityScope = animatedContentScope,
             boundsTransform = { _, _ ->
-                spring(
-                    stiffness = Spring.StiffnessLow,
-                    dampingRatio = Spring.DampingRatioNoBouncy
-                )
+                tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
             },
             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                 contentScale = ContentScale.Crop,
@@ -977,10 +978,7 @@ fun SharedTransitionScope.LendBorrowTransactionListItem(
             rememberSharedContentState(key = sharedElementKey),
             animatedVisibilityScope = animatedContentScope,
             boundsTransform = { _, _ ->
-                spring(
-                    stiffness = Spring.StiffnessLow,
-                    dampingRatio = Spring.DampingRatioNoBouncy
-                )
+                tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
             },
             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center),
             clipInOverlayDuringTransition = OverlayClip(shape),

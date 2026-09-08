@@ -1,5 +1,11 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
+import androidx.compose.animation.core.FastOutSlowInEasing
+
+import androidx.compose.animation.core.tween
+
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -88,10 +94,7 @@ fun AnimatedCounterText(
     fontSize: TextUnit = 24.sp,
     maxLines: Int = 1,
     fontWeight: FontWeight? = FontWeight.Normal,
-    animationSpec: AnimationSpec<Float> = spring(
-        dampingRatio = Spring.DampingRatioLowBouncy,
-        stiffness = Spring.StiffnessLow
-    ),
+    animationSpec: AnimationSpec<Float> = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing),
     textStyle: TextStyle = TextStyle(
         textMotion = TextMotion.Animated,
         lineBreak = LineBreak.Simple,

@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -850,10 +854,7 @@ fun CashiroNavHost(
                                         rememberSharedContentState(key = "fab_to_add"),
                                         animatedVisibilityScope = this@AnimatedVisibility,
                                         boundsTransform = { _, _ ->
-                                            spring(
-                                                stiffness = Spring.StiffnessLow,
-                                                dampingRatio = Spring.DampingRatioLowBouncy
-                                            )
+                                            tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                                         },
                                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                                             contentScale = ContentScale.FillBounds,

@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.app.Activity
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
@@ -464,10 +468,7 @@ fun SharedTransitionScope.HomeScreen(
                                                     rememberSharedContentState(key = "upcoming_subscriptions_card"),
                                                     animatedVisibilityScope = animatedContentScope,
                                                     boundsTransform = { _, _ ->
-                                                        spring(
-                                                            stiffness = Spring.StiffnessLow,
-                                                            dampingRatio = Spring.DampingRatioNoBouncy
-                                                        )
+                                                        tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                                                     },
                                                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                                                         contentScale = ContentScale.Fit,
@@ -539,10 +540,7 @@ fun SharedTransitionScope.HomeScreen(
                                                                             rememberSharedContentState(key = "transactions_search"),
                                                                             animatedVisibilityScope = animatedContentScope,
                                                                             boundsTransform = { _, _ ->
-                                                                                spring(
-                                                                                    stiffness = Spring.StiffnessLow,
-                                                                                    dampingRatio = Spring.DampingRatioNoBouncy
-                                                                                )
+                                                                                tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                                                                             },
                                                                             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                                                                                 contentScale = ContentScale.None,
@@ -660,10 +658,7 @@ fun SharedTransitionScope.HomeScreen(
                                                                 rememberSharedContentState(key = "transactions_screen"),
                                                                 animatedVisibilityScope = animatedContentScope,
                                                                 boundsTransform = { _, _ ->
-                                                                    spring(
-                                                                        stiffness = Spring.StiffnessLow,
-                                                                        dampingRatio = Spring.DampingRatioNoBouncy
-                                                                    )
+                                                                    tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                                                                 },
                                                                 resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                                                                     contentScale = ContentScale.None,
