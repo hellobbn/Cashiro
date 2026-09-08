@@ -35,6 +35,8 @@ data class HomeUiState(
     val selectedCurrency: String = "CNY",
     val availableCurrencies: List<String> = emptyList(),
     val isLoading: Boolean = true,
+    val recentTransactionsError: Boolean = false,
+    val recentTransactionsCurrency: String = "CNY",
     val showBreakdownDialog: Boolean = false,
     val userName: String = "User",
     val profileImageUri: Uri? = null,

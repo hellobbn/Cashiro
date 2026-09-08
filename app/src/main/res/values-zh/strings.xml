@@ -1259,4 +1259,5 @@
     <string name="account_already_exists">已存在名称和尾号相同的账户。</string>
     <string name="account_save_failed">保存失败，已保留您填写的内容，请重试。</string>
     <string name="saving_account">正在保存…</string>
+    <string name="recent_transactions_load_failed">最近交易加载失败。</string>
 </resources>

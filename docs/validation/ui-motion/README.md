@@ -1,6 +1,7 @@
 # UI motion and rendering cost review
 
-A subsequent measured correction is documented in [tab routing and row layout](lag-fix.md).
+Subsequent measured corrections are documented in [tab routing and row layout](lag-fix.md)
+and [Home loading and scroll spikes](home-loading-fix.md).
 The inventory and compile-only validation below describe the initial `1ad3500a` pass.
 The follow-up has separately authorized, isolated real-device tests.
 

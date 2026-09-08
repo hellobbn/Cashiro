@@ -1,5 +1,10 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -95,6 +100,28 @@ fun HeatmapWidget(
         scrollState.scrollTo(scrollState.maxValue)
     }
 
+    val density = LocalDensity.current
+    // Match the old per-cell layout rounding exactly, including at fractional densities.
+    val cellPx = with(density) { 14.dp.roundToPx() }
+    val gapPx = with(density) { 4.dp.roundToPx() }
+    val gridWidth = with(density) { (weeksToShow * cellPx + (weeksToShow - 1) * gapPx).toDp() }
+    val gridHeight = with(density) { (7 * cellPx + 6 * gapPx).toDp() }
+    val primary = MaterialTheme.colorScheme.primary
+    val emptyColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    val cellColors = remember(data, startDate, today, primary, emptyColor) {
+        List(weeksToShow * 7) { index ->
+            val date = startDate.plusDays(index.toLong())
+            val count = data[date] ?: 0
+            when {
+                date > today || count <= 0 -> emptyColor
+                count == 1 -> primary.copy(alpha = 0.25f)
+                count < 3 -> primary.copy(alpha = 0.5f)
+                count < 5 -> primary.copy(alpha = 0.75f)
+                else -> primary
+            }
+        }
+    }
+
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     Surface(
         modifier = modifier
@@ -125,39 +152,18 @@ fun HeatmapWidget(
                 .padding(Dimensions.Padding.content)
                 .horizontalScroll(scrollState)
         ) {
-            // Heatmap Grid
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.padding(bottom = 8.dp)
-            ) {
-                // iterate through weeks
-                for (w in 0 until weeksToShow) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        // Iterate through days of the week (Mon to Sun)
-                        for (d in 0 until 7) {
-                            val date = startDate.plusWeeks(w.toLong()).plusDays(d.toLong())
-                            val count = data[date] ?: 0
-                            
-                            val primary = MaterialTheme.colorScheme.primary
-                            val color = when {
-                                date > today -> MaterialTheme.colorScheme.surfaceContainerHigh
-                                count == 0 -> MaterialTheme.colorScheme.surfaceContainerHigh
-                                count == 1 -> primary.copy(alpha = 0.25f)
-                                count < 3 -> primary.copy(alpha = 0.5f)
-                                count < 5 -> primary.copy(alpha = 0.75f)
-                                else -> primary
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(color)
-                            )
-                        }
-                    }
+            // One draw node instead of 182 clipped Boxes and 26 Column layouts. Dates/colors
+            // are cached above, so scrolling does not allocate a new date model for each cell.
+            Canvas(Modifier.padding(bottom = 8.dp).size(gridWidth, gridHeight)) {
+                val step = (cellPx + gapPx).toFloat()
+                val corner = CornerRadius(4.dp.toPx())
+                cellColors.forEachIndexed { index, color ->
+                    drawRoundRect(
+                        color = color,
+                        topLeft = Offset(index / 7 * step, index % 7 * step),
+                        size = Size(cellPx.toFloat(), cellPx.toFloat()),
+                        cornerRadius = corner
+                    )
                 }
             }
 
@@ -167,7 +173,7 @@ fun HeatmapWidget(
             ) {
                 monthLabels.forEach { (weekIndex, label) ->
                     // horizontal offset based on weekIndex
-                    val xOffset = (weekIndex * 18).dp
+                    val xOffset = with(density) { (weekIndex * (cellPx + gapPx)).toDp() }
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelSmall,

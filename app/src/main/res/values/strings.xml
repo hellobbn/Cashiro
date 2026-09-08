@@ -1322,4 +1322,5 @@
     <string name="account_already_exists">An account with this name and last four digits already exists.</string>
     <string name="account_save_failed">Could not save the account. Your details are kept; please try again.</string>
     <string name="saving_account">Saving…</string>
+    <string name="recent_transactions_load_failed">Could not load recent transactions.</string>
 </resources>

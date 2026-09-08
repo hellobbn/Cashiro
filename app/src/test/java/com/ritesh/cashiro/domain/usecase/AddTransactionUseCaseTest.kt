@@ -396,6 +396,7 @@ class AddTransactionUseCaseTest {
         override suspend fun getTransactionByHash(transactionHash: String): TransactionEntity? = null
 
         override fun getAllTransactions(): Flow<List<TransactionEntity>> = flowOf(emptyList())
+        override fun getRecentTransactions(limit: Int): Flow<List<TransactionEntity>> = flowOf(emptyList())
         override fun getTransactionCount(): Flow<Int> = flowOf(0)
         override suspend fun getTransactionById(transactionId: Long): TransactionEntity? = null
         override fun getTransactionsBetweenDates(

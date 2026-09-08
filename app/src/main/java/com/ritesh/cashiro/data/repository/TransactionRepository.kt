@@ -400,10 +400,8 @@ class TransactionRepository @Inject constructor(
     }
 
     fun getRecentTransactions(limit: Int = 5): Flow<List<TransactionEntity>> {
-        return transactionDao.getAllTransactions().map { transactions -> transactions
-            .filter { it.transactionType != TransactionType.BALANCE_UPDATE }
-            .take(limit)
-        }
+        require(limit >= 0) { "Recent transaction limit must be non-negative" }
+        return transactionDao.getRecentTransactions(limit)
     }
 
     fun getTransactionsByAccount(

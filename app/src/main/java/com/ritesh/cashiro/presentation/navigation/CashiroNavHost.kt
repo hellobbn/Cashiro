@@ -219,32 +219,30 @@ fun CashiroNavHost(
                     popEnterTransition = MainTabMotion.popEnter,
                     popExitTransition = MainTabMotion.popExit
                 ) {
-                    SharedTransitionLayout {
-                        HomeScreen(
-                            navController = navController,
-                            onNavigateToSettings = { navController.safeNavigate(Settings) },
-                            onNavigateToTransactions = { navController.safeNavigate(Transactions()) },
-                            onNavigateToTransactionsWithSearch = {
-                                navController.safeNavigate(Transactions(focusSearch = true))
-                            },
-                            onNavigateToSubscriptions = { navController.safeNavigate(Subscriptions) },
-                            onNavigateToBudgets = { id ->
-                                if (id != null) {
-                                    navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = "budget_card_$id"))
-                                } else {
-                                    navController.safeNavigate(Budgets())
-                                }
-                            },
-                            onNavigateToBudgetHistory = { id ->
-                                navController.safeNavigate(BudgetHistory(id))
-                            },
-                            onNavigateToLendBorrow = { filter -> navController.safeNavigate(LendBorrow(filter)) },
-                            onTransactionClick = { transactionId, key ->
-                                navController.safeNavigate(TransactionDetail(transactionId, key))
-                            },
-                            animatedContentScope = this@composable,
-                        )
-                    }
+                    HomeScreen(
+                        navController = navController,
+                        onNavigateToSettings = { navController.safeNavigate(Settings) },
+                        onNavigateToTransactions = { navController.safeNavigate(Transactions()) },
+                        onNavigateToTransactionsWithSearch = {
+                            navController.safeNavigate(Transactions(focusSearch = true))
+                        },
+                        onNavigateToSubscriptions = { navController.safeNavigate(Subscriptions) },
+                        onNavigateToBudgets = { id ->
+                            if (id != null) {
+                                navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = "budget_card_$id"))
+                            } else {
+                                navController.safeNavigate(Budgets())
+                            }
+                        },
+                        onNavigateToBudgetHistory = { id ->
+                            navController.safeNavigate(BudgetHistory(id))
+                        },
+                        onNavigateToLendBorrow = { filter -> navController.safeNavigate(LendBorrow(filter)) },
+                        onTransactionClick = { transactionId, key ->
+                            navController.safeNavigate(TransactionDetail(transactionId, key))
+                        },
+                    )
+
                 }
 
                 // Analytics Screen
