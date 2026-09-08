@@ -32,6 +32,7 @@ class WalletSectionTest {
                 AccountSectionKind.WALLETS -> R.string.section_wallets
                 AccountSectionKind.BANKS -> R.string.section_bank_accounts
                 AccountSectionKind.CREDIT_CARDS -> R.string.section_credit_cards
+                AccountSectionKind.INVESTMENTS -> R.string.overview_investments
             })
             expand = context.getString(R.string.account_section_expand_all, title)
             collapse = context.getString(R.string.account_section_collapse_all, title)

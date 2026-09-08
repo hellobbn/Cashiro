@@ -2,12 +2,18 @@
 <resources>
     <string name="investments_title">Investments</string>
     <string name="investments_shortcut">Connect a broker · View holdings</string>
-    <string name="investments_report_hint">Read-only report snapshots, not live prices. Not added to home net worth, so manual brokerage accounts are not counted twice.</string>
+    <string name="investments_report_hint">Read-only report snapshots, not live prices. Linked accounts count toward net worth.</string>
     <string name="investments_syncing">Reading the brokerage report. This may take a minute…</string>
     <string name="investments_retry">Retry</string>
     <string name="investments_empty_title">Your holdings, in one place</string>
-    <string name="investments_empty_body">Connect your own IBKR account. View reports only; no orders or transfers.</string>
+    <string name="investments_empty_body">Add a manual investment account or link IBKR from the plus button. View reports only; no orders or transfers.</string>
     <string name="investments_connect_ibkr">Connect IBKR</string>
+    <string name="investments_add">Add</string>
+    <string name="investments_add_account">Add investment account</string>
+    <string name="investments_link_brokerage">Link a brokerage account</string>
+    <string name="investments_link_ibkr">Interactive Brokers (IBKR)</string>
+    <string name="investments_net_worth">Investment net worth</string>
+    <string name="investments_accounts">Accounts</string>
     <string name="investments_synced">Last synced: %1$s</string>
     <string name="investments_as_of">Report date: %1$s · Not live</string>
     <string name="investments_market_total">Positions %1$s %2$s</string>

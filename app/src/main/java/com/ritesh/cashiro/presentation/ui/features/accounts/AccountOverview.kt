@@ -3,6 +3,7 @@ package com.ritesh.cashiro.presentation.ui.features.accounts
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.brokerage.BrokerConnection
+import com.ritesh.cashiro.domain.brokerage.BrokerageAccount
 import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -12,12 +13,45 @@ enum class AccountCategory(val titleRes: Int) {
     CREDIT_CARDS(R.string.section_credit_cards), INVESTMENTS(R.string.overview_investments)
 }
 
-internal fun AccountBalanceEntity.category(): AccountCategory = when {
+fun AccountBalanceEntity.category(): AccountCategory = when {
     isCreditCard -> AccountCategory.CREDIT_CARDS
     isWallet -> AccountCategory.WALLETS
     InstitutionCatalog.find(bankName)?.isBroker == true -> AccountCategory.INVESTMENTS
     else -> AccountCategory.BANKS
 }
+
+fun AccountBalanceEntity.isInvestmentAccount(): Boolean =
+    category() == AccountCategory.INVESTMENTS
+
+internal fun BrokerageAccount.snapshotByCurrency(): Map<String, BigDecimal> {
+    val totals = mutableMapOf<String, BigDecimal>()
+    holdings.groupBy { it.currency }.forEach { (currency, rows) ->
+        totals[currency] = rows.fold(BigDecimal.ZERO) { n, holding ->
+            n + (holding.marketValue?.toBigDecimalOrNull() ?: BigDecimal.ZERO)
+        }
+    }
+    cashBalances.forEach { cash ->
+        val amount = cash.endingCash.toBigDecimalOrNull() ?: return@forEach
+        totals[cash.currency] = (totals[cash.currency] ?: BigDecimal.ZERO) + amount
+    }
+    return totals
+}
+
+internal fun List<BrokerConnection>.snapshotTotals(): Map<String, BigDecimal> {
+    val totals = mutableMapOf<String, BigDecimal>()
+    for (account in flatMap { it.accounts }) {
+        for ((currency, amount) in account.snapshotByCurrency()) {
+            totals[currency] = (totals[currency] ?: BigDecimal.ZERO) + amount
+        }
+    }
+    return totals
+}
+
+internal fun List<BrokerConnection>.snapshotValuationsComplete(): Boolean =
+    flatMap { it.accounts }.flatMap { it.holdings }.all { it.marketValue?.toBigDecimalOrNull() != null }
+
+internal fun List<BrokerConnection>.investmentSnapshotsOrEmpty(): Map<String, BigDecimal> =
+    if (isNotEmpty() && snapshotValuationsComplete()) snapshotTotals() else emptyMap()
 
 internal enum class OverviewStatus { READY, LOADING, CONNECT, UNAVAILABLE, MULTIPLE_SOURCES }
 internal data class AccountOverviewItem(
@@ -59,26 +93,18 @@ internal suspend fun buildOverview(
     } else {
         val brokerAccounts = connections.flatMap { it.accounts }
         val holdings = brokerAccounts.flatMap { it.holdings }
-        val snapshotTotals = mutableMapOf<String, BigDecimal>()
-        holdings.groupBy { it.currency }.forEach { (source, rows) ->
-            snapshotTotals[source] = rows.fold(BigDecimal.ZERO) { n, h ->
-                n + (h.marketValue?.toBigDecimalOrNull() ?: BigDecimal.ZERO)
-            }
-        }
-        brokerAccounts.flatMap { it.cashBalances }.forEach { cash ->
-            val amount = cash.endingCash.toBigDecimalOrNull() ?: return@forEach
-            snapshotTotals[cash.currency] = (snapshotTotals[cash.currency] ?: BigDecimal.ZERO) + amount
-        }
+        val snapshotTotals = connections.snapshotTotals()
         val status = when {
             brokerFailed -> OverviewStatus.UNAVAILABLE
             !brokerLoaded -> OverviewStatus.LOADING
-            members.isNotEmpty() && connections.isNotEmpty() -> OverviewStatus.MULTIPLE_SOURCES
             members.isEmpty() && connections.isEmpty() -> OverviewStatus.CONNECT
             holdings.any { it.marketValue?.toBigDecimalOrNull() == null } -> OverviewStatus.UNAVAILABLE
             else -> OverviewStatus.READY
         }
-        // Manual balances may describe the same portfolio: never add snapshots to them implicitly.
-        val totals = if (connections.isNotEmpty()) snapshotTotals else manualTotals
+        val totals = snapshotTotals.toMutableMap()
+        manualTotals.forEach { (source, value) ->
+            totals[source] = (totals[source] ?: BigDecimal.ZERO) + value
+        }
         val amount = if (status == OverviewStatus.READY) overviewTotal(totals, currency, rate) else null
         AccountOverviewItem(category, members.size + brokerAccounts.size, amount, currency,
             if (status == OverviewStatus.READY && amount == null) OverviewStatus.UNAVAILABLE else status,
@@ -87,9 +113,7 @@ internal suspend fun buildOverview(
     }
 }
 
-/** Snapshot portfolios are informational, not implicitly part of the existing net-worth balance. */
 internal fun AccountOverviewItem.netWorthContribution(): BigDecimal? = when {
     category == AccountCategory.CREDIT_CARDS -> amount?.negate()
-    isSnapshot -> null
     else -> amount
 }

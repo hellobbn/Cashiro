@@ -68,6 +68,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -138,6 +139,9 @@ fun ManageAccountsScreen(
     var walletsExpanded by rememberSaveable { mutableStateOf(false) }
     var banksExpanded by rememberSaveable { mutableStateOf(false) }
     var creditCardsExpanded by rememberSaveable { mutableStateOf(false) }
+    var investmentsExpanded by rememberSaveable { mutableStateOf(false) }
+    val brokerageConnections by manageAccountsViewModel.brokerageConnections.collectAsStateWithLifecycle()
+    var disconnectingBrokerage by remember { mutableStateOf<com.ritesh.cashiro.data.brokerage.BrokerConnection?>(null) }
     val categoryAccounts = remember(uiState.accounts, category) {
         uiState.accounts.filter { category == null || it.category() == category }
     }
@@ -147,9 +151,13 @@ fun ManageAccountsScreen(
     val walletSection = sections.visible[0]
     val bankSection = sections.visible[1]
     val creditSection = sections.visible[2]
+    val investmentSection = sections.visible[3]
     val wallets = walletSection.visibleAccounts(category != null || walletsExpanded)
     val visibleRegularAccounts = bankSection.visibleAccounts(category != null || banksExpanded)
     val visibleCreditCards = creditSection.visibleAccounts(category != null || creditCardsExpanded)
+    val visibleInvestments = investmentSection.visibleAccounts(category != null || investmentsExpanded)
+    val showBrokerageLinks = category == null || category == AccountCategory.INVESTMENTS
+    val showInvestmentRows = category != null || investmentsExpanded
     val hiddenRegularAccounts = remember(sections) { sections.hidden.filter { !it.isCreditCard } }
     val hiddenCreditCards = remember(sections) { sections.hidden.filter { it.isCreditCard } }
     val allRegularAccounts = remember(uiState.accounts) {
@@ -201,7 +209,7 @@ fun ManageAccountsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(if (category == AccountCategory.INVESTMENTS) R.string.overview_manual_investments else category?.titleRes ?: R.string.title_accounts)) },
+                title = { Text(stringResource(category?.titleRes ?: R.string.title_accounts)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.account_navigate_back))
@@ -243,7 +251,7 @@ fun ManageAccountsScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
-            if (categoryAccounts.isEmpty()) {
+            if (categoryAccounts.isEmpty() && !(showBrokerageLinks && brokerageConnections.isNotEmpty())) {
                 // Empty State
                 Box(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -352,7 +360,7 @@ fun ManageAccountsScreen(
                     // Regular Bank Accounts Section (Visible Only)
                     if (bankSection.accounts.isNotEmpty()) {
                         item(key = "bank_summary", contentType = "section_summary") {
-                            AccountSectionSummary(section = bankSection, expanded = banksExpanded, onToggle = if (category == null) ({ banksExpanded = !banksExpanded }) else null, titleOverride = category?.titleRes)
+                            AccountSectionSummary(section = bankSection, expanded = banksExpanded, onToggle = if (category == null) ({ banksExpanded = !banksExpanded }) else null)
                         }
                         items(visibleRegularAccounts, key = { it.listKey() }, contentType = { "bank_account" }) { account ->
                             AccountItem(
@@ -465,6 +473,75 @@ fun ManageAccountsScreen(
                     }
 
 
+
+                    if (investmentSection.accounts.isNotEmpty() || (showBrokerageLinks && brokerageConnections.isNotEmpty())) {
+                        item(key = "investment_summary", contentType = "section_summary") {
+                            AccountSectionSummary(
+                                section = investmentSection,
+                                expanded = investmentsExpanded,
+                                onToggle = if (category == null) ({ investmentsExpanded = !investmentsExpanded }) else null
+                            )
+                        }
+                        if (showInvestmentRows) {
+                            items(visibleInvestments, key = { it.listKey() }, contentType = { "investment_account" }) { account ->
+                                AccountItem(
+                                    account = account,
+                                    linkedCards = emptyList(),
+                                    isHidden = false,
+                                    isMain = uiState.mainAccountKey == "${account.bankName}_${account.accountLast4}",
+                                    onSetAsMain = {
+                                        manageAccountsViewModel.setAsMainAccount(
+                                            account.bankName,
+                                            account.accountLast4
+                                        )
+                                    },
+                                    onToggleVisibility = {
+                                        manageAccountsViewModel.toggleAccountVisibility(
+                                            account.bankName,
+                                            account.accountLast4
+                                        )
+                                    },
+                                    onUpdateBalance = {
+                                        selectedAccount = account.bankName to account.accountLast4
+                                        selectedAccountEntity = account
+                                        showUpdateDialog = true
+                                    },
+                                    onViewHistory = {
+                                        historyAccount = account.bankName to account.accountLast4
+                                        manageAccountsViewModel.loadBalanceHistory(
+                                            account.bankName,
+                                            account.accountLast4
+                                        )
+                                        showHistoryDialog = true
+                                    },
+                                    onUnlinkCard = {},
+                                    onDeleteAccount = {
+                                        accountToDelete = account
+                                        showDeleteConfirmDialog = true
+                                    },
+                                    onEditAccount = {
+                                        accountToEdit = account
+                                        showEditSheet = true
+                                    },
+                                    onAccountClick = {
+                                        onNavigateToAccountDetail(account.bankName, account.accountLast4)
+                                    },
+                                    onMergeAccount = {
+                                        accountForMerge = account
+                                        showMergeSelection = true
+                                    }
+                                )
+                            }
+                            if (showBrokerageLinks) {
+                                items(brokerageConnections, key = { "broker:${it.id}" }, contentType = { "broker_connection" }) { connection ->
+                                    BrokerageConnectionRow(
+                                        connection = connection,
+                                        onDisconnect = { disconnectingBrokerage = connection }
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     // Orphaned Cards Section
                     if (category == null && uiState.orphanedCards.isNotEmpty()) {
@@ -749,6 +826,26 @@ fun ManageAccountsScreen(
     }
 
     // Delete Account Confirmation Dialog
+    disconnectingBrokerage?.let { connection ->
+        AlertDialog(
+            onDismissRequest = { disconnectingBrokerage = null },
+            title = { Text(stringResource(R.string.investments_disconnect)) },
+            text = { Text(stringResource(R.string.investments_disconnect_hint)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    manageAccountsViewModel.disconnectBrokerage(connection.id)
+                    disconnectingBrokerage = null
+                }) { Text(stringResource(R.string.investments_disconnect)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { disconnectingBrokerage = null }) {
+                    Text(stringResource(R.string.investments_cancel))
+                }
+            },
+            shape = MaterialTheme.shapes.large
+        )
+    }
+
     if (showDeleteConfirmDialog && accountToDelete != null) {
         DeleteAccountDialog(
             bankName = accountToDelete!!.bankName,
@@ -1077,6 +1174,39 @@ private fun CreditCardItem(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun BrokerageConnectionRow(
+    connection: com.ritesh.cashiro.data.brokerage.BrokerConnection,
+    onDisconnect: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().testTag("broker_connection_${connection.id}"),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(Icons.Rounded.Link, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(connection.label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text(
+                    connection.accounts.joinToString { it.accountId }.ifBlank { connection.providerId },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            TextButton(onClick = onDisconnect) {
+                Text(stringResource(R.string.investments_disconnect))
+            }
         }
     }
 }

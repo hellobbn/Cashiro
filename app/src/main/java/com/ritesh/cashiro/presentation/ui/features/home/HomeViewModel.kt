@@ -23,9 +23,11 @@ import com.ritesh.cashiro.data.repository.CategoryRepository
 import com.ritesh.cashiro.data.repository.CurrencyRepository
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.repository.SubscriptionRepository
+import com.ritesh.cashiro.data.brokerage.BrokerageRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.domain.usecase.excludingHidden
 import com.ritesh.cashiro.domain.usecase.netWorthIn
+import com.ritesh.cashiro.presentation.ui.features.accounts.investmentSnapshotsOrEmpty
 import com.ritesh.cashiro.domain.model.PersonInfo
 import com.ritesh.cashiro.presentation.ui.components.BalancePoint
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -64,6 +66,7 @@ class HomeViewModel @Inject constructor(
     private val subcategoryRepository: SubcategoryRepository,
     private val budgetRepository: BudgetRepository,
     private val lendBorrowRepository: com.ritesh.cashiro.data.repository.LendBorrowRepository,
+    private val brokerageRepository: BrokerageRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -111,6 +114,7 @@ class HomeViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "CNY")
 
     init {
+        viewModelScope.launch { runCatching { brokerageRepository.load() } }
         loadHomeData()
         loadUserData()
     }
@@ -198,8 +202,9 @@ class HomeViewModel @Inject constructor(
             combine(
                 accountBalanceRepository.getAllLatestBalances(),
                 selectedCurrencyCombined,
-                currencyConversionService.rateChangeTrigger
-            ) { allBalances, selectedCurrency, _ ->
+                currencyConversionService.rateChangeTrigger,
+                brokerageRepository.connections
+            ) { allBalances, selectedCurrency, _, connections ->
                 // Get hidden accounts from SharedPreferences
                 val hiddenAccounts =
                     sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
@@ -225,36 +230,11 @@ class HomeViewModel @Inject constructor(
                     currencyConversionService.refreshExchangeRatesForAccount(accountCurrencies)
                 }
 
-                // Convert all account balances to selected currency for total
-                var assetBalanceInSelectedCurrency = BigDecimal.ZERO
-                for (account in regularAccounts) {
-                    val amt = if (account.currency == selectedCurrency) {
-                        account.balance
-                    } else {
-                        currencyConversionService.convertAmount(
-                            amount = account.balance,
-                            fromCurrency = account.currency,
-                            toCurrency = selectedCurrency
-                        )
-                    }
-                    assetBalanceInSelectedCurrency = assetBalanceInSelectedCurrency.add(amt)
-                }
-
-                var liabilityBalanceInSelectedCurrency = BigDecimal.ZERO
-                for (card in creditCards) {
-                    val amt = if (card.currency == selectedCurrency) {
-                        card.balance
-                    } else {
-                        currencyConversionService.convertAmount(
-                            amount = card.balance,
-                            fromCurrency = card.currency,
-                            toCurrency = selectedCurrency
-                        )
-                    }
-                    liabilityBalanceInSelectedCurrency = liabilityBalanceInSelectedCurrency.add(amt)
-                }
-
-                val totalBalanceInSelectedCurrency = assetBalanceInSelectedCurrency - liabilityBalanceInSelectedCurrency
+                val totalBalanceInSelectedCurrency = balances.netWorthIn(
+                    selectedCurrency,
+                    currencyConversionService,
+                    investmentSnapshots = connections.investmentSnapshotsOrEmpty()
+                )
 
                 var totalAvailableCreditInSelectedCurrency = BigDecimal.ZERO
                 for (card in creditCards) {
@@ -595,7 +575,11 @@ class HomeViewModel @Inject constructor(
                     accountBalances = regularAccounts,
                     creditCards = creditCards,
                     // Same rule as the steady-state path: converted, and credit cards are debt.
-                    totalBalance = visibleBalances.netWorthIn(selectedCurrency, currencyConversionService),
+                    totalBalance = visibleBalances.netWorthIn(
+                        selectedCurrency,
+                        currencyConversionService,
+                        investmentSnapshots = brokerageRepository.connections.value.investmentSnapshotsOrEmpty()
+                    ),
                     totalAvailableCredit = creditCards.sumOfBigDecimal { card: AccountBalanceEntity ->
                         // Available = Credit Limit - Outstanding Balance
                         (card.creditLimit ?: BigDecimal.ZERO) - card.balance
@@ -640,19 +624,11 @@ class HomeViewModel @Inject constructor(
                 }
 
             val selectedCurrency = _selectedCurrency.value ?: baseCurrency.value
-            var assetBalanceInSelectedCurrency = BigDecimal.ZERO
-            for (account in regularAccounts) {
-                val amt = if (account.currency == selectedCurrency) account.balance
-                else currencyConversionService.convertAmount(account.balance, account.currency, selectedCurrency)
-                assetBalanceInSelectedCurrency = assetBalanceInSelectedCurrency.add(amt)
-            }
-            var liabilityBalanceInSelectedCurrency = BigDecimal.ZERO
-            for (card in creditCards) {
-                val amt = if (card.currency == selectedCurrency) card.balance
-                else currencyConversionService.convertAmount(card.balance, card.currency, selectedCurrency)
-                liabilityBalanceInSelectedCurrency = liabilityBalanceInSelectedCurrency.add(amt)
-            }
-            val totalBalanceInSelectedCurrency = assetBalanceInSelectedCurrency - liabilityBalanceInSelectedCurrency
+            val totalBalanceInSelectedCurrency = balances.netWorthIn(
+                selectedCurrency,
+                currencyConversionService,
+                investmentSnapshots = brokerageRepository.connections.value.investmentSnapshotsOrEmpty()
+            )
             var totalAvailableCreditInSelectedCurrency = BigDecimal.ZERO
             for (card in creditCards) {
                 val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) - card.balance

@@ -2,12 +2,18 @@
 <resources>
     <string name="investments_title">投资持仓</string>
     <string name="investments_shortcut">连接券商 · 查看持仓</string>
-    <string name="investments_report_hint">只读报表快照，非实时行情。不计入首页净资产，避免与手动券商账户重复计算。</string>
+    <string name="investments_report_hint">只读报表快照，非实时行情。已连接账户计入净资产。</string>
     <string name="investments_syncing">正在读取券商报表，通常需要数十秒…</string>
     <string name="investments_retry">重试</string>
     <string name="investments_empty_title">把持仓放在一起看</string>
-    <string name="investments_empty_body">先连接自己的 IBKR 账户。仅查看报表，不下单、不转账。</string>
+    <string name="investments_empty_body">点右下角加号，可手动添加投资账户，或连接 IBKR。仅查看报表，不下单、不转账。</string>
     <string name="investments_connect_ibkr">连接 IBKR</string>
+    <string name="investments_add">添加</string>
+    <string name="investments_add_account">添加投资账户</string>
+    <string name="investments_link_brokerage">连接券商账户</string>
+    <string name="investments_link_ibkr">盈透证券（IBKR）</string>
+    <string name="investments_net_worth">投资净资产</string>
+    <string name="investments_accounts">账户</string>
     <string name="investments_synced">上次同步：%1$s</string>
     <string name="investments_as_of">报表日期：%1$s · 非实时</string>
     <string name="investments_market_total">持仓 %1$s %2$s</string>

@@ -24,7 +24,7 @@
     <string name="account_section_collapse_all">Collapse %1$s</string>
     <string name="overview_investments">Investments</string>
     <string name="overview_connect">Connect account</string>
-    <string name="overview_connect_hint">Not connected · not included</string>
+    <string name="overview_connect_hint">Not connected</string>
     <string name="overview_unavailable">View details</string>
     <string name="overview_sources">View by source</string>
     <string name="overview_count">%1$d accounts</string>
@@ -32,11 +32,11 @@
     <string name="overview_market_value">Snapshot value</string>
     <string name="overview_balance">Balance</string>
     <string name="overview_loading">Loading balances…</string>
-    <string name="overview_snapshot_note">Broker snapshots are separate from net worth. Open Investments for dates and source totals.</string>
+    <string name="overview_snapshot_note">Broker snapshots use the latest report, not live prices, and count toward net worth.</string>
     <string name="overview_manual_investments">Manual investment accounts</string>
     <string name="overview_manage_manual">Manage manual accounts</string>
     <string name="overview_snapshot_title">Portfolio snapshots</string>
-    <string name="overview_source_note">Manual balances and broker snapshots stay separate to avoid counting the same portfolio twice.</string>
+    <string name="overview_source_note">If the same portfolio is entered as a manual balance and linked as a brokerage snapshot, both amounts are included.</string>
     <string name="overview_deduction">Outstanding · deducted</string>
     <string name="overview_credit_refund">Credit balance</string>
     <string name="overview_categories">Account categories</string>

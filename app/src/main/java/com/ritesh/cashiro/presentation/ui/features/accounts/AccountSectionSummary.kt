@@ -2,6 +2,7 @@ package com.ritesh.cashiro.presentation.ui.features.accounts
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.CreditCard
@@ -33,16 +34,19 @@ internal fun AccountSectionSummary(
         AccountSectionKind.WALLETS -> R.string.section_wallets to Icons.Rounded.AccountBalanceWallet
         AccountSectionKind.BANKS -> R.string.section_bank_accounts to Icons.Rounded.AccountBalance
         AccountSectionKind.CREDIT_CARDS -> R.string.section_credit_cards to Icons.Rounded.CreditCard
+        AccountSectionKind.INVESTMENTS -> R.string.overview_investments to Icons.AutoMirrored.Rounded.ShowChart
     }
     val container = when (section.kind) {
         AccountSectionKind.WALLETS -> MaterialTheme.colorScheme.primaryContainer
         AccountSectionKind.BANKS -> MaterialTheme.colorScheme.secondaryContainer
         AccountSectionKind.CREDIT_CARDS -> MaterialTheme.colorScheme.tertiaryContainer
+        AccountSectionKind.INVESTMENTS -> MaterialTheme.colorScheme.secondaryContainer
     }
     val content = when (section.kind) {
         AccountSectionKind.WALLETS -> MaterialTheme.colorScheme.onPrimaryContainer
         AccountSectionKind.BANKS -> MaterialTheme.colorScheme.onSecondaryContainer
         AccountSectionKind.CREDIT_CARDS -> MaterialTheme.colorScheme.onTertiaryContainer
+        AccountSectionKind.INVESTMENTS -> MaterialTheme.colorScheme.onSecondaryContainer
     }
     Surface(
         modifier = modifier.fillMaxWidth(),

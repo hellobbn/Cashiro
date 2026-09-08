@@ -24,7 +24,7 @@
     <string name="account_section_collapse_all">收起%1$s</string>
     <string name="overview_investments">投资</string>
     <string name="overview_connect">连接账户</string>
-    <string name="overview_connect_hint">未连接 · 未计入总额</string>
+    <string name="overview_connect_hint">未连接</string>
     <string name="overview_unavailable">查看详情</string>
     <string name="overview_sources">按来源查看</string>
     <string name="overview_count">%1$d 个账户</string>
@@ -32,11 +32,11 @@
     <string name="overview_market_value">快照市值</string>
     <string name="overview_balance">余额</string>
     <string name="overview_loading">正在读取余额…</string>
-    <string name="overview_snapshot_note">券商持仓快照单独展示，未计入净资产；在投资页查看日期及各来源金额。</string>
+    <string name="overview_snapshot_note">券商持仓快照使用最近报表而非实时行情，并计入净资产。</string>
     <string name="overview_manual_investments">手动投资账户</string>
     <string name="overview_manage_manual">管理手动账户</string>
     <string name="overview_snapshot_title">投资持仓快照</string>
-    <string name="overview_source_note">手动账户余额与券商持仓快照分别展示，避免同一投资账户重复计入。</string>
+    <string name="overview_source_note">若同一投资组合既手动记账又连接了券商快照，两边金额都会计入。</string>
     <string name="overview_deduction">待还扣减</string>
     <string name="overview_credit_refund">信用卡返还</string>
     <string name="overview_categories">账户分类</string>

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ritesh.cashiro.data.brokerage.BrokerageRepository
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.CardEntity
 import com.ritesh.cashiro.data.database.entity.CardType
@@ -67,7 +68,8 @@ constructor(
     private val accountBalanceRepository: AccountBalanceRepository,
     private val cardRepository: CardRepository,
     private val transactionRepository: TransactionRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val brokerageRepository: BrokerageRepository
 ) : ViewModel() {
 
     private val sharedPrefs = context.getSharedPreferences("account_prefs", Context.MODE_PRIVATE)
@@ -77,6 +79,7 @@ constructor(
 
     private val _formState = MutableStateFlow(AccountFormState())
     val formState: StateFlow<AccountFormState> = _formState.asStateFlow()
+    val brokerageConnections = brokerageRepository.connections
 
     val defaultCurrencyForNewAccounts: StateFlow<String> = combine(
         userPreferencesRepository.defaultCurrencyEnabled,
@@ -93,6 +96,11 @@ constructor(
         loadCards()
         initializeDefaultWallet()
         initFormCurrency()
+        viewModelScope.launch { runCatching { brokerageRepository.load() } }
+    }
+
+    fun disconnectBrokerage(id: String) {
+        viewModelScope.launch { runCatching { brokerageRepository.disconnect(id) } }
     }
 
     private fun initFormCurrency() {

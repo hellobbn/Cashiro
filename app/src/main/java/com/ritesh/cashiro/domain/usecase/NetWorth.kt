@@ -29,11 +29,13 @@ fun List<AccountBalanceEntity>.excludingHidden(hiddenKeys: Set<String>): List<Ac
  */
 suspend fun List<AccountBalanceEntity>.netWorthIn(
     targetCurrency: String,
-    conversionService: CurrencyConversionService
+    conversionService: CurrencyConversionService,
+    investmentSnapshots: Map<String, BigDecimal> = emptyMap()
 ): BigDecimal {
     val (creditCards, assets) = partition { it.isCreditCard }
     return assets.convertedTotal(targetCurrency, conversionService) -
-        creditCards.convertedTotal(targetCurrency, conversionService)
+        creditCards.convertedTotal(targetCurrency, conversionService) +
+        investmentSnapshots.convertedTotal(targetCurrency, conversionService)
 }
 
 /** Total of [AccountBalanceEntity.balance] expressed in [targetCurrency]. */
@@ -52,6 +54,26 @@ suspend fun List<AccountBalanceEntity>.convertedTotal(
             conversionService.convertAmount(
                 amount = account.balance,
                 fromCurrency = account.currency,
+                toCurrency = targetCurrency
+            )
+        }
+    }
+    return total
+}
+
+private suspend fun Map<String, BigDecimal>.convertedTotal(
+    targetCurrency: String,
+    conversionService: CurrencyConversionService
+): BigDecimal {
+    if (isEmpty()) return BigDecimal.ZERO
+    var total = BigDecimal.ZERO
+    for ((currency, amount) in this) {
+        total += if (currency == targetCurrency) {
+            amount
+        } else {
+            conversionService.convertAmount(
+                amount = amount,
+                fromCurrency = currency,
                 toCurrency = targetCurrency
             )
         }

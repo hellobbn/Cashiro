@@ -3,7 +3,7 @@ package com.ritesh.cashiro.presentation.ui.features.accounts
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import java.math.BigDecimal
 
-internal enum class AccountSectionKind { WALLETS, BANKS, CREDIT_CARDS }
+internal enum class AccountSectionKind { WALLETS, BANKS, CREDIT_CARDS, INVESTMENTS }
 
 internal data class AccountSection(
     val kind: AccountSectionKind,
@@ -41,8 +41,9 @@ internal fun buildAccountSections(
             val members = visible.filter {
                 when (kind) {
                     AccountSectionKind.WALLETS -> it.isWallet && !it.isCreditCard
-                    AccountSectionKind.BANKS -> !it.isWallet && !it.isCreditCard
+                    AccountSectionKind.BANKS -> !it.isWallet && !it.isCreditCard && it.category() != AccountCategory.INVESTMENTS
                     AccountSectionKind.CREDIT_CARDS -> it.isCreditCard
+                    AccountSectionKind.INVESTMENTS -> it.category() == AccountCategory.INVESTMENTS
                 }
             }
             AccountSection(kind, members, members.groupBy { it.currency }.toSortedMap().mapValues { (_, group) ->

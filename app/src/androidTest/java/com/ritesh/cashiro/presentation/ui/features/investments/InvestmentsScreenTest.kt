@@ -38,14 +38,13 @@ class InvestmentsScreenTest {
             )
         )), 1788508800000L)
     @Composable private fun Content(connections: List<BrokerConnection> = listOf(connection), busy: Boolean = false,
-        error: BrokerageError? = null, onConnect: () -> Unit = {}, onRefresh: (String) -> Unit = {},
-        onDisconnect: (BrokerConnection) -> Unit = {}) {
-        InvestmentsContent(connections, busy, true, error, {}, onConnect, onRefresh, onDisconnect, {})
+        error: BrokerageError? = null, onAdd: () -> Unit = {}, onRefreshAll: () -> Unit = {}) {
+        InvestmentsContent(connections, busy, true, error, {}, onAdd, onRefreshAll, {})
     }
     @Test fun emptyStateOffersWorkingConnectionAction() {
         var clicked = false
-        rule.setContent { MaterialTheme { Content(emptyList(), onConnect = { clicked = true }) } }
-        rule.onNodeWithTag("connect_broker").performClick()
+        rule.setContent { MaterialTheme { Content(emptyList(), onAdd = { clicked = true }) } }
+        rule.onNodeWithTag("add_investment").performClick()
         rule.runOnIdle { assertTrue(clicked) }
         rule.onNodeWithText("DEMO_ACCOUNT").assertDoesNotExist()
     }
@@ -67,24 +66,27 @@ class InvestmentsScreenTest {
         rule.onNodeWithText("AAPL").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("0700").performScrollTo().assertIsDisplayed()
     }
-    @Test fun refreshAndDisconnectTargetTheConnection() {
-        var refresh = ""; var disconnect = ""; var refreshed = ""; var disconnected = ""
+    @Test fun refreshTargetsHoldingsFromTheToolbar() {
+        var refreshed = false
+        var refresh = ""
+        var disconnect = ""
         rule.setContent { MaterialTheme {
-            refresh = stringResource(R.string.investments_refresh); disconnect = stringResource(R.string.investments_disconnect)
-            Content(onRefresh = { refreshed = it }, onDisconnect = { disconnected = it.id })
+            refresh = stringResource(R.string.investments_refresh)
+            disconnect = stringResource(R.string.investments_disconnect)
+            Content(onRefreshAll = { refreshed = true })
         } }
-        rule.onNodeWithText(refresh).performScrollTo().performClick()
-        rule.onNodeWithText(disconnect).performScrollTo().performClick()
-        rule.runOnIdle { assertEquals("demo", refreshed); assertEquals("demo", disconnected) }
+        rule.onNodeWithTag("refresh_holdings").assertContentDescriptionEquals(refresh).performClick()
+        rule.runOnIdle { assertTrue(refreshed) }
+        rule.onNodeWithText(disconnect).assertDoesNotExist()
     }
     @Test fun failedRefreshKeepsCachedHoldingsAndError() {
         rule.setContent { MaterialTheme { Content(error = BrokerageError.NETWORK) } }
         rule.onNodeWithTag("broker_error").assertIsDisplayed()
         rule.onNodeWithText("AAPL").performScrollTo().assertIsDisplayed()
     }
-    @Test fun busyStatePreventsDuplicateConnects() {
+    @Test fun busyStateKeepsAddActionAvailable() {
         rule.setContent { MaterialTheme { Content(emptyList(), busy = true) } }
-        rule.onNodeWithTag("connect_broker").assertIsNotEnabled()
+        rule.onNodeWithTag("add_investment").assertIsDisplayed().assertHasClickAction()
     }
     @Test fun tokenIsMaskedAndConnectionRequiresBothFields() {
         var submitted = ""

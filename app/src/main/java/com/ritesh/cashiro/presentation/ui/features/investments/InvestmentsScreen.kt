@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -25,17 +26,24 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.LinkOff
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,6 +78,11 @@ import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.components.toShape
+import com.ritesh.cashiro.presentation.ui.features.accounts.EditAccountSheet
+import com.ritesh.cashiro.presentation.ui.features.accounts.ManageAccountsViewModel
+import com.ritesh.cashiro.presentation.ui.features.accounts.snapshotByCurrency
+import com.ritesh.cashiro.presentation.ui.features.accounts.snapshotTotals
+import com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
@@ -120,19 +133,24 @@ fun InvestmentsShortcut(onClick: () -> Unit, modifier: Modifier = Modifier) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvestmentsScreen(
     onNavigateBack: () -> Unit,
     onManageManualAccounts: () -> Unit = {},
-    viewModel: InvestmentsViewModel = hiltViewModel()
+    viewModel: InvestmentsViewModel = hiltViewModel(),
+    accountsViewModel: ManageAccountsViewModel = hiltViewModel()
 ) {
     val connections by viewModel.connections.collectAsStateWithLifecycle()
     val manualAccounts by viewModel.manualAccounts.collectAsStateWithLifecycle()
     val busy by viewModel.busy.collectAsStateWithLifecycle()
     val loaded by viewModel.loaded.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val accountState by accountsViewModel.uiState.collectAsStateWithLifecycle()
+    val defaultCurrency by accountsViewModel.defaultCurrencyForNewAccounts.collectAsStateWithLifecycle()
+    var showAddMenu by remember { mutableStateOf(false) }
+    var showAddAccount by remember { mutableStateOf(false) }
     var connecting by remember { mutableStateOf(false) }
-    var disconnecting by remember { mutableStateOf<BrokerConnection?>(null) }
 
     InvestmentsContent(
         connections = connections,
@@ -140,38 +158,92 @@ fun InvestmentsScreen(
         loaded = loaded,
         error = error,
         onBack = onNavigateBack,
-        onConnect = { viewModel.clearError(); connecting = true },
-        onRefresh = viewModel::refresh,
-        onDisconnect = { disconnecting = it },
+        onAdd = { showAddMenu = true },
+        onRefreshAll = viewModel::refreshAll,
         onRetry = viewModel::reload,
         manualAccounts = manualAccounts,
         onManageManualAccounts = onManageManualAccounts
     )
+    if (showAddMenu) {
+        ModalBottomSheet(
+            onDismissRequest = { showAddMenu = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            Column(
+                modifier = Modifier.padding(Dimensions.Padding.content),
+                verticalArrangement = Arrangement.spacedBy(1.5.dp)
+            ) {
+                ListItem(
+                    modifier = Modifier.testTag("add_manual_investment"),
+                    headline = { Text(stringResource(R.string.investments_add_account), fontWeight = FontWeight.Medium) },
+                    leading = {
+                        Icon(Icons.Rounded.Add, contentDescription = null)
+                    },
+                    onClick = { showAddMenu = false; showAddAccount = true },
+                    shape = ListItemPosition.Top.toShape(),
+                    padding = PaddingValues(0.dp)
+                )
+                ListItem(
+                    modifier = Modifier
+                        .testTag("link_brokerage")
+                        .then(if (busy) Modifier.semantics { disabled() } else Modifier),
+                    headline = { Text(stringResource(R.string.investments_link_brokerage), fontWeight = FontWeight.Medium) },
+                    supporting = { Text(stringResource(R.string.investments_link_ibkr)) },
+                    leading = {
+                        Icon(Icons.AutoMirrored.Filled.ShowChart, contentDescription = null)
+                    },
+                    onClick = if (busy) null else ({
+                        showAddMenu = false
+                        viewModel.clearError()
+                        connecting = true
+                    }),
+                    shape = ListItemPosition.Bottom.toShape(),
+                    padding = PaddingValues(0.dp)
+                )
+            }
+        }
+    }
+    if (showAddAccount) {
+        ModalBottomSheet(
+            onDismissRequest = { if (!accountState.isSavingAccount) showAddAccount = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            EditAccountSheet(
+                allAccounts = accountState.accounts,
+                defaultCurrency = defaultCurrency,
+                initialCategory = AccountCategory.INVESTMENTS,
+                isSaving = accountState.isSavingAccount,
+                saveError = accountState.accountSaveError,
+                onClearSaveError = accountsViewModel::clearAccountSaveError,
+                onDismiss = { if (!accountState.isSavingAccount) showAddAccount = false },
+                onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency ->
+                    accountsViewModel.addAccount(
+                        bankName = bankName,
+                        balance = balance,
+                        accountLast4 = last4,
+                        iconResId = iconResId,
+                        iconName = iconName,
+                        colorHex = color,
+                        isCreditCard = isCC,
+                        isWallet = isWallet,
+                        creditLimit = limit,
+                        currency = currency,
+                        onSaved = { showAddAccount = false }
+                    )
+                }
+            )
+        }
+    }
     if (connecting) {
         IbkrConnectDialog(
             busy = busy,
             error = error,
             onDismiss = { viewModel.cancelConnection(); connecting = false; viewModel.clearError() },
             onConnect = { label, token, query -> viewModel.connect(label, token, query) { connecting = false } }
-        )
-    }
-    disconnecting?.let { connection ->
-        AlertDialog(
-            onDismissRequest = { disconnecting = null },
-            title = { Text(stringResource(R.string.investments_disconnect)) },
-            text = { Text(stringResource(R.string.investments_disconnect_hint)) },
-            confirmButton = {
-                TextButton(
-                    enabled = !busy,
-                    onClick = { viewModel.disconnect(connection.id); disconnecting = null }
-                ) { Text(stringResource(R.string.investments_disconnect)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { disconnecting = null }) {
-                    Text(stringResource(R.string.investments_cancel))
-                }
-            },
-            shape = MaterialTheme.shapes.large
         )
     }
 }
@@ -184,9 +256,8 @@ internal fun InvestmentsContent(
     loaded: Boolean,
     error: BrokerageError?,
     onBack: () -> Unit,
-    onConnect: () -> Unit,
-    onRefresh: (String) -> Unit,
-    onDisconnect: (BrokerConnection) -> Unit,
+    onAdd: () -> Unit,
+    onRefreshAll: () -> Unit,
     onRetry: () -> Unit,
     manualAccounts: List<AccountBalanceEntity> = emptyList(),
     onManageManualAccounts: () -> Unit = {}
@@ -194,6 +265,7 @@ internal fun InvestmentsContent(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
+    val hasHoldings = manualAccounts.isNotEmpty() || connections.isNotEmpty()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -204,110 +276,101 @@ internal fun InvestmentsContent(
                 scrollBehaviorLarge = scrollBehavior,
                 hazeState = hazeState,
                 hasBackButton = true,
-                navigationContent = { NavigationContent(onBack) }
+                hasActionButton = connections.isNotEmpty(),
+                navigationContent = { NavigationContent(onBack) },
+                actionContent = {
+                    if (connections.isNotEmpty()) {
+                        IconButton(
+                            onClick = onRefreshAll,
+                            enabled = !busy,
+                            modifier = Modifier.testTag("refresh_holdings")
+                        ) {
+                            Icon(
+                                Icons.Rounded.Refresh,
+                                contentDescription = stringResource(R.string.investments_refresh)
+                            )
+                        }
+                    }
+                }
             )
+        },
+        floatingActionButton = {
+            if (loaded) {
+                FloatingActionButton(
+                    onClick = onAdd,
+                    modifier = Modifier.testTag("add_investment"),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.investments_add))
+                }
+            }
         }
     ) { padding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = busy,
+            onRefresh = onRefreshAll,
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(state = hazeState)
-                .overScrollVertical()
-                .padding(
-                    start = Dimensions.Padding.content,
-                    end = Dimensions.Padding.content,
-                    top = Dimensions.Padding.content + padding.calculateTopPadding()
-                )
-                .testTag("investments_list"),
-            contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + Spacing.xxl),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                .padding(top = padding.calculateTopPadding())
         ) {
-            if (busy) {
-                item(key = "sync_progress") {
-                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                        LinearProgressIndicator(Modifier.fillMaxWidth())
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeSource(state = hazeState)
+                    .overScrollVertical()
+                    .padding(horizontal = Dimensions.Padding.content)
+                    .testTag("investments_list"),
+                contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 96.dp),
+                verticalArrangement = Arrangement.spacedBy(Spacing.md)
+            ) {
+                if (error != null) {
+                    item(key = "broker_error") { InvestmentError(error) }
+                }
+                if (!loaded && !busy) {
+                    item(key = "retry") {
+                        ListItem(
+                            headline = { Text(stringResource(R.string.investments_retry), fontWeight = FontWeight.Medium) },
+                            onClick = onRetry,
+                            shape = ListItemPosition.Single.toShape(),
+                            padding = PaddingValues(0.dp)
+                        )
+                    }
+                }
+                if (loaded && hasHoldings) {
+                    item(key = "net_worth_banner") {
+                        InvestmentNetWorthBanner(manualAccounts, connections)
+                    }
+                    item(key = "accounts_header") {
+                        SectionHeader(title = stringResource(R.string.investments_accounts))
+                    }
+                    item(key = "account_breakdown") {
+                        InvestmentAccountBreakdown(manualAccounts, connections, onManageManualAccounts)
+                    }
+                }
+                if (loaded && !hasHoldings) {
+                    item(key = "empty") {
+                        ListItem(
+                            headline = {
+                                Text(stringResource(R.string.investments_empty_title), fontWeight = FontWeight.Medium)
+                            },
+                            supporting = { Text(stringResource(R.string.investments_empty_body)) },
+                            shape = ListItemPosition.Single.toShape(),
+                            padding = PaddingValues(0.dp)
+                        )
+                    }
+                }
+                connections.forEach { connection ->
+                    connectionSection(connection)
+                }
+                if (manualAccounts.isNotEmpty() && connections.isNotEmpty()) {
+                    item(key = "source_note") {
                         Text(
-                            stringResource(R.string.investments_syncing),
+                            stringResource(R.string.overview_source_note),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-            }
-            if (error != null) {
-                item(key = "broker_error") { InvestmentError(error) }
-            }
-            if (!loaded && !busy) {
-                item(key = "retry") {
-                    ListItem(
-                        headline = { Text(stringResource(R.string.investments_retry), fontWeight = FontWeight.Medium) },
-                        onClick = onRetry,
-                        shape = ListItemPosition.Single.toShape(),
-                        padding = PaddingValues(0.dp)
-                    )
-                }
-            }
-            if (manualAccounts.isNotEmpty()) {
-                item(key = "manual_header") {
-                    SectionHeader(title = stringResource(R.string.overview_manual_investments))
-                }
-                item(key = "manual_investment_summary") {
-                    ManualInvestmentSummary(manualAccounts, onManageManualAccounts)
-                }
-            }
-            if (loaded && connections.isEmpty()) {
-                item(key = "empty") {
-                    ListItem(
-                        headline = {
-                            Text(stringResource(R.string.investments_empty_title), fontWeight = FontWeight.Medium)
-                        },
-                        supporting = { Text(stringResource(R.string.investments_empty_body)) },
-                        shape = ListItemPosition.Single.toShape(),
-                        padding = PaddingValues(0.dp)
-                    )
-                }
-            }
-            if (loaded) {
-                item(key = "connect") {
-                    ListItem(
-                        modifier = Modifier
-                            .testTag("connect_broker")
-                            .then(if (busy) Modifier.semantics { disabled() } else Modifier),
-                        headline = {
-                            Text(stringResource(R.string.investments_connect_ibkr), fontWeight = FontWeight.Medium)
-                        },
-                        supporting = { Text(stringResource(R.string.investments_report_hint)) },
-                        leading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Add,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            }
-                        },
-                        trailing = { Icon(Icons.Rounded.ChevronRight, contentDescription = null) },
-                        onClick = if (busy) null else onConnect,
-                        shape = ListItemPosition.Single.toShape(),
-                        padding = PaddingValues(0.dp)
-                    )
-                }
-            }
-            connections.forEach { connection ->
-                connectionSection(connection, busy, onRefresh, onDisconnect)
-            }
-            if (manualAccounts.isNotEmpty() && connections.isNotEmpty()) {
-                item(key = "source_note") {
-                    Text(
-                        stringResource(R.string.overview_source_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }
@@ -315,83 +378,111 @@ internal fun InvestmentsContent(
 }
 
 @Composable
-private fun ManualInvestmentSummary(
-    accounts: List<AccountBalanceEntity>,
+private fun InvestmentNetWorthBanner(
+    manuals: List<AccountBalanceEntity>,
+    connections: List<BrokerConnection>
+) {
+    val totals = mutableMapOf<String, BigDecimal>()
+    manuals.forEach { account ->
+        totals[account.currency] = (totals[account.currency] ?: BigDecimal.ZERO) + account.balance
+    }
+    connections.snapshotTotals().forEach { (currency, amount) ->
+        totals[currency] = (totals[currency] ?: BigDecimal.ZERO) + amount
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth().testTag("investment_net_worth"),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+    ) {
+        Column(
+            modifier = Modifier.padding(Dimensions.Padding.card),
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+        ) {
+            Text(
+                stringResource(R.string.investments_net_worth),
+                style = MaterialTheme.typography.titleSmall
+            )
+            totals.toSortedMap().forEach { (currency, amount) ->
+                Text(
+                    CurrencyFormatter.formatCurrency(amount, currency),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InvestmentAccountBreakdown(
+    manuals: List<AccountBalanceEntity>,
+    connections: List<BrokerConnection>,
     onManageManualAccounts: () -> Unit
 ) {
+    val brokerRows = connections.flatMap { connection ->
+        connection.accounts.map { account -> connection to account }
+    }
+    val count = manuals.size + brokerRows.size
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(1.5.dp)
     ) {
-        val totals = accounts.groupBy { it.currency }.toSortedMap()
-        totals.entries.forEachIndexed { index, (currency, rows) ->
-            val position = ListItemPosition.from(index, totals.size)
+        manuals.forEachIndexed { index, account ->
             ListItem(
-                headline = {
+                headline = { Text(account.bankName, fontWeight = FontWeight.Medium) },
+                supporting = { Text(account.accountLast4) },
+                trailing = {
                     Text(
-                        CurrencyFormatter.formatCurrency(
-                            rows.fold(BigDecimal.ZERO) { n, a -> n + a.balance },
-                            currency
-                        ),
+                        CurrencyFormatter.formatCurrency(account.balance, account.currency),
                         fontWeight = FontWeight.Medium
                     )
                 },
-                supporting = { Text(stringResource(R.string.overview_count, rows.size) + " · " + currency) },
-                trailing = { Icon(Icons.Rounded.ChevronRight, contentDescription = null) },
                 onClick = onManageManualAccounts,
-                shape = position.toShape(),
+                shape = ListItemPosition.from(index, count).toShape(),
+                padding = PaddingValues(0.dp)
+            )
+        }
+        brokerRows.forEachIndexed { index, (connection, account) ->
+            val snapshots = account.snapshotByCurrency().toSortedMap()
+            ListItem(
+                headline = { Text(connection.label, fontWeight = FontWeight.Medium) },
+                supporting = { Text(account.accountId) },
+                trailing = {
+                    Column(horizontalAlignment = Alignment.End) {
+                        snapshots.forEach { (currency, amount) ->
+                            Text(
+                                CurrencyFormatter.formatCurrency(amount, currency),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                },
+                shape = ListItemPosition.from(manuals.size + index, count).toShape(),
                 padding = PaddingValues(0.dp)
             )
         }
     }
 }
 
-private fun LazyListScope.connectionSection(
-    connection: BrokerConnection,
-    busy: Boolean,
-    onRefresh: (String) -> Unit,
-    onDisconnect: (BrokerConnection) -> Unit
-) {
+private fun LazyListScope.connectionSection(connection: BrokerConnection) {
     item(key = "connection_header_${connection.id}") {
         SectionHeader(title = connection.label)
     }
     item(key = "connection_${connection.id}") {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(1.5.dp)
-        ) {
-            ListItem(
-                headline = {
-                    Text(stringResource(R.string.investments_synced, formattedSyncTime(connection.syncedAt)))
-                },
-                supporting = {
-                    val asOf = connection.accounts.map { it.asOf }.distinct().joinToString()
-                    if (asOf.isNotEmpty()) {
-                        Text(stringResource(R.string.investments_as_of, asOf))
-                    }
-                },
-                shape = ListItemPosition.Top.toShape(),
-                padding = PaddingValues(0.dp)
-            )
-            ListItem(
-                headline = { Text(stringResource(R.string.investments_refresh), fontWeight = FontWeight.Medium) },
-                leading = {
-                    Icon(Icons.Rounded.Refresh, contentDescription = null)
-                },
-                onClick = if (busy) null else ({ onRefresh(connection.id) }),
-                shape = ListItemPosition.Middle.toShape(),
-                padding = PaddingValues(0.dp)
-            )
-            ListItem(
-                headline = { Text(stringResource(R.string.investments_disconnect), fontWeight = FontWeight.Medium) },
-                leading = {
-                    Icon(Icons.Rounded.LinkOff, contentDescription = null)
-                },
-                onClick = if (busy) null else ({ onDisconnect(connection) }),
-                shape = ListItemPosition.Bottom.toShape(),
-                padding = PaddingValues(0.dp)
-            )
-        }
+        ListItem(
+            headline = {
+                Text(stringResource(R.string.investments_synced, formattedSyncTime(connection.syncedAt)))
+            },
+            supporting = {
+                val asOf = connection.accounts.map { it.asOf }.distinct().joinToString()
+                if (asOf.isNotEmpty()) {
+                    Text(stringResource(R.string.investments_as_of, asOf))
+                }
+            },
+            shape = ListItemPosition.Single.toShape(),
+            padding = PaddingValues(0.dp)
+        )
     }
     connection.accounts.forEach { account ->
         item(key = "account_${connection.id}_${account.accountId}") {

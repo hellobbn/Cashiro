@@ -53,9 +53,9 @@ class AccountOverviewTest {
         val result = buildOverview(emptyList(),listOf(connection()),"USD",true,false) { _,_->null }.last()
         assertEquals(BigDecimal("120.25"),result.amount);assertTrue(result.isSnapshot);assertEquals(1,result.count)
     }
-    @Test fun `manual and connected portfolios never silently double count`() = runBlocking {
+    @Test fun `manual balances and snapshots are both included`() = runBlocking {
         val result = buildOverview(listOf(account("IBKR")),listOf(connection()),"USD",true,false) { _,_->BigDecimal.ONE }.last()
-        assertEquals(OverviewStatus.MULTIPLE_SOURCES,result.status);assertNull(result.amount)
+        assertEquals(BigDecimal("130.25"),result.amount);assertTrue(result.hasSnapshots);assertEquals(2,result.count)
     }
     @Test fun `unknown market value is not zero`() = runBlocking {
         assertEquals(OverviewStatus.UNAVAILABLE,buildOverview(emptyList(),listOf(connection(null)),"USD",true,false) { _,_->null }.last().status)
@@ -72,9 +72,9 @@ class AccountOverviewTest {
         assertEquals(BigDecimal("-4305.22"),debt.netWorthContribution())
         assertEquals(BigDecimal("12.20"),debt.copy(amount=BigDecimal("-12.20")).netWorthContribution())
     }
-    @Test fun `snapshot never implies inclusion in net worth`() {
+    @Test fun `snapshot investments count toward net worth`() {
         val investment=AccountOverviewItem(AccountCategory.INVESTMENTS,amount=BigDecimal("100"),isSnapshot=true)
-        assertNull(investment.netWorthContribution())
+        assertEquals(BigDecimal("100"),investment.netWorthContribution())
         assertEquals(BigDecimal("100"),investment.copy(isSnapshot=false).netWorthContribution())
     }
 }

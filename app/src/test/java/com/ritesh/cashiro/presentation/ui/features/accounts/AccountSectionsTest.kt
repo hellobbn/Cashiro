@@ -11,10 +11,10 @@ class AccountSectionsTest {
         AccountBalanceEntity(bankName = name, accountLast4 = "1234", balance = BigDecimal(amount), currency = currency,
             timestamp = LocalDateTime.of(2026, 9, 7, 12, 0), isWallet = wallet, isCreditCard = credit)
 
-    @Test fun `three sections separate assets from liabilities`() {
-        val sections = buildAccountSections(listOf(account("Wallet", wallet = true), account("Bank"), account("Card", credit = true)), emptySet())
+    @Test fun `four sections separate assets from liabilities and investments`() {
+        val sections = buildAccountSections(listOf(account("Wallet", wallet = true), account("Bank"), account("Card", credit = true), account("IBKR")), emptySet())
         assertEquals(AccountSectionKind.entries, sections.visible.map { it.kind })
-        assertEquals(listOf("Wallet", "Bank", "Card"), sections.visible.map { it.accounts.single().bankName })
+        assertEquals(listOf("Wallet", "Bank", "Card", "IBKR"), sections.visible.map { it.accounts.single().bankName })
     }
     @Test fun `totals include collapsed members but never mix currencies`() {
         val sections = buildAccountSections(listOf(account("A", "10.25"), account("B", "20.50"), account("C", "30.75"), account("US", "999", "USD")), emptySet())
@@ -38,11 +38,11 @@ class AccountSectionsTest {
     }
     @Test fun `overlapping legacy flags appear only in credit cards`() {
         val groups = buildAccountSections(listOf(account("Legacy", wallet = true, credit = true)), emptySet()).visible
-        assertEquals(listOf(0, 0, 1), groups.map { it.accounts.size })
+        assertEquals(listOf(0, 0, 1, 0), groups.map { it.accounts.size })
     }
     @Test fun `small and empty groups expand without loss`() {
         val empty = buildAccountSections(emptyList(), emptySet())
-        assertEquals(3, empty.visible.size)
+        assertEquals(4, empty.visible.size)
         assertTrue(empty.visible.all { it.visibleAccounts(false).isEmpty() })
         val banks = buildAccountSections(listOf(account("A")), emptySet()).visible[1]
         assertTrue(banks.visibleAccounts(false).isEmpty())
@@ -72,7 +72,7 @@ class AccountSectionsTest {
     }
     @Test fun `banks and credit cards start summary only and expand every row`() {
         val groups = buildAccountSections((1..3).map { account("Bank $it") } + (1..3).map { account("Card $it", credit = true) }, emptySet()).visible
-        groups.drop(1).forEach { group ->
+        groups.filter { it.kind == AccountSectionKind.BANKS || it.kind == AccountSectionKind.CREDIT_CARDS }.forEach { group ->
             assertEquals(0, group.visibleAccounts(false).size)
             assertFalse(group.showFooterToggle(false))
             assertTrue(group.showFooterToggle(true))

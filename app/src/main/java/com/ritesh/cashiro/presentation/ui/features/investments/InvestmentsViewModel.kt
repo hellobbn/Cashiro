@@ -48,6 +48,10 @@ class InvestmentsViewModel @Inject constructor(
         onSuccess()
     }
     fun refresh(id: String) = run { repository.refresh(id) }
+    fun refreshAll() = run {
+        val ids = repository.connections.value.map { it.id }
+        if (ids.isEmpty()) repository.load() else ids.forEach { repository.refresh(it) }
+    }
     fun disconnect(id: String) = run { repository.disconnect(id) }
     fun cancelConnection() { operation?.cancel() }
     fun clearError() { _error.value = null }

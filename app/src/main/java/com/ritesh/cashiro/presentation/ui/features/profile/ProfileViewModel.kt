@@ -12,6 +12,7 @@ import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
 import com.ritesh.cashiro.data.repository.CurrencyRepository
 import com.ritesh.cashiro.data.repository.SubscriptionRepository
+import com.ritesh.cashiro.data.brokerage.BrokerageRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.domain.model.PersonCategory
@@ -19,6 +20,7 @@ import com.ritesh.cashiro.domain.usecase.AddEditLendBorrowPersonUseCase
 import com.ritesh.cashiro.domain.usecase.netWorthIn
 import com.ritesh.cashiro.domain.usecase.hiddenAccountKeys
 import com.ritesh.cashiro.domain.usecase.excludingHidden
+import com.ritesh.cashiro.presentation.ui.features.accounts.investmentSnapshotsOrEmpty
 import com.ritesh.cashiro.domain.usecase.GetLendBorrowPersonsUseCase
 import com.ritesh.cashiro.utils.ImageUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,6 +44,7 @@ constructor(
     private val currencyConversionService: CurrencyConversionService,
     private val getLendBorrowPersonsUseCase: GetLendBorrowPersonsUseCase,
     private val addEditPersonUseCase: AddEditLendBorrowPersonUseCase,
+    private val brokerageRepository: BrokerageRepository,
     val attachmentService: AttachmentService
 ) : ViewModel() {
 
@@ -53,6 +56,7 @@ constructor(
         observePreferences()
         observeTransactionCount()
         observeNetWorth()
+        viewModelScope.launch { runCatching { brokerageRepository.load() } }
         observeMonthlyFinancials()
         observeActiveSubscriptions()
         observeContacts()
@@ -104,13 +108,18 @@ constructor(
         combine(
             accountBalanceRepository.getAllLatestBalances(),
             currencyRepository.effectiveBaseCurrencyCode,
-            currencyConversionService.rateChangeTrigger
-        ) { allBalances, baseCurrency, _ ->
+            currencyConversionService.rateChangeTrigger,
+            brokerageRepository.connections
+        ) { allBalances, baseCurrency, _, connections ->
             // Must match the home screen exactly: hidden accounts excluded, credit-card
-            // balances treated as debt rather than as assets.
+            // balances treated as debt, and complete brokerage snapshots included.
             allBalances
                 .excludingHidden(context.hiddenAccountKeys())
-                .netWorthIn(baseCurrency, currencyConversionService)
+                .netWorthIn(
+                    baseCurrency,
+                    currencyConversionService,
+                    investmentSnapshots = connections.investmentSnapshotsOrEmpty()
+                )
         }.onEach { total ->
             _state.update { it.copy(netWorth = total) }
         }.launchIn(viewModelScope)
