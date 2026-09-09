@@ -5,7 +5,6 @@ import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
 import androidx.compose.animation.core.FastOutSlowInEasing
 
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.snap
 
 import com.ritesh.cashiro.utils.maxDoubleOrNull
 import com.ritesh.cashiro.utils.sumOfDouble
@@ -72,6 +71,9 @@ import java.time.temporal.ChronoUnit
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import kotlin.math.abs
 
+/** Chart reveal duration: short enough to read as instant, non-zero so the library still draws. */
+private const val ChartRevealMillis = 120
+
 @Composable
 fun SpendingLineChart(
     data: List<BalancePoint>,
@@ -120,10 +122,11 @@ fun SpendingLineChart(
                 color = SolidColor(themeColors.primary),
                 firstGradientFillColor = themeColors.primary.copy(alpha = 0.3f),
                 secondGradientFillColor = Color.Transparent,
-                // Drawn immediately. The chart is re-created on every return to this tab; the
-                // former 1.5 s stroke reveal plus a delayed gradient fade re-ran each time.
-                strokeAnimationSpec = snap(),
-                gradientAnimationSpec = snap(),
+                // Near-instant reveal. The chart is re-created on every return to this tab and the
+                // former 1.5 s stroke reveal plus delayed gradient fade re-ran each time. A short
+                // tween is used rather than snap(): with snap() the library never drew the stroke.
+                strokeAnimationSpec = tween(ChartRevealMillis),
+                gradientAnimationSpec = tween(ChartRevealMillis),
                 gradientAnimationDelay = 0,
                 drawStyle = DrawStyle.Stroke(width = 2.dp),
                 curvedEdges = true,
@@ -132,7 +135,8 @@ fun SpendingLineChart(
                     color = SolidColor(themeColors.primary),
                     strokeWidth = 3.dp,
                     radius = 4.dp,
-                    strokeColor = SolidColor(themeColors.surface)
+                    strokeColor = SolidColor(themeColors.surface),
+                    animationEnabled = false
                 )
             )
         ),
@@ -318,7 +322,7 @@ fun SpendingBarChart(
                 color = SolidColor(themeColors.onSurface.copy(alpha = 0.1f))
             )
         ),
-        animationSpec = snap(),
+        animationSpec = tween(ChartRevealMillis),
         animationDelay = 0,
     )
 }
@@ -343,8 +347,8 @@ fun CategoryPieChart(
                 selectedColor = (CategoryMapping.categories[category.name]?.color
                     ?: Color.Gray).copy(alpha = 0.8f),
                 selected = false,
-                scaleAnimEnterSpec = snap(),
-                colorAnimEnterSpec = snap()
+                scaleAnimEnterSpec = tween(ChartRevealMillis),
+                colorAnimEnterSpec = tween(ChartRevealMillis)
             )
         }
     }
@@ -375,8 +379,8 @@ fun CategoryPieChart(
                     }
                 },
                 selectedScale = 1.1f,
-                scaleAnimEnterSpec = snap(),
-                colorAnimEnterSpec = snap(),
+                scaleAnimEnterSpec = tween(ChartRevealMillis),
+                colorAnimEnterSpec = tween(ChartRevealMillis),
                 style = Pie.Style.Stroke(width = 12.dp)
             )
 
