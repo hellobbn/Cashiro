@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
+
 import com.ritesh.cashiro.utils.sumOfBigDecimal
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -66,7 +68,7 @@ fun MergeAccountSelectionDialog(
 
     var selectedAccounts by remember { mutableStateOf(setOf<AccountBalanceEntity>()) }
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surface,
@@ -222,7 +224,7 @@ fun MergeBalanceOptionDialog(
     onDismiss: () -> Unit,
     onOptionSelected: (BalanceMergeOption) -> Unit
 ) {
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surface,

@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,7 +45,7 @@ fun InstitutionPickerButton(onSelected: (Institution, String) -> Unit) {
         var query by rememberSaveable { mutableStateOf("") }
         var region by rememberSaveable { mutableStateOf<String?>(null) }
         val results = remember(query, region) { InstitutionCatalog.search(query, region) }
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { visible = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {

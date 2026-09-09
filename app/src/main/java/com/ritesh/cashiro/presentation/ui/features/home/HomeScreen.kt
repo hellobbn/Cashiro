@@ -59,7 +59,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
@@ -716,7 +716,7 @@ fun SharedTransitionScope.HomeScreen(
 
             // More Options BottomSheet
             if (showMoreBottomSheet) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showMoreBottomSheet = false },
                     sheetState = rememberModalBottomSheetState(),
                     containerColor = MaterialTheme.colorScheme.surface,

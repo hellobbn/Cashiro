@@ -32,7 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -103,7 +103,7 @@ fun SharedTransitionScope.BudgetsScreen(
     
     // Edit budget sheet
     if (showEditSheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { 
                 showEditSheet = false
                 editingBudgetId = null
@@ -164,7 +164,7 @@ fun SharedTransitionScope.BudgetsScreen(
 
     // Budget Type Wizard
     if (showTypeWizard) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showTypeWizard = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -187,7 +187,7 @@ fun SharedTransitionScope.BudgetsScreen(
 
     // Budget Track Type Wizard
     if (showTrackWizard) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showTrackWizard = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,

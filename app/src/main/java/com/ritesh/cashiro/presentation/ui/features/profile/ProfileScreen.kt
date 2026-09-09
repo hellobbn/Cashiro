@@ -51,7 +51,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -168,7 +168,7 @@ fun SharedTransitionScope.ProfileScreen(
 
     if (state.isEditSheetOpen) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { profileViewModel.dismissEditSheet() },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -188,7 +188,7 @@ fun SharedTransitionScope.ProfileScreen(
 
     if (state.isAddPersonSheetOpen) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { profileViewModel.showAddPersonSheet(false) },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,

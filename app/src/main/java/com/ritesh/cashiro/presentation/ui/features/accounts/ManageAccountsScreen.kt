@@ -46,7 +46,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -733,7 +733,7 @@ fun ManageAccountsScreen(
 
     // Update Balance Sheet
     if (showUpdateDialog && selectedAccount != null && selectedAccountEntity != null) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = {
                 showUpdateDialog = false
                 selectedAccount = null
@@ -793,7 +793,7 @@ fun ManageAccountsScreen(
 
     // Balance History Sheet
     if (showHistoryDialog && historyAccount != null) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = {
                 showHistoryDialog = false
                 historyAccount = null
@@ -873,7 +873,7 @@ fun ManageAccountsScreen(
 
     // Edit Account Sheet
     if (showEditSheet && accountToEdit != null) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             sheetState = sheetState,
             onDismissRequest = {
                 showEditSheet = false
@@ -968,7 +968,7 @@ fun ManageAccountsScreen(
     }
 
     if (showMergeManualInput && accountForMerge != null && selectedMergeAccounts.isNotEmpty()) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = {
                 showMergeManualInput = false
                 accountForMerge = null

@@ -56,7 +56,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -1071,7 +1071,7 @@ fun TransactionTabContent(
 
 
             if (showAccountSheet) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showAccountSheet = false },
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -1091,7 +1091,7 @@ fun TransactionTabContent(
 
             // Target Account BottomSheet (for Transfer type)
             if (showTargetAccountSheet) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showTargetAccountSheet = false },
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -1114,7 +1114,7 @@ fun TransactionTabContent(
 
             // NumberPad for Amount Input
             if (showNumberPad) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showNumberPad = false },
                     sheetState = sheetState ,
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -1134,7 +1134,7 @@ fun TransactionTabContent(
             // Category Selection Sheet
             if (showCategoryMenu) {
                 val allSubcategories by viewModel.allSubcategories.collectAsState(initial = emptyMap())
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showCategoryMenu = false },
                     dragHandle = { BottomSheetDefaults.DragHandle() },
                     containerColor = MaterialTheme.colorScheme.surface,
