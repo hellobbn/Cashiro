@@ -834,10 +834,6 @@
     <string name="logo_zenith">זנית</string>
     <string name="logo_monochrome">מונוכרום</string>
     <string name="navigation_style">ניווט</string>
-    <string name="nav_floating">צף</string>
-    <string name="nav_floating_sub">מודרני ומרשים</string>
-    <string name="nav_normal">נורמלי</string>
-    <string name="nav_normal_sub">M3 סטנדרטי</string>
     <string name="hide_nav_labels">הסתר תוויות ניווט</string>
     <string name="hide_nav_labels_desc">הסתר תוויות בסרגל הניווט</string>
     <string name="hide_pill_indicator">הסתר את האינדיקטור</string>

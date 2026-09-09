@@ -834,10 +834,6 @@ Grön (+) = Sparande | Röd (-) = Överspending</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokromt</string>
     <string name="navigation_style">Navigering</string>
-    <string name="nav_floating">Flytande</string>
-    <string name="nav_floating_sub">Modern &amp; Sleek</string>
-    <string name="nav_normal">Normalt</string>
-    <string name="nav_normal_sub">Standard M3</string>
     <string name="hide_nav_labels">Dölj navigeringsetiketter</string>
     <string name="hide_nav_labels_desc">Dölj etiketter i navigationsfältet</string>
     <string name="hide_pill_indicator">Göm pillerindikatorn</string>

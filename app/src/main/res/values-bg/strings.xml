@@ -834,10 +834,6 @@
     <string name="logo_zenith">Зенит</string>
     <string name="logo_monochrome">Монохром</string>
     <string name="navigation_style">Навигация</string>
-    <string name="nav_floating">Плаваща</string>
-    <string name="nav_floating_sub">Модерна и Стилна</string>
-    <string name="nav_normal">Нормална</string>
-    <string name="nav_normal_sub">Стандарт M3</string>
     <string name="hide_nav_labels">Скрий етикети на навигацията</string>
     <string name="hide_nav_labels_desc">Скрий етикети в навигационната лента</string>
     <string name="hide_pill_indicator">Скрий индикатор на таблетката</string>

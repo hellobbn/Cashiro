@@ -834,10 +834,6 @@ Zöld (+) = Megtakarítás | Piros (-) = Túlköltekezés</string>
     <string name="logo_zenith">Csúcspont</string>
     <string name="logo_monochrome">Monokróm</string>
     <string name="navigation_style">Navigáció</string>
-    <string name="nav_floating">Lebegő</string>
-    <string name="nav_floating_sub">Modern &amp; Letisztult</string>
-    <string name="nav_normal">Normál</string>
-    <string name="nav_normal_sub">Standard M3</string>
     <string name="hide_nav_labels">Navigációs címkék elrejtése</string>
     <string name="hide_nav_labels_desc">Címkék elrejtése a navigációs sávban</string>
     <string name="hide_pill_indicator">Pill jelző elrejtése</string>

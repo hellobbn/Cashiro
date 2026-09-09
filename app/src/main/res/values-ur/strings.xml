@@ -834,10 +834,6 @@
     <string name="logo_zenith">زینتھ</string>
     <string name="logo_monochrome">مونوکروم</string>
     <string name="navigation_style">نیویگیشن</string>
-    <string name="nav_floating">فلوٹنگ</string>
-    <string name="nav_floating_sub">جدید اور ہموار</string>
-    <string name="nav_normal">معمول</string>
-    <string name="nav_normal_sub">معیاری M3</string>
     <string name="hide_nav_labels">نیویگیشن لیبل چھپائیں</string>
     <string name="hide_nav_labels_desc">نیویگیشن بار میں لیبل چھپائیں</string>
     <string name="hide_pill_indicator">پِل اشارے کو چھپائیں</string>

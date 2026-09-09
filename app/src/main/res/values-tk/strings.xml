@@ -834,10 +834,6 @@ Köp periodlar bilen uzak möhletleýin býugetler üçin peýdalydyr</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokrom</string>
     <string name="navigation_style">Navigasiýa</string>
-    <string name="nav_floating">Ýüzen</string>
-    <string name="nav_floating_sub">Zamana laýyk we inçe</string>
-    <string name="nav_normal">Adaty</string>
-    <string name="nav_normal_sub">Standart M3</string>
     <string name="hide_nav_labels">Navigasiýa belliklerini gizläň</string>
     <string name="hide_nav_labels_desc">Navigasiýa panelindäki bellikleriň gizlenmegi</string>
     <string name="hide_pill_indicator">Pil indikatoryny gizläň</string>

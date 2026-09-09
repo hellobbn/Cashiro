@@ -834,10 +834,6 @@ Zelená (+) = Úspory | Červená (-) = Prečerpanie</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monochromatický</string>
     <string name="navigation_style">Navigácia</string>
-    <string name="nav_floating">Plávajúca</string>
-    <string name="nav_floating_sub">Modernej &amp; Elegantná</string>
-    <string name="nav_normal">Normálna</string>
-    <string name="nav_normal_sub">Štandardná M3</string>
     <string name="hide_nav_labels">Skryť názvy navigácie</string>
     <string name="hide_nav_labels_desc">Skryť názvy v navigačnom pruhu</string>
     <string name="hide_pill_indicator">Skryť indikátor pilulky</string>

@@ -834,10 +834,6 @@ Yashil (+) = Tejash | Qizil (-) = Haddan tashqari sarflash</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monoxrom</string>
     <string name="navigation_style">Navigatsiya</string>
-    <string name="nav_floating">Suv ustida</string>
-    <string name="nav_floating_sub">Zamonaviy va silliq</string>
-    <string name="nav_normal">Oddiy</string>
-    <string name="nav_normal_sub">Standart M3</string>
     <string name="hide_nav_labels">Navigatsiya yozuvlarini yashirish</string>
     <string name="hide_nav_labels_desc">Navigatsiya panelidagi yozuvlarni yashirish</string>
     <string name="hide_pill_indicator">Pill indikatorini yashirish</string>

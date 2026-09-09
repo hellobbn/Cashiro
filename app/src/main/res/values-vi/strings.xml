@@ -834,10 +834,6 @@ Xanh (+) = Tiết kiệm | Đỏ (-) = Chi tiêu vượt mức</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Đơn Sắc</string>
     <string name="navigation_style">Điều Hướng</string>
-    <string name="nav_floating">Nổi</string>
-    <string name="nav_floating_sub">Hiện Đại &amp; Mượt Mà</string>
-    <string name="nav_normal">Bình Thường</string>
-    <string name="nav_normal_sub">Chuẩn M3</string>
     <string name="hide_nav_labels">Ẩn Nhãn Điều Hướng</string>
     <string name="hide_nav_labels_desc">Ẩn nhãn trong thanh điều hướng</string>
     <string name="hide_pill_indicator">Ẩn Chỉ Báo Viên</string>

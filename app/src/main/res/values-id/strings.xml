@@ -833,10 +833,6 @@ Berguna untuk anggaran jangka panjang selama beberapa periode</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokrom</string>
     <string name="navigation_style">Navigasi</string>
-    <string name="nav_floating">Melayang</string>
-    <string name="nav_floating_sub">Modern &amp; Ramping</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">Standar M3</string>
     <string name="hide_nav_labels">Sembunyikan Label Navigasi</string>
     <string name="hide_nav_labels_desc">Sembunyikan label di bilah navigasi</string>
     <string name="hide_pill_indicator">Sembunyikan Indikator Pil</string>

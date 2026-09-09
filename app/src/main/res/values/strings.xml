@@ -1125,10 +1125,6 @@
 <string name="mark_as">Mark as</string>
 <string name="merchant_lbl">Merchant</string>
 <string name="minute_timeout_format">%1$d minute timeout</string>
-<string name="nav_floating">Floating</string>
-<string name="nav_floating_sub">Modern &amp; Sleek</string>
-<string name="nav_normal">Normal</string>
-<string name="nav_normal_sub">Standard M3</string>
 <string name="navigation_style">Navigation</string>
 <string name="net_balance_khata">Net Balance</string>
 <string name="net_worth_label">Net worth</string>

@@ -832,10 +832,6 @@
     <string name="logo_zenith">ઝેનિથ</string>
     <string name="logo_monochrome">મોનોક્રોમ</string>
     <string name="navigation_style">નૅવિગેશન</string>
-    <string name="nav_floating">ફ્લોટિંગ</string>
-    <string name="nav_floating_sub">આધુનિક અને ચપળ</string>
-    <string name="nav_normal">સાધારણ</string>
-    <string name="nav_normal_sub">સ્ટાન્ડર્ડ M3</string>
     <string name="hide_nav_labels">નૅવિગેશન લેબલ છુપાવો</string>
     <string name="hide_nav_labels_desc">નૅવિગેશન બારમાં લેબલ છુપાવો</string>
     <string name="hide_pill_indicator">પિલ સૂચક છુપાવો</string>

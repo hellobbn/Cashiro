@@ -832,10 +832,6 @@ Handig voor eenmalige budgetten met aangepaste tijdsperiodes</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochroom</string>
     <string name="navigation_style">Navigatie</string>
-    <string name="nav_floating">Drijvend</string>
-    <string name="nav_floating_sub">Modern &amp; Gestroomlijnd</string>
-    <string name="nav_normal">Normaal</string>
-    <string name="nav_normal_sub">Standaard M3</string>
     <string name="hide_nav_labels">Verberg navigatielabels</string>
     <string name="hide_nav_labels_desc">Verberg labels in de navigatiebalk</string>
     <string name="hide_pill_indicator">Verberg pilindicator</string>

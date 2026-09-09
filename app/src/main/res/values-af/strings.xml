@@ -834,10 +834,6 @@ Groen (+) = Spaar | Rooi (-) = Oorskietwyd</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochroom</string>
     <string name="navigation_style">Navigasie</string>
-    <string name="nav_floating">Drywend</string>
-    <string name="nav_floating_sub">Modern &amp; Skerp</string>
-    <string name="nav_normal">Normaal</string>
-    <string name="nav_normal_sub">Standaard M3</string>
     <string name="hide_nav_labels">Versteek Navigasielabels</string>
     <string name="hide_nav_labels_desc">Versteek etiket in die navigasiebalk</string>
     <string name="hide_pill_indicator">Versteek Pil-aanwyser</string>

@@ -834,10 +834,6 @@
     <string name="logo_zenith">ซีนิธ</string>
     <string name="logo_monochrome">ขาวดำ</string>
     <string name="navigation_style">การนำทาง</string>
-    <string name="nav_floating">ลอย</string>
-    <string name="nav_floating_sub">ทันสมัยและเรียบหรู</string>
-    <string name="nav_normal">ปกติ</string>
-    <string name="nav_normal_sub">มาตรฐาน M3</string>
     <string name="hide_nav_labels">ซ่อนป้ายกำกับการนำทาง</string>
     <string name="hide_nav_labels_desc">ซ่อนป้ายกำกับในแถบนำทาง</string>
     <string name="hide_pill_indicator">ซ่อนตัวบ่งชี้เลือก</string>

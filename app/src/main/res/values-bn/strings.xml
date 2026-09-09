@@ -834,10 +834,6 @@
     <string name="logo_zenith">সেনিথ</string>
     <string name="logo_monochrome">মনোক্রোম</string>
     <string name="navigation_style">নেভিগেশন</string>
-    <string name="nav_floating">ভাসমান</string>
-    <string name="nav_floating_sub">আধুনিক ও মসৃণ</string>
-    <string name="nav_normal">সাধারণ</string>
-    <string name="nav_normal_sub">স্ট্যান্ডার্ড M3</string>
     <string name="hide_nav_labels">নেভিগেশন লেবেল লুকান</string>
     <string name="hide_nav_labels_desc">নেভিগেশন বারের লেবেলগুলি লুকান</string>
     <string name="hide_pill_indicator">পিল সূচক লুকান</string>

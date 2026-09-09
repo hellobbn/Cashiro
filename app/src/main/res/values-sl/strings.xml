@@ -834,10 +834,6 @@ Zeleno (+) = Prihranek | Rdeče (-) = Prekomerna poraba</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monokrom</string>
     <string name="navigation_style">Navigacija</string>
-    <string name="nav_floating">Plavajoče</string>
-    <string name="nav_floating_sub">Sodobno in elegantno</string>
-    <string name="nav_normal">Normalno</string>
-    <string name="nav_normal_sub">Standardni M3</string>
     <string name="hide_nav_labels">Skrij oznake navigacije</string>
     <string name="hide_nav_labels_desc">Skrij oznake v navigacijski vrstici</string>
     <string name="hide_pill_indicator">Skrij indikator tablete</string>

@@ -831,10 +831,6 @@
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
     <string name="navigation_style">Hoʻokele</string>
-    <string name="nav_floating">E lana ana</string>
-    <string name="nav_floating_sub">ʻAno a me ka nani</string>
-    <string name="nav_normal">Maʻamau</string>
-    <string name="nav_normal_sub">M3 maʻamau</string>
     <string name="hide_nav_labels">Hūnā Lepili Hoʻokele</string>
     <string name="hide_nav_labels_desc">Hūnā i nā lepili ma ka pā hoʻokele</string>
     <string name="hide_pill_indicator">Hūnā Pill Indicator</string>

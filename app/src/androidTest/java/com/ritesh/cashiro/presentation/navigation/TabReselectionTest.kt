@@ -21,7 +21,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.presentation.ui.theme.CashiroTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -30,10 +29,9 @@ import org.junit.Test
 class TabReselectionTest {
     @get:Rule val rule = createComposeRule()
 
-    @Test fun normalNavigationRetainsCurrentEntry() = exercise(NavigationBarStyle.NORMAL)
-    @Test fun floatingNavigationRetainsCurrentEntry() = exercise(NavigationBarStyle.FLOATING)
+    @Test fun navigationRetainsCurrentEntry() = exercise()
 
-    private fun exercise(style: NavigationBarStyle) {
+    private fun exercise() {
         lateinit var nav: NavHostController
         lateinit var transactions: String
         lateinit var analytics: String
@@ -48,10 +46,8 @@ class TabReselectionTest {
                 CashiroBottomNavigation(
                     navController = nav,
                     currentDestination = entry?.destination,
-                    navigationBarStyle = style,
                     hideLabels = false,
                     hidePill = false,
-                    blurEffects = false,
                     visible = true
                 )
             }) { padding ->

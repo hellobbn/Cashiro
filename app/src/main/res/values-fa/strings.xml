@@ -834,10 +834,6 @@
     <string name="logo_zenith">زنیث</string>
     <string name="logo_monochrome">تک‌رنگ</string>
     <string name="navigation_style">ناوبری</string>
-    <string name="nav_floating">شناور</string>
-    <string name="nav_floating_sub">مدرن و براق</string>
-    <string name="nav_normal">عادی</string>
-    <string name="nav_normal_sub">استاندارد M3</string>
     <string name="hide_nav_labels">مخفی کردن برچسب‌های ناوبری</string>
     <string name="hide_nav_labels_desc">مخفی کردن برچسب‌ها در نوار ناوبری</string>
     <string name="hide_pill_indicator">مخفی کردن نشانگر انتخاب</string>

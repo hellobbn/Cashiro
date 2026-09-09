@@ -834,10 +834,6 @@
     <string name="logo_zenith">ಜೆನಿಥ್</string>
     <string name="logo_monochrome">ಮೋನೋಕ್ರೋಮ್</string>
     <string name="navigation_style">ವಿನ್ಯಾಸ</string>
-    <string name="nav_floating">ಫ್ಲೋಟಿಂಗ್</string>
-    <string name="nav_floating_sub">ಆಧುನಿಕ &amp; ಓಜೋ</string>
-    <string name="nav_normal">ಸಾಮಾನ್ಯ</string>
-    <string name="nav_normal_sub">ಸ್ಟ್ಯಾಂಡರ್‌ಡ್ M3</string>
     <string name="hide_nav_labels">ನಾವಿಗೇಶನ್ ಲೇಬಲ್‌ಗಳನ್ನು மறೆವು</string>
     <string name="hide_nav_labels_desc">ನಾವಿಗೇಶನ್ ಬಾರ್‌ನಲ್ಲಿ ಲೇಬಲ್‌ಗಳನ್ನು ಮರೆಮಾಡಿ</string>
     <string name="hide_pill_indicator">ಪಿಲ್ ಸೂಚಕವನ್ನು ಮರೆಮಾಡಿ</string>

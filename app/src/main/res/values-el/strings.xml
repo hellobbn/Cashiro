@@ -834,10 +834,6 @@
     <string name="logo_zenith">Ζενίθ</string>
     <string name="logo_monochrome">Μονόχρωμο</string>
     <string name="navigation_style">Πλοήγηση</string>
-    <string name="nav_floating">Πλωτή</string>
-    <string name="nav_floating_sub">Μοντέρνο &amp; Κομψό</string>
-    <string name="nav_normal">Κανονικό</string>
-    <string name="nav_normal_sub">Τυπικό M3</string>
     <string name="hide_nav_labels">Απόκρυψη Ετικετών Πλοήγησης</string>
     <string name="hide_nav_labels_desc">Απόκρυψη ετικετών στη γραμμή πλοήγησης</string>
     <string name="hide_pill_indicator">Απόκρυψη Δείκτη Pill</string>

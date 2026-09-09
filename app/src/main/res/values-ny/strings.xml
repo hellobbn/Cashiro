@@ -831,10 +831,6 @@
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
     <string name="navigation_style">Navigation</string>
-    <string name="nav_floating">Zoyandama</string>
-    <string name="nav_floating_sub">Zamakono &amp; Zowoneka bwino</string>
-    <string name="nav_normal">Wamba</string>
-    <string name="nav_normal_sub">Standard M3</string>
     <string name="hide_nav_labels">Bisani Ma Navigation Labels</string>
     <string name="hide_nav_labels_desc">Bisani zilembo mu bar ya navigation</string>
     <string name="hide_pill_indicator">Bisani Chizindikiro cha Piritsi</string>
