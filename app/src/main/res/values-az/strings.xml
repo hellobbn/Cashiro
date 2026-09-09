@@ -834,10 +834,6 @@ Yaşıl (+) = Əmanət | Qırmızı (-) = Artıq xərcləmə</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monoxrom</string>
     <string name="navigation_style">Naviqasiya</string>
-    <string name="nav_floating">Üzən</string>
-    <string name="nav_floating_sub">Müasir &amp; Səliqəli</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">Standart M3</string>
     <string name="hide_nav_labels">Naviqasiya Etiketlərini Gizlət</string>
     <string name="hide_nav_labels_desc">Naviqasiya çubuğundakı etiketləri gizlət</string>
     <string name="hide_pill_indicator">Pill Göstəricisini Gizlət</string>

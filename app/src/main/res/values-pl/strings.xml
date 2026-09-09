@@ -831,10 +831,6 @@
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrom</string>
     <string name="navigation_style">Nawigacja</string>
-    <string name="nav_floating">Pływająca</string>
-    <string name="nav_floating_sub">Nowoczesna i elegancka</string>
-    <string name="nav_normal">Normalna</string>
-    <string name="nav_normal_sub">Standardowa M3</string>
     <string name="hide_nav_labels">Ukryj etykiety nawigacji</string>
     <string name="hide_nav_labels_desc">Ukryj etykiety na pasku nawigacyjnym</string>
     <string name="hide_pill_indicator">Ukryj wskaźnik pigułki</string>

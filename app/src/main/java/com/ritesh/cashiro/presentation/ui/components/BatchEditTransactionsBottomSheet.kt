@@ -23,7 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -111,7 +111,7 @@ fun BatchEditTransactionsBottomSheet(
     val hasAnySelection = updateDate || updateTime || updateCategory || updateAmount || updateNote
     val lazyListState = rememberLazyListState()
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -450,7 +450,7 @@ fun BatchEditTransactionsBottomSheet(
 
     // Category Selection Sheet
     if (showCategorySheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showCategorySheet = false },
             dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface
@@ -470,7 +470,7 @@ fun BatchEditTransactionsBottomSheet(
 
     // NumberPad for Amount
     if (showNumberPad) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             containerColor = MaterialTheme.colorScheme.surface,

@@ -81,7 +81,6 @@ constructor(@ApplicationContext private val context: Context) {
         val DISABLED_SUBSCRIPTION_NOTIFICATION_IDS = androidx.datastore.preferences.core.stringSetPreferencesKey("disabled_subscription_notification_ids")
         val TEST_NOTIFICATION_ALERTS_ENABLED = booleanPreferencesKey("test_notification_alerts_enabled")
         val SHOW_BANNER_IMAGE = booleanPreferencesKey("show_banner_image")
-        val NAVIGATION_BAR_STYLE = stringPreferencesKey("navigation_bar_style")
         val APP_FONT = stringPreferencesKey("app_font")
         
         // Home Widget Preferences
@@ -134,13 +133,6 @@ constructor(@ApplicationContext private val context: Context) {
                     preferences[PreferencesKeys.PROFILE_BACKGROUND_COLOR] ?: 0,
                 bannerImageUri = preferences[PreferencesKeys.BANNER_IMAGE_URI],
                 showBannerImage = preferences[PreferencesKeys.SHOW_BANNER_IMAGE] ?: false,
-                navigationBarStyle = try {
-                    NavigationBarStyle.valueOf(
-                        preferences[PreferencesKeys.NAVIGATION_BAR_STYLE] ?: NavigationBarStyle.FLOATING.name
-                    )
-                } catch (e: Exception) {
-                    NavigationBarStyle.FLOATING
-                },
                 appFont = try {
                     AppFont.valueOf(
                         preferences[PreferencesKeys.APP_FONT] ?: AppFont.SYSTEM.name
@@ -722,12 +714,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    suspend fun updateNavigationBarStyle(style: NavigationBarStyle) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.NAVIGATION_BAR_STYLE] = style.name
-        }
-    }
-
     suspend fun updateAppFont(font: AppFont) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_FONT] = font.name
@@ -819,7 +805,6 @@ data class UserPreferences(
         val profileBackgroundColor: Int = 0,
         val bannerImageUri: String? = null,
         val showBannerImage: Boolean = false,
-        val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING,
         val appFont: AppFont = AppFont.SYSTEM,
         val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
         val accentColor: AccentColor = AccentColor.BLUE,

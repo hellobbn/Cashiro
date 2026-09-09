@@ -831,10 +831,6 @@
     <string name="logo_zenith">Zênite</string>
     <string name="logo_monochrome">Monocromático</string>
     <string name="navigation_style">Navegação</string>
-    <string name="nav_floating">Flutuante</string>
-    <string name="nav_floating_sub">Moderno e Elegante</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">M3 Padrão</string>
     <string name="hide_nav_labels">Ocultar Rótulos de Navegação</string>
     <string name="hide_nav_labels_desc">Ocultar rótulos na barra de navegação</string>
     <string name="hide_pill_indicator">Ocultar Indicador de Pílula</string>

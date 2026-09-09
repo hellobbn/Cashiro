@@ -35,7 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -164,7 +164,7 @@ fun InvestmentsScreen(
         onManageManualAccounts = onManageManualAccounts
     )
     if (showAddMenu) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showAddMenu = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             containerColor = MaterialTheme.colorScheme.surface,
@@ -205,7 +205,7 @@ fun InvestmentsScreen(
         }
     }
     if (showAddAccount) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { if (!accountState.isSavingAccount) showAddAccount = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             containerColor = MaterialTheme.colorScheme.surface,

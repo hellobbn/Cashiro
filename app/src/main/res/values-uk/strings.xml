@@ -833,10 +833,6 @@
     <string name="logo_zenith">Зені́т</string>
     <string name="logo_monochrome">Монохром</string>
     <string name="navigation_style">Навігація</string>
-    <string name="nav_floating">Плаваюча</string>
-    <string name="nav_floating_sub">Сучасний та стильний</string>
-    <string name="nav_normal">Стандартний</string>
-    <string name="nav_normal_sub">Стандарт M3</string>
     <string name="hide_nav_labels">Сховати підписи навігації</string>
     <string name="hide_nav_labels_desc">Сховати підписи на панелі навігації</string>
     <string name="hide_pill_indicator">Сховати індикатор вибору</string>

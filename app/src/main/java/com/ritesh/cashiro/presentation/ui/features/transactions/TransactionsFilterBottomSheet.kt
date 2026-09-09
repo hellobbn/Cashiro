@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -97,7 +99,7 @@ fun TransactionsFilterBottomSheet(
     var showNumberPadForMax by remember { mutableStateOf(false) }
     var tempAmountInput by remember { mutableStateOf("") }
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = { BottomSheetDefaults.DragHandle() },
@@ -548,7 +550,7 @@ fun TransactionsFilterBottomSheet(
     // NumberPad Bottom Sheets for Min/Max
     if (showNumberPadForMin || showNumberPadForMax) {
         val isMin = showNumberPadForMin
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { 
                 showNumberPadForMin = false
                 showNumberPadForMax = false 

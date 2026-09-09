@@ -834,10 +834,6 @@
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">ཚོན་མདོག་རྐྱང་པ་</string>
     <string name="navigation_style">ཕྱོགས་སྟོན་</string>
-    <string name="nav_floating">གཡེང་བ།</string>
-    <string name="nav_floating_sub">དེང་རབས་དང་མཛེས་སྡུག་ལྡན་པ།</string>
-    <string name="nav_normal">རྒྱུན་ལྡན་</string>
-    <string name="nav_normal_sub">ཚད་ལྡན་M3</string>
     <string name="hide_nav_labels">ཕྱོགས་སྟོན་གྱི་ཤོག་བྱང་སྦ་གསང་</string>
     <string name="hide_nav_labels_desc">ཕྱོགས་སྟོན་སྟེགས་བུའི་ནང་དུ་ཤོག་བྱང་སྦས་པ།</string>
     <string name="hide_pill_indicator">སྨན་རིལ་གྱི་དམིགས་ཚད་སྦས་སྐུང་།</string>

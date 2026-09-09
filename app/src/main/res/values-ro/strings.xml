@@ -831,10 +831,6 @@
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monocrom</string>
     <string name="navigation_style">Navigare</string>
-    <string name="nav_floating">Plutitor</string>
-    <string name="nav_floating_sub">Modern și Elegant</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">Standard M3</string>
     <string name="hide_nav_labels">Ascunde Etichetele Navigării</string>
     <string name="hide_nav_labels_desc">Ascunde etichetele din bara de navigare</string>
     <string name="hide_pill_indicator">Ascunde Indicatorul Pilulei</string>

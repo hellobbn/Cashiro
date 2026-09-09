@@ -235,6 +235,7 @@ data class ThemePreferences(
     val isAmoledMode: Boolean? = null,
 
     @SerializedName("navigation_bar_style")
+    /** Retained so older backups still parse; the floating navigation style no longer exists. */
     val navigationBarStyle: String? = null,
 
     @SerializedName("app_font")

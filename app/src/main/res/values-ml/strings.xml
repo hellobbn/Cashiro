@@ -834,10 +834,6 @@
     <string name="logo_zenith">സെനിത്ത്</string>
     <string name="logo_monochrome">മോണോക്രോം</string>
     <string name="navigation_style">നാവിഗേഷൻ</string>
-    <string name="nav_floating">ഫ്ലോട്ടിംഗ്</string>
-    <string name="nav_floating_sub">ആധുനികവും സ്മൂത്തുമായത്</string>
-    <string name="nav_normal">സാധാരണ</string>
-    <string name="nav_normal_sub">സ്റ്റാൻഡേർഡ് M3</string>
     <string name="hide_nav_labels">നാവിഗേഷൻ ലേബലുകൾ മറച്ച് വെക്കുക</string>
     <string name="hide_nav_labels_desc">നാവിഗേഷൻ ബാറിലെ ലേബലുകൾ മറച്ച് വെക്കുക</string>
     <string name="hide_pill_indicator">പിൽ സൂചിക മറച്ചുവെക്കുക</string>

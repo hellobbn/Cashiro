@@ -78,6 +78,7 @@ fun AddAccountScreen(
                     isSaving = uiState.isSavingAccount,
                     saveError = uiState.accountSaveError,
                     onClearSaveError = manageAccountsViewModel::clearAccountSaveError,
+                    showHeading = false, // the top bar already shows the title
                     onDismiss = { if (!uiState.isSavingAccount) onNavigateBack() },
                     onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency ->
                         manageAccountsViewModel.addAccount(

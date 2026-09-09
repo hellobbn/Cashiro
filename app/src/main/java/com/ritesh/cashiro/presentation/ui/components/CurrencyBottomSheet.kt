@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
@@ -68,7 +70,7 @@ fun CurrencyBottomSheet(
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -484,7 +486,7 @@ fun ExchangeRatesBottomSheet(
     }
     val baseCurrencyCode = uiState.selectedCurrency?.code ?: ""
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -805,7 +807,7 @@ fun AddCustomCurrencyBottomSheet(
     var rate by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,

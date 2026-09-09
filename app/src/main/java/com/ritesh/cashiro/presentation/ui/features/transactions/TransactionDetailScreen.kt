@@ -113,7 +113,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -336,7 +336,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
 
     // Custom Billing Cycle Count Pad
     if (showCustomCountPad && isEditMode) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showCustomCountPad = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -765,7 +765,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
 
     // NumberPad for Amount Input
     if (showNumberPad && isEditMode) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -785,7 +785,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
 
     // Category Selection Sheet
     if (showCategoryMenu) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showCategoryMenu = false },
             dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -807,7 +807,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
     if (showAccountSheet) {
         val accounts by transactionDetailViewModel.availableAccounts.collectAsStateWithLifecycle()
         val selectedAccount by transactionDetailViewModel.selectedAccount.collectAsStateWithLifecycle()
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showAccountSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -827,7 +827,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
     if (showTargetAccountSheet) {
         val accounts by transactionDetailViewModel.availableAccounts.collectAsStateWithLifecycle()
         val targetAccount by transactionDetailViewModel.targetAccount.collectAsStateWithLifecycle()
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showTargetAccountSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -848,7 +848,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
     // Match Preview Sheet — allows granular per-transaction selection before applying
     if (showMatchPreviewSheet) {
         val previewSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { transactionDetailViewModel.hideMatchPreviewSheet() },
             sheetState = previewSheetState,
             containerColor = MaterialTheme.colorScheme.surface,

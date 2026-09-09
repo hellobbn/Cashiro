@@ -47,7 +47,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -570,7 +570,7 @@ fun SubscriptionTabContent(
             }
 
             if (showAccountSheet) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showAccountSheet = false },
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -590,7 +590,7 @@ fun SubscriptionTabContent(
 
             // NumberPad for Amount Input
             if (showNumberPad) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showNumberPad = false },
                     sheetState = sheetState,
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -609,7 +609,7 @@ fun SubscriptionTabContent(
 
             // NumberPad for Custom Cycle Count
             if (showCustomCountPad) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showCustomCountPad = false },
                     sheetState = sheetState,
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -628,7 +628,7 @@ fun SubscriptionTabContent(
 
             // Category Selection Sheet
             if (showCategoryMenu) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showCategoryMenu = false },
                     dragHandle = { BottomSheetDefaults.DragHandle() },
                     containerColor = MaterialTheme.colorScheme.surface,

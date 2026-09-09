@@ -834,10 +834,6 @@
     <string name="logo_zenith">القمة</string>
     <string name="logo_monochrome">أحادي اللون</string>
     <string name="navigation_style">التنقل</string>
-    <string name="nav_floating">عائم</string>
-    <string name="nav_floating_sub">حديث وأنيق</string>
-    <string name="nav_normal">عادي</string>
-    <string name="nav_normal_sub">M3 القياسي</string>
     <string name="hide_nav_labels">إخفاء تسميات التنقل</string>
     <string name="hide_nav_labels_desc">إخفاء التسميات في شريط التنقل</string>
     <string name="hide_pill_indicator">إخفاء مؤشر الحبوب</string>

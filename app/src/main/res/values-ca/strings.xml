@@ -834,10 +834,6 @@ Verd (+) = Estalvis | Vermell (-) = Despeses excessives</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monocrom</string>
     <string name="navigation_style">Navegació</string>
-    <string name="nav_floating">Flotant</string>
-    <string name="nav_floating_sub">Modern i elegant</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">Estàndard M3</string>
     <string name="hide_nav_labels">Ocultar etiquetes de navegació</string>
     <string name="hide_nav_labels_desc">Amaga les etiquetes a la barra de navegació</string>
     <string name="hide_pill_indicator">Ocultar indicador de pastilla</string>

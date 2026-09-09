@@ -258,7 +258,6 @@ class BackupExporter @Inject constructor(
                     isDarkThemeEnabled = if (config.includeAppPreferences) prefs.isDarkThemeEnabled else null,
                     isDynamicColorEnabled = if (config.includeAppPreferences) prefs.isDynamicColorEnabled else true,
                     isAmoledMode = if (config.includeAppPreferences) prefs.isAmoledMode else null,
-                    navigationBarStyle = if (config.includeAppPreferences) prefs.navigationBarStyle.name else null,
                     appFont = if (config.includeAppPreferences) prefs.appFont.name else null,
                     themeStyle = if (config.includeAppPreferences) prefs.themeStyle.name else null,
                     accentColor = if (config.includeAppPreferences) prefs.accentColor.name else null,

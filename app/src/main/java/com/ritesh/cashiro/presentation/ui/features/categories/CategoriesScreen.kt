@@ -42,7 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -457,7 +457,7 @@ fun CategoriesScreen(
 
     // Add/Edit Category Bottom Sheet
     if (showAddEditDialog) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             sheetState = sheetState,
             onDismissRequest = { categoriesViewModel.hideDialog() },
             dragHandle = { BottomSheetDefaults.DragHandle() },
@@ -485,7 +485,7 @@ fun CategoriesScreen(
         val currentCategory =
             editingSubcategory?.categoryId?.let { catId -> categories.find { it.id == catId } }
 
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             sheetState = sheetState,
             onDismissRequest = { categoriesViewModel.hideSubcategoryDialog() },
             dragHandle = { BottomSheetDefaults.DragHandle() },
@@ -537,7 +537,7 @@ fun CategoriesScreen(
 
     // Category Migration Bottom Sheet
     if (showMigrationSheet && categoryToDelete != null) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { categoriesViewModel.hideMigrationSheet() },
             dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface,

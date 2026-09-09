@@ -834,10 +834,6 @@ Viridis (+) = Pecunia Servata | Ruber (-) = Superfluum Expensum</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochromus</string>
     <string name="navigation_style">Navigatio</string>
-    <string name="nav_floating">Fluitans</string>
-    <string name="nav_floating_sub">Moderna et Elegans</string>
-    <string name="nav_normal">Normalis</string>
-    <string name="nav_normal_sub">Norma M3</string>
     <string name="hide_nav_labels">Absconde Navigationis Labels</string>
     <string name="hide_nav_labels_desc">Absconde labels in navigatione bar</string>
     <string name="hide_pill_indicator">Absconde Pill Indicem</string>

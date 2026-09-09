@@ -834,10 +834,6 @@
     <string name="logo_zenith">ଜେନିଥ୍</string>
     <string name="logo_monochrome">ମୋନୋକ୍ରୋମ୍</string>
     <string name="navigation_style">ନାଭିଗେସନ୍</string>
-    <string name="nav_floating">ଫ୍ଲୋଟିଂ</string>
-    <string name="nav_floating_sub">ଆଧୁନିକ ଏବଂ ସ୍ଲିକ୍</string>
-    <string name="nav_normal">ସାଧାରଣ</string>
-    <string name="nav_normal_sub">ସ୍ଟାଣ୍ଡାର୍ଡ M3</string>
     <string name="hide_nav_labels">ନାଭିଗେସନ୍ ଲେବଲ୍ ଲୁକାନ୍ତୁ</string>
     <string name="hide_nav_labels_desc">ନାଭିଗେସନ୍ ବାରରେ ଲେବଲ୍ ଲୁକାନ୍ତୁ</string>
     <string name="hide_pill_indicator">ପିଲ୍ ସୂଚକାଙ୍କନ୍ତୁ ଲୁକାନ୍ତୁ</string>

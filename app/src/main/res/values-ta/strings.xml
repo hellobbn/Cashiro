@@ -834,10 +834,6 @@
     <string name="logo_zenith">சென்னித்</string>
     <string name="logo_monochrome">ஒற்றைநிறம்</string>
     <string name="navigation_style">நெவிகேஷன்</string>
-    <string name="nav_floating">மிதக்கும்</string>
-    <string name="nav_floating_sub">நவீனமும் ஸ்லீக்கும்</string>
-    <string name="nav_normal">சாதாரண</string>
-    <string name="nav_normal_sub">தரநிலை M3</string>
     <string name="hide_nav_labels">நெவிகேஷன் லேபிள்களை மறைக்கவும்</string>
     <string name="hide_nav_labels_desc">நெவிகேஷன் பட்டியில் லேபிள்களை மறைக்கவும்</string>
     <string name="hide_pill_indicator">பில் குறியீட்டை மறைக்கவும்</string>

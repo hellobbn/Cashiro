@@ -39,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +68,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.AddAccountScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.ManageAccountsScreen
@@ -156,12 +156,6 @@ fun CashiroNavHost(
     val isSubscriptionsScreen = currentRoute?.contains(Subscriptions::class.qualifiedName ?: "") == true
     val isBudgetDetailScreen = currentRoute?.contains(BudgetDetail::class.qualifiedName ?: "") == true
 
-    // Only the standard Material navigation bar is rendered now; the saved style preference is
-    // ignored so the FAB layout below always follows the NORMAL rules.
-    val navigationBarStyle = NavigationBarStyle.NORMAL
-    val isFloatingNav = false
-    val hideFabsForFloatingNav = isFloatingNav && (isHomeScreen || isTransactionsScreen)
-    val showFloatingFab = isFloatingNav && (isHomeScreen || isTransactionsScreen || isAnalyticsScreen)
 
     val hazeState = remember { HazeState() }
 
@@ -808,18 +802,14 @@ fun CashiroNavHost(
                 modifier = Modifier.fillMaxSize()
             ) {
                 AnimatedVisibility(
-                    visible = (isHomeScreen || isTransactionsScreen || isSubscriptionsScreen || isBudgetDetailScreen) && !hideFabsForFloatingNav,
+                    visible = isHomeScreen || isTransactionsScreen || isSubscriptionsScreen || isBudgetDetailScreen,
                     enter = fadeIn() + scaleIn(),
                     exit = fadeOut() + scaleOut(),
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(Dimensions.Padding.content)
                         .padding(
-                            bottom = when (navigationBarStyle) {
-                                NavigationBarStyle.FLOATING if showBottomNav -> 56.dp
-                                NavigationBarStyle.NORMAL if showBottomNav -> 84.dp
-                                else -> 10.dp
-                            }
+                            bottom = if (showBottomNav) 84.dp else 10.dp
                         )
                         .navigationBarsPadding()
                 ) {
@@ -902,65 +892,6 @@ fun CashiroNavHost(
             }
         }
 
-        val optionsDesc = stringResource(R.string.options_desc)
-        val addTransactionLbl = stringResource(R.string.add_transaction)
-        val exportLbl = stringResource(R.string.export)
-        val searchLbl = stringResource(R.string.search)
-
-        val fabConfig = remember(showFloatingFab, isHomeScreen, isTransactionsScreen, isAnalyticsScreen) {
-            if (showFloatingFab) {
-                FabConfig(
-                    icon = Icons.Rounded.Add,
-                    contentDescription = optionsDesc,
-                    dropdownContent = { dismiss ->
-                        if (isHomeScreen || isTransactionsScreen) {
-                            DropdownMenuItem(
-                                text = { Text(
-                                    text = addTransactionLbl,
-                                ) },
-                                onClick = {
-                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    dismiss()
-                                    navController.safeNavigate(AddTransaction(initialTab = 0))
-                                },
-                                leadingIcon = { Icon(Icons.Rounded.Add, contentDescription = null) }
-                            )
-                            HorizontalDivider(
-                                thickness = 1.5.dp,
-                                color = MaterialTheme.colorScheme.surface.copy(0.6f)
-                            )
-                        }
-
-
-                        if (isTransactionsScreen) {
-                            DropdownMenuItem(
-                                text = { Text(exportLbl) },
-                                onClick = {
-                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    dismiss()
-                                    showExportDialog = true
-                                },
-                                leadingIcon = { Icon(Iconax.ImportArrow01, contentDescription = null) }
-                            )
-                        } else if (isAnalyticsScreen) {
-                            DropdownMenuItem(
-                                text = { Text(searchLbl) },
-                                onClick = {
-                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    dismiss()
-                                    navController.safeNavigate(Transactions(focusSearch = true)) {
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = false
-                                    }
-                                },
-                                leadingIcon = { Icon(Iconax.Search, contentDescription = null) }
-                            )                        }
-                    }
-                )
-            } else null
-        }
-
         // Block pointer input while a navigation transition is in progress so a quick tap
         // meant for the destination screen doesn't hit the still-composed outgoing screen.
         // Placed under the navigation bar so tab taps are never swallowed: switching tabs
@@ -974,14 +905,10 @@ fun CashiroNavHost(
         CashiroBottomNavigation(
             navController = navController,
             currentDestination = currentDestination,
-            navigationBarStyle = navigationBarStyle,
             hideLabels = themeUiState.hideNavigationLabels,
             hidePill = themeUiState.hidePillIndicator,
-            blurEffects = themeUiState.blurEffects,
             visible = showBottomNav,
-            modifier = Modifier.align(Alignment.BottomCenter),
-            hazeState = hazeState,
-            fabConfig = fabConfig
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
 }
@@ -992,6 +919,8 @@ fun CashiroNavHost(
  * transitions hold the outgoing screen composed during the transition, which would otherwise
  * let a quick tap meant for the list hit a clickable element on the screen being popped.
  */
+private const val TransitionBlockGraceMillis = 600L
+
 @Composable
 private fun NavigationTransitionInputBlocker(
     navController: NavHostController,
@@ -1004,8 +933,20 @@ private fun NavigationTransitionInputBlocker(
             lifecycle = lifecycle
         ).value
     }
-    val shouldBlock = !isAddTransactionScreen &&
+    val inTransition = !isAddTransactionScreen &&
         topState != null && topState != Lifecycle.State.RESUMED
+    // Safety valve: a transition interrupted by rapid tab taps can leave the top entry STARTED
+    // without ever reaching RESUMED. Blocking must never outlive a real transition, so it ends
+    // after a short grace period regardless of lifecycle state.
+    var timedOut by remember(entry?.id) { mutableStateOf(false) }
+    LaunchedEffect(entry?.id, inTransition) {
+        timedOut = false
+        if (inTransition) {
+            kotlinx.coroutines.delay(TransitionBlockGraceMillis)
+            timedOut = true
+        }
+    }
+    val shouldBlock = inTransition && !timedOut
     if (shouldBlock) {
         Box(
             modifier = Modifier

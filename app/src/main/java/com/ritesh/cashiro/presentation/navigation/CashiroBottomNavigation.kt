@@ -6,15 +6,14 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
@@ -22,38 +21,19 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.toRoute
-import com.ritesh.cashiro.data.preferences.NavigationBarStyle
-import dev.chrisbanes.haze.HazeState
-
-/** Kept for API compatibility; the standard bar has no attached FAB. */
-data class FabConfig(
-    val icon: ImageVector,
-    val contentDescription: String,
-    val onClick: () -> Unit = {},
-    val dropdownContent: (@Composable ColumnScope.(dismiss: () -> Unit) -> Unit)? = null
-)
 
 /**
- * Standard Material 3 [NavigationBar] with default colours and indicator.
- *
- * The previous floating toolbar (translucent, blurred, expanding toggle buttons) is gone: it
- * changed size and shape on selection and its tap handling was unreliable during transitions.
- * [navigationBarStyle], [hidePill], [blurEffects], [hazeState] and [fabConfig] are accepted so
- * call sites need not change, but only the standard bar is rendered.
+ * Standard Material 3 [NavigationBar] with default colours. [hidePill] makes the selected-item
+ * indicator transparent; [hideLabels] drops the labels.
  */
-@Suppress("UNUSED_PARAMETER")
 @Composable
 fun CashiroBottomNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     currentDestination: NavDestination?,
-    navigationBarStyle: NavigationBarStyle,
     hideLabels: Boolean,
     hidePill: Boolean,
-    blurEffects: Boolean,
-    visible: Boolean,
-    hazeState: HazeState = remember { HazeState() },
-    fabConfig: FabConfig? = null
+    visible: Boolean
 ) {
     val navigationItems = listOf(BottomNavItem.Home, BottomNavItem.Analytics, BottomNavItem.Transactions)
     val view = LocalView.current
@@ -84,7 +64,9 @@ fun CashiroBottomNavigation(
                     label = if (hideLabels) null else {
                         { Text(text = stringResource(item.titleRes), maxLines = 1) }
                     },
-                    alwaysShowLabel = true
+                    alwaysShowLabel = true,
+                    colors = if (hidePill) NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
+                    else NavigationBarItemDefaults.colors()
                 )
             }
         }

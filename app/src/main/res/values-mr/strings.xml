@@ -834,10 +834,6 @@
     <string name="logo_zenith">झेनिथ</string>
     <string name="logo_monochrome">एकसंध</string>
     <string name="navigation_style">नेव्हिगेशन</string>
-    <string name="nav_floating">फ्लोटिंग</string>
-    <string name="nav_floating_sub">आधुनिक आणि सुबक</string>
-    <string name="nav_normal">सामान्य</string>
-    <string name="nav_normal_sub">स्टँडर्ड M3</string>
     <string name="hide_nav_labels">नेव्हिगेशन लेबले लपवा</string>
     <string name="hide_nav_labels_desc">नेव्हिगेशन बारमधील लेबले लपवा</string>
     <string name="hide_pill_indicator">पिल निर्देशक लपवा</string>

@@ -836,10 +836,6 @@
     <string name="logo_zenith">顶点</string>
     <string name="logo_monochrome">单色</string>
     <string name="navigation_style">导航</string>
-    <string name="nav_floating">悬浮</string>
-    <string name="nav_floating_sub">现代 &amp; 时尚</string>
-    <string name="nav_normal">普通</string>
-    <string name="nav_normal_sub">标准 M3</string>
     <string name="hide_nav_labels">隐藏导航标签</string>
     <string name="hide_nav_labels_desc">隐藏导航栏中的标签</string>
     <string name="hide_pill_indicator">隐藏胶囊指示器</string>

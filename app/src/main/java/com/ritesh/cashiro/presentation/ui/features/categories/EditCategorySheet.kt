@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.categories
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -83,7 +85,7 @@ fun EditCategorySheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (showIconSelector) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showIconSelector = false },
             sheetState = sheetState,
             dragHandle = { BottomSheetDefaults.DragHandle() },
