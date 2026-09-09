@@ -5,6 +5,7 @@ import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
 import androidx.compose.animation.core.FastOutSlowInEasing
 
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.snap
 
 import com.ritesh.cashiro.utils.maxDoubleOrNull
 import com.ritesh.cashiro.utils.sumOfDouble
@@ -119,8 +120,11 @@ fun SpendingLineChart(
                 color = SolidColor(themeColors.primary),
                 firstGradientFillColor = themeColors.primary.copy(alpha = 0.3f),
                 secondGradientFillColor = Color.Transparent,
-                strokeAnimationSpec = tween(1500, easing = EaseInOutCubic),
-                gradientAnimationDelay = 750,
+                // Drawn immediately. The chart is re-created on every return to this tab; the
+                // former 1.5 s stroke reveal plus a delayed gradient fade re-ran each time.
+                strokeAnimationSpec = snap(),
+                gradientAnimationSpec = snap(),
+                gradientAnimationDelay = 0,
                 drawStyle = DrawStyle.Stroke(width = 2.dp),
                 curvedEdges = true,
                 dotProperties = DotProperties(
@@ -192,7 +196,8 @@ fun SpendingLineChart(
                 color = SolidColor(themeColors.onSurface.copy(alpha = 0.1f))
             )
         ),
-        animationMode = AnimationMode.Together(delayBuilder = { it * 200L }),
+        animationDelay = 0,
+        animationMode = AnimationMode.Together(delayBuilder = { 0L }),
     )
 }
 
@@ -313,7 +318,8 @@ fun SpendingBarChart(
                 color = SolidColor(themeColors.onSurface.copy(alpha = 0.1f))
             )
         ),
-        animationSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing),
+        animationSpec = snap(),
+        animationDelay = 0,
     )
 }
 
@@ -337,8 +343,8 @@ fun CategoryPieChart(
                 selectedColor = (CategoryMapping.categories[category.name]?.color
                     ?: Color.Gray).copy(alpha = 0.8f),
                 selected = false,
-                scaleAnimEnterSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing),
-                colorAnimEnterSpec = tween(500)
+                scaleAnimEnterSpec = snap(),
+                colorAnimEnterSpec = snap()
             )
         }
     }
@@ -369,8 +375,8 @@ fun CategoryPieChart(
                     }
                 },
                 selectedScale = 1.1f,
-                scaleAnimEnterSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing),
-                colorAnimEnterSpec = tween(500),
+                scaleAnimEnterSpec = snap(),
+                colorAnimEnterSpec = snap(),
                 style = Pie.Style.Stroke(width = 12.dp)
             )
 

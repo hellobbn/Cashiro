@@ -39,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -918,6 +919,8 @@ fun CashiroNavHost(
  * transitions hold the outgoing screen composed during the transition, which would otherwise
  * let a quick tap meant for the list hit a clickable element on the screen being popped.
  */
+private const val TransitionBlockGraceMillis = 600L
+
 @Composable
 private fun NavigationTransitionInputBlocker(
     navController: NavHostController,
@@ -930,8 +933,20 @@ private fun NavigationTransitionInputBlocker(
             lifecycle = lifecycle
         ).value
     }
-    val shouldBlock = !isAddTransactionScreen &&
+    val inTransition = !isAddTransactionScreen &&
         topState != null && topState != Lifecycle.State.RESUMED
+    // Safety valve: a transition interrupted by rapid tab taps can leave the top entry STARTED
+    // without ever reaching RESUMED. Blocking must never outlive a real transition, so it ends
+    // after a short grace period regardless of lifecycle state.
+    var timedOut by remember(entry?.id) { mutableStateOf(false) }
+    LaunchedEffect(entry?.id, inTransition) {
+        timedOut = false
+        if (inTransition) {
+            kotlinx.coroutines.delay(TransitionBlockGraceMillis)
+            timedOut = true
+        }
+    }
+    val shouldBlock = inTransition && !timedOut
     if (shouldBlock) {
         Box(
             modifier = Modifier
