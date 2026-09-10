@@ -1144,7 +1144,9 @@ private fun NetworthSummaryCards(
             thisYearValue = CurrencyFormatter.formatCurrency(uiState.currentYearTotal, uiState.selectedCurrency),
             availableCurrenciesCount = uiState.availableCurrencies.size,
             onCurrencyClick = { showCurrencySheet = true },
-            blurEffects = blurEffects && !embedded,
+            // Always solid. The embedded variant never blurred; re-enabling the real-time blur
+            // on the standalone card made the home screen visibly less smooth.
+            blurEffects = false,
             embedded = embedded,
             hazeState = hazeState,
             modifier = if (embedded) Modifier else Modifier.padding(
