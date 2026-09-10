@@ -1,8 +1,19 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import androidx.compose.foundation.layout.width
+
+import androidx.compose.foundation.layout.height
+
+import androidx.compose.foundation.layout.Spacer
+
+import androidx.compose.material.icons.filled.Refresh
+
+import androidx.compose.material3.TextButton
+
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -46,7 +57,10 @@ fun EditWidgetsSheet(
     sheetState: SheetState,
     widgets: List<HomeWidgetUiModel>,
     onToggleVisibility: (HomeWidget, Boolean) -> Unit,
-    onReorder: (List<HomeWidget>) -> Unit
+    onReorder: (List<HomeWidget>) -> Unit,
+    accountOverviewInNetworth: Boolean = false,
+    onAccountOverviewInNetworthChange: (Boolean) -> Unit = {},
+    onResetLayout: () -> Unit = {}
 ) {
     // Filter out Networth Summary
     var reorderableWidgets by remember { mutableStateOf(widgets.filter { it.widget != HomeWidget.NETWORTH_SUMMARY }) }
@@ -127,6 +141,28 @@ fun EditWidgetsSheet(
                         }
                     }
                 }
+            }
+
+            Spacer(Modifier.height(Spacing.md))
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                PreferenceSwitch(
+                    title = stringResource(R.string.account_overview_in_networth),
+                    subtitle = stringResource(R.string.account_overview_in_networth_desc),
+                    checked = accountOverviewInNetworth,
+                    onCheckedChange = onAccountOverviewInNetworthChange,
+                    isSingle = true
+                )
+            }
+            Spacer(Modifier.height(Spacing.sm))
+            TextButton(
+                onClick = onResetLayout,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.reset_layout))
             }
         }
     }

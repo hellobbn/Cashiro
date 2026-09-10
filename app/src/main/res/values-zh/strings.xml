@@ -1265,4 +1265,7 @@
     <string name="quick_template_amount">金额（可选）</string>
     <string name="quick_template_prefill_amount">点击时预填金额</string>
     <string name="quick_template_amount_not_prefilled">不预填</string>
+    <string name="account_overview_in_networth">账户分类显示在净资产卡片内</string>
+    <string name="account_overview_in_networth_desc">关闭时，账户分类是独立模块，可以拖动排序或隐藏</string>
+    <string name="reset_layout">重置布局</string>
 </resources>

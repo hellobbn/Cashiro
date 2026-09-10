@@ -1328,4 +1328,7 @@
     <string name="quick_template_amount">Amount (optional)</string>
     <string name="quick_template_prefill_amount">Pre-fill amount when tapped</string>
     <string name="quick_template_amount_not_prefilled">not pre-filled</string>
+    <string name="account_overview_in_networth">Show accounts inside the net worth card</string>
+    <string name="account_overview_in_networth_desc">Off: the account overview is a separate section you can move and hide</string>
+    <string name="reset_layout">Reset layout</string>
 </resources>

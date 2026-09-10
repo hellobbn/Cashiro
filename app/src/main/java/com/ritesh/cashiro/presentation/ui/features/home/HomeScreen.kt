@@ -196,6 +196,10 @@ fun SharedTransitionScope.HomeScreen(
     }
     val showOverview = homeWidgets.any { it.widget == HomeWidget.ACCOUNT_CAROUSEL && it.isVisible }
     val hasNetworth = homeWidgets.any { it.widget == HomeWidget.NETWORTH_SUMMARY && it.isVisible }
+    val overviewInNetworth by homeViewModel.accountOverviewInNetworth.collectAsStateWithLifecycle()
+    // The overview lives inside the net-worth card only when the user opted in (and the card is
+    // shown); otherwise it is an ordinary widget drawn at its own position in the order.
+    val embedOverview = showOverview && hasNetworth && overviewInNetworth
     val openCategory: (com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory) -> Unit = { category ->
         if (category == com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.INVESTMENTS)
             navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.Investments)
@@ -385,7 +389,7 @@ fun SharedTransitionScope.HomeScreen(
                                         },
                                         blurEffects = blurEffects && uiState.showBannerImage,
                                         hazeState = hazeStateBanner,
-                                        overviewItems = if (showOverview) overviewItems else null,
+                                        overviewItems = if (embedOverview) overviewItems else null,
                                         onOpenCategory = openCategory
                                     )
                                 }
@@ -441,7 +445,7 @@ fun SharedTransitionScope.HomeScreen(
                                 }
                             }
                             HomeWidget.ACCOUNT_CAROUSEL -> {
-                                if (!hasNetworth) item(key = "account_overview") {
+                                if (!embedOverview) item(key = "account_overview") {
                                     com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewList(
                                         overviewItems, openCategory, Modifier.padding(horizontal = Dimensions.Padding.content))
                                 }
@@ -809,7 +813,10 @@ fun SharedTransitionScope.HomeScreen(
                     sheetState = rememberModalBottomSheetState(),
                     widgets = homeWidgets,
                     onToggleVisibility = homeViewModel::toggleHomeWidgetVisibility,
-                    onReorder = homeViewModel::updateWidgetsOrder
+                    onReorder = homeViewModel::updateWidgetsOrder,
+                    accountOverviewInNetworth = overviewInNetworth,
+                    onAccountOverviewInNetworthChange = homeViewModel::setAccountOverviewInNetworth,
+                    onResetLayout = homeViewModel::resetWidgetsLayout
                 )
             }
         }
