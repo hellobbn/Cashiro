@@ -80,9 +80,6 @@ class HomeViewModel @Inject constructor(
     private val _homeWidgets = MutableStateFlow<List<HomeWidgetUiModel>>(emptyList())
     val homeWidgets: StateFlow<List<HomeWidgetUiModel>> = _homeWidgets.asStateFlow()
 
-    val accountOverviewInNetworth: StateFlow<Boolean> = userPreferencesRepository.accountOverviewInNetworth
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
     val categoriesMap = categoryRepository.getAllCategories()
         .map { cats -> cats.associateBy { it.name } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
@@ -795,10 +792,6 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.updateShowBannerImage(!_uiState.value.showBannerImage)
         }
-    }
-
-    fun setAccountOverviewInNetworth(embedded: Boolean) {
-        viewModelScope.launch { userPreferencesRepository.updateAccountOverviewInNetworth(embedded) }
     }
 
     fun resetWidgetsLayout() {

@@ -20,7 +20,5 @@
     <string name="quick_template_amount">金額（選填）</string>
     <string name="quick_template_prefill_amount">點擊時預填金額</string>
     <string name="quick_template_amount_not_prefilled">不預填</string>
-    <string name="account_overview_in_networth">帳戶分類顯示在淨資產卡片內</string>
-    <string name="account_overview_in_networth_desc">關閉時，帳戶分類是獨立模組，可拖曳排序或隱藏</string>
     <string name="reset_layout">重設版面</string>
 </resources>

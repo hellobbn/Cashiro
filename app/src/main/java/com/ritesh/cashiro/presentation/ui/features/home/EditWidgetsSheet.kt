@@ -13,7 +13,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -58,8 +57,6 @@ fun EditWidgetsSheet(
     widgets: List<HomeWidgetUiModel>,
     onToggleVisibility: (HomeWidget, Boolean) -> Unit,
     onReorder: (List<HomeWidget>) -> Unit,
-    accountOverviewInNetworth: Boolean = false,
-    onAccountOverviewInNetworthChange: (Boolean) -> Unit = {},
     onResetLayout: () -> Unit = {}
 ) {
     // Filter out Networth Summary
@@ -144,16 +141,6 @@ fun EditWidgetsSheet(
             }
 
             Spacer(Modifier.height(Spacing.md))
-            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                PreferenceSwitch(
-                    title = stringResource(R.string.account_overview_in_networth),
-                    subtitle = stringResource(R.string.account_overview_in_networth_desc),
-                    checked = accountOverviewInNetworth,
-                    onCheckedChange = onAccountOverviewInNetworthChange,
-                    isSingle = true
-                )
-            }
-            Spacer(Modifier.height(Spacing.sm))
             TextButton(
                 onClick = onResetLayout,
                 modifier = Modifier

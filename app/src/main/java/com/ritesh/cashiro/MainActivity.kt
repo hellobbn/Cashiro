@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity() {
             !themeViewModel.themeUiState.value.isLoaded
         }
         enableEdgeToEdge()
+        requestHighestRefreshRate()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
 //            window.isStatusBarContrastEnforced = false
@@ -134,5 +135,21 @@ class MainActivity : AppCompatActivity() {
                 addTransactionType = "TRANSFER"
             }
         }
+    }
+
+    /**
+     * Pin the window to the display mode with the highest refresh rate at the current resolution.
+     * On Android 15+/16 the adaptive refresh rate machinery lets Compose vote a lower rate for
+     * mostly static content, which reads as a choppy home screen on 90/120 Hz panels. An explicit
+     * app-preferred display mode is a stronger vote than those per-layer hints.
+     */
+    private fun requestHighestRefreshRate() {
+        val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display else @Suppress("DEPRECATION") windowManager.defaultDisplay
+        val current = display?.mode ?: return
+        val best = display.supportedModes
+            .filter { it.physicalWidth == current.physicalWidth && it.physicalHeight == current.physicalHeight }
+            .maxByOrNull { it.refreshRate } ?: return
+        if (best.modeId == current.modeId && best.refreshRate <= current.refreshRate) return
+        window.attributes = window.attributes.apply { preferredDisplayModeId = best.modeId }
     }
 }

@@ -86,7 +86,6 @@ constructor(@ApplicationContext private val context: Context) {
         // Home Widget Preferences
         val HOME_WIDGETS_ORDER = stringPreferencesKey("home_widgets_order")
         val HIDDEN_HOME_WIDGETS = androidx.datastore.preferences.core.stringSetPreferencesKey("hidden_home_widgets")
-        val ACCOUNT_OVERVIEW_IN_NETWORTH = booleanPreferencesKey("account_overview_in_networth")
         val HIDE_NAVIGATION_LABELS = booleanPreferencesKey("hide_navigation_labels")
         val HIDE_PILL_INDICATOR = booleanPreferencesKey("hide_pill_indicator")
         val BLUR_EFFECTS = booleanPreferencesKey("blur_effects")
@@ -753,24 +752,11 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    /** When true the account overview is drawn inside the net-worth card instead of as its own widget. */
-    val accountOverviewInNetworth: Flow<Boolean> =
-        context.dataStore.data.map { preferences ->
-            preferences[PreferencesKeys.ACCOUNT_OVERVIEW_IN_NETWORTH] ?: false
-        }
-
-    suspend fun updateAccountOverviewInNetworth(embedded: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.ACCOUNT_OVERVIEW_IN_NETWORTH] = embedded
-        }
-    }
-
-    /** Clears saved order, hidden set and the embed option so the home screen falls back to defaults. */
+    /** Clears the saved order and hidden set so the home screen falls back to defaults. */
     suspend fun resetHomeWidgetsLayout() {
         context.dataStore.edit { preferences ->
             preferences.remove(PreferencesKeys.HOME_WIDGETS_ORDER)
             preferences.remove(PreferencesKeys.HIDDEN_HOME_WIDGETS)
-            preferences.remove(PreferencesKeys.ACCOUNT_OVERVIEW_IN_NETWORTH)
         }
     }
 
