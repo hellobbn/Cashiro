@@ -1322,4 +1322,17 @@
     <string name="account_already_exists">An account with this name and last four digits already exists.</string>
     <string name="account_save_failed">Could not save the account. Your details are kept; please try again.</string>
     <string name="saving_account">Saving…</string>
+    <string name="quick_add_templates">Quick templates</string>
+    <string name="quick_templates_subtitle">One-tap entries for coffee, lunch and other regulars</string>
+    <string name="quick_templates_empty">No quick templates yet. Turn on \"Save as quick template\" when adding a transaction, or use it from a transaction\'s menu.</string>
+    <string name="quick_template_save_toggle">Save as quick template</string>
+    <string name="quick_template_save_toggle_desc">Show this merchant and category as a one-tap chip next time</string>
+    <string name="quick_template_save_from_detail">Save as quick template</string>
+    <string name="quick_template_edit_title">Edit quick template</string>
+    <string name="quick_template_name">Name</string>
+    <string name="quick_template_amount">Amount (optional)</string>
+    <string name="quick_template_prefill_amount">Pre-fill amount when tapped</string>
+    <string name="quick_template_amount_not_prefilled">not pre-filled</string>
+    <string name="quick_template_move_up">Move up</string>
+    <string name="quick_template_move_down">Move down</string>
 </resources>

@@ -71,9 +71,10 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
             WebhookLogEntity::class,
             WebhookCursorEntity::class,
             com.ritesh.cashiro.data.database.entity.LendBorrowPersonEntity::class,
-            com.ritesh.cashiro.data.database.entity.LendBorrowTransactionEntity::class
+            com.ritesh.cashiro.data.database.entity.LendBorrowTransactionEntity::class,
+            com.ritesh.cashiro.data.database.entity.QuickTemplateEntity::class
         ],
-        version = 63,
+        version = 64,
     exportSchema = true,
     autoMigrations =
         [
@@ -117,6 +118,7 @@ abstract class CashiroDatabase : RoomDatabase() {
     abstract fun webhookLogDao(): WebhookLogDao
     abstract fun webhookCursorDao(): WebhookCursorDao
     abstract fun lendBorrowDao(): com.ritesh.cashiro.data.database.dao.LendBorrowDao
+    abstract fun quickTemplateDao(): com.ritesh.cashiro.data.database.dao.QuickTemplateDao
 
     companion object {
         const val DATABASE_NAME = "pennywise_database"
@@ -158,7 +160,8 @@ MIGRATION_55_56,
                                 MIGRATION_59_60,
                                 MIGRATION_60_61,
                                 MIGRATION_61_62,
-                                MIGRATION_62_63
+                                MIGRATION_62_63,
+                                MIGRATION_63_64
                             )
                             .build()
                     INSTANCE = instance
@@ -660,6 +663,34 @@ MIGRATION_55_56,
          * Drops the tables behind the removed on-device chat assistant and the removed
          * SMS / bank-notification ingestion. Nothing reads them any more.
          */
+        /** Quick-add templates for the Add Transaction screen. */
+        val MIGRATION_63_64 =
+            object : Migration(63, 64) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS `quick_templates` (
+                            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                            `name` TEXT NOT NULL,
+                            `merchant_name` TEXT NOT NULL,
+                            `category` TEXT NOT NULL,
+                            `subcategory` TEXT,
+                            `transaction_type` TEXT NOT NULL,
+                            `amount` TEXT,
+                            `prefill_amount` INTEGER NOT NULL DEFAULT 0,
+                            `bank_name` TEXT,
+                            `account_last4` TEXT,
+                            `currency` TEXT,
+                            `notes` TEXT,
+                            `sort_order` INTEGER NOT NULL DEFAULT 0,
+                            `created_at` TEXT NOT NULL,
+                            `updated_at` TEXT NOT NULL
+                        )
+                        """.trimIndent()
+                    )
+                }
+            }
+
         val MIGRATION_62_63 =
             object : Migration(62, 63) {
                 override fun migrate(db: SupportSQLiteDatabase) {

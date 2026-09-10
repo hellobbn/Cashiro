@@ -11,6 +11,9 @@ import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
+import com.ritesh.cashiro.data.repository.MerchantMappingRepository
+import com.ritesh.cashiro.data.repository.QuickTemplateRepository
+import com.ritesh.cashiro.data.database.entity.QuickTemplateEntity
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.domain.usecase.AddEditLendBorrowPersonUseCase
@@ -31,6 +34,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalTime
@@ -50,6 +54,8 @@ constructor(
     private val accountBalanceRepository: AccountBalanceRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val updateSubscriptionUseCase: UpdateSubscriptionUseCase,
+    private val quickTemplateRepository: QuickTemplateRepository,
+    private val merchantMappingRepository: MerchantMappingRepository,
     val attachmentService: AttachmentService,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -87,6 +93,14 @@ constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyList()
             )
+
+    // Quick-add templates shown as chips at the top of the transaction form
+    val quickTemplates: StateFlow<List<QuickTemplateEntity>> = quickTemplateRepository.templates
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     // Accounts for dropdown
     val accounts = accountBalanceRepository
@@ -154,6 +168,7 @@ constructor(
     }
 
     fun resetAllStates() {
+        categoryChosenManually = false
         _transactionUiState.value = TransactionUiState()
         _subscriptionUiState.value = SubscriptionUiState()
         _transactionAttachments.value = emptyList()
@@ -201,18 +216,90 @@ constructor(
         _transactionUiState.update { currentState ->
             currentState.copy(merchant = merchant, merchantError = validateMerchant(merchant))
         }
+        suggestCategoryForMerchant(merchant)
     }
 
+    private var merchantLookupJob: Job? = null
+
+    /**
+     * Apply the category the user previously saved for this merchant (Transaction detail →
+     * "remember category for merchant"), unless the category was chosen by hand in this session.
+     */
+    private fun suggestCategoryForMerchant(merchant: String) {
+        merchantLookupJob?.cancel()
+        val name = merchant.trim()
+        if (name.isEmpty() || categoryChosenManually) return
+        merchantLookupJob = viewModelScope.launch {
+            val learned = merchantMappingRepository.getCategoryForMerchant(name) ?: return@launch
+            if (categoryChosenManually) return@launch
+            if (_transactionUiState.value.category == learned) return@launch
+            setTransactionCategoryInternal(learned, subcategory = null)
+        }
+    }
+
+    private var categoryChosenManually = false
+
     fun updateTransactionCategory(category: String) {
+        categoryChosenManually = true
+        setTransactionCategoryInternal(category, subcategory = null)
+    }
+
+    private fun setTransactionCategoryInternal(category: String, subcategory: String?) {
         _transactionUiState.update { currentState ->
             currentState.copy(
                 category = category,
-                subcategory = null,
+                subcategory = subcategory,
                 categoryError = validateCategory(category)
             )
         }
-
         updateTransactionSubcategories(category)
+    }
+
+    fun updateSaveAsQuickTemplate(enabled: Boolean) {
+        _transactionUiState.update { it.copy(saveAsQuickTemplate = enabled) }
+    }
+
+    /** Pre-fill the form from a template. The amount is only applied when the template says so. */
+    fun applyQuickTemplate(template: QuickTemplateEntity) {
+        categoryChosenManually = true
+        val account = accounts.value.firstOrNull {
+            it.bankName == template.bankName && it.accountLast4 == template.accountLast4
+        }
+        _transactionUiState.update { current ->
+            current.copy(
+                transactionType = template.transactionType,
+                merchant = template.merchantName,
+                merchantError = null,
+                category = template.category,
+                subcategory = template.subcategory,
+                categoryError = null,
+                notes = template.notes ?: "",
+                amount = if (template.prefillAmount && template.amount != null) template.amount.toPlainString() else current.amount,
+                amountError = null,
+                selectedAccount = account ?: current.selectedAccount,
+                currency = account?.currency ?: template.currency ?: current.currency,
+                error = null
+            )
+        }
+        updateTransactionSubcategories(template.category)
+    }
+
+    private suspend fun saveQuickTemplateFromState(state: TransactionUiState) {
+        quickTemplateRepository.add(
+            QuickTemplateEntity(
+                name = state.merchant.trim(),
+                merchantName = state.merchant.trim(),
+                category = state.category,
+                subcategory = state.subcategory,
+                transactionType = state.transactionType,
+                amount = state.amount.toBigDecimalOrNull(),
+                prefillAmount = false,
+                bankName = state.selectedAccount?.bankName,
+                accountLast4 = state.selectedAccount?.accountLast4,
+                currency = state.currency,
+                notes = state.notes.takeIf { it.isNotBlank() }
+            )
+        )
     }
 
     private fun updateTransactionSubcategories(category: String) {
@@ -320,6 +407,12 @@ constructor(
                     targetAccountLast4 = state.targetAccount?.accountLast4,
                     attachments = attachmentService.joinAttachments(_transactionAttachments.value)
                 )
+
+                if (state.saveAsQuickTemplate && !isLoanType && state.transactionType != TransactionType.TRANSFER) {
+                    try { saveQuickTemplateFromState(state) } catch (e: Exception) {
+                        Log.w("AddViewModel", "Quick template not saved", e)
+                    }
+                }
 
                 if (isLoanType && state.selectedPersonId != null) {
                     val selectedPerson = persons.value.find { it.id == state.selectedPersonId }
@@ -741,7 +834,8 @@ data class TransactionUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val selectedPersonId: Long? = null,
-    val dueDate: LocalDateTime? = null
+    val dueDate: LocalDateTime? = null,
+    val saveAsQuickTemplate: Boolean = false
 ) {
     private val isLoanType: Boolean
         get() = transactionType == TransactionType.LENT ||

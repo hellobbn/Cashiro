@@ -1,5 +1,11 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import androidx.compose.material.icons.rounded.Bolt
+
+import androidx.compose.material3.Switch
+
+import androidx.compose.material3.AssistChip
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
@@ -159,6 +165,15 @@ fun TransactionTabContent(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Quick-add templates
+            val quickTemplates by viewModel.quickTemplates.collectAsState()
+            if (quickTemplates.isNotEmpty()) {
+                QuickTemplateRow(
+                    templates = quickTemplates,
+                    onSelect = viewModel::applyQuickTemplate
+                )
+            }
+
             // Amount Input
             AmountInput(
                 amount = uiState.amount.ifEmpty { "0" },
@@ -1191,6 +1206,40 @@ fun TransactionTabContent(
                 )
                 }
 
+                // Save this entry as a quick-add template (not for transfers / loans)
+                if (uiState.transactionType != TransactionType.TRANSFER &&
+                    uiState.transactionType != TransactionType.LENT &&
+                    uiState.transactionType != TransactionType.BORROWED
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Rounded.Bolt, contentDescription = null)
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.quick_template_save_toggle),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(R.string.quick_template_save_toggle_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = uiState.saveAsQuickTemplate,
+                            onCheckedChange = viewModel::updateSaveAsQuickTemplate
+                        )
+                    }
+                }
+
                 // Notes/Description (Optional)
                 TextField(
                     value = uiState.notes,
@@ -1339,5 +1388,37 @@ fun TransactionTabContent(
             blurEffects = blurEffects,
             hazeState = hazeState
         )
+    }
+}
+
+
+/** Horizontal row of user-defined quick-add templates; a tap pre-fills the form. */
+@Composable
+private fun QuickTemplateRow(
+    templates: List<com.ritesh.cashiro.data.database.entity.QuickTemplateEntity>,
+    onSelect: (com.ritesh.cashiro.data.database.entity.QuickTemplateEntity) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.quick_add_templates),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(templates, key = { it.id }) { template ->
+                AssistChip(
+                    onClick = { onSelect(template) },
+                    label = {
+                        val amountText = template.amount
+                            ?.takeIf { template.prefillAmount }
+                            ?.let { " · " + CurrencyFormatter.formatCurrency(it, template.currency ?: "CNY") }
+                            ?: ""
+                        Text(template.name + amountText, maxLines = 1)
+                    },
+                    leadingIcon = { Icon(Icons.Rounded.Bolt, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                )
+            }
+        }
     }
 }
