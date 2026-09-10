@@ -11,7 +11,6 @@ import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
-import com.ritesh.cashiro.data.repository.MerchantMappingRepository
 import com.ritesh.cashiro.data.repository.QuickTemplateRepository
 import com.ritesh.cashiro.data.database.entity.QuickTemplateEntity
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
@@ -34,7 +33,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.inject.Inject
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalTime
@@ -55,7 +53,6 @@ constructor(
     private val subscriptionRepository: SubscriptionRepository,
     private val updateSubscriptionUseCase: UpdateSubscriptionUseCase,
     private val quickTemplateRepository: QuickTemplateRepository,
-    private val merchantMappingRepository: MerchantMappingRepository,
     val attachmentService: AttachmentService,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -168,7 +165,6 @@ constructor(
     }
 
     fun resetAllStates() {
-        categoryChosenManually = false
         _transactionUiState.value = TransactionUiState()
         _subscriptionUiState.value = SubscriptionUiState()
         _transactionAttachments.value = emptyList()
@@ -216,31 +212,9 @@ constructor(
         _transactionUiState.update { currentState ->
             currentState.copy(merchant = merchant, merchantError = validateMerchant(merchant))
         }
-        suggestCategoryForMerchant(merchant)
     }
-
-    private var merchantLookupJob: Job? = null
-
-    /**
-     * Apply the category the user previously saved for this merchant (Transaction detail →
-     * "remember category for merchant"), unless the category was chosen by hand in this session.
-     */
-    private fun suggestCategoryForMerchant(merchant: String) {
-        merchantLookupJob?.cancel()
-        val name = merchant.trim()
-        if (name.isEmpty() || categoryChosenManually) return
-        merchantLookupJob = viewModelScope.launch {
-            val learned = merchantMappingRepository.getCategoryForMerchant(name) ?: return@launch
-            if (categoryChosenManually) return@launch
-            if (_transactionUiState.value.category == learned) return@launch
-            setTransactionCategoryInternal(learned, subcategory = null)
-        }
-    }
-
-    private var categoryChosenManually = false
 
     fun updateTransactionCategory(category: String) {
-        categoryChosenManually = true
         setTransactionCategoryInternal(category, subcategory = null)
     }
 
@@ -261,7 +235,6 @@ constructor(
 
     /** Pre-fill the form from a template. The amount is only applied when the template says so. */
     fun applyQuickTemplate(template: QuickTemplateEntity) {
-        categoryChosenManually = true
         val account = accounts.value.firstOrNull {
             it.bankName == template.bankName && it.accountLast4 == template.accountLast4
         }

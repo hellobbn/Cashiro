@@ -422,8 +422,6 @@
     <string name="merchant_label">Kalepa</string>
     <string name="description_optional_label">Wehewehe (Koho)</string>
     <string name="transfer_action">Hoʻololi</string>
-    <string name="apply_category_to_all_future_transactions_format">E hoʻopili i kēia māhele i nā hana a pau e hiki mai ana mai \'%1$s\'</string>
-    <string name="manual_entry_warning">ʻAʻole hana kēia ma nā kālepa i hoʻokomo lima ʻia</string>
     <string name="update_existing_transactions_format">Hōʻano hou i %1$d %2$s i kēia manawa mai \'%3$s\'</string>
     <string name="preview_transaction_matches">Nānā mua i nā pāʻani pāʻani</string>
     <string name="recurring_transaction">Kūʻai hou</string>

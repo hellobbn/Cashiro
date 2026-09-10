@@ -423,8 +423,6 @@
     <string name="merchant_label">વેપારી</string>
     <string name="description_optional_label">વર્ણન (વૈકલ્પિક)</string>
     <string name="transfer_action">સ્ટ્રાન્સફર</string>
-    <string name="apply_category_to_all_future_transactions_format">આ કેટેગરી "%1$s" થી તમામ ભવિષ્યના ટ્રાન્ઝેક્શન્સ પર લાગુ કરો</string>
-    <string name="manual_entry_warning">આ હાથેથી દાખલ કરેલા ટ્રાન્ઝેક્શન્સ પર કાર્ય કરશે નહીં</string>
     <string name="update_existing_transactions_format">આપડેટ કરો %1$d હાજર %2$s થી "%3$s"</string>
     <string name="preview_transaction_matches">ટ્રાન્ઝેક્શન મેળ ખાતા પ્રીવ્યૂ</string>
     <string name="recurring_transaction">નિયમિત ટ્રાન્ઝેક્શન</string>

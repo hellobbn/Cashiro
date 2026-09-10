@@ -448,8 +448,6 @@
     <string name="merchant_label">Merchant</string>
     <string name="description_optional_label">Description (Optional)</string>
     <string name="transfer_action">Transfer</string>
-    <string name="apply_category_to_all_future_transactions_format">Apply this category to all future transactions from \"%1$s\"</string>
-    <string name="manual_entry_warning">This doesn\'t work on manually entered transactions</string>
     <string name="update_existing_transactions_format">Update %1$d existing %2$s from \"%3$s\"</string>
     <string name="preview_transaction_matches">Preview transaction matches</string>
     <string name="recurring_transaction">Recurring Transaction</string>

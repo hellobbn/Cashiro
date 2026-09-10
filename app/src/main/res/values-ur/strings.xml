@@ -425,8 +425,6 @@
     <string name="merchant_label">تاجر</string>
     <string name="description_optional_label">تفصیل (اختیاری)</string>
     <string name="transfer_action">منتقلی</string>
-    <string name="apply_category_to_all_future_transactions_format">"%1$s" سے تمام مستقبل کے لین دین کے لیے اس زمرے کو لاگو کریں</string>
-    <string name="manual_entry_warning">یہ دستی طور پر داخل کیے گئے لین دین پر کام نہیں کرتا</string>
     <string name="update_existing_transactions_format">%1$d موجودہ %2$s کو "%3$s" سے اپ ڈیٹ کریں</string>
     <string name="preview_transaction_matches">لین دین کے میل کا پیش نظارہ</string>
     <string name="recurring_transaction">دہرایا جانے والا لین دین</string>

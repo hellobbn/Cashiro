@@ -425,8 +425,6 @@
     <string name="merchant_label">Търговец</string>
     <string name="description_optional_label">Описание (по избор)</string>
     <string name="transfer_action">Прехвърляне</string>
-    <string name="apply_category_to_all_future_transactions_format">Прилагане на тази категория към всички бъдещи транзакции от "%1$s"</string>
-    <string name="manual_entry_warning">Това не работи при ръчно въведени транзакции</string>
     <string name="update_existing_transactions_format">Актуализирай %1$d съществуващи %2$s от "%3$s"</string>
     <string name="preview_transaction_matches">Преглед на съвпаденията на транзакцията</string>
     <string name="recurring_transaction">Постоянна транзакция</string>

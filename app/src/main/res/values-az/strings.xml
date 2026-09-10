@@ -425,8 +425,6 @@ Yaşıl (+) = Əmanət | Qırmızı (-) = Artıq xərcləmə</string>
     <string name="merchant_label">Ticarətçi</string>
     <string name="description_optional_label">Təsvir (İxtiyari)</string>
     <string name="transfer_action">Köçürmə</string>
-    <string name="apply_category_to_all_future_transactions_format">Bu kateqoriyanı "%1$s"-dən gələn bütün gələcək əməliyyatlara tətbiq et</string>
-    <string name="manual_entry_warning">Bu, əl ilə daxil edilmiş əməliyyatlarda işləməyəcək</string>
     <string name="update_existing_transactions_format">"%3$s"-dən %1$d mövcud, %2$s-i yeniləyin</string>
     <string name="preview_transaction_matches">Əməliyyat uyğunluqlarını önizlə</string>
     <string name="recurring_transaction">Təkrarlanan Əməliyyat</string>

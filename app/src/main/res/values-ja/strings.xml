@@ -423,8 +423,6 @@
     <string name="merchant_label">店舗</string>
     <string name="description_optional_label">説明（任意）</string>
     <string name="transfer_action">送金</string>
-    <string name="apply_category_to_all_future_transactions_format">\"%1$s\"からの今後の取引にこのカテゴリを適用する</string>
-    <string name="manual_entry_warning">手動で入力された取引では動作しません</string>
     <string name="update_existing_transactions_format">%1$d 既存の %2$s を \"%3$s\" から更新</string>
     <string name="preview_transaction_matches">一致する取引をプレビュー</string>
     <string name="recurring_transaction">定期的な取引</string>

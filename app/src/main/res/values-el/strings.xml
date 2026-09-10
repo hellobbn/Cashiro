@@ -425,8 +425,6 @@
     <string name="merchant_label">Έμπορος</string>
     <string name="description_optional_label">Περιγραφή (Προαιρετικό)</string>
     <string name="transfer_action">Μεταφορά</string>
-    <string name="apply_category_to_all_future_transactions_format">Εφαρμόστε αυτήν την κατηγορία σε όλες τις μελλοντικές συναλλαγές από "%1$s"</string>
-    <string name="manual_entry_warning">Αυτό δεν λειτουργεί για συναλλαγές που εισάγονται χειροκίνητα</string>
     <string name="update_existing_transactions_format">Ενημέρωση %1$d υπαρχόντων %2$s από "%3$s"</string>
     <string name="preview_transaction_matches">Προεπισκόπηση αντιστοιχιών συναλλαγών</string>
     <string name="recurring_transaction">Επαναλαμβανόμενη Συναλλαγή</string>

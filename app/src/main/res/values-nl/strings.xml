@@ -423,8 +423,6 @@ Handig voor eenmalige budgetten met aangepaste tijdsperiodes</string>
     <string name="merchant_label">Handelaar</string>
     <string name="description_optional_label">Beschrijving (optioneel)</string>
     <string name="transfer_action">Overschrijving</string>
-    <string name="apply_category_to_all_future_transactions_format">Pas deze categorie toe op alle toekomstige transacties van \"%1$s\"</string>
-    <string name="manual_entry_warning">Dit werkt niet op handmatig ingevoerde transacties</string>
     <string name="update_existing_transactions_format">Update %1$d bestaande %2$s van \"%3$s\"</string>
     <string name="preview_transaction_matches">Voorbeeld van transactie overeenkomsten</string>
     <string name="recurring_transaction">Periodieke transactie</string>

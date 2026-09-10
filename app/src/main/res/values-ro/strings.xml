@@ -422,8 +422,6 @@
     <string name="merchant_label">Comerciant</string>
     <string name="description_optional_label">Descriere (opțional)</string>
     <string name="transfer_action">Transfer</string>
-    <string name="apply_category_to_all_future_transactions_format">Aplică această categorie tuturor tranzacțiilor viitoare de la \"%1$s\"</string>
-    <string name="manual_entry_warning">Aceasta nu funcționează cu tranzacțiile introduse manual</string>
     <string name="update_existing_transactions_format">Actualizează %1$d existent %2$s de la \"%3$s\"</string>
     <string name="preview_transaction_matches">Previzualizare potriviri tranzacție</string>
     <string name="recurring_transaction">Tranzacție recurentă</string>

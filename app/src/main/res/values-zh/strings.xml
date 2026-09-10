@@ -427,8 +427,6 @@
     <string name="merchant_label">商户</string>
     <string name="description_optional_label">描述（可选）</string>
     <string name="transfer_action">转账</string>
-    <string name="apply_category_to_all_future_transactions_format">将此类别应用于来自 "%1$s" 的所有未来交易</string>
-    <string name="manual_entry_warning">此操作不适用于手动输入的交易</string>
     <string name="update_existing_transactions_format">更新 "%3$s" 的 %1$d 个现有 %2$s</string>
     <string name="preview_transaction_matches">预览交易匹配</string>
     <string name="recurring_transaction">定期交易</string>
