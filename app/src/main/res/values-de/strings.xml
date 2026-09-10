@@ -422,8 +422,6 @@
     <string name="merchant_label">Händler</string>
     <string name="description_optional_label">Beschreibung (Optional)</string>
     <string name="transfer_action">Überweisung</string>
-    <string name="apply_category_to_all_future_transactions_format">Diese Kategorie auf alle zukünftigen Transaktionen von \"%1$s \" anwenden</string>
-    <string name="manual_entry_warning">Dies funktioniert nicht mit manuell eingegebenen Transaktionen</string>
     <string name="update_existing_transactions_format">Aktualisiere %1$d existierende %2$s von \"%3$s\"</string>
     <string name="preview_transaction_matches">Transaktionsvorschau entspricht</string>
     <string name="recurring_transaction">Wiederkehrende Transaktion</string>

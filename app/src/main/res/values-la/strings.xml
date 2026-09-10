@@ -425,8 +425,6 @@ Viridis (+) = Pecunia Servata | Ruber (-) = Superfluum Expensum</string>
     <string name="merchant_label">Mercator</string>
     <string name="description_optional_label">Descriptio (Optionalis)</string>
     <string name="transfer_action">Translatio</string>
-    <string name="apply_category_to_all_future_transactions_format">Applicare hanc categoriam ad omnes futuras transactiones a "%1$s"</string>
-    <string name="manual_entry_warning">Hoc non operatur in transactionibus manualiter ingresso</string>
     <string name="update_existing_transactions_format">Renovare %1$d existentes %2$s a "%3$s"</string>
     <string name="preview_transaction_matches">Praevia coniunctiones transactionum</string>
     <string name="recurring_transaction">Transactio Recurrens</string>

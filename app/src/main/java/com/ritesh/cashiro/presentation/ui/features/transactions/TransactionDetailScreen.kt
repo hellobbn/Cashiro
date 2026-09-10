@@ -287,7 +287,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
     val isSaving = uiState.isSaving
     val saveSuccess = uiState.saveSuccess
     val errorMessage = uiState.errorMessage
-    val applyToAllFromMerchant = uiState.applyToAllFromMerchant
     val updateExistingTransactions = uiState.updateExistingTransactions
     val existingTransactionCount = uiState.existingTransactionCount
     val showMatchPreviewSheet = uiState.showMatchPreviewSheet
@@ -512,7 +511,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                 TransactionDetailContent(
                     transaction = txn,
                     isEditMode = isEditMode,
-                    applyToAllFromMerchant = applyToAllFromMerchant,
                     updateExistingTransactions = updateExistingTransactions,
                     existingTransactionCount = existingTransactionCount,
                     viewModel = transactionDetailViewModel,
@@ -1016,7 +1014,6 @@ private fun TransactionDetailContent(
     modifier: Modifier = Modifier,
     transaction: TransactionEntity,
     isEditMode: Boolean,
-    applyToAllFromMerchant: Boolean,
     updateExistingTransactions: Boolean,
     existingTransactionCount: Int,
     viewModel: TransactionDetailViewModel,
@@ -1114,7 +1111,6 @@ private fun TransactionDetailContent(
 
                 EditableExtractedInfoCard(
                     transaction = transaction,
-                    applyToAllFromMerchant = applyToAllFromMerchant,
                     updateExistingTransactions = updateExistingTransactions,
                     existingTransactionCount = existingTransactionCount,
                     onTargetAccountClick = onTargetAccountClick,
@@ -1529,7 +1525,6 @@ private fun EditableTransactionHeader(
 @Composable
 private fun EditableExtractedInfoCard(
     transaction: TransactionEntity,
-    applyToAllFromMerchant: Boolean,
     updateExistingTransactions: Boolean,
     existingTransactionCount: Int,
     onCategoryClick: () -> Unit,
@@ -1823,71 +1818,6 @@ private fun EditableExtractedInfoCard(
 
             // ── Merchant category helpers ─────────────────────────────────
             Spacer(modifier = Modifier.height(Spacing.sm))
-
-            // Option 1: Apply this category to all FUTURE transactions
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize(MaterialTheme.motionScheme.fastSpatialSpec())
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            onClick = {viewModel.toggleApplyToAllFromMerchant()},
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        )
-                        .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CashiroCheckbox(
-                        checked = applyToAllFromMerchant,
-                        onCheckedChange = { viewModel.toggleApplyToAllFromMerchant() }
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.sm))
-                    Text(
-                        text = stringResource(R.string.apply_category_to_all_future_transactions_format, transaction.merchantName),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                AnimatedVisibility(visible = applyToAllFromMerchant) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = Spacing.sm, end = Spacing.sm, bottom = Spacing.xs),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(
-                                    horizontal = Spacing.md,
-                                    vertical = Spacing.sm
-                                ),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Info,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Text(
-                                    text = stringResource(R.string.manual_entry_warning),
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             // Option 2: Update EXISTING transactions (only shown when there are matches)
             if (existingTransactionCount > 0) {

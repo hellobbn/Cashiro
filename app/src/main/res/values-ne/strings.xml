@@ -425,8 +425,6 @@
     <string name="merchant_label">व्यापारी</string>
     <string name="description_optional_label">विवरण (वैकल्पिक)</string>
     <string name="transfer_action">स्थानान्तरण</string>
-    <string name="apply_category_to_all_future_transactions_format">यो वर्ग "%1$s" बाट भविष्यका सबै लेनदेनमा लागू गर्नुहोस्</string>
-    <string name="manual_entry_warning">यो म्यानुअली प्रविष्ट गरिएको लेनदेनमा काम गर्दैन</string>
     <string name="update_existing_transactions_format">"%3$s" बाट %1$d उपलब्ध %2$s अपडेट गर्नुहोस्</string>
     <string name="preview_transaction_matches">लेनदेन मिलान पूर्वावलोकन</string>
     <string name="recurring_transaction">पुनरावर्ती लेनदेन</string>

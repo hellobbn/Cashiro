@@ -425,8 +425,6 @@ Yashil (+) = Tejash | Qizil (-) = Haddan tashqari sarflash</string>
     <string name="merchant_label">Sotuvchi</string>
     <string name="description_optional_label">Tavsif (Ixtiyoriy)</string>
     <string name="transfer_action">O\'tkazma</string>
-    <string name="apply_category_to_all_future_transactions_format">Ushbu kategoriyani "%1$s" dan keladigan barcha kelajak tranzaksiyalariga qo\'llang</string>
-    <string name="manual_entry_warning">Bu qo\'lda kiritilgan tranzaksiyalarda ishlamaydi</string>
     <string name="update_existing_transactions_format">"%3$s" dan %1$d ta mavjud %2$s ni yangilash</string>
     <string name="preview_transaction_matches">Tranzaksiya mosligini oldindan ko\'rish</string>
     <string name="recurring_transaction">Takrorlanuvchi tranzaksiya</string>

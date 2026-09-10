@@ -425,8 +425,6 @@ Zeleno (+) = Prihranek | Rdeče (-) = Prekomerna poraba</string>
     <string name="merchant_label">Prodajalec</string>
     <string name="description_optional_label">Opis (neobvezno)</string>
     <string name="transfer_action">Prenos</string>
-    <string name="apply_category_to_all_future_transactions_format">Uporabi to kategorijo za vse prihodnje transakcije od "%1$s"</string>
-    <string name="manual_entry_warning">To ne deluje za ročno vnesene transakcije</string>
     <string name="update_existing_transactions_format">Posodobi %1$d obstoječih %2$s od "%3$s"</string>
     <string name="preview_transaction_matches">Predogled ujemanja transakcij</string>
     <string name="recurring_transaction">Ponovljena transakcija</string>

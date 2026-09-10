@@ -425,8 +425,6 @@ Groen (+) = Spaar | Rooi (-) = Oorskietwyd</string>
     <string name="merchant_label">Handelaar</string>
     <string name="description_optional_label">Beskrywing (Opsioneel)</string>
     <string name="transfer_action">Oordrag</string>
-    <string name="apply_category_to_all_future_transactions_format">Pas hierdie kategorie toe op alle toekomstige transaksies van "%1$s"</string>
-    <string name="manual_entry_warning">Dit werk nie op handmatig ingevoerde transaksies nie</string>
     <string name="update_existing_transactions_format">Dateer %1$d bestaande %2$s van "%3$s" op</string>
     <string name="preview_transaction_matches">Voorskou transaksie ooreenkomste</string>
     <string name="recurring_transaction">Terugkerende Transaksie</string>

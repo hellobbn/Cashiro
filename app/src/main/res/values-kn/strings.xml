@@ -425,8 +425,6 @@
     <string name="merchant_label">ವ್ಯಾಪಾರಿ</string>
     <string name="description_optional_label">ವಿವರಣೆ (ಐಚ್ಛಿಕ)</string>
     <string name="transfer_action">ವರ್ಗಾಂತರಿಸು</string>
-    <string name="apply_category_to_all_future_transactions_format">"%1$s" ನಿಂದ ಎಲ್ಲಾ ಭವಿಷ್ಯದ ವಿನಿಮಯಗಳಿಗೆ ಈ ವರ್ಗವನ್ನು ಅನ್ವಯಿಸಿ</string>
-    <string name="manual_entry_warning">ಇದು ಕೈಯಿಂದ ನಮೂದಿಸಿದ ವಿನಿಮಯಗಳಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವುದಿಲ್ಲ</string>
     <string name="update_existing_transactions_format">"%3$s" ನಿಂದ %1$d ಪೂರ್ವವರ್ಗದ %2$s ನನ್ನು ನವೀಕರಿಸು</string>
     <string name="preview_transaction_matches">ವಿನ್‌ನಿಮಯ ಹೊಂದಾಣಿಕೆಯನ್ನು ಪೂರ್ವಾವಲೋಕನ ಮಾಡಿ</string>
     <string name="recurring_transaction">ಪುನರಾವರ್ತನೆಯ ವಿನಿಮಯ</string>

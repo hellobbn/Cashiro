@@ -425,8 +425,6 @@
     <string name="merchant_label">التاجر</string>
     <string name="description_optional_label">الوصف (اختياري)</string>
     <string name="transfer_action">تحويل</string>
-    <string name="apply_category_to_all_future_transactions_format">تطبيق هذه الفئة على جميع المعاملات المستقبلية من "%1$s"</string>
-    <string name="manual_entry_warning">هذا لا يعمل على المعاملات المدخلة يدويًا</string>
     <string name="update_existing_transactions_format">تحديث %1$d من %2$s الحالية من "%3$s"</string>
     <string name="preview_transaction_matches">معاينة تطابقات المعاملة</string>
     <string name="recurring_transaction">المعاملة المتكررة</string>

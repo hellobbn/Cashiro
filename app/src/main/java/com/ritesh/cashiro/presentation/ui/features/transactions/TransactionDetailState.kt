@@ -16,7 +16,6 @@ data class TransactionDetailUiState(
     val isSaving: Boolean = false,
     val saveSuccess: Boolean = false,
     val errorMessage: String? = null,
-    val applyToAllFromMerchant: Boolean = false,
     val updateExistingTransactions: Boolean = false,
     val existingTransactionCount: Int = 0,
     val showDeleteDialog: Boolean = false,

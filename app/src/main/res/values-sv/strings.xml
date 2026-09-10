@@ -425,8 +425,6 @@ Grön (+) = Sparande | Röd (-) = Överspending</string>
     <string name="merchant_label">Handlare</string>
     <string name="description_optional_label">Beskrivning (Valfritt)</string>
     <string name="transfer_action">Överföring</string>
-    <string name="apply_category_to_all_future_transactions_format">Använd denna kategori för alla framtida transaktioner från "%1$s"</string>
-    <string name="manual_entry_warning">Detta fungerar inte för manuellt inmatade transaktioner</string>
     <string name="update_existing_transactions_format">Uppdatera %1$d befintliga %2$s från "%3$s"</string>
     <string name="preview_transaction_matches">Förhandsgranska transaktionsmatchningar</string>
     <string name="recurring_transaction">Återkommande transaktion</string>

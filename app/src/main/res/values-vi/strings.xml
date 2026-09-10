@@ -425,8 +425,6 @@ Xanh (+) = Tiết kiệm | Đỏ (-) = Chi tiêu vượt mức</string>
     <string name="merchant_label">Thương nhân</string>
     <string name="description_optional_label">Mô tả (Tùy chọn)</string>
     <string name="transfer_action">Chuyển khoản</string>
-    <string name="apply_category_to_all_future_transactions_format">Áp dụng danh mục này cho tất cả các giao dịch tương lai từ "%1$s"</string>
-    <string name="manual_entry_warning">Điều này không áp dụng cho các giao dịch nhập tay</string>
     <string name="update_existing_transactions_format">Cập nhật %1$d %2$s hiện có từ "%3$s"</string>
     <string name="preview_transaction_matches">Xem trước các giao dịch khớp</string>
     <string name="recurring_transaction">Giao dịch định kỳ</string>

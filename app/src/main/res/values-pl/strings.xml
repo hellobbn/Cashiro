@@ -422,8 +422,6 @@
     <string name="merchant_label">Handlowiec</string>
     <string name="description_optional_label">Opis (opcjonalnie)</string>
     <string name="transfer_action">Przelew</string>
-    <string name="apply_category_to_all_future_transactions_format">Zastosuj tę kategorię do wszystkich przyszłych transakcji z \"%1$s\"</string>
-    <string name="manual_entry_warning">To nie działa przy ręcznie wprowadzonych transakcjach</string>
     <string name="update_existing_transactions_format">Aktualizuj %1$d istniejące %2$s z \"%3$s\"</string>
     <string name="preview_transaction_matches">Podgląd dopasowań transakcji</string>
     <string name="recurring_transaction">Transakcja cykliczna</string>

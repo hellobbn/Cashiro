@@ -422,8 +422,6 @@
     <string name="merchant_label">Kjøpmann</string>
     <string name="description_optional_label">Beskrivelse (valgfritt)</string>
     <string name="transfer_action">Overfør</string>
-    <string name="apply_category_to_all_future_transactions_format">Bruke denne kategorien for alle fremtidige transaksjoner fra \"%1$s\"</string>
-    <string name="manual_entry_warning">Dette virker ikke manuelt på transaksjoner angitt</string>
     <string name="update_existing_transactions_format">Oppdater %1$d eksisterende %2$s fra \"%3$s\"</string>
     <string name="preview_transaction_matches">Forhåndsvis transaksjoner stemmer</string>
     <string name="recurring_transaction">Periodisk transaksjon</string>

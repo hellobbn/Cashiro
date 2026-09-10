@@ -424,8 +424,6 @@
     <string name="merchant_label">Comerciante</string>
     <string name="description_optional_label">Descripción (Opcional)</string>
     <string name="transfer_action">Transferencia</string>
-    <string name="apply_category_to_all_future_transactions_format">Aplicar esta categoría a todas las transacciones futuras de "%1$s"</string>
-    <string name="manual_entry_warning">Esto no funciona en transacciones ingresadas manualmente</string>
     <string name="update_existing_transactions_format">Actualizar %1$d %2$s existentes de "%3$s"</string>
     <string name="preview_transaction_matches">Vista previa de coincidencias de transacción</string>
     <string name="recurring_transaction">Transacción recurrente</string>

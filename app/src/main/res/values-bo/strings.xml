@@ -425,8 +425,6 @@
     <string name="merchant_label">ཚོང་པ།</string>
     <string name="description_optional_label">འགྲེལ་བཤད (གདམ་ཁ)</string>
     <string name="transfer_action">སྤོ་སྒྱུར།</string>
-    <string name="apply_category_to_all_future_transactions_format">རིགས་འདི་"%1$s"ནས་མ་འོངས་པའི་ཉོ་ཚོང་ཡོད་ཚད་ལ་སྤྱོད་དགོས།</string>
-    <string name="manual_entry_warning">འདི་ལག་པས་ནང་འཇུག་བྱས་པའི་ཉོ་ཚོང་ལ་ནུས་པ་མི་ཐོན་པ།</string>
     <string name="update_existing_transactions_format">"%3$s"ལས་%1$d ད་ཡོད་%2$s གསར་སྒྱུར་བྱས་པ།</string>
     <string name="preview_transaction_matches">སྔོན་ལྟ་ཉོ་འཚོང་གི་མཐུན་སྒྲིག་</string>
     <string name="recurring_transaction">བསྐྱར་ཟློས་ཉོ་ཚོང་</string>
