@@ -752,6 +752,14 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
+    /** Clears the saved order and hidden set so the home screen falls back to defaults. */
+    suspend fun resetHomeWidgetsLayout() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.HOME_WIDGETS_ORDER)
+            preferences.remove(PreferencesKeys.HIDDEN_HOME_WIDGETS)
+        }
+    }
+
     suspend fun updateHideNavigationLabels(hide: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.HIDE_NAVIGATION_LABELS] = hide

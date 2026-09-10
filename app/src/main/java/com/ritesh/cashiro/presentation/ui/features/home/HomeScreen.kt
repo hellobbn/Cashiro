@@ -194,8 +194,6 @@ fun SharedTransitionScope.HomeScreen(
     LaunchedEffect(uiState.accountBalances, uiState.creditCards, uiState.selectedCurrency) {
         overviewViewModel.update(uiState.accountBalances + uiState.creditCards, uiState.selectedCurrency)
     }
-    val showOverview = homeWidgets.any { it.widget == HomeWidget.ACCOUNT_CAROUSEL && it.isVisible }
-    val hasNetworth = homeWidgets.any { it.widget == HomeWidget.NETWORTH_SUMMARY && it.isVisible }
     val openCategory: (com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory) -> Unit = { category ->
         if (category == com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.INVESTMENTS)
             navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.Investments)
@@ -385,8 +383,6 @@ fun SharedTransitionScope.HomeScreen(
                                         },
                                         blurEffects = blurEffects && uiState.showBannerImage,
                                         hazeState = hazeStateBanner,
-                                        overviewItems = if (showOverview) overviewItems else null,
-                                        onOpenCategory = openCategory
                                     )
                                 }
                             }
@@ -441,7 +437,7 @@ fun SharedTransitionScope.HomeScreen(
                                 }
                             }
                             HomeWidget.ACCOUNT_CAROUSEL -> {
-                                if (!hasNetworth) item(key = "account_overview") {
+                                item(key = "account_overview") {
                                     com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewList(
                                         overviewItems, openCategory, Modifier.padding(horizontal = Dimensions.Padding.content))
                                 }
@@ -809,7 +805,8 @@ fun SharedTransitionScope.HomeScreen(
                     sheetState = rememberModalBottomSheetState(),
                     widgets = homeWidgets,
                     onToggleVisibility = homeViewModel::toggleHomeWidgetVisibility,
-                    onReorder = homeViewModel::updateWidgetsOrder
+                    onReorder = homeViewModel::updateWidgetsOrder,
+                    onResetLayout = homeViewModel::resetWidgetsLayout
                 )
             }
         }
@@ -1077,8 +1074,6 @@ private fun NetworthSummaryCards(
     onCurrencySelected: (String) -> Unit = {},
     blurEffects: Boolean,
     hazeState: HazeState = remember { HazeState() },
-    overviewItems: List<com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewItem>? = null,
-    onOpenCategory: (com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory) -> Unit = {},
 ) {
     var showCurrencySheet by remember { mutableStateOf(false) }
 
@@ -1137,7 +1132,9 @@ private fun NetworthSummaryCards(
             thisYearValue = CurrencyFormatter.formatCurrency(uiState.currentYearTotal, uiState.selectedCurrency),
             availableCurrenciesCount = uiState.availableCurrencies.size,
             onCurrencyClick = { showCurrencySheet = true },
-            blurEffects = blurEffects && !embedded,
+            // Always solid. The embedded variant never blurred; re-enabling the real-time blur
+            // on the standalone card made the home screen visibly less smooth.
+            blurEffects = false,
             embedded = embedded,
             hazeState = hazeState,
             modifier = if (embedded) Modifier else Modifier.padding(
@@ -1146,11 +1143,7 @@ private fun NetworthSummaryCards(
             )
         )
     }
-    if (overviewItems != null) {
-        com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewPanel(
-            overviewItems, onOpenCategory, Modifier.padding(horizontal = Dimensions.Padding.content)
-        ) { balanceContent(true) }
-    } else balanceContent(false)
+    balanceContent(false)
 }
 
 

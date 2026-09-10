@@ -1326,4 +1326,5 @@
     <string name="quick_template_amount">Amount (optional)</string>
     <string name="quick_template_prefill_amount">Pre-fill amount when tapped</string>
     <string name="quick_template_amount_not_prefilled">not pre-filled</string>
+    <string name="reset_layout">Reset layout</string>
 </resources>

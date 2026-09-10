@@ -1,5 +1,15 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import androidx.compose.foundation.layout.width
+
+import androidx.compose.foundation.layout.height
+
+import androidx.compose.foundation.layout.Spacer
+
+import androidx.compose.material.icons.filled.Refresh
+
+import androidx.compose.material3.TextButton
+
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -46,7 +56,8 @@ fun EditWidgetsSheet(
     sheetState: SheetState,
     widgets: List<HomeWidgetUiModel>,
     onToggleVisibility: (HomeWidget, Boolean) -> Unit,
-    onReorder: (List<HomeWidget>) -> Unit
+    onReorder: (List<HomeWidget>) -> Unit,
+    onResetLayout: () -> Unit = {}
 ) {
     // Filter out Networth Summary
     var reorderableWidgets by remember { mutableStateOf(widgets.filter { it.widget != HomeWidget.NETWORTH_SUMMARY }) }
@@ -127,6 +138,18 @@ fun EditWidgetsSheet(
                         }
                     }
                 }
+            }
+
+            Spacer(Modifier.height(Spacing.md))
+            TextButton(
+                onClick = onResetLayout,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.reset_layout))
             }
         }
     }

@@ -794,6 +794,11 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun resetWidgetsLayout() {
+        saveOrderJob?.cancel()
+        viewModelScope.launch { userPreferencesRepository.resetHomeWidgetsLayout() }
+    }
+
     fun toggleHomeWidgetVisibility(widget: HomeWidget, visible: Boolean) {
         viewModelScope.launch {
             val currentHidden = userPreferencesRepository.hiddenHomeWidgets.first().toMutableSet()
