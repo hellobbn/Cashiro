@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import androidx.compose.material.icons.rounded.Bolt
+
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
 
@@ -712,6 +714,18 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                         transactionDetailViewModel.duplicateTransaction()
                                     },
                                     leadingIcon = { Icon(Iconax.Copy, contentDescription = null) }
+                                )
+                                HorizontalDivider(
+                                    thickness = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.quick_template_save_from_detail)) },
+                                    onClick = {
+                                        showMoreMenu = false
+                                        transactionDetailViewModel.saveAsQuickTemplate()
+                                    },
+                                    leadingIcon = { Icon(Icons.Rounded.Bolt, contentDescription = null) }
                                 )
                                 HorizontalDivider(
                                     thickness = 1.5.dp,

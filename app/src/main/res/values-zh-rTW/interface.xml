@@ -10,4 +10,14 @@
     <string name="account_already_exists">已存在名稱和末四碼相同的帳戶。</string>
     <string name="account_save_failed">無法儲存帳戶。已保留您填寫的內容，請再試一次。</string>
     <string name="saving_account">正在儲存…</string>
+    <string name="quick_add_templates">快捷記帳</string>
+    <string name="quick_templates_subtitle">咖啡、午餐等常用消費一鍵填入</string>
+    <string name="quick_templates_empty">還沒有快捷範本。新增交易時開啟「儲存為快捷範本」，或在交易詳情選單中選擇「儲存為快捷範本」。</string>
+    <string name="quick_template_save_toggle">存為快捷</string>
+    <string name="quick_template_save_from_detail">儲存為快捷範本</string>
+    <string name="quick_template_edit_title">編輯快捷範本</string>
+    <string name="quick_template_name">名稱</string>
+    <string name="quick_template_amount">金額（選填）</string>
+    <string name="quick_template_prefill_amount">點擊時預填金額</string>
+    <string name="quick_template_amount_not_prefilled">不預填</string>
 </resources>

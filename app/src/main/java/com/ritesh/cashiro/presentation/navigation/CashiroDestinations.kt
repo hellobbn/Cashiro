@@ -170,6 +170,7 @@ data class Transactions(
 @Serializable object Faq
 
 @Serializable object Rules
+@Serializable object QuickTemplates
 
 @Serializable data class CreateRule(val ruleId: String? = null)
 

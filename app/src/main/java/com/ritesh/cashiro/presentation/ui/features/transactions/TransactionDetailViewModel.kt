@@ -13,6 +13,8 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.database.entity.LendBorrowType
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
+import com.ritesh.cashiro.data.repository.QuickTemplateRepository
+import com.ritesh.cashiro.data.database.entity.QuickTemplateEntity
 import com.ritesh.cashiro.data.repository.CategoryRepository
 import com.ritesh.cashiro.data.repository.MerchantMappingRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
@@ -67,6 +69,7 @@ class TransactionDetailViewModel @Inject constructor(
     private val getLendBorrowEntryForTransactionUseCase: GetLendBorrowEntryForTransactionUseCase,
     private val markTransactionAsLoanUseCase: MarkTransactionAsLoanUseCase,
     private val unmarkTransactionAsLoanUseCase: UnmarkTransactionAsLoanUseCase,
+    private val quickTemplateRepository: QuickTemplateRepository,
     val attachmentService: AttachmentService,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -795,6 +798,32 @@ class TransactionDetailViewModel @Inject constructor(
                 } finally {
                     _uiState.update { it.copy(isDeleting = false) }
                 }
+            }
+        }
+    }
+
+    /** Store this transaction's merchant, category, type, account and notes as a quick-add template. */
+    fun saveAsQuickTemplate() {
+        val txn = _uiState.value.transaction ?: return
+        viewModelScope.launch {
+            try {
+                quickTemplateRepository.add(
+                    QuickTemplateEntity(
+                        name = txn.merchantName,
+                        merchantName = txn.merchantName,
+                        category = txn.category,
+                        subcategory = txn.subcategory,
+                        transactionType = txn.transactionType,
+                        amount = txn.amount,
+                        prefillAmount = false,
+                        bankName = txn.bankName,
+                        accountLast4 = txn.accountNumber,
+                        currency = txn.currency,
+                        notes = txn.description
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w("TransactionDetailVM", "Quick template not saved", e)
             }
         }
     }

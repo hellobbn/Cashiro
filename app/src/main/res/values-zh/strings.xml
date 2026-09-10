@@ -1255,4 +1255,14 @@
     <string name="account_already_exists">已存在名称和尾号相同的账户。</string>
     <string name="account_save_failed">保存失败，已保留您填写的内容，请重试。</string>
     <string name="saving_account">正在保存…</string>
+    <string name="quick_add_templates">快捷记账</string>
+    <string name="quick_templates_subtitle">咖啡、午饭等常用消费一键填入</string>
+    <string name="quick_templates_empty">还没有快捷模板。添加交易时打开“保存为快捷模板”，或在交易详情菜单中选择“保存为快捷模板”。</string>
+    <string name="quick_template_save_toggle">存为快捷</string>
+    <string name="quick_template_save_from_detail">保存为快捷模板</string>
+    <string name="quick_template_edit_title">编辑快捷模板</string>
+    <string name="quick_template_name">名称</string>
+    <string name="quick_template_amount">金额（可选）</string>
+    <string name="quick_template_prefill_amount">点击时预填金额</string>
+    <string name="quick_template_amount_not_prefilled">不预填</string>
 </resources>
