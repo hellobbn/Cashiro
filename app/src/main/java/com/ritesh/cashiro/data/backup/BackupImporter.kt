@@ -764,14 +764,6 @@ class BackupImporter @Inject constructor(
             }
         }
 
-        preferences.theme.hideNavigationLabels?.let {
-            userPreferencesRepository.updateHideNavigationLabels(it)
-        }
-
-        preferences.theme.hidePillIndicator?.let {
-            userPreferencesRepository.updateHidePillIndicator(it)
-        }
-
         preferences.theme.blurEffects?.let {
             userPreferencesRepository.updateBlurEffects(it)
         }

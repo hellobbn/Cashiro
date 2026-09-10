@@ -831,11 +831,6 @@
     <string name="logo_comic">کامک</string>
     <string name="logo_zenith">زینتھ</string>
     <string name="logo_monochrome">مونوکروم</string>
-    <string name="navigation_style">نیویگیشن</string>
-    <string name="hide_nav_labels">نیویگیشن لیبل چھپائیں</string>
-    <string name="hide_nav_labels_desc">نیویگیشن بار میں لیبل چھپائیں</string>
-    <string name="hide_pill_indicator">پِل اشارے کو چھپائیں</string>
-    <string name="hide_pill_indicator_desc">نیویگیشن بار میں انتخابی اشارہ چھپائیں</string>
     <string name="fonts_title">فونٹس</string>
     <string name="font_default_sub">سسٹم</string>
     <string name="font_snpro">SN پرو</string>

@@ -914,11 +914,6 @@
     <string name="logo_comic">Comic</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
-    <string name="navigation_style">Navigation</string>
-    <string name="hide_nav_labels">Hide Navigation Labels</string>
-    <string name="hide_nav_labels_desc">Hide labels in the navigation bar</string>
-    <string name="hide_pill_indicator">Hide Pill Indicator</string>
-    <string name="hide_pill_indicator_desc">Hide the selection indicator in the navigation bar</string>
     <string name="fonts_title">Fonts</string>
     <string name="font_default_sub">System</string>
     <string name="font_snpro">SN Pro</string>

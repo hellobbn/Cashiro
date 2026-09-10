@@ -831,11 +831,6 @@
     <string name="logo_comic">காமிக்</string>
     <string name="logo_zenith">சென்னித்</string>
     <string name="logo_monochrome">ஒற்றைநிறம்</string>
-    <string name="navigation_style">நெவிகேஷன்</string>
-    <string name="hide_nav_labels">நெவிகேஷன் லேபிள்களை மறைக்கவும்</string>
-    <string name="hide_nav_labels_desc">நெவிகேஷன் பட்டியில் லேபிள்களை மறைக்கவும்</string>
-    <string name="hide_pill_indicator">பில் குறியீட்டை மறைக்கவும்</string>
-    <string name="hide_pill_indicator_desc">நெவிகேஷன் பட்டியில் தேர்வு குறியீட்டை மறைக்கவும்</string>
     <string name="fonts_title">அச்சுருக்கள்</string>
     <string name="font_default_sub">சிஸ்டம்</string>
     <string name="font_snpro">எஸ்என் ப்ரோ</string>

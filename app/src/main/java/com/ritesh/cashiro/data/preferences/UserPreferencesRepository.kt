@@ -86,8 +86,6 @@ constructor(@ApplicationContext private val context: Context) {
         // Home Widget Preferences
         val HOME_WIDGETS_ORDER = stringPreferencesKey("home_widgets_order")
         val HIDDEN_HOME_WIDGETS = androidx.datastore.preferences.core.stringSetPreferencesKey("hidden_home_widgets")
-        val HIDE_NAVIGATION_LABELS = booleanPreferencesKey("hide_navigation_labels")
-        val HIDE_PILL_INDICATOR = booleanPreferencesKey("hide_pill_indicator")
         val BLUR_EFFECTS = booleanPreferencesKey("blur_effects")
         val IS_SAMPLE_DATA_SEEDED = booleanPreferencesKey("is_sample_data_seeded")
         val APP_ICON = stringPreferencesKey("app_icon")
@@ -155,8 +153,6 @@ constructor(@ApplicationContext private val context: Context) {
                 } catch (e: Exception) {
                     AccentColor.BLUE
                 },
-                hideNavigationLabels = preferences[PreferencesKeys.HIDE_NAVIGATION_LABELS] ?: false,
-                hidePillIndicator = preferences[PreferencesKeys.HIDE_PILL_INDICATOR] ?: false,
                 blurEffects = preferences[PreferencesKeys.BLUR_EFFECTS] ?: false,
                 isSampleDataSeeded = preferences[PreferencesKeys.IS_SAMPLE_DATA_SEEDED] ?: false,
                 appIcon = try {
@@ -760,18 +756,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    suspend fun updateHideNavigationLabels(hide: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.HIDE_NAVIGATION_LABELS] = hide
-        }
-    }
-
-    suspend fun updateHidePillIndicator(hide: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.HIDE_PILL_INDICATOR] = hide
-        }
-    }
-
     suspend fun updateBlurEffects(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.BLUR_EFFECTS] = enabled
@@ -816,8 +800,6 @@ data class UserPreferences(
         val appFont: AppFont = AppFont.SYSTEM,
         val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
         val accentColor: AccentColor = AccentColor.BLUE,
-        val hideNavigationLabels: Boolean = false,
-        val hidePillIndicator: Boolean = false,
         val blurEffects: Boolean = false,
         val isSampleDataSeeded: Boolean = false,
         val appIcon: AppIcon = AppIcon.ORIGINAL,

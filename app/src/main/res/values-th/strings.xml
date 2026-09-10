@@ -831,11 +831,6 @@
     <string name="logo_comic">การ์ตูน</string>
     <string name="logo_zenith">ซีนิธ</string>
     <string name="logo_monochrome">ขาวดำ</string>
-    <string name="navigation_style">การนำทาง</string>
-    <string name="hide_nav_labels">ซ่อนป้ายกำกับการนำทาง</string>
-    <string name="hide_nav_labels_desc">ซ่อนป้ายกำกับในแถบนำทาง</string>
-    <string name="hide_pill_indicator">ซ่อนตัวบ่งชี้เลือก</string>
-    <string name="hide_pill_indicator_desc">ซ่อนตัวบ่งชี้การเลือกในแถบนำทาง</string>
     <string name="fonts_title">แบบอักษร</string>
     <string name="font_default_sub">ระบบ</string>
     <string name="font_snpro">SN Pro</string>

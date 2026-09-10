@@ -1093,10 +1093,6 @@
 <string name="google_drive_signin_desc">Sign in with your Google account to enable Google Drive backup &amp; sync.</string>
 <string name="google_signin_failed_no_email">Google sign-in failed: Could not retrieve email</string>
 <string name="google_signin_failed_null">Google sign-in failed: Account is null</string>
-<string name="hide_nav_labels">Hide Navigation Labels</string>
-<string name="hide_nav_labels_desc">Hide labels in the navigation bar</string>
-<string name="hide_pill_indicator">Hide Pill Indicator</string>
-<string name="hide_pill_indicator_desc">Hide the selection indicator in the navigation bar</string>
 <string name="home_title">Home</string>
 <string name="how_to_enable">How to enable:</string>
 <string name="i_borrowed">I owe them</string>
@@ -1123,7 +1119,6 @@
 <string name="mark_as">Mark as</string>
 <string name="merchant_lbl">Merchant</string>
 <string name="minute_timeout_format">%1$d minute timeout</string>
-<string name="navigation_style">Navigation</string>
 <string name="net_balance_khata">Net Balance</string>
 <string name="net_worth_label">Net worth</string>
 <string name="new_chat">New Chat</string>

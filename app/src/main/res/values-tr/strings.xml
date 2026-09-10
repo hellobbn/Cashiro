@@ -831,11 +831,6 @@ Yeşil (+) = Tasarruf | Kırmızı (-) = Harcama Fazlası</string>
     <string name="logo_comic">Çizgi Roman</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokrom</string>
-    <string name="navigation_style">Gezinme</string>
-    <string name="hide_nav_labels">Gezinme Etiketlerini Gizle</string>
-    <string name="hide_nav_labels_desc">Gezinme çubuğundaki etiketleri gizle</string>
-    <string name="hide_pill_indicator">Pill Göstergesini Gizle</string>
-    <string name="hide_pill_indicator_desc">Gezinme çubuğundaki seçim göstergesini gizle</string>
     <string name="fonts_title">Yazı Tipleri</string>
     <string name="font_default_sub">Sistem</string>
     <string name="font_snpro">SN Pro</string>

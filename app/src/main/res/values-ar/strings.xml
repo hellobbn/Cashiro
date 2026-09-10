@@ -831,11 +831,6 @@
     <string name="logo_comic">كوميك</string>
     <string name="logo_zenith">القمة</string>
     <string name="logo_monochrome">أحادي اللون</string>
-    <string name="navigation_style">التنقل</string>
-    <string name="hide_nav_labels">إخفاء تسميات التنقل</string>
-    <string name="hide_nav_labels_desc">إخفاء التسميات في شريط التنقل</string>
-    <string name="hide_pill_indicator">إخفاء مؤشر الحبوب</string>
-    <string name="hide_pill_indicator_desc">إخفاء مؤشر التحديد في شريط التنقل</string>
     <string name="fonts_title">الخطوط</string>
     <string name="font_default_sub">النظام</string>
     <string name="font_snpro">SN Pro</string>

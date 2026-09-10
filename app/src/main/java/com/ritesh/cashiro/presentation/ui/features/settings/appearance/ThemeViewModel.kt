@@ -31,8 +31,6 @@ class ThemeViewModel @Inject constructor(
                 appFont = preferences.appFont,
                 themeStyle = preferences.themeStyle,
                 accentColor = preferences.accentColor,
-                hideNavigationLabels = preferences.hideNavigationLabels,
-                hidePillIndicator = preferences.hidePillIndicator,
                 blurEffects = preferences.blurEffects,
                 isOnboardingFinished = preferences.hasShownScanTutorial,
                 currentAppIcon = preferences.appIcon,
@@ -82,18 +80,6 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
-    fun updateHideNavigationLabels(hide: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.updateHideNavigationLabels(hide)
-        }
-    }
-
-    fun updateHidePillIndicator(hide: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.updateHidePillIndicator(hide)
-        }
-    }
-
     fun updateBlurEffects(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.updateBlurEffects(enabled)
@@ -113,8 +99,6 @@ data class ThemeUiState(
     val appFont: AppFont = AppFont.SYSTEM,
     val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
     val accentColor: AccentColor = AccentColor.BLUE,
-    val hideNavigationLabels: Boolean = false,
-    val hidePillIndicator: Boolean = false,
     val blurEffects: Boolean = false,
     val isOnboardingFinished: Boolean = false,
     val currentAppIcon: AppIcon = AppIcon.ORIGINAL,

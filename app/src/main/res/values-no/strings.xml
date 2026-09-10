@@ -828,11 +828,6 @@
     <string name="logo_comic">Tegneserie</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokrom</string>
-    <string name="navigation_style">Navigasjon</string>
-    <string name="hide_nav_labels">Skjul navigasjonsetiketter</string>
-    <string name="hide_nav_labels_desc">Skjul etiketter i navigasjonslinjen</string>
-    <string name="hide_pill_indicator">Skjul pilindikator</string>
-    <string name="hide_pill_indicator_desc">Skjul utvalgsindikatoren i navigasjonslinjen</string>
     <string name="fonts_title">Skrifter</string>
     <string name="font_default_sub">System</string>
     <string name="font_snpro">SN Pro</string>

@@ -831,11 +831,6 @@ Grön (+) = Sparande | Röd (-) = Överspending</string>
     <string name="logo_comic">Serietidning</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokromt</string>
-    <string name="navigation_style">Navigering</string>
-    <string name="hide_nav_labels">Dölj navigeringsetiketter</string>
-    <string name="hide_nav_labels_desc">Dölj etiketter i navigationsfältet</string>
-    <string name="hide_pill_indicator">Göm pillerindikatorn</string>
-    <string name="hide_pill_indicator_desc">Dölj valindikatorn i navigationsfältet</string>
     <string name="fonts_title">Typsnitt</string>
     <string name="font_default_sub">System</string>
     <string name="font_snpro">SN Pro</string>

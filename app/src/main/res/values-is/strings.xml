@@ -831,11 +831,6 @@ Grænn (+) = Sparnaður | Rauður (-) = Ofureyðsla</string>
     <string name="logo_comic">Teiknimynd</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Eintóna</string>
-    <string name="navigation_style">Leiðsögn</string>
-    <string name="hide_nav_labels">Fela leiðsagnarmerkingar</string>
-    <string name="hide_nav_labels_desc">Fela merkingar í leiðsagnarstikunni</string>
-    <string name="hide_pill_indicator">Fela valmiðamerki</string>
-    <string name="hide_pill_indicator_desc">Fela valmiðamerkið í leiðsagnarstikunni</string>
     <string name="fonts_title">Leturgerðir</string>
     <string name="font_default_sub">Kerfi</string>
     <string name="font_snpro">SN Pro</string>

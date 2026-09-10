@@ -831,11 +831,6 @@
     <string name="logo_comic">क्यामिक</string>
     <string name="logo_zenith">श्रेष्ठता</string>
     <string name="logo_monochrome">एकरूप</string>
-    <string name="navigation_style">नेभिगेसन</string>
-    <string name="hide_nav_labels">नेभिगेसन लेबलहरू लुकाउनुहोस्</string>
-    <string name="hide_nav_labels_desc">नेभिगेसन पट्टीमा रहेको लेबलहरू लुकाउनुहोस्</string>
-    <string name="hide_pill_indicator">पिल संकेतक लुकाउनुहोस्</string>
-    <string name="hide_pill_indicator_desc">नेभिगेसन पट्टीमा चयन संकेतक लुकाउनुहोस्</string>
     <string name="fonts_title">फन्टहरू</string>
     <string name="font_default_sub">सistem</string>
     <string name="font_snpro">SN प्रो</string>

@@ -831,11 +831,6 @@
     <string name="logo_comic">కామిక్</string>
     <string name="logo_zenith">జెనిత్</string>
     <string name="logo_monochrome">మోనోక్రోమ్</string>
-    <string name="navigation_style">నావిగేషన్</string>
-    <string name="hide_nav_labels">నావిగేషన్ లేబుల్స్ ని దాచు</string>
-    <string name="hide_nav_labels_desc">నావిగేషన్ బార్ లో లేబుల్స్ ని దాచండి</string>
-    <string name="hide_pill_indicator">పిల్ సూచికను దాచు</string>
-    <string name="hide_pill_indicator_desc">నావిగేషన్ బార్ లోని సెలెక్షన్ సూచికను దాచండి</string>
     <string name="fonts_title">ఫాంట్లు</string>
     <string name="font_default_sub">సిస్టమ్</string>
     <string name="font_snpro">SN ప్రో</string>

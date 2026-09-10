@@ -831,11 +831,6 @@
     <string name="logo_comic">Комикс</string>
     <string name="logo_zenith">Зенит</string>
     <string name="logo_monochrome">Монохром</string>
-    <string name="navigation_style">Навигация</string>
-    <string name="hide_nav_labels">Скрий етикети на навигацията</string>
-    <string name="hide_nav_labels_desc">Скрий етикети в навигационната лента</string>
-    <string name="hide_pill_indicator">Скрий индикатор на таблетката</string>
-    <string name="hide_pill_indicator_desc">Скрий индикатора за избор в навигационната лента</string>
     <string name="fonts_title">Шрифтове</string>
     <string name="font_default_sub">Система</string>
     <string name="font_snpro">SN Pro</string>

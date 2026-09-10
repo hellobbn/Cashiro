@@ -831,11 +831,6 @@ Groen (+) = Spaar | Rooi (-) = Oorskietwyd</string>
     <string name="logo_comic">Storieboek</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochroom</string>
-    <string name="navigation_style">Navigasie</string>
-    <string name="hide_nav_labels">Versteek Navigasielabels</string>
-    <string name="hide_nav_labels_desc">Versteek etiket in die navigasiebalk</string>
-    <string name="hide_pill_indicator">Versteek Pil-aanwyser</string>
-    <string name="hide_pill_indicator_desc">Versteek die keuse-aanwyser in die navigasiebalk</string>
     <string name="fonts_title">Fonts</string>
     <string name="font_default_sub">Stelsel</string>
     <string name="font_snpro">SN Pro</string>

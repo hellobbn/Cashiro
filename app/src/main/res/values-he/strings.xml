@@ -831,11 +831,6 @@
     <string name="logo_comic">קומיקס</string>
     <string name="logo_zenith">זנית</string>
     <string name="logo_monochrome">מונוכרום</string>
-    <string name="navigation_style">ניווט</string>
-    <string name="hide_nav_labels">הסתר תוויות ניווט</string>
-    <string name="hide_nav_labels_desc">הסתר תוויות בסרגל הניווט</string>
-    <string name="hide_pill_indicator">הסתר את האינדיקטור</string>
-    <string name="hide_pill_indicator_desc">הסתר את אינדיקטור הבחירה בסרגל הניווט</string>
     <string name="fonts_title">גופנים</string>
     <string name="font_default_sub">מערכת</string>
     <string name="font_snpro">SN פרו</string>

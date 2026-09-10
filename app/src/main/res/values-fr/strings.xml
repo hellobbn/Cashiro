@@ -828,11 +828,6 @@
     <string name="logo_comic">Bande dessinée</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
-    <string name="navigation_style">Navigation</string>
-    <string name="hide_nav_labels">Masquer les étiquettes de navigation</string>
-    <string name="hide_nav_labels_desc">Masquer les étiquettes dans la barre de navigation</string>
-    <string name="hide_pill_indicator">Masquer l\'indicateur de sélection</string>
-    <string name="hide_pill_indicator_desc">Masquer l\'indicateur de sélection dans la barre de navigation</string>
     <string name="fonts_title">Polices</string>
     <string name="font_default_sub">Système</string>
     <string name="font_snpro">SN Pro</string>
