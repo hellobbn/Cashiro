@@ -1262,8 +1262,7 @@
     <string name="quick_add_templates">快捷记账</string>
     <string name="quick_templates_subtitle">咖啡、午饭等常用消费一键填入</string>
     <string name="quick_templates_empty">还没有快捷模板。添加交易时打开“保存为快捷模板”，或在交易详情菜单中选择“保存为快捷模板”。</string>
-    <string name="quick_template_save_toggle">保存为快捷模板</string>
-    <string name="quick_template_save_toggle_desc">下次在添加页顶部一键填入该商家和类别</string>
+    <string name="quick_template_save_toggle">存为快捷</string>
     <string name="quick_template_save_from_detail">保存为快捷模板</string>
     <string name="quick_template_edit_title">编辑快捷模板</string>
     <string name="quick_template_name">名称</string>

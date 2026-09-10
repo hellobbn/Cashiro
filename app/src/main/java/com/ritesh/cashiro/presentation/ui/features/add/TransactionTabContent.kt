@@ -1221,18 +1221,12 @@ fun TransactionTabContent(
                     ) {
                         Icon(Icons.Rounded.Bolt, contentDescription = null)
                         Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.quick_template_save_toggle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = stringResource(R.string.quick_template_save_toggle_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.quick_template_save_toggle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f)
+                        )
                         Switch(
                             checked = uiState.saveAsQuickTemplate,
                             onCheckedChange = viewModel::updateSaveAsQuickTemplate
