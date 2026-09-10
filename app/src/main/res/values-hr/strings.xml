@@ -831,11 +831,6 @@ Zeleno (+) = Uštede | Crveno (-) = Prekomerno trošenje</string>
     <string name="logo_comic">Strip</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monokrom</string>
-    <string name="navigation_style">Navigacija</string>
-    <string name="hide_nav_labels">Sakrij Oznake Navigacije</string>
-    <string name="hide_nav_labels_desc">Sakrij oznake u traci navigacije</string>
-    <string name="hide_pill_indicator">Sakrij Pokazivač Pilule</string>
-    <string name="hide_pill_indicator_desc">Sakrij pokazivač odabira u traci navigacije</string>
     <string name="fonts_title">Fontovi</string>
     <string name="font_default_sub">Sustav</string>
     <string name="font_snpro">SN Pro</string>

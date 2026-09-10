@@ -531,42 +531,6 @@ fun AppearanceScreen(
 
                 }
 
-                // Navigation Style Section
-                SectionHeader(
-                    title = stringResource(R.string.navigation_style),
-                    modifier = Modifier.padding(start = Spacing.xl, top = Spacing.md)
-                )
-                Column(
-                    modifier = Modifier
-                        .animateContentSize(
-                            MaterialTheme.motionScheme.defaultSpatialSpec()
-                        )
-                        .fillMaxWidth()
-                        .padding(horizontal = Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
-                ){
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                    ) {
-                            PreferenceSwitch(
-                                title = stringResource(R.string.hide_nav_labels),
-                                subtitle = stringResource(R.string.hide_nav_labels_desc),
-                                checked = themeUiState.hideNavigationLabels,
-                                onCheckedChange = { themeViewModel.updateHideNavigationLabels(it) },
-                                padding = PaddingValues(0.dp),
-                                isFirst = true
-                            )
-                            PreferenceSwitch(
-                                title = stringResource(R.string.hide_pill_indicator),
-                                subtitle = stringResource(R.string.hide_pill_indicator_desc),
-                                checked = themeUiState.hidePillIndicator,
-                                onCheckedChange = { themeViewModel.updateHidePillIndicator(it) },
-                                padding = PaddingValues(0.dp),
-                                isLast = true
-                            )
-                    }
-                }
-                
                 // Font Family Section
                 SectionHeader(
                     title = stringResource(R.string.fonts_title),

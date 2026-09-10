@@ -828,11 +828,6 @@
     <string name="logo_comic">Fumetto</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monocromo</string>
-    <string name="navigation_style">Navigazione</string>
-    <string name="hide_nav_labels">Nascondi etichette di navigazione</string>
-    <string name="hide_nav_labels_desc">Nascondi le etichette nella barra di navigazione</string>
-    <string name="hide_pill_indicator">Nascondi indicatore a pillola</string>
-    <string name="hide_pill_indicator_desc">Nascondi l\'indicatore di selezione nella barra di navigazione</string>
     <string name="fonts_title">Caratteri</string>
     <string name="font_default_sub">Sistema</string>
     <string name="font_snpro">SN Pro</string>

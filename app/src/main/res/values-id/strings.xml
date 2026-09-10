@@ -830,11 +830,6 @@ Berguna untuk anggaran jangka panjang selama beberapa periode</string>
     <string name="logo_comic">Komik</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokrom</string>
-    <string name="navigation_style">Navigasi</string>
-    <string name="hide_nav_labels">Sembunyikan Label Navigasi</string>
-    <string name="hide_nav_labels_desc">Sembunyikan label di bilah navigasi</string>
-    <string name="hide_pill_indicator">Sembunyikan Indikator Pil</string>
-    <string name="hide_pill_indicator_desc">Sembunyikan indikator pemilihan di bilah navigasi</string>
     <string name="fonts_title">Font</string>
     <string name="font_default_sub">Sistem</string>
     <string name="font_snpro">SN Pro</string>

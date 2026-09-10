@@ -831,11 +831,6 @@ Zöld (+) = Megtakarítás | Piros (-) = Túlköltekezés</string>
     <string name="logo_comic">Képregény</string>
     <string name="logo_zenith">Csúcspont</string>
     <string name="logo_monochrome">Monokróm</string>
-    <string name="navigation_style">Navigáció</string>
-    <string name="hide_nav_labels">Navigációs címkék elrejtése</string>
-    <string name="hide_nav_labels_desc">Címkék elrejtése a navigációs sávban</string>
-    <string name="hide_pill_indicator">Pill jelző elrejtése</string>
-    <string name="hide_pill_indicator_desc">A kiválasztási jelző elrejtése a navigációs sávban</string>
     <string name="fonts_title">Betűtípusok</string>
     <string name="font_default_sub">Rendszer</string>
     <string name="font_snpro">SN Pro</string>

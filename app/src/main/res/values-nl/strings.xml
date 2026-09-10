@@ -829,11 +829,6 @@ Handig voor eenmalige budgetten met aangepaste tijdsperiodes</string>
     <string name="logo_comic">Strip</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochroom</string>
-    <string name="navigation_style">Navigatie</string>
-    <string name="hide_nav_labels">Verberg navigatielabels</string>
-    <string name="hide_nav_labels_desc">Verberg labels in de navigatiebalk</string>
-    <string name="hide_pill_indicator">Verberg pilindicator</string>
-    <string name="hide_pill_indicator_desc">Verberg de selectie-indicator in de navigatiebalk</string>
     <string name="fonts_title">Lettertypen</string>
     <string name="font_default_sub">Systeem</string>
     <string name="font_snpro">SN Pro</string>

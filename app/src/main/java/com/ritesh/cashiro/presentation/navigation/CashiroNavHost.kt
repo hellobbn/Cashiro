@@ -916,8 +916,6 @@ fun CashiroNavHost(
         CashiroBottomNavigation(
             navController = navController,
             currentDestination = currentDestination,
-            hideLabels = themeUiState.hideNavigationLabels,
-            hidePill = themeUiState.hidePillIndicator,
             visible = showBottomNav,
             modifier = Modifier.align(Alignment.BottomCenter)
         )

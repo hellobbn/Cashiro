@@ -828,11 +828,6 @@
     <string name="logo_comic">Zoseketsa</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
-    <string name="navigation_style">Navigation</string>
-    <string name="hide_nav_labels">Bisani Ma Navigation Labels</string>
-    <string name="hide_nav_labels_desc">Bisani zilembo mu bar ya navigation</string>
-    <string name="hide_pill_indicator">Bisani Chizindikiro cha Piritsi</string>
-    <string name="hide_pill_indicator_desc">Bisani chizindikiro chosankhidwa mu bar ya navigation</string>
     <string name="fonts_title">Mafonti</string>
     <string name="font_default_sub">Dongosolo</string>
     <string name="font_snpro">SN Pro</string>

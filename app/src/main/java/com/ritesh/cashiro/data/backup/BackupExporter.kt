@@ -261,8 +261,6 @@ class BackupExporter @Inject constructor(
                     appFont = if (config.includeAppPreferences) prefs.appFont.name else null,
                     themeStyle = if (config.includeAppPreferences) prefs.themeStyle.name else null,
                     accentColor = if (config.includeAppPreferences) prefs.accentColor.name else null,
-                    hideNavigationLabels = if (config.includeAppPreferences) prefs.hideNavigationLabels else null,
-                    hidePillIndicator = if (config.includeAppPreferences) prefs.hidePillIndicator else null,
                     blurEffects = if (config.includeAppPreferences) prefs.blurEffects else null,
                     appIcon = if (config.includeAppPreferences) prefs.appIcon.name else null
                 ),

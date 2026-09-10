@@ -833,11 +833,6 @@
     <string name="logo_comic">漫画</string>
     <string name="logo_zenith">顶点</string>
     <string name="logo_monochrome">单色</string>
-    <string name="navigation_style">导航</string>
-    <string name="hide_nav_labels">隐藏导航标签</string>
-    <string name="hide_nav_labels_desc">隐藏导航栏中的标签</string>
-    <string name="hide_pill_indicator">隐藏胶囊指示器</string>
-    <string name="hide_pill_indicator_desc">隐藏导航栏中的选中指示器</string>
     <string name="fonts_title">字体</string>
     <string name="font_default_sub">系统</string>
     <string name="font_snpro">SN Pro</string>

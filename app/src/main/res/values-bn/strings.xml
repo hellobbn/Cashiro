@@ -831,11 +831,6 @@
     <string name="logo_comic">কমিক</string>
     <string name="logo_zenith">সেনিথ</string>
     <string name="logo_monochrome">মনোক্রোম</string>
-    <string name="navigation_style">নেভিগেশন</string>
-    <string name="hide_nav_labels">নেভিগেশন লেবেল লুকান</string>
-    <string name="hide_nav_labels_desc">নেভিগেশন বারের লেবেলগুলি লুকান</string>
-    <string name="hide_pill_indicator">পিল সূচক লুকান</string>
-    <string name="hide_pill_indicator_desc">নেভিগেশন বারে নির্বাচনী সূচকটি লুকান</string>
     <string name="fonts_title">ফন্ট</string>
     <string name="font_default_sub">সিস্টেম</string>
     <string name="font_snpro">SN প্রো</string>

@@ -831,11 +831,6 @@ Zeleno (+) = Prihranek | Rdeče (-) = Prekomerna poraba</string>
     <string name="logo_comic">Strip</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monokrom</string>
-    <string name="navigation_style">Navigacija</string>
-    <string name="hide_nav_labels">Skrij oznake navigacije</string>
-    <string name="hide_nav_labels_desc">Skrij oznake v navigacijski vrstici</string>
-    <string name="hide_pill_indicator">Skrij indikator tablete</string>
-    <string name="hide_pill_indicator_desc">Skrij izbirni indikator v navigacijski vrstici</string>
     <string name="fonts_title">Pisave</string>
     <string name="font_default_sub">Sistemska</string>
     <string name="font_snpro">SN Pro</string>

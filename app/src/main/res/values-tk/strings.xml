@@ -831,11 +831,6 @@ Köp periodlar bilen uzak möhletleýin býugetler üçin peýdalydyr</string>
     <string name="logo_comic">Komik</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokrom</string>
-    <string name="navigation_style">Navigasiýa</string>
-    <string name="hide_nav_labels">Navigasiýa belliklerini gizläň</string>
-    <string name="hide_nav_labels_desc">Navigasiýa panelindäki bellikleriň gizlenmegi</string>
-    <string name="hide_pill_indicator">Pil indikatoryny gizläň</string>
-    <string name="hide_pill_indicator_desc">Seleksiýa indikatorynyň navigasiýa panelinde gizlenmegi</string>
     <string name="fonts_title">Şriftler</string>
     <string name="font_default_sub">Ulgam</string>
     <string name="font_snpro">SN Pro</string>

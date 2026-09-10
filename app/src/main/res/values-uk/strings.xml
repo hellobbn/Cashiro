@@ -830,11 +830,6 @@
     <string name="logo_comic">Комік</string>
     <string name="logo_zenith">Зені́т</string>
     <string name="logo_monochrome">Монохром</string>
-    <string name="navigation_style">Навігація</string>
-    <string name="hide_nav_labels">Сховати підписи навігації</string>
-    <string name="hide_nav_labels_desc">Сховати підписи на панелі навігації</string>
-    <string name="hide_pill_indicator">Сховати індикатор вибору</string>
-    <string name="hide_pill_indicator_desc">Сховати індикатор вибору на панелі навігації</string>
     <string name="fonts_title">Шрифти</string>
     <string name="font_default_sub">Системний</string>
     <string name="font_snpro">SN Pro</string>

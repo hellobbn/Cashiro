@@ -828,11 +828,6 @@
     <string name="logo_comic">Comica</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monocrom</string>
-    <string name="navigation_style">Navigare</string>
-    <string name="hide_nav_labels">Ascunde Etichetele Navigării</string>
-    <string name="hide_nav_labels_desc">Ascunde etichetele din bara de navigare</string>
-    <string name="hide_pill_indicator">Ascunde Indicatorul Pilulei</string>
-    <string name="hide_pill_indicator_desc">Ascunde indicatorul de selecție din bara de navigare</string>
     <string name="fonts_title">Fonturi</string>
     <string name="font_default_sub">Sistem</string>
     <string name="font_snpro">SN Pro</string>

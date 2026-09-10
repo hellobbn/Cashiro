@@ -831,11 +831,6 @@
     <string name="logo_comic">କୋମିକ୍</string>
     <string name="logo_zenith">ଜେନିଥ୍</string>
     <string name="logo_monochrome">ମୋନୋକ୍ରୋମ୍</string>
-    <string name="navigation_style">ନାଭିଗେସନ୍</string>
-    <string name="hide_nav_labels">ନାଭିଗେସନ୍ ଲେବଲ୍ ଲୁକାନ୍ତୁ</string>
-    <string name="hide_nav_labels_desc">ନାଭିଗେସନ୍ ବାରରେ ଲେବଲ୍ ଲୁକାନ୍ତୁ</string>
-    <string name="hide_pill_indicator">ପିଲ୍ ସୂଚକାଙ୍କନ୍ତୁ ଲୁକାନ୍ତୁ</string>
-    <string name="hide_pill_indicator_desc">ନାଭିଗେସନ୍ ବାରରେ ଚୟନ ସୂଚକାଙ୍କନ୍ ସ୍ଥିତିକୁ ଲୁକାନ୍ତୁ</string>
     <string name="fonts_title">ଫୋଣ୍ଟ</string>
     <string name="font_default_sub">ସିଷ୍ଟମ୍</string>
     <string name="font_snpro">SN ପ୍ରୋ</string>

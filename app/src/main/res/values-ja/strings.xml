@@ -829,11 +829,6 @@
     <string name="logo_comic">コミック</string>
     <string name="logo_zenith">ゼニス</string>
     <string name="logo_monochrome">モノクローム</string>
-    <string name="navigation_style">ナビゲーション</string>
-    <string name="hide_nav_labels">ナビゲーションラベルを非表示</string>
-    <string name="hide_nav_labels_desc">ナビゲーションバーのラベルを非表示</string>
-    <string name="hide_pill_indicator">ピルインジケーターを非表示</string>
-    <string name="hide_pill_indicator_desc">ナビゲーションバーの選択インジケーターを非表示</string>
     <string name="fonts_title">フォント</string>
     <string name="font_default_sub">システム</string>
     <string name="font_snpro">SNプロ</string>

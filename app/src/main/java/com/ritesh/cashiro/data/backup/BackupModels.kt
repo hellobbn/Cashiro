@@ -247,12 +247,6 @@ data class ThemePreferences(
     @SerializedName("accent_color")
     val accentColor: String? = null,
 
-    @SerializedName("hide_navigation_labels")
-    val hideNavigationLabels: Boolean? = null,
-
-    @SerializedName("hide_pill_indicator")
-    val hidePillIndicator: Boolean? = null,
-
     @SerializedName("blur_effects")
     val blurEffects: Boolean? = null,
 

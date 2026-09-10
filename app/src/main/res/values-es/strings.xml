@@ -830,11 +830,6 @@
     <string name="logo_comic">Cómic</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monocromo</string>
-    <string name="navigation_style">Navegación</string>
-    <string name="hide_nav_labels">Ocultar Etiquetas de Navegación</string>
-    <string name="hide_nav_labels_desc">Ocultar etiquetas en la barra de navegación</string>
-    <string name="hide_pill_indicator">Ocultar Indicador de Pastilla</string>
-    <string name="hide_pill_indicator_desc">Ocultar el indicador de selección en la barra de navegación</string>
     <string name="fonts_title">Fuentes</string>
     <string name="font_default_sub">Sistema</string>
     <string name="font_snpro">SN Pro</string>

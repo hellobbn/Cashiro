@@ -831,11 +831,6 @@
     <string name="logo_comic">རབ་བཏགས་རི་མོ</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">ཚོན་མདོག་རྐྱང་པ་</string>
-    <string name="navigation_style">ཕྱོགས་སྟོན་</string>
-    <string name="hide_nav_labels">ཕྱོགས་སྟོན་གྱི་ཤོག་བྱང་སྦ་གསང་</string>
-    <string name="hide_nav_labels_desc">ཕྱོགས་སྟོན་སྟེགས་བུའི་ནང་དུ་ཤོག་བྱང་སྦས་པ།</string>
-    <string name="hide_pill_indicator">སྨན་རིལ་གྱི་དམིགས་ཚད་སྦས་སྐུང་།</string>
-    <string name="hide_pill_indicator_desc">ཕྱོགས་སྟོན་སྟེགས་བུའི་ནང་དུ་འདེམས་སྒྲུག་གི་དམིགས་ཚད་སྦས་སྐུང་།</string>
     <string name="fonts_title">ཡིག་གཟུགས་</string>
     <string name="font_default_sub">ལམ་ལུགས</string>
     <string name="font_snpro">SN Pro</string>
