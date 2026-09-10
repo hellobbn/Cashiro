@@ -170,6 +170,7 @@ fun TransactionTabContent(
             if (quickTemplates.isNotEmpty()) {
                 QuickTemplateRow(
                     templates = quickTemplates,
+                    categories = categories,
                     onSelect = viewModel::applyQuickTemplate
                 )
             }
@@ -1390,6 +1391,7 @@ fun TransactionTabContent(
 @Composable
 private fun QuickTemplateRow(
     templates: List<com.ritesh.cashiro.data.database.entity.QuickTemplateEntity>,
+    categories: List<com.ritesh.cashiro.data.database.entity.CategoryEntity>,
     onSelect: (com.ritesh.cashiro.data.database.entity.QuickTemplateEntity) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -1410,7 +1412,16 @@ private fun QuickTemplateRow(
                             ?: ""
                         Text(template.name + amountText, maxLines = 1)
                     },
-                    leadingIcon = { Icon(Icons.Rounded.Bolt, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    leadingIcon = {
+                        BrandIcon(
+                            merchantName = template.merchantName,
+                            size = 22.dp,
+                            showBackground = false,
+                            categoryEntity = categories.find { it.name == template.category },
+                            category = template.category,
+                            subcategory = template.subcategory
+                        )
+                    }
                 )
             }
         }
