@@ -188,6 +188,13 @@ fun TransactionsScreen(
     val deletedTransactions by transactionsViewModel.deletedTransactions.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val balanceOperationError by transactionsViewModel.balanceOperationError.collectAsStateWithLifecycle()
+    LaunchedEffect(balanceOperationError) {
+        balanceOperationError?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            transactionsViewModel.clearBalanceOperationError()
+        }
+    }
     val scope = rememberCoroutineScope()
     var showMainMenu by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }

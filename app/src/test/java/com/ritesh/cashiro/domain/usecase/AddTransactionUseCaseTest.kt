@@ -363,6 +363,101 @@ class AddTransactionUseCaseTest {
         assertEquals(BigDecimal("30000"), latest!!.balance)
     }
 
+    @Test
+    fun `overdraft survives delete and repeated undo without creating money`() = runTest {
+        val dao = FakeAccountBalanceDao()
+        val (useCase, repo) = createUseCaseWithRepo(dao)
+        dao.seedBalance(AccountBalanceEntity(bankName = testBank, accountLast4 = testLast4,
+            balance = BigDecimal("100"), timestamp = baseTime.minusDays(1), sourceType = "MANUAL"))
+        useCase.execute(BigDecimal("840"), "Subscription payment", "Other", TransactionType.EXPENSE,
+            baseTime, bankName = testBank, accountLast4 = testLast4)
+        val txn = transactionDao!!.insertedTransactions.last()
+        assertEquals(BigDecimal("-740"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+        // The repository must use the persisted amount, not an obsolete UI copy.
+        repo.deleteTransaction(txn.copy(amount = BigDecimal("9999")))
+        repo.deleteTransaction(txn)
+        assertEquals(BigDecimal("100"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+        repo.undoDeleteTransaction(txn)
+        repo.undoDeleteTransaction(txn)
+        assertEquals(BigDecimal("-740"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+    }
+
+    @Test
+    fun `batch deletion recomputes both sides of a calibration and undo restores them`() = runTest {
+        val dao = FakeAccountBalanceDao()
+        val (useCase, repo) = createUseCaseWithRepo(dao)
+        dao.seedBalance(AccountBalanceEntity(bankName = testBank, accountLast4 = testLast4,
+            balance = BigDecimal("100"), timestamp = baseTime.minusDays(1), sourceType = "MANUAL"))
+        useCase.execute(BigDecimal("840"), "Before", "Other", TransactionType.EXPENSE,
+            baseTime, bankName = testBank, accountLast4 = testLast4)
+        val first = transactionDao!!.insertedTransactions.last()
+        dao.seedBalance(AccountBalanceEntity(bankName = testBank, accountLast4 = testLast4,
+            balance = BigDecimal("5000"), timestamp = baseTime.plusDays(1), sourceType = "BALANCE_CALIBRATION"))
+        useCase.execute(BigDecimal("420"), "After", "Other", TransactionType.EXPENSE,
+            baseTime.plusDays(2), bankName = testBank, accountLast4 = testLast4)
+        val second = transactionDao!!.insertedTransactions.last()
+        repo.deleteTransaction(first)
+        assertEquals(BigDecimal("4580"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+        repo.undoDeleteTransaction(first)
+        repo.deleteTransactions(listOf(second, first, second))
+        assertEquals(BigDecimal("5000"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+        repo.undoDeleteTransactions(listOf(second, first))
+        assertEquals(BigDecimal("4580"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+        assertEquals(BigDecimal("-740"), dao.getBalanceByTransactionId(first.id)!!.balance)
+    }
+
+    @Test
+    fun `transfer delete and undo recalculate both accounts and later expenses`() = runTest {
+        val dao = FakeAccountBalanceDao()
+        val (useCase, repo) = createUseCaseWithRepo(dao)
+        for ((last4, amount) in listOf(testLast4 to "100", "5678" to "50")) {
+            dao.seedBalance(AccountBalanceEntity(bankName = testBank, accountLast4 = last4,
+                balance = BigDecimal(amount), timestamp = baseTime.minusDays(1), sourceType = "MANUAL"))
+        }
+        useCase.execute(BigDecimal("200"), "Transfer", "Transfer", TransactionType.TRANSFER,
+            baseTime, bankName = testBank, accountLast4 = testLast4,
+            targetAccountBankName = testBank, targetAccountLast4 = "5678")
+        val transfer = transactionDao!!.insertedTransactions.last()
+        useCase.execute(BigDecimal("30"), "Lunch", "Food", TransactionType.EXPENSE,
+            baseTime.plusDays(1), bankName = testBank, accountLast4 = "5678")
+        repo.deleteTransaction(transfer)
+        assertEquals(BigDecimal("100"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+        assertEquals(BigDecimal("20"), dao.getLatestBalance(testBank, "5678")!!.balance)
+        repo.undoDeleteTransaction(transfer)
+        assertEquals(BigDecimal("-100"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+        assertEquals(BigDecimal("220"), dao.getLatestBalance(testBank, "5678")!!.balance)
+    }
+
+    @Test
+    fun `transaction without a linked balance never credits an account on deletion`() = runTest {
+        val dao = FakeAccountBalanceDao()
+        val (_, repo) = createUseCaseWithRepo(dao)
+        dao.seedBalance(AccountBalanceEntity(bankName = testBank, accountLast4 = testLast4,
+            balance = BigDecimal("100"), timestamp = baseTime.minusDays(1)))
+        val txn = TransactionEntity(id = 99, amount = BigDecimal("840"), merchantName = "Imported",
+            category = "Other", transactionType = TransactionType.EXPENSE, dateTime = baseTime,
+            bankName = testBank, accountNumber = testLast4, transactionHash = "unlinked")
+        dao.transactions.add(txn)
+        repo.deleteTransaction(txn)
+        repo.undoDeleteTransaction(txn)
+        assertEquals(BigDecimal("100"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+    }
+
+    @Test
+    fun `first transaction records opening base and hard delete is idempotent`() = runTest {
+        val dao = FakeAccountBalanceDao()
+        val (useCase, repo) = createUseCaseWithRepo(dao)
+        useCase.execute(BigDecimal("840"), "First", "Other", TransactionType.EXPENSE,
+            baseTime, bankName = testBank, accountLast4 = testLast4)
+        val txn = transactionDao!!.insertedTransactions.last()
+        assertEquals(BigDecimal("-840"), dao.getLatestBalance(testBank, testLast4)!!.balance)
+        repo.deleteTransaction(txn, hardDelete = true)
+        repo.deleteTransaction(txn, hardDelete = true)
+        repo.undoDeleteTransaction(txn)
+        assertEquals(BigDecimal.ZERO, dao.getLatestBalance(testBank, testLast4)!!.balance)
+        assertTrue(dao.transactions.isEmpty())
+    }
+
     private fun createUseCase(balanceDao: FakeAccountBalanceDao): AddTransactionUseCase {
         return createUseCaseWithRepo(balanceDao).first
     }
@@ -374,6 +469,7 @@ class AddTransactionUseCaseTest {
         val accountBalanceRepo = AccountBalanceRepository(balanceDao, context)
         val dao = FakeTransactionDao()
         transactionDao = dao
+        balanceDao.transactions = dao.insertedTransactions
         val transactionRepo = TransactionRepository(dao, accountBalanceRepo)
         val subscriptionDao = FakeSubscriptionDao()
         val subscriptionRepo = SubscriptionRepository(subscriptionDao)
@@ -497,6 +593,16 @@ class AddTransactionUseCaseTest {
     }
 
     private class FakeAccountBalanceDao : AccountBalanceDao() {
+        var transactions = mutableListOf<TransactionEntity>()
+        override suspend fun getTransactionDeletedState(id: Long): Boolean? = transactions.find { it.id == id }?.isDeleted
+        override suspend fun setTransactionDeletedState(id: Long, deleted: Boolean) {
+            val index = transactions.indexOfFirst { it.id == id }
+            if (index >= 0) transactions[index] = transactions[index].copy(isDeleted = deleted)
+        }
+        override suspend fun hardDeleteLedgerTransaction(id: Long) { transactions.removeAll { it.id == id } }
+        override suspend fun getBalancesForTransaction(id: Long): List<AccountBalanceEntity> =
+            balances.values.flatten().filter { it.transactionId == id }
+
         private val balances = mutableMapOf<Pair<String, String>, MutableList<AccountBalanceEntity>>()
         private var nextId = 1L
 
@@ -534,7 +640,15 @@ class AddTransactionUseCaseTest {
             bankName: String,
             accountLast4: String,
             timestamp: LocalDateTime
-        ): List<AccountBalanceTransactionInfo> = emptyList()
+        ): List<AccountBalanceTransactionInfo> = balances[bankName to accountLast4].orEmpty()
+            .filter { it.timestamp > timestamp }.sortedBy { it.timestamp }.map { row ->
+                val txn = transactions.find { it.id == row.transactionId }
+                val type = if (txn?.transactionType == TransactionType.TRANSFER) {
+                    if (txn.bankName == bankName && txn.accountNumber == accountLast4) TransactionType.EXPENSE else TransactionType.INCOME
+                } else txn?.transactionType
+                AccountBalanceTransactionInfo(row.id, row.balance, row.sourceType, row.isCreditCard,
+                    row.transactionId, txn?.amount, type?.name, txn?.balanceAfter, txn?.isDeleted)
+            }
         override fun getLatestBalanceFlow(bankName: String, accountLast4: String): Flow<AccountBalanceEntity?> = flowOf(null)
         override fun getAllLatestBalances(): Flow<List<AccountBalanceEntity>> = flowOf(emptyList())
         override fun getAllBalances(): Flow<List<AccountBalanceEntity>> = flowOf(emptyList())
@@ -555,7 +669,7 @@ class AddTransactionUseCaseTest {
             }
         }
         override suspend fun deleteBalance(balance: AccountBalanceEntity) = Unit
-        override suspend fun getBalanceHistoryForAccount(bankName: String, accountLast4: String): List<AccountBalanceEntity> = emptyList()
+        override suspend fun getBalanceHistoryForAccount(bankName: String, accountLast4: String): List<AccountBalanceEntity> = balances[bankName to accountLast4].orEmpty()
         override suspend fun deleteBalanceById(id: Long) = Unit
         override suspend fun updateBalanceById(id: Long, newBalance: BigDecimal) {
             for (list in balances.values) {
@@ -588,12 +702,6 @@ class AddTransactionUseCaseTest {
             return null
         }
 
-        override suspend fun recalculateBalancesAfter(
-            bankName: String,
-            accountLast4: String,
-            timestamp: LocalDateTime,
-            startingBalance: BigDecimal
-        ) = Unit
 
         override suspend fun getAccountByLast4(accountLast4: String): AccountBalanceEntity? = null
 

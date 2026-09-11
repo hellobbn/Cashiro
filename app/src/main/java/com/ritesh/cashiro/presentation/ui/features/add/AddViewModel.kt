@@ -1,7 +1,5 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
-import com.ritesh.cashiro.utils.SubscriptionUtils
-
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -35,7 +33,6 @@ import java.time.ZoneId
 import javax.inject.Inject
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.time.LocalTime
 import com.ritesh.cashiro.R
 
 @HiltViewModel
@@ -316,8 +313,13 @@ constructor(
         _transactionUiState.update { currentState -> currentState.copy(isRecurring = isRecurring) }
     }
 
-    fun saveTransaction(onSuccess: () -> Unit) {
+    fun dismissOverdraftWarning() {
+        _transactionUiState.update { it.copy(overdraftBalance = null) }
+    }
+
+    fun saveTransaction(allowOverdraft: Boolean = false, onSuccess: () -> Unit) {
         val state = _transactionUiState.value
+        if (state.isLoading) return
 
         val isLoanType = state.transactionType == TransactionType.LENT ||
             state.transactionType == TransactionType.BORROWED
@@ -362,6 +364,19 @@ constructor(
                 _transactionUiState.update { it.copy(isLoading = true) }
 
                 val amount = BigDecimal(state.amount)
+
+                val account = state.selectedAccount
+                val spendsMoney = state.transactionType in setOf(TransactionType.EXPENSE,
+                    TransactionType.INVESTMENT, TransactionType.LENT, TransactionType.TRANSFER)
+                if (!allowOverdraft && spendsMoney && account != null) {
+                    val projected = accountBalanceRepository.projectedExpenseBalance(
+                        account.bankName, account.accountLast4, state.date, amount)
+                    if (projected != null && projected < BigDecimal.ZERO) {
+                        _transactionUiState.update { it.copy(overdraftBalance = projected, isLoading = false) }
+                        return@launch
+                    }
+                }
+                _transactionUiState.update { it.copy(overdraftBalance = null) }
 
                 val transactionId = addTransactionUseCase.execute(
                     amount = amount,
@@ -702,34 +717,13 @@ constructor(
                         throw Exception(context.getString(R.string.err_subscription_not_found))
                     }
                 } else {
-                    // Create new subscription
-                    val transactionDate = state.nextPaymentDate.atTime(LocalTime.now())
-                    
-                    addTransactionUseCase.execute(
-                        amount = amount,
-                        merchant = state.serviceName.trim(),
-                        category = state.category,
-                        subcategory = state.subcategory,
-                        type = TransactionType.EXPENSE, // Subscriptions are expenses
-                        date = transactionDate,
-                        notes = state.notes.takeIf { it.isNotBlank() },
-                        isRecurring = true, // It is part of a subscription
-                        bankName = state.selectedAccount?.bankName,
-                        accountLast4 = state.selectedAccount?.accountLast4,
-                        currency = state.currency,
-                        sourceAccountId = state.selectedAccount?.id,
-                        billingCycle = billingCycleToSave,
-                        createSubscription = false
-                    )
-
-                    val actualNextPaymentDate = SubscriptionUtils.calculateNextPaymentDate(state.nextPaymentDate, billingCycleToSave)
-                    Log.d("AddViewModel", "DEBUG_SUBSCRIPTION: fromDate=${state.nextPaymentDate}, billingCycle=$billingCycleToSave, today=${LocalDate.now()}, result=$actualNextPaymentDate")
-
+                    // A subscription is a payment plan, not an actual expense.
+                    // Keep the selected due date and leave payment history unset.
                     val subscriptionId =
                         addSubscriptionUseCase.execute(
                             merchantName = state.serviceName.trim(),
                             amount = amount,
-                            nextPaymentDate = actualNextPaymentDate,
+                            nextPaymentDate = state.nextPaymentDate,
                             billingCycle = billingCycleToSave,
                             category = state.category,
                             subcategory = state.subcategory,
@@ -738,7 +732,7 @@ constructor(
                             paymentReminder = false, // Not implemented yet
                             currency = state.currency,
                             notes = state.notes.takeIf { it.isNotBlank() },
-                            lastPaidDate = state.nextPaymentDate
+                            lastPaidDate = null
                         )
 
                     Log.d("AddViewModel", "Subscription saved successfully with ID: $subscriptionId")
@@ -806,6 +800,7 @@ data class TransactionUiState(
     val currency: String = "CNY",
     val isLoading: Boolean = false,
     val error: String? = null,
+    val overdraftBalance: BigDecimal? = null,
     val selectedPersonId: Long? = null,
     val dueDate: LocalDateTime? = null,
     val saveAsQuickTemplate: Boolean = false
@@ -838,7 +833,7 @@ data class SubscriptionUiState(
     val amountError: String? = null,
     val billingCycle: String = "Monthly",
     val billingCycleError: String? = null,
-    val nextPaymentDate: LocalDate = LocalDate.now(), // Default to today as "First Payment Date"
+    val nextPaymentDate: LocalDate = LocalDate.now(), // Next scheduled payment, not a completed payment
     val category: String = "Subscription",
     val subcategory: String? = null,
     val categoryError: String? = null,

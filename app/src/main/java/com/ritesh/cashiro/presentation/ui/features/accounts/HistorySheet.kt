@@ -299,7 +299,8 @@ private fun HistoryRecordItem(
                     )
                 }
 
-                if (editingId != balance.id && !isOnlyRecord) {
+                if (editingId != balance.id && !isOnlyRecord &&
+                    balance.sourceType !in setOf("BALANCE_CALIBRATION", "OPENING_BALANCE")) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
@@ -394,6 +395,7 @@ private fun HistoryRecordItem(
                         "TRANSACTION" -> Triple(Icons.Rounded.SwapHoriz, stringResource(R.string.source_transaction), MaterialTheme.colorScheme.tertiary)
                         "SMS_BALANCE" -> Triple(Iconax.Messages, stringResource(R.string.source_sms), MaterialTheme.colorScheme.secondary)
                         "CARD_LINK" -> Triple(Iconax.Card, stringResource(R.string.source_card_link), MaterialTheme.colorScheme.primary)
+                        "BALANCE_CALIBRATION" -> Triple(Iconax.Edit2, stringResource(R.string.balance_calibration), MaterialTheme.colorScheme.primary)
                         "MANUAL" -> Triple(Iconax.Edit2, stringResource(R.string.source_manual), MaterialTheme.colorScheme.onSurfaceVariant)
                         else -> Triple(Iconax.Information, stringResource(R.string.source_system), MaterialTheme.colorScheme.onSurfaceVariant)
                     }

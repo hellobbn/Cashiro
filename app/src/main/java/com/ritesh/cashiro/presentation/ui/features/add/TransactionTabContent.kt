@@ -51,6 +51,8 @@ import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -1334,6 +1336,26 @@ fun TransactionTabContent(
                 }
             }
         }
+    }
+
+    uiState.overdraftBalance?.let { projected ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissOverdraftWarning,
+            title = { Text(stringResource(R.string.balance_overdraft_title)) },
+            text = { Text(stringResource(R.string.balance_overdraft_message,
+                uiState.currency, projected.toPlainString())) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.saveTransaction(allowOverdraft = true, onSuccess = onSave) },
+                    enabled = !uiState.isLoading) {
+                    Text(stringResource(R.string.balance_overdraft_continue))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissOverdraftWarning) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     // Date Picker Dialog

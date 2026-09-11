@@ -399,7 +399,7 @@ constructor(
                 iconResId = latestBalance?.iconResId ?: 0,
                 iconName = latestBalance?.iconName ?: "",
                 isWallet = latestBalance?.isWallet ?: false,
-                sourceType = "MANUAL",
+                sourceType = "BALANCE_CALIBRATION",
                 currency = latestBalance?.currency ?: resolveDefaultCurrency(),
                 color = latestBalance?.color ?: "#33B5E5"
             )
@@ -423,7 +423,7 @@ constructor(
                     creditLimit = newLimit,
                     timestamp = LocalDateTime.now(),
                     isCreditCard = true,
-                    sourceType = "MANUAL",
+                    sourceType = "BALANCE_CALIBRATION",
                     iconResId = latestBalance?.iconResId ?: 0,
                     iconName = latestBalance?.iconName ?: "type_finance_credit_card",
                     currency = latestBalance?.currency ?: resolveDefaultCurrency(),
@@ -470,6 +470,9 @@ constructor(
 
     fun deleteBalanceRecord(id: Long, bankName: String, accountLast4: String) {
         viewModelScope.launch {
+            val record = accountBalanceRepository.getBalanceById(id) ?: return@launch
+            if (record.sourceType in setOf("BALANCE_CALIBRATION", "OPENING_BALANCE")) return@launch
+
             // Check if this is the only record
             val count = accountBalanceRepository.getBalanceCountForAccount(bankName, accountLast4)
             if (count > 1) {
@@ -488,6 +491,9 @@ constructor(
             accountLast4: String
     ) {
         viewModelScope.launch {
+            val record = accountBalanceRepository.getBalanceById(id) ?: return@launch
+            if (record.sourceType in setOf("BALANCE_CALIBRATION", "OPENING_BALANCE")) return@launch
+
             accountBalanceRepository.updateBalanceById(id, newBalance)
             // Reload history and accounts
             loadBalanceHistory(bankName, accountLast4)
