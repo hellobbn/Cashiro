@@ -2,6 +2,7 @@ package com.ritesh.cashiro.data.repository
 
 import android.content.Context
 import com.ritesh.cashiro.data.database.dao.AccountBalanceDao
+import com.ritesh.cashiro.data.database.dao.SOURCE_OPENING_BALANCE
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +26,7 @@ class AccountBalanceRepository @Inject constructor(
 
     suspend fun projectedExpenseBalance(bankName: String, accountLast4: String, timestamp: LocalDateTime, amount: BigDecimal): BigDecimal? {
         val previous = accountBalanceDao.getLatestBalanceOnOrBefore(bankName, accountLast4, timestamp)
-            ?: accountBalanceDao.getEarliestBalance(bankName, accountLast4)?.takeIf { it.sourceType == "MANUAL" }
+            ?: accountBalanceDao.getEarliestBalance(bankName, accountLast4)?.takeIf { it.sourceType == "MANUAL" || it.sourceType == SOURCE_OPENING_BALANCE }
         val account = previous ?: accountBalanceDao.getLatestBalance(bankName, accountLast4)
         if (account?.isCreditCard == true) return null
         return (previous?.balance ?: BigDecimal.ZERO) - amount
