@@ -32,7 +32,6 @@ import com.ritesh.cashiro.domain.model.PersonInfo
 import com.ritesh.cashiro.presentation.ui.components.BalancePoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +46,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -216,68 +214,53 @@ class HomeViewModel @Inject constructor(
                     val key = "${account.bankName}_${account.accountLast4}"
                     !hiddenAccounts.contains(key)
                 }
-                Triple(balances, selectedCurrency, connections)
-            }.flowOn(Dispatchers.Default).collectLatest { (balances, selectedCurrency, connections) ->
                 // Keep zero-balance accounts discoverable in the grouped account list.
-                val regularAccounts = balances.filter { !it.isCreditCard }
+                val regularAccounts =
+                    balances.filter { !it.isCreditCard }
                 val creditCards = balances.filter { it.isCreditCard }
 
                 // Account loading completed
                 Log.d("HomeViewModel", "Loaded ${balances.size} account(s)")
 
-                val snapshots = connections.investmentSnapshotsOrEmpty()
-
-                suspend fun publishTotals(allowNetwork: Boolean) {
-                    val totalBalanceInSelectedCurrency = balances.netWorthIn(
-                        selectedCurrency,
-                        currencyConversionService,
-                        investmentSnapshots = snapshots,
-                        allowNetwork = allowNetwork
-                    )
-
-                    var totalAvailableCreditInSelectedCurrency = BigDecimal.ZERO
-                    for (card in creditCards) {
-                        val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) - card.balance
-                        val amt = if (card.currency == selectedCurrency) {
-                            availableInCardCurrency
-                        } else {
-                            currencyConversionService.convertAmount(
-                                amount = availableInCardCurrency,
-                                fromCurrency = card.currency,
-                                toCurrency = selectedCurrency,
-                                allowNetwork = allowNetwork
-                            )
-                        }
-                        totalAvailableCreditInSelectedCurrency =
-                            totalAvailableCreditInSelectedCurrency.add(amt)
-                    }
-
-                    _uiState.update {
-                        it.copy(
-                            accountBalances = regularAccounts,
-                            creditCards = creditCards,
-                            totalBalance = totalBalanceInSelectedCurrency,
-                            totalAvailableCredit = totalAvailableCreditInSelectedCurrency,
-                            selectedCurrency = selectedCurrency
-                        )
-                    }
-                }
-
-                // First pass on stored rates only. The net worth card starts at zero, and
-                // fetching a missing rate can take as long as the request timeout, so waiting
-                // for the network here is what made the balance read 0 on a poor connection.
-                withContext(Dispatchers.Default) { publishTotals(allowNetwork = false) }
-
+                // Check if we have multiple currencies and refresh exchange rates if needed
                 val accountCurrencies = regularAccounts.map { it.currency }.distinct()
-                if (accountCurrencies.size > 1) {
+                val hasMultipleCurrencies = accountCurrencies.size > 1
+
+                if (hasMultipleCurrencies && accountCurrencies.isNotEmpty()) {
                     currencyConversionService.refreshExchangeRatesForAccount(accountCurrencies)
                 }
 
-                // Only currencies that differ from the display currency need a rate at all.
-                if (balances.any { it.currency != selectedCurrency } || snapshots.keys.any { it != selectedCurrency }) {
-                    withContext(Dispatchers.Default) { publishTotals(allowNetwork = true) }
+                val totalBalanceInSelectedCurrency = balances.netWorthIn(
+                    selectedCurrency,
+                    currencyConversionService,
+                    investmentSnapshots = connections.investmentSnapshotsOrEmpty()
+                )
+
+                var totalAvailableCreditInSelectedCurrency = BigDecimal.ZERO
+                for (card in creditCards) {
+                    val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) - card.balance
+                    val amt = if (card.currency == selectedCurrency) {
+                        availableInCardCurrency
+                    } else {
+                        currencyConversionService.convertAmount(
+                            amount = availableInCardCurrency,
+                            fromCurrency = card.currency,
+                            toCurrency = selectedCurrency
+                        )
+                    }
+                    totalAvailableCreditInSelectedCurrency = totalAvailableCreditInSelectedCurrency.add(amt)
                 }
-            }
+
+                _uiState.update { 
+                    it.copy(
+                        accountBalances = regularAccounts,
+                        creditCards = creditCards,
+                        totalBalance = totalBalanceInSelectedCurrency,
+                        totalAvailableCredit = totalAvailableCreditInSelectedCurrency,
+                        selectedCurrency = selectedCurrency
+                    )
+                }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {
@@ -370,35 +353,19 @@ class HomeViewModel @Inject constructor(
                 selectedCurrencyCombined,
                 currencyConversionService.rateChangeTrigger
             ) { transactions, selectedCurrency, _ ->
-                transactions to selectedCurrency
-            }.flowOn(Dispatchers.Default).collectLatest { (transactions, selectedCurrency) ->
-                // Publish the rows first. Converting to the selected currency can require a
-                // network round trip, and isLoading is cleared here only; waiting for the
-                // conversion left the card on its loading indicator for the whole request.
+                // Calculate converted amounts for shown transactions if transaction currency differs from selected currency
+                val converted = transactions
+                    .filter { it.currency != selectedCurrency }
+                    .associate { tx ->
+                        tx.id to (currencyConversionService.convertAmount(tx.amount, tx.currency, selectedCurrency) ?: tx.amount)
+                    }
+                
                 _uiState.update { it.copy(
                     recentTransactions = transactions,
+                    convertedAmounts = converted,
                     isLoading = false
                 ) }
-
-                val converted = withContext(Dispatchers.Default) {
-                    transactions
-                        .filter { it.currency != selectedCurrency }
-                        .associate { tx ->
-                            // Not runCatching: that would swallow the cancellation thrown when
-                            // a newer list arrives and collectLatest restarts this block.
-                            tx.id to (
-                                try {
-                                    currencyConversionService.convertAmount(tx.amount, tx.currency, selectedCurrency)
-                                } catch (e: CancellationException) {
-                                    throw e
-                                } catch (_: Exception) {
-                                    tx.amount
-                                }
-                            )
-                        }
-                }
-                _uiState.update { it.copy(convertedAmounts = converted) }
-            }
+            }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
         viewModelScope.launch {

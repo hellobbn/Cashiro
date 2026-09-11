@@ -30,20 +30,18 @@ fun List<AccountBalanceEntity>.excludingHidden(hiddenKeys: Set<String>): List<Ac
 suspend fun List<AccountBalanceEntity>.netWorthIn(
     targetCurrency: String,
     conversionService: CurrencyConversionService,
-    investmentSnapshots: Map<String, BigDecimal> = emptyMap(),
-    allowNetwork: Boolean = true
+    investmentSnapshots: Map<String, BigDecimal> = emptyMap()
 ): BigDecimal {
     val (creditCards, assets) = partition { it.isCreditCard }
-    return assets.convertedTotal(targetCurrency, conversionService, allowNetwork) -
-        creditCards.convertedTotal(targetCurrency, conversionService, allowNetwork) +
-        investmentSnapshots.convertedTotal(targetCurrency, conversionService, allowNetwork)
+    return assets.convertedTotal(targetCurrency, conversionService) -
+        creditCards.convertedTotal(targetCurrency, conversionService) +
+        investmentSnapshots.convertedTotal(targetCurrency, conversionService)
 }
 
 /** Total of [AccountBalanceEntity.balance] expressed in [targetCurrency]. */
 suspend fun List<AccountBalanceEntity>.convertedTotal(
     targetCurrency: String,
-    conversionService: CurrencyConversionService,
-    allowNetwork: Boolean = true
+    conversionService: CurrencyConversionService
 ): BigDecimal {
     if (none { it.currency != targetCurrency }) {
         return sumOfBigDecimal { it.balance }
@@ -56,8 +54,7 @@ suspend fun List<AccountBalanceEntity>.convertedTotal(
             conversionService.convertAmount(
                 amount = account.balance,
                 fromCurrency = account.currency,
-                toCurrency = targetCurrency,
-                allowNetwork = allowNetwork
+                toCurrency = targetCurrency
             )
         }
     }
@@ -66,8 +63,7 @@ suspend fun List<AccountBalanceEntity>.convertedTotal(
 
 private suspend fun Map<String, BigDecimal>.convertedTotal(
     targetCurrency: String,
-    conversionService: CurrencyConversionService,
-    allowNetwork: Boolean = true
+    conversionService: CurrencyConversionService
 ): BigDecimal {
     if (isEmpty()) return BigDecimal.ZERO
     var total = BigDecimal.ZERO
@@ -78,8 +74,7 @@ private suspend fun Map<String, BigDecimal>.convertedTotal(
             conversionService.convertAmount(
                 amount = amount,
                 fromCurrency = currency,
-                toCurrency = targetCurrency,
-                allowNetwork = allowNetwork
+                toCurrency = targetCurrency
             )
         }
     }
