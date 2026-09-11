@@ -425,8 +425,6 @@
     <string name="merchant_label">व्यापारी</string>
     <string name="description_optional_label">वर्णन (ऐच्छिक)</string>
     <string name="transfer_action">हस्तांतरण</string>
-    <string name="apply_category_to_all_future_transactions_format">"%1$s" कडून येणाऱ्या सर्व भविष्यातील व्यवहारांसाठी ही श्रेणी लागू करा</string>
-    <string name="manual_entry_warning">हे manually प्रवेश केलेल्या व्यवहारांवर कार्य करत नाही</string>
     <string name="update_existing_transactions_format">"%3$s" मधील %1$d विद्यमान %2$s अद्यतनित करा</string>
     <string name="preview_transaction_matches">व्यवहार जुळणी पूर्वावलोकन</string>
     <string name="recurring_transaction">पुनरावृत्ती होणारा व्यवहार</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">कॉमिक</string>
     <string name="logo_zenith">झेनिथ</string>
     <string name="logo_monochrome">एकसंध</string>
-    <string name="navigation_style">नेव्हिगेशन</string>
-    <string name="nav_floating">फ्लोटिंग</string>
-    <string name="nav_floating_sub">आधुनिक आणि सुबक</string>
-    <string name="nav_normal">सामान्य</string>
-    <string name="nav_normal_sub">स्टँडर्ड M3</string>
-    <string name="hide_nav_labels">नेव्हिगेशन लेबले लपवा</string>
-    <string name="hide_nav_labels_desc">नेव्हिगेशन बारमधील लेबले लपवा</string>
-    <string name="hide_pill_indicator">पिल निर्देशक लपवा</string>
-    <string name="hide_pill_indicator_desc">नेव्हिगेशन बारमधील निवड निर्देशक लपवा</string>
     <string name="fonts_title">फॉन्ट्स</string>
     <string name="font_default_sub">सिस्टम</string>
     <string name="font_snpro">SN Pro</string>

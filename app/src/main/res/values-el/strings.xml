@@ -425,8 +425,6 @@
     <string name="merchant_label">Έμπορος</string>
     <string name="description_optional_label">Περιγραφή (Προαιρετικό)</string>
     <string name="transfer_action">Μεταφορά</string>
-    <string name="apply_category_to_all_future_transactions_format">Εφαρμόστε αυτήν την κατηγορία σε όλες τις μελλοντικές συναλλαγές από "%1$s"</string>
-    <string name="manual_entry_warning">Αυτό δεν λειτουργεί για συναλλαγές που εισάγονται χειροκίνητα</string>
     <string name="update_existing_transactions_format">Ενημέρωση %1$d υπαρχόντων %2$s από "%3$s"</string>
     <string name="preview_transaction_matches">Προεπισκόπηση αντιστοιχιών συναλλαγών</string>
     <string name="recurring_transaction">Επαναλαμβανόμενη Συναλλαγή</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">Κόμικ</string>
     <string name="logo_zenith">Ζενίθ</string>
     <string name="logo_monochrome">Μονόχρωμο</string>
-    <string name="navigation_style">Πλοήγηση</string>
-    <string name="nav_floating">Πλωτή</string>
-    <string name="nav_floating_sub">Μοντέρνο &amp; Κομψό</string>
-    <string name="nav_normal">Κανονικό</string>
-    <string name="nav_normal_sub">Τυπικό M3</string>
-    <string name="hide_nav_labels">Απόκρυψη Ετικετών Πλοήγησης</string>
-    <string name="hide_nav_labels_desc">Απόκρυψη ετικετών στη γραμμή πλοήγησης</string>
-    <string name="hide_pill_indicator">Απόκρυψη Δείκτη Pill</string>
-    <string name="hide_pill_indicator_desc">Απόκρυψη του δείκτη επιλογής στη γραμμή πλοήγησης</string>
     <string name="fonts_title">Γραμματοσειρές</string>
     <string name="font_default_sub">Σύστημα</string>
     <string name="font_snpro">SN Pro</string>

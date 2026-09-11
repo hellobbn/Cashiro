@@ -23,7 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -80,7 +80,7 @@ fun SettleUpSheet(
     var showNumberPad by remember { mutableStateOf(false) }
     var showAccountSheet by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle() },
@@ -293,7 +293,7 @@ fun SettleUpSheet(
     }
 
     if (showNumberPad) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
             containerColor = MaterialTheme.colorScheme.surface
         ) {
@@ -315,7 +315,7 @@ fun SettleUpSheet(
     }
 
     if (showAccountSheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showAccountSheet = false },
             containerColor = MaterialTheme.colorScheme.surface
         ) {

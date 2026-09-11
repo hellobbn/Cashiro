@@ -13,8 +13,9 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.database.entity.LendBorrowType
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
+import com.ritesh.cashiro.data.repository.QuickTemplateRepository
+import com.ritesh.cashiro.data.database.entity.QuickTemplateEntity
 import com.ritesh.cashiro.data.repository.CategoryRepository
-import com.ritesh.cashiro.data.repository.MerchantMappingRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.repository.SubscriptionRepository
@@ -53,7 +54,6 @@ import javax.inject.Inject
 @HiltViewModel
 class TransactionDetailViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
-    private val merchantMappingRepository: MerchantMappingRepository,
     private val categoryRepository: CategoryRepository,
     private val subcategoryRepository: SubcategoryRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
@@ -67,6 +67,7 @@ class TransactionDetailViewModel @Inject constructor(
     private val getLendBorrowEntryForTransactionUseCase: GetLendBorrowEntryForTransactionUseCase,
     private val markTransactionAsLoanUseCase: MarkTransactionAsLoanUseCase,
     private val unmarkTransactionAsLoanUseCase: UnmarkTransactionAsLoanUseCase,
+    private val quickTemplateRepository: QuickTemplateRepository,
     val attachmentService: AttachmentService,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -391,16 +392,11 @@ class TransactionDetailViewModel @Inject constructor(
                 editableTransaction = null,
                 isEditMode = false,
                 errorMessage = null,
-                applyToAllFromMerchant = false,
                 updateExistingTransactions = false,
                 existingTransactionCount = 0
             )
         }
         _editableAttachments.value = emptyList()
-    }
-
-    fun toggleApplyToAllFromMerchant() {
-        _uiState.update { it.copy(applyToAllFromMerchant = !it.applyToAllFromMerchant) }
     }
 
     fun toggleUpdateExistingTransactions() {
@@ -672,14 +668,6 @@ class TransactionDetailViewModel @Inject constructor(
                 // Sync with subscriptions if recurring
                 syncSubscriptionForTransaction(normalizedTransaction)
 
-                // Save merchant mapping if checkbox is checked
-                if (state.applyToAllFromMerchant) {
-                    merchantMappingRepository.setMapping(
-                        normalizedTransaction.merchantName,
-                        normalizedTransaction.category
-                    )
-                }
-
                 // Update existing transactions if checkbox is checked (fuzzy/contains match)
                 if (state.updateExistingTransactions) {
                     transactionRepository.updateCategoryAndSubcategoryForMerchantContains(
@@ -696,8 +684,7 @@ class TransactionDetailViewModel @Inject constructor(
                         isEditMode = false,
                         editableTransaction = null,
                         errorMessage = null,
-                        applyToAllFromMerchant = false,
-                        updateExistingTransactions = false,
+                                updateExistingTransactions = false,
                         existingTransactionCount = 0,
                         matchedTransactions = emptyList(),
                         selectedMatchIds = emptySet(),
@@ -795,6 +782,32 @@ class TransactionDetailViewModel @Inject constructor(
                 } finally {
                     _uiState.update { it.copy(isDeleting = false) }
                 }
+            }
+        }
+    }
+
+    /** Store this transaction's merchant, category, type, account and notes as a quick-add template. */
+    fun saveAsQuickTemplate() {
+        val txn = _uiState.value.transaction ?: return
+        viewModelScope.launch {
+            try {
+                quickTemplateRepository.add(
+                    QuickTemplateEntity(
+                        name = txn.merchantName,
+                        merchantName = txn.merchantName,
+                        category = txn.category,
+                        subcategory = txn.subcategory,
+                        transactionType = txn.transactionType,
+                        amount = txn.amount,
+                        prefillAmount = false,
+                        bankName = txn.bankName,
+                        accountLast4 = txn.accountNumber,
+                        currency = txn.currency,
+                        notes = txn.description
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w("TransactionDetailVM", "Quick template not saved", e)
             }
         }
     }

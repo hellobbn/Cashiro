@@ -425,8 +425,6 @@ Zelená (+) = Úspory | Červená (-) = Prečerpanie</string>
     <string name="merchant_label">Obchodník</string>
     <string name="description_optional_label">Popis (voliteľný)</string>
     <string name="transfer_action">Previesť</string>
-    <string name="apply_category_to_all_future_transactions_format">Použiť túto kategóriu pre všetky budúce transakcie od "%1$s"</string>
-    <string name="manual_entry_warning">Toto nefunguje pri manuálne zadaných transakciách</string>
     <string name="update_existing_transactions_format">Aktualizovať %1$d existujúcich %2$s z "%3$s"</string>
     <string name="preview_transaction_matches">Náhľad zhôd transakcií</string>
     <string name="recurring_transaction">Pravidelná transakcia</string>
@@ -833,15 +831,6 @@ Zelená (+) = Úspory | Červená (-) = Prečerpanie</string>
     <string name="logo_comic">Komiks</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monochromatický</string>
-    <string name="navigation_style">Navigácia</string>
-    <string name="nav_floating">Plávajúca</string>
-    <string name="nav_floating_sub">Modernej &amp; Elegantná</string>
-    <string name="nav_normal">Normálna</string>
-    <string name="nav_normal_sub">Štandardná M3</string>
-    <string name="hide_nav_labels">Skryť názvy navigácie</string>
-    <string name="hide_nav_labels_desc">Skryť názvy v navigačnom pruhu</string>
-    <string name="hide_pill_indicator">Skryť indikátor pilulky</string>
-    <string name="hide_pill_indicator_desc">Skryť indikátor výberu v navigačnom pruhu</string>
     <string name="fonts_title">Písma</string>
     <string name="font_default_sub">Systém</string>
     <string name="font_snpro">SN Pro</string>

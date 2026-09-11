@@ -425,8 +425,6 @@
     <string name="merchant_label">വ്യാപാരി</string>
     <string name="description_optional_label">വിവരണം (ഐച്ഛികം)</string>
     <string name="transfer_action">മാറ്റം</string>
-    <string name="apply_category_to_all_future_transactions_format">"%1$s" നിന്നുള്ള എല്ലാ ഭാവി ഇടപാടുകൾക്കും ഈ വിഭാഗം ബാധകമാക്കുക</string>
-    <string name="manual_entry_warning">ഇത് മാന്വലായി നൽകിയ ഇടപാടുകളിൽ പ്രവർത്തിക്കുന്നില്ല</string>
     <string name="update_existing_transactions_format">"%3$s" നിന്നും നിലവിലുള്ള %1$d %2$s അപ്ഡേറ്റ് ചെയ്യുക</string>
     <string name="preview_transaction_matches">ഇടപാട് മേള ജാലകം മുൻവീക്ഷണം</string>
     <string name="recurring_transaction">പുനരാവർത്തിക്കുന്ന ഇടപാട്</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">കോമിക്</string>
     <string name="logo_zenith">സെനിത്ത്</string>
     <string name="logo_monochrome">മോണോക്രോം</string>
-    <string name="navigation_style">നാവിഗേഷൻ</string>
-    <string name="nav_floating">ഫ്ലോട്ടിംഗ്</string>
-    <string name="nav_floating_sub">ആധുനികവും സ്മൂത്തുമായത്</string>
-    <string name="nav_normal">സാധാരണ</string>
-    <string name="nav_normal_sub">സ്റ്റാൻഡേർഡ് M3</string>
-    <string name="hide_nav_labels">നാവിഗേഷൻ ലേബലുകൾ മറച്ച് വെക്കുക</string>
-    <string name="hide_nav_labels_desc">നാവിഗേഷൻ ബാറിലെ ലേബലുകൾ മറച്ച് വെക്കുക</string>
-    <string name="hide_pill_indicator">പിൽ സൂചിക മറച്ചുവെക്കുക</string>
-    <string name="hide_pill_indicator_desc">നാവിഗേഷൻ ബാറിലെ തിരഞ്ഞെടുപ്പ് സൂചിക മറക്കുക</string>
     <string name="fonts_title">ഫോണ്ടുകൾ</string>
     <string name="font_default_sub">സിസ്റ്റം</string>
     <string name="font_snpro">SN പ്രോ</string>

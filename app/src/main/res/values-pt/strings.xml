@@ -422,8 +422,6 @@
     <string name="merchant_label">Comerciante</string>
     <string name="description_optional_label">Descrição (opcional)</string>
     <string name="transfer_action">Transferência</string>
-    <string name="apply_category_to_all_future_transactions_format">Aplicar esta categoria a todas as transações futuras de \"%1$s\"</string>
-    <string name="manual_entry_warning">Isso não funciona em transações inseridas manualmente</string>
     <string name="update_existing_transactions_format">Atualizar %1$d existente %2$s de \"%3$s\"</string>
     <string name="preview_transaction_matches">Pré-visualizar transação corresponde</string>
     <string name="recurring_transaction">Transação Recorrente</string>
@@ -830,15 +828,6 @@
     <string name="logo_comic">Quadrinho</string>
     <string name="logo_zenith">Zênite</string>
     <string name="logo_monochrome">Monocromático</string>
-    <string name="navigation_style">Navegação</string>
-    <string name="nav_floating">Flutuante</string>
-    <string name="nav_floating_sub">Moderno e Elegante</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">M3 Padrão</string>
-    <string name="hide_nav_labels">Ocultar Rótulos de Navegação</string>
-    <string name="hide_nav_labels_desc">Ocultar rótulos na barra de navegação</string>
-    <string name="hide_pill_indicator">Ocultar Indicador de Pílula</string>
-    <string name="hide_pill_indicator_desc">Ocultar o indicador de seleção na barra de navegação</string>
     <string name="fonts_title">Fontes</string>
     <string name="font_default_sub">Sistema</string>
     <string name="font_snpro">SN Pro</string>

@@ -7,7 +7,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -28,7 +28,7 @@ fun CurrencySelectionBottomSheet(
     onCurrencySelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surface,

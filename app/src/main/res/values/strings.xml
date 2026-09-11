@@ -450,8 +450,6 @@
     <string name="merchant_label">Merchant</string>
     <string name="description_optional_label">Description (Optional)</string>
     <string name="transfer_action">Transfer</string>
-    <string name="apply_category_to_all_future_transactions_format">Apply this category to all future transactions from \"%1$s\"</string>
-    <string name="manual_entry_warning">This doesn\'t work on manually entered transactions</string>
     <string name="update_existing_transactions_format">Update %1$d existing %2$s from \"%3$s\"</string>
     <string name="preview_transaction_matches">Preview transaction matches</string>
     <string name="recurring_transaction">Recurring Transaction</string>
@@ -1095,10 +1093,6 @@
 <string name="google_drive_signin_desc">Sign in with your Google account to enable Google Drive backup &amp; sync.</string>
 <string name="google_signin_failed_no_email">Google sign-in failed: Could not retrieve email</string>
 <string name="google_signin_failed_null">Google sign-in failed: Account is null</string>
-<string name="hide_nav_labels">Hide Navigation Labels</string>
-<string name="hide_nav_labels_desc">Hide labels in the navigation bar</string>
-<string name="hide_pill_indicator">Hide Pill Indicator</string>
-<string name="hide_pill_indicator_desc">Hide the selection indicator in the navigation bar</string>
 <string name="home_title">Home</string>
 <string name="how_to_enable">How to enable:</string>
 <string name="i_borrowed">I owe them</string>
@@ -1125,11 +1119,6 @@
 <string name="mark_as">Mark as</string>
 <string name="merchant_lbl">Merchant</string>
 <string name="minute_timeout_format">%1$d minute timeout</string>
-<string name="nav_floating">Floating</string>
-<string name="nav_floating_sub">Modern &amp; Sleek</string>
-<string name="nav_normal">Normal</string>
-<string name="nav_normal_sub">Standard M3</string>
-<string name="navigation_style">Navigation</string>
 <string name="net_balance_khata">Net Balance</string>
 <string name="net_worth_label">Net worth</string>
 <string name="new_chat">New Chat</string>
@@ -1327,4 +1316,15 @@
     <string name="balance_overdraft_continue">Save anyway</string>
     <string name="balance_calibration">Calibrate current balance</string>
     <string name="balance_operation_failed">The change was not saved. Check the balance history: older entries may be missing their opening balance.</string>
+    <string name="quick_add_templates">Quick templates</string>
+    <string name="quick_templates_subtitle">One-tap entries for coffee, lunch and other regulars</string>
+    <string name="quick_templates_empty">No quick templates yet. Turn on \"Save as quick template\" when adding a transaction, or use it from a transaction\'s menu.</string>
+    <string name="quick_template_save_toggle">Save as quick chip</string>
+    <string name="quick_template_save_from_detail">Save as quick template</string>
+    <string name="quick_template_edit_title">Edit quick template</string>
+    <string name="quick_template_name">Name</string>
+    <string name="quick_template_amount">Amount (optional)</string>
+    <string name="quick_template_prefill_amount">Pre-fill amount when tapped</string>
+    <string name="quick_template_amount_not_prefilled">not pre-filled</string>
+    <string name="reset_layout">Reset layout</string>
 </resources>

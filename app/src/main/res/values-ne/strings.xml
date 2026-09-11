@@ -425,8 +425,6 @@
     <string name="merchant_label">व्यापारी</string>
     <string name="description_optional_label">विवरण (वैकल्पिक)</string>
     <string name="transfer_action">स्थानान्तरण</string>
-    <string name="apply_category_to_all_future_transactions_format">यो वर्ग "%1$s" बाट भविष्यका सबै लेनदेनमा लागू गर्नुहोस्</string>
-    <string name="manual_entry_warning">यो म्यानुअली प्रविष्ट गरिएको लेनदेनमा काम गर्दैन</string>
     <string name="update_existing_transactions_format">"%3$s" बाट %1$d उपलब्ध %2$s अपडेट गर्नुहोस्</string>
     <string name="preview_transaction_matches">लेनदेन मिलान पूर्वावलोकन</string>
     <string name="recurring_transaction">पुनरावर्ती लेनदेन</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">क्यामिक</string>
     <string name="logo_zenith">श्रेष्ठता</string>
     <string name="logo_monochrome">एकरूप</string>
-    <string name="navigation_style">नेभिगेसन</string>
-    <string name="nav_floating">तैरिरहेको</string>
-    <string name="nav_floating_sub">आधुनिक र चिकनी</string>
-    <string name="nav_normal">सामान्य</string>
-    <string name="nav_normal_sub">मानक M3</string>
-    <string name="hide_nav_labels">नेभिगेसन लेबलहरू लुकाउनुहोस्</string>
-    <string name="hide_nav_labels_desc">नेभिगेसन पट्टीमा रहेको लेबलहरू लुकाउनुहोस्</string>
-    <string name="hide_pill_indicator">पिल संकेतक लुकाउनुहोस्</string>
-    <string name="hide_pill_indicator_desc">नेभिगेसन पट्टीमा चयन संकेतक लुकाउनुहोस्</string>
     <string name="fonts_title">फन्टहरू</string>
     <string name="font_default_sub">सistem</string>
     <string name="font_snpro">SN प्रो</string>

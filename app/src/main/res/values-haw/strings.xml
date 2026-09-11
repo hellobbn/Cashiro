@@ -422,8 +422,6 @@
     <string name="merchant_label">Kalepa</string>
     <string name="description_optional_label">Wehewehe (Koho)</string>
     <string name="transfer_action">Hoʻololi</string>
-    <string name="apply_category_to_all_future_transactions_format">E hoʻopili i kēia māhele i nā hana a pau e hiki mai ana mai \'%1$s\'</string>
-    <string name="manual_entry_warning">ʻAʻole hana kēia ma nā kālepa i hoʻokomo lima ʻia</string>
     <string name="update_existing_transactions_format">Hōʻano hou i %1$d %2$s i kēia manawa mai \'%3$s\'</string>
     <string name="preview_transaction_matches">Nānā mua i nā pāʻani pāʻani</string>
     <string name="recurring_transaction">Kūʻai hou</string>
@@ -830,15 +828,6 @@
     <string name="logo_comic">Komeka</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
-    <string name="navigation_style">Hoʻokele</string>
-    <string name="nav_floating">E lana ana</string>
-    <string name="nav_floating_sub">ʻAno a me ka nani</string>
-    <string name="nav_normal">Maʻamau</string>
-    <string name="nav_normal_sub">M3 maʻamau</string>
-    <string name="hide_nav_labels">Hūnā Lepili Hoʻokele</string>
-    <string name="hide_nav_labels_desc">Hūnā i nā lepili ma ka pā hoʻokele</string>
-    <string name="hide_pill_indicator">Hūnā Pill Indicator</string>
-    <string name="hide_pill_indicator_desc">Hūnā i ka hōʻailona koho ma ka pae hoʻokele</string>
     <string name="fonts_title">Fonts</string>
     <string name="font_default_sub">Pūnaehana</string>
     <string name="font_snpro">SN Pro</string>

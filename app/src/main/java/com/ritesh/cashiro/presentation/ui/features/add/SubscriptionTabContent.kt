@@ -47,7 +47,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -73,8 +73,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
@@ -148,11 +146,9 @@ fun SubscriptionTabContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
                 .imePadding() // Handle keyboard properly
                 .verticalScroll(
                     state = scrollState,
-                    flingBehavior = rememberOverscrollFlingBehavior { scrollState },
                     enabled = !isTransitioning
                 )
                 .padding(horizontal = 16.dp, vertical = 16.dp),
@@ -574,7 +570,7 @@ fun SubscriptionTabContent(
             }
 
             if (showAccountSheet) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showAccountSheet = false },
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -594,7 +590,7 @@ fun SubscriptionTabContent(
 
             // NumberPad for Amount Input
             if (showNumberPad) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showNumberPad = false },
                     sheetState = sheetState,
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -613,7 +609,7 @@ fun SubscriptionTabContent(
 
             // NumberPad for Custom Cycle Count
             if (showCustomCountPad) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showCustomCountPad = false },
                     sheetState = sheetState,
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -632,7 +628,7 @@ fun SubscriptionTabContent(
 
             // Category Selection Sheet
             if (showCategoryMenu) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showCategoryMenu = false },
                     dragHandle = { BottomSheetDefaults.DragHandle() },
                     containerColor = MaterialTheme.colorScheme.surface,

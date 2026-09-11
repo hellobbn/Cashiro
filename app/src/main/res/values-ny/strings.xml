@@ -422,8 +422,6 @@
     <string name="merchant_label">Wamalonda</string>
     <string name="description_optional_label">Kufotokozera (Mwasankha)</string>
     <string name="transfer_action">Kusamutsa</string>
-    <string name="apply_category_to_all_future_transactions_format">Gwiritsani ntchito gululi pazochita zonse zamtsogolo kuchokera ku \'%1$s\'</string>
-    <string name="manual_entry_warning">Izi sizikugwira ntchito pazochita zomwe zalowetsedwa pamanja</string>
     <string name="update_existing_transactions_format">Sinthani %1$d yomwe ilipo %2$s kuchokera pa \'%3$s\'</string>
     <string name="preview_transaction_matches">Onani zofananira zamalonda</string>
     <string name="recurring_transaction">Kubwerezabwereza</string>
@@ -830,15 +828,6 @@
     <string name="logo_comic">Zoseketsa</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
-    <string name="navigation_style">Navigation</string>
-    <string name="nav_floating">Zoyandama</string>
-    <string name="nav_floating_sub">Zamakono &amp; Zowoneka bwino</string>
-    <string name="nav_normal">Wamba</string>
-    <string name="nav_normal_sub">Standard M3</string>
-    <string name="hide_nav_labels">Bisani Ma Navigation Labels</string>
-    <string name="hide_nav_labels_desc">Bisani zilembo mu bar ya navigation</string>
-    <string name="hide_pill_indicator">Bisani Chizindikiro cha Piritsi</string>
-    <string name="hide_pill_indicator_desc">Bisani chizindikiro chosankhidwa mu bar ya navigation</string>
     <string name="fonts_title">Mafonti</string>
     <string name="font_default_sub">Dongosolo</string>
     <string name="font_snpro">SN Pro</string>

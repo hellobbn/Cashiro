@@ -422,8 +422,6 @@
     <string name="merchant_label">Købmand</string>
     <string name="description_optional_label">Beskrivelse (valgfrit)</string>
     <string name="transfer_action">Overfør</string>
-    <string name="apply_category_to_all_future_transactions_format">Anvend denne kategori på alle fremtidige transaktioner fra \"%1$s\"</string>
-    <string name="manual_entry_warning">Dette virker ikke på manuelt indtastede transaktioner</string>
     <string name="update_existing_transactions_format">Opdater %1$d eksisterende %2$s fra \"%3$s\"</string>
     <string name="preview_transaction_matches">Forhåndsvis transaktion matcher</string>
     <string name="recurring_transaction">Tilbagevendende Transaktion</string>
@@ -830,15 +828,6 @@
     <string name="logo_comic">Tegneserie</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokrom</string>
-    <string name="navigation_style">Navigation</string>
-    <string name="nav_floating">Flydende</string>
-    <string name="nav_floating_sub">Moderne &amp; elegant</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">Standard M3</string>
-    <string name="hide_nav_labels">Skjul navigationsetiketter</string>
-    <string name="hide_nav_labels_desc">Skjul etiketter i navigationslinjen</string>
-    <string name="hide_pill_indicator">Skjul pilindikator</string>
-    <string name="hide_pill_indicator_desc">Skjul markørindikatoren i navigationslinjen</string>
     <string name="fonts_title">Skrifttyper</string>
     <string name="font_default_sub">System</string>
     <string name="font_snpro">SN Pro</string>

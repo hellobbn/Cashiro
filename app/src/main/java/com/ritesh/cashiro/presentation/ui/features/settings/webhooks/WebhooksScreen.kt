@@ -65,7 +65,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItem
@@ -119,7 +118,6 @@ fun WebhooksScreen(
             modifier = Modifier
                 .hazeSource(hazeState)
                 .fillMaxWidth()
-                .overScrollVertical()
                 .verticalScroll(state = rememberScrollState())
                 .padding(
                     start = Dimensions.Padding.content,

@@ -425,8 +425,6 @@
     <string name="merchant_label">ร้านค้า</string>
     <string name="description_optional_label">คำอธิบาย (ไม่บังคับ)</string>
     <string name="transfer_action">โอนเงิน</string>
-    <string name="apply_category_to_all_future_transactions_format">ใช้หมวดหมู่นี้กับธุรกรรมทั้งหมดในอนาคตจาก "%1$s"</string>
-    <string name="manual_entry_warning">สิ่งนี้ใช้ไม่ได้กับธุรกรรมที่ป้อนด้วยตนเอง</string>
     <string name="update_existing_transactions_format">อัปเดต %1$d %2$s ที่มีอยู่จาก "%3$s"</string>
     <string name="preview_transaction_matches">ดูตัวอย่างธุรกรรมที่ตรงกัน</string>
     <string name="recurring_transaction">ธุรกรรมซ้ำ</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">การ์ตูน</string>
     <string name="logo_zenith">ซีนิธ</string>
     <string name="logo_monochrome">ขาวดำ</string>
-    <string name="navigation_style">การนำทาง</string>
-    <string name="nav_floating">ลอย</string>
-    <string name="nav_floating_sub">ทันสมัยและเรียบหรู</string>
-    <string name="nav_normal">ปกติ</string>
-    <string name="nav_normal_sub">มาตรฐาน M3</string>
-    <string name="hide_nav_labels">ซ่อนป้ายกำกับการนำทาง</string>
-    <string name="hide_nav_labels_desc">ซ่อนป้ายกำกับในแถบนำทาง</string>
-    <string name="hide_pill_indicator">ซ่อนตัวบ่งชี้เลือก</string>
-    <string name="hide_pill_indicator_desc">ซ่อนตัวบ่งชี้การเลือกในแถบนำทาง</string>
     <string name="fonts_title">แบบอักษร</string>
     <string name="font_default_sub">ระบบ</string>
     <string name="font_snpro">SN Pro</string>

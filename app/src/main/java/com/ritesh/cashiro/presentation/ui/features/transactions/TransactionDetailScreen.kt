@@ -1,5 +1,10 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import androidx.compose.material.icons.rounded.Bolt
+
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -110,7 +115,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -181,7 +186,6 @@ import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.presentation.common.icons.BrandIcons
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
@@ -283,7 +287,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
     val isSaving = uiState.isSaving
     val saveSuccess = uiState.saveSuccess
     val errorMessage = uiState.errorMessage
-    val applyToAllFromMerchant = uiState.applyToAllFromMerchant
     val updateExistingTransactions = uiState.updateExistingTransactions
     val existingTransactionCount = uiState.existingTransactionCount
     val showMatchPreviewSheet = uiState.showMatchPreviewSheet
@@ -334,7 +337,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
 
     // Custom Billing Cycle Count Pad
     if (showCustomCountPad && isEditMode) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showCustomCountPad = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -438,10 +441,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                     rememberSharedContentState(key = sharedElementKey ?: "transaction_$transactionId"),
                     animatedVisibilityScope = animatedContentScope,
                     boundsTransform = { _, _ ->
-                        spring(
-                            stiffness =  Spring.StiffnessLow,
-                            dampingRatio = Spring.DampingRatioLowBouncy
-                        )
+                        tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                     },
                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Inside, Alignment.Center),
                     clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(Spacing.xxl))
@@ -511,7 +511,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                 TransactionDetailContent(
                     transaction = txn,
                     isEditMode = isEditMode,
-                    applyToAllFromMerchant = applyToAllFromMerchant,
                     updateExistingTransactions = updateExistingTransactions,
                     existingTransactionCount = existingTransactionCount,
                     viewModel = transactionDetailViewModel,
@@ -719,6 +718,18 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                     color = MaterialTheme.colorScheme.surface.copy(0.6f)
                                 )
                                 DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.quick_template_save_from_detail)) },
+                                    onClick = {
+                                        showMoreMenu = false
+                                        transactionDetailViewModel.saveAsQuickTemplate()
+                                    },
+                                    leadingIcon = { Icon(Icons.Rounded.Bolt, contentDescription = null) }
+                                )
+                                HorizontalDivider(
+                                    thickness = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
+                                )
+                                DropdownMenuItem(
                                     text = { Text(stringResource(R.string.delete_transaction)) },
                                     onClick = {
                                         showMoreMenu = false
@@ -766,7 +777,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
 
     // NumberPad for Amount Input
     if (showNumberPad && isEditMode) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -786,7 +797,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
 
     // Category Selection Sheet
     if (showCategoryMenu) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showCategoryMenu = false },
             dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -808,7 +819,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
     if (showAccountSheet) {
         val accounts by transactionDetailViewModel.availableAccounts.collectAsStateWithLifecycle()
         val selectedAccount by transactionDetailViewModel.selectedAccount.collectAsStateWithLifecycle()
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showAccountSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -828,7 +839,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
     if (showTargetAccountSheet) {
         val accounts by transactionDetailViewModel.availableAccounts.collectAsStateWithLifecycle()
         val targetAccount by transactionDetailViewModel.targetAccount.collectAsStateWithLifecycle()
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showTargetAccountSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -849,7 +860,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
     // Match Preview Sheet — allows granular per-transaction selection before applying
     if (showMatchPreviewSheet) {
         val previewSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { transactionDetailViewModel.hideMatchPreviewSheet() },
             sheetState = previewSheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -1003,7 +1014,6 @@ private fun TransactionDetailContent(
     modifier: Modifier = Modifier,
     transaction: TransactionEntity,
     isEditMode: Boolean,
-    applyToAllFromMerchant: Boolean,
     updateExistingTransactions: Boolean,
     existingTransactionCount: Int,
     viewModel: TransactionDetailViewModel,
@@ -1051,7 +1061,6 @@ private fun TransactionDetailContent(
             .fillMaxSize()
             .imePadding()
             .hazeSource(state = hazeState)
-            .overScrollVertical()
             .verticalScroll(
                 state = rememberScrollState()
             )
@@ -1102,7 +1111,6 @@ private fun TransactionDetailContent(
 
                 EditableExtractedInfoCard(
                     transaction = transaction,
-                    applyToAllFromMerchant = applyToAllFromMerchant,
                     updateExistingTransactions = updateExistingTransactions,
                     existingTransactionCount = existingTransactionCount,
                     onTargetAccountClick = onTargetAccountClick,
@@ -1517,7 +1525,6 @@ private fun EditableTransactionHeader(
 @Composable
 private fun EditableExtractedInfoCard(
     transaction: TransactionEntity,
-    applyToAllFromMerchant: Boolean,
     updateExistingTransactions: Boolean,
     existingTransactionCount: Int,
     onCategoryClick: () -> Unit,
@@ -1811,71 +1818,6 @@ private fun EditableExtractedInfoCard(
 
             // ── Merchant category helpers ─────────────────────────────────
             Spacer(modifier = Modifier.height(Spacing.sm))
-
-            // Option 1: Apply this category to all FUTURE transactions
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize(MaterialTheme.motionScheme.fastSpatialSpec())
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            onClick = {viewModel.toggleApplyToAllFromMerchant()},
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        )
-                        .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CashiroCheckbox(
-                        checked = applyToAllFromMerchant,
-                        onCheckedChange = { viewModel.toggleApplyToAllFromMerchant() }
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.sm))
-                    Text(
-                        text = stringResource(R.string.apply_category_to_all_future_transactions_format, transaction.merchantName),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                AnimatedVisibility(visible = applyToAllFromMerchant) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = Spacing.sm, end = Spacing.sm, bottom = Spacing.xs),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(
-                                    horizontal = Spacing.md,
-                                    vertical = Spacing.sm
-                                ),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Info,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Text(
-                                    text = stringResource(R.string.manual_entry_warning),
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             // Option 2: Update EXISTING transactions (only shown when there are matches)
             if (existingTransactionCount > 0) {

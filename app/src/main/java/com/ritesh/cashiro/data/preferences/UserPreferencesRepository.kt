@@ -81,14 +81,11 @@ constructor(@ApplicationContext private val context: Context) {
         val DISABLED_SUBSCRIPTION_NOTIFICATION_IDS = androidx.datastore.preferences.core.stringSetPreferencesKey("disabled_subscription_notification_ids")
         val TEST_NOTIFICATION_ALERTS_ENABLED = booleanPreferencesKey("test_notification_alerts_enabled")
         val SHOW_BANNER_IMAGE = booleanPreferencesKey("show_banner_image")
-        val NAVIGATION_BAR_STYLE = stringPreferencesKey("navigation_bar_style")
         val APP_FONT = stringPreferencesKey("app_font")
         
         // Home Widget Preferences
         val HOME_WIDGETS_ORDER = stringPreferencesKey("home_widgets_order")
         val HIDDEN_HOME_WIDGETS = androidx.datastore.preferences.core.stringSetPreferencesKey("hidden_home_widgets")
-        val HIDE_NAVIGATION_LABELS = booleanPreferencesKey("hide_navigation_labels")
-        val HIDE_PILL_INDICATOR = booleanPreferencesKey("hide_pill_indicator")
         val BLUR_EFFECTS = booleanPreferencesKey("blur_effects")
         val IS_SAMPLE_DATA_SEEDED = booleanPreferencesKey("is_sample_data_seeded")
         val APP_ICON = stringPreferencesKey("app_icon")
@@ -134,13 +131,6 @@ constructor(@ApplicationContext private val context: Context) {
                     preferences[PreferencesKeys.PROFILE_BACKGROUND_COLOR] ?: 0,
                 bannerImageUri = preferences[PreferencesKeys.BANNER_IMAGE_URI],
                 showBannerImage = preferences[PreferencesKeys.SHOW_BANNER_IMAGE] ?: false,
-                navigationBarStyle = try {
-                    NavigationBarStyle.valueOf(
-                        preferences[PreferencesKeys.NAVIGATION_BAR_STYLE] ?: NavigationBarStyle.FLOATING.name
-                    )
-                } catch (e: Exception) {
-                    NavigationBarStyle.FLOATING
-                },
                 appFont = try {
                     AppFont.valueOf(
                         preferences[PreferencesKeys.APP_FONT] ?: AppFont.SYSTEM.name
@@ -163,9 +153,7 @@ constructor(@ApplicationContext private val context: Context) {
                 } catch (e: Exception) {
                     AccentColor.BLUE
                 },
-                hideNavigationLabels = preferences[PreferencesKeys.HIDE_NAVIGATION_LABELS] ?: false,
-                hidePillIndicator = preferences[PreferencesKeys.HIDE_PILL_INDICATOR] ?: false,
-                blurEffects = preferences[PreferencesKeys.BLUR_EFFECTS] ?: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S),
+                blurEffects = preferences[PreferencesKeys.BLUR_EFFECTS] ?: false,
                 isSampleDataSeeded = preferences[PreferencesKeys.IS_SAMPLE_DATA_SEEDED] ?: false,
                 appIcon = try {
                     AppIcon.valueOf(
@@ -722,12 +710,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    suspend fun updateNavigationBarStyle(style: NavigationBarStyle) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.NAVIGATION_BAR_STYLE] = style.name
-        }
-    }
-
     suspend fun updateAppFont(font: AppFont) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_FONT] = font.name
@@ -766,15 +748,11 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    suspend fun updateHideNavigationLabels(hide: Boolean) {
+    /** Clears the saved order and hidden set so the home screen falls back to defaults. */
+    suspend fun resetHomeWidgetsLayout() {
         context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.HIDE_NAVIGATION_LABELS] = hide
-        }
-    }
-
-    suspend fun updateHidePillIndicator(hide: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.HIDE_PILL_INDICATOR] = hide
+            preferences.remove(PreferencesKeys.HOME_WIDGETS_ORDER)
+            preferences.remove(PreferencesKeys.HIDDEN_HOME_WIDGETS)
         }
     }
 
@@ -819,13 +797,10 @@ data class UserPreferences(
         val profileBackgroundColor: Int = 0,
         val bannerImageUri: String? = null,
         val showBannerImage: Boolean = false,
-        val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING,
         val appFont: AppFont = AppFont.SYSTEM,
         val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
         val accentColor: AccentColor = AccentColor.BLUE,
-        val hideNavigationLabels: Boolean = false,
-        val hidePillIndicator: Boolean = false,
-        val blurEffects: Boolean = true,
+        val blurEffects: Boolean = false,
         val isSampleDataSeeded: Boolean = false,
         val appIcon: AppIcon = AppIcon.ORIGINAL,
         // Currency Settings preferences

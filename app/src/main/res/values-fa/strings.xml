@@ -425,8 +425,6 @@
     <string name="merchant_label">تاجر</string>
     <string name="description_optional_label">توضیحات (اختیاری)</string>
     <string name="transfer_action">انتقال</string>
-    <string name="apply_category_to_all_future_transactions_format">اعمال این دسته‌بندی بر تمامی تراکنش‌های آینده از "%1$s"</string>
-    <string name="manual_entry_warning">این بر روی تراکنش‌های وارد شده دستی کار نمی‌کند</string>
     <string name="update_existing_transactions_format">به‌روزرسانی %1$d %2$s موجود از "%3$s"</string>
     <string name="preview_transaction_matches">پیش نمایش تطابق تراکنش</string>
     <string name="recurring_transaction">تراکنش تکراری</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">کمیک</string>
     <string name="logo_zenith">زنیث</string>
     <string name="logo_monochrome">تک‌رنگ</string>
-    <string name="navigation_style">ناوبری</string>
-    <string name="nav_floating">شناور</string>
-    <string name="nav_floating_sub">مدرن و براق</string>
-    <string name="nav_normal">عادی</string>
-    <string name="nav_normal_sub">استاندارد M3</string>
-    <string name="hide_nav_labels">مخفی کردن برچسب‌های ناوبری</string>
-    <string name="hide_nav_labels_desc">مخفی کردن برچسب‌ها در نوار ناوبری</string>
-    <string name="hide_pill_indicator">مخفی کردن نشانگر انتخاب</string>
-    <string name="hide_pill_indicator_desc">مخفی کردن نشانگر انتخاب در نوار ناوبری</string>
     <string name="fonts_title">فونت‌ها</string>
     <string name="font_default_sub">سیستم</string>
     <string name="font_snpro">SN Pro</string>

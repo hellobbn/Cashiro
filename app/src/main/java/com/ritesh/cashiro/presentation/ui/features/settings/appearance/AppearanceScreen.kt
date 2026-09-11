@@ -64,11 +64,9 @@ import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.preferences.AccentColor
 import com.ritesh.cashiro.data.preferences.AppIcon
 import com.ritesh.cashiro.data.preferences.AppFont
-import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.data.preferences.ThemeStyle
 import com.ritesh.cashiro.utils.IconSwitchingUtils
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
@@ -112,7 +110,6 @@ fun AppearanceScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(state = hazeState)
-                    .overScrollVertical()
                     .verticalScroll(rememberScrollState())
                     .padding(
                         top = Dimensions.Padding.content + paddingValues.calculateTopPadding()
@@ -534,134 +531,6 @@ fun AppearanceScreen(
 
                 }
 
-                // Navigation Style Section
-                SectionHeader(
-                    title = stringResource(R.string.navigation_style),
-                    modifier = Modifier.padding(start = Spacing.xl, top = Spacing.md)
-                )
-                Column(
-                    modifier = Modifier
-                        .animateContentSize(
-                            MaterialTheme.motionScheme.defaultSpatialSpec()
-                        )
-                        .fillMaxWidth()
-                        .padding(horizontal = Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
-                ){
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
-                    ) {
-                        // Floating Option
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(80.dp)
-                                .clip(RoundedCornerShape(
-                                    topStart = Dimensions.Radius.md,
-                                    topEnd = Dimensions.Radius.xs,
-                                    bottomStart = Dimensions.Radius.md,
-                                    bottomEnd = Dimensions.Radius.xs
-                                ))
-                                .background(
-                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
-                                        MaterialTheme.colorScheme.tertiaryContainer
-                                    else MaterialTheme.colorScheme.surfaceContainerLow
-                                )
-                                .clickable {
-                                    themeViewModel.updateNavigationBarStyle(NavigationBarStyle.FLOATING)
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = stringResource(R.string.nav_floating),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
-                                        MaterialTheme.colorScheme.onTertiaryContainer
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = stringResource(R.string.nav_floating_sub),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
-                                        MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                )
-                            }
-                        }
-
-                        // Normal Option
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(80.dp)
-                                .clip(RoundedCornerShape(
-                                    topStart = Dimensions.Radius.xs,
-                                    topEnd = Dimensions.Radius.md,
-                                    bottomStart = Dimensions.Radius.xs,
-                                    bottomEnd = Dimensions.Radius.md
-                                ))
-                                .background(
-                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
-                                        MaterialTheme.colorScheme.secondaryContainer
-                                    else MaterialTheme.colorScheme.surfaceContainerLow
-                                )
-                                .clickable {
-                                    themeViewModel.updateNavigationBarStyle(NavigationBarStyle.NORMAL)
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = stringResource(R.string.nav_normal),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
-                                        MaterialTheme.colorScheme.onSecondaryContainer
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = stringResource(R.string.nav_normal_sub),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
-                                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                )
-                            }
-                        }
-                    }
-
-                    BlurredAnimatedVisibility(
-                        visible = themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL,
-                        enter = fadeIn() + slideInVertically { -it },
-                        exit = fadeOut() + slideOutVertically { -it },
-                        modifier = Modifier.zIndex(-1f)
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                        ) {
-                            PreferenceSwitch(
-                                title = stringResource(R.string.hide_nav_labels),
-                                subtitle = stringResource(R.string.hide_nav_labels_desc),
-                                checked = themeUiState.hideNavigationLabels,
-                                onCheckedChange = { themeViewModel.updateHideNavigationLabels(it) },
-                                padding = PaddingValues(0.dp),
-                                isFirst = true
-                            )
-                            PreferenceSwitch(
-                                title = stringResource(R.string.hide_pill_indicator),
-                                subtitle = stringResource(R.string.hide_pill_indicator_desc),
-                                checked = themeUiState.hidePillIndicator,
-                                onCheckedChange = { themeViewModel.updateHidePillIndicator(it) },
-                                padding = PaddingValues(0.dp),
-                                isLast = true
-                            )
-                        }
-                    }
-                }
-                
                 // Font Family Section
                 SectionHeader(
                     title = stringResource(R.string.fonts_title),

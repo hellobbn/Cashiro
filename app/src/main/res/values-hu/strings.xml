@@ -425,8 +425,6 @@ Zöld (+) = Megtakarítás | Piros (-) = Túlköltekezés</string>
     <string name="merchant_label">Kereskedő</string>
     <string name="description_optional_label">Leírás (opcionális)</string>
     <string name="transfer_action">Átutalás</string>
-    <string name="apply_category_to_all_future_transactions_format">Alkalmazza ezt a kategóriát minden jövőbeni "%1$s" tranzakcióra</string>
-    <string name="manual_entry_warning">Ez nem működik manuálisan bevitt tranzakcióknál</string>
     <string name="update_existing_transactions_format">Frissítse a meglévő %1$d, %2$s-et innen: "%3$s"</string>
     <string name="preview_transaction_matches">Tranzakció egyezések előnézete</string>
     <string name="recurring_transaction">Ismétlődő tranzakció</string>
@@ -833,15 +831,6 @@ Zöld (+) = Megtakarítás | Piros (-) = Túlköltekezés</string>
     <string name="logo_comic">Képregény</string>
     <string name="logo_zenith">Csúcspont</string>
     <string name="logo_monochrome">Monokróm</string>
-    <string name="navigation_style">Navigáció</string>
-    <string name="nav_floating">Lebegő</string>
-    <string name="nav_floating_sub">Modern &amp; Letisztult</string>
-    <string name="nav_normal">Normál</string>
-    <string name="nav_normal_sub">Standard M3</string>
-    <string name="hide_nav_labels">Navigációs címkék elrejtése</string>
-    <string name="hide_nav_labels_desc">Címkék elrejtése a navigációs sávban</string>
-    <string name="hide_pill_indicator">Pill jelző elrejtése</string>
-    <string name="hide_pill_indicator_desc">A kiválasztási jelző elrejtése a navigációs sávban</string>
     <string name="fonts_title">Betűtípusok</string>
     <string name="font_default_sub">Rendszer</string>
     <string name="font_snpro">SN Pro</string>

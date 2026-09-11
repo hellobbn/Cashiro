@@ -425,8 +425,6 @@
     <string name="merchant_label">ਵਪਾਰੀ</string>
     <string name="description_optional_label">ਵੇਰਵਾ (ਵਿਕਲਪਿਕ)</string>
     <string name="transfer_action">ਟ੍ਰਾਂਸਫਰ</string>
-    <string name="apply_category_to_all_future_transactions_format">ਇਸ ਸ਼੍ਰੇਣੀ ਨੂੰ "%1$s" ਤੋਂ ਭਵਿੱਖ ਦੇ ਸਭ ਲੈਣ-ਦੇਣਾਂ \'ਤੇ ਲਾਗੂ ਕਰੋ</string>
-    <string name="manual_entry_warning">ਇਹ ਮੈਨੂਅਲੀ ਤੌਰ \'ਤੇ ਦਰਜ ਕੀਤੇ ਗਏ ਲੈਣ-ਦੇਣਾਂ \'ਤੇ ਕੰਮ ਨਹੀਂ ਕਰਦਾ</string>
     <string name="update_existing_transactions_format">"%3$s" ਤੋਂ %1$d ਮੌਜੂਦਾ %2$s ਅਪਡੇਟ ਕਰੋ</string>
     <string name="preview_transaction_matches">ਲੈਣ-ਦੇਣ ਮੈਚਾਂ ਦਾ ਪ੍ਰੀਵਿਊ</string>
     <string name="recurring_transaction">ਆਵਰਤੀ ਲੈਣ-ਦੇਣ</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">ਕਾਮਿਕ</string>
     <string name="logo_zenith">ਜ਼ੇਨਿਥ</string>
     <string name="logo_monochrome">ਮੋਨੋਕ੍ਰੋਮ</string>
-    <string name="navigation_style">ਨੈਵੀਗੇਸ਼ਨ</string>
-    <string name="nav_floating">ਫਲੋਟਿੰਗ</string>
-    <string name="nav_floating_sub">ਆਧੁਨਿਕ ਅਤੇ ਸਲੀਕ</string>
-    <string name="nav_normal">ਸਧਾਰਣ</string>
-    <string name="nav_normal_sub">ਸਟੈਂਡਰਡ M3</string>
-    <string name="hide_nav_labels">ਨੈਵੀਗੇਸ਼ਨ ਲੇਬਲ ਛੁਪਾਓ</string>
-    <string name="hide_nav_labels_desc">ਨੈਵੀਗੇਸ਼ਨ ਬਾਰ ਵਿੱਚ ਲੇਬਲ ਛੁਪਾਓ</string>
-    <string name="hide_pill_indicator">ਪਿਲ ਇੰਡਿਕੇਟਰ ਛੁਪਾਓ</string>
-    <string name="hide_pill_indicator_desc">ਨੈਵੀਗੇਸ਼ਨ ਬਾਰ ਵਿੱਚ ਚੋਣ ਇੰਡਿਕੇਟਰ ਛੁਪਾਓ</string>
     <string name="fonts_title">ਫੋਂਟ</string>
     <string name="font_default_sub">ਸਿਸਟਮ</string>
     <string name="font_snpro">SN ਪ੍ਰੋ</string>

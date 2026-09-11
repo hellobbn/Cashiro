@@ -1,5 +1,11 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import androidx.compose.material.icons.rounded.Bolt
+
+import androidx.compose.material3.Switch
+
+import androidx.compose.material3.AssistChip
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
@@ -58,7 +64,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -94,8 +100,6 @@ import coil3.compose.AsyncImage
 import androidx.core.graphics.toColorInt
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
@@ -144,16 +148,6 @@ fun TransactionTabContent(
         transactionSubcategories.find { it.name == uiState.subcategory }
     }
 
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
-
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showCategoryMenu by remember { mutableStateOf(false) }
@@ -165,16 +159,24 @@ fun TransactionTabContent(
             modifier = Modifier
                 .animateContentSize()
                 .fillMaxSize()
-                .overScrollVertical()
                 .imePadding() // Handle keyboard properly
                 .verticalScroll(
                     state = scrollState,
-                    flingBehavior = rememberOverscrollFlingBehavior { scrollState },
                     enabled = !isTransitioning
                 )
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Quick-add templates
+            val quickTemplates by viewModel.quickTemplates.collectAsState()
+            if (quickTemplates.isNotEmpty()) {
+                QuickTemplateRow(
+                    templates = quickTemplates,
+                    categories = categories,
+                    onSelect = viewModel::applyQuickTemplate
+                )
+            }
+
             // Amount Input
             AmountInput(
                 amount = uiState.amount.ifEmpty { "0" },
@@ -1087,7 +1089,7 @@ fun TransactionTabContent(
 
 
             if (showAccountSheet) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showAccountSheet = false },
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -1107,7 +1109,7 @@ fun TransactionTabContent(
 
             // Target Account BottomSheet (for Transfer type)
             if (showTargetAccountSheet) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showTargetAccountSheet = false },
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -1130,7 +1132,7 @@ fun TransactionTabContent(
 
             // NumberPad for Amount Input
             if (showNumberPad) {
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showNumberPad = false },
                     sheetState = sheetState ,
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -1150,7 +1152,7 @@ fun TransactionTabContent(
             // Category Selection Sheet
             if (showCategoryMenu) {
                 val allSubcategories by viewModel.allSubcategories.collectAsState(initial = emptyMap())
-                ModalBottomSheet(
+                CashiroModalBottomSheet(
                     onDismissRequest = { showCategoryMenu = false },
                     dragHandle = { BottomSheetDefaults.DragHandle() },
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -1205,6 +1207,34 @@ fun TransactionTabContent(
                     ),
                     supportingText = uiState.merchantError?.let { { Text(it) } },
                 )
+                }
+
+                // Save this entry as a quick-add template (not for transfers / loans)
+                if (uiState.transactionType != TransactionType.TRANSFER &&
+                    uiState.transactionType != TransactionType.LENT &&
+                    uiState.transactionType != TransactionType.BORROWED
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Rounded.Bolt, contentDescription = null)
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(R.string.quick_template_save_toggle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = uiState.saveAsQuickTemplate,
+                            onCheckedChange = viewModel::updateSaveAsQuickTemplate
+                        )
+                    }
                 }
 
                 // Notes/Description (Optional)
@@ -1375,5 +1405,47 @@ fun TransactionTabContent(
             blurEffects = blurEffects,
             hazeState = hazeState
         )
+    }
+}
+
+
+/** Horizontal row of user-defined quick-add templates; a tap pre-fills the form. */
+@Composable
+private fun QuickTemplateRow(
+    templates: List<com.ritesh.cashiro.data.database.entity.QuickTemplateEntity>,
+    categories: List<com.ritesh.cashiro.data.database.entity.CategoryEntity>,
+    onSelect: (com.ritesh.cashiro.data.database.entity.QuickTemplateEntity) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.quick_add_templates),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(templates, key = { it.id }) { template ->
+                AssistChip(
+                    onClick = { onSelect(template) },
+                    label = {
+                        val amountText = template.amount
+                            ?.takeIf { template.prefillAmount }
+                            ?.let { " · " + CurrencyFormatter.formatCurrency(it, template.currency ?: "CNY") }
+                            ?: ""
+                        Text(template.name + amountText, maxLines = 1)
+                    },
+                    leadingIcon = {
+                        BrandIcon(
+                            merchantName = template.merchantName,
+                            size = 22.dp,
+                            showBackground = false,
+                            categoryEntity = categories.find { it.name == template.category },
+                            category = template.category,
+                            subcategory = template.subcategory
+                        )
+                    }
+                )
+            }
+        }
     }
 }

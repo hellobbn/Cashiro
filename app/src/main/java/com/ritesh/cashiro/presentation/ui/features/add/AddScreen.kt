@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -96,10 +100,7 @@ fun SharedTransitionScope.AddScreen(
                 rememberSharedContentState(key = "fab_to_add"),
                 animatedVisibilityScope = animatedVisibilityScope,
                 boundsTransform = { _, _ ->
-                    spring(
-                        stiffness = Spring.StiffnessLow,
-                        dampingRatio = Spring.DampingRatioLowBouncy
-                    )
+                    tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                 },
                 resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                     contentScale = ContentScale.Fit,

@@ -423,8 +423,6 @@
     <string name="merchant_label">店舗</string>
     <string name="description_optional_label">説明（任意）</string>
     <string name="transfer_action">送金</string>
-    <string name="apply_category_to_all_future_transactions_format">\"%1$s\"からの今後の取引にこのカテゴリを適用する</string>
-    <string name="manual_entry_warning">手動で入力された取引では動作しません</string>
     <string name="update_existing_transactions_format">%1$d 既存の %2$s を \"%3$s\" から更新</string>
     <string name="preview_transaction_matches">一致する取引をプレビュー</string>
     <string name="recurring_transaction">定期的な取引</string>
@@ -831,15 +829,6 @@
     <string name="logo_comic">コミック</string>
     <string name="logo_zenith">ゼニス</string>
     <string name="logo_monochrome">モノクローム</string>
-    <string name="navigation_style">ナビゲーション</string>
-    <string name="nav_floating">フローティング</string>
-    <string name="nav_floating_sub">モダン＆スリーク</string>
-    <string name="nav_normal">標準</string>
-    <string name="nav_normal_sub">スタンダード M3</string>
-    <string name="hide_nav_labels">ナビゲーションラベルを非表示</string>
-    <string name="hide_nav_labels_desc">ナビゲーションバーのラベルを非表示</string>
-    <string name="hide_pill_indicator">ピルインジケーターを非表示</string>
-    <string name="hide_pill_indicator_desc">ナビゲーションバーの選択インジケーターを非表示</string>
     <string name="fonts_title">フォント</string>
     <string name="font_default_sub">システム</string>
     <string name="font_snpro">SNプロ</string>

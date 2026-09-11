@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings
 
+import androidx.compose.material.icons.rounded.Bolt
+
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -57,7 +59,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.LanguageSelectionBottomSheet
 import com.ritesh.cashiro.presentation.ui.components.ListItem
@@ -86,6 +87,7 @@ fun SettingsScreen(
     onNavigateToCategories: () -> Unit = {},
     onNavigateToManageAccounts: () -> Unit = {},
     onNavigateToRules: () -> Unit = {},
+    onNavigateToQuickTemplates: () -> Unit = {},
     onNavigateToAppearance: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
@@ -202,7 +204,6 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .hazeSource(state = hazeState)
-                .overScrollVertical()
                 .verticalScroll(
                     state = rememberScrollState()
                 )
@@ -636,6 +637,51 @@ fun SettingsScreen(
                             )
                         },
                         onClick = { onNavigateToRules() },
+                        shape = ListItemPosition.Middle.toShape(),
+                        padding = PaddingValues(0.dp)
+                    )
+
+                    // Quick templates
+                    ListItem(
+                        headline = {
+                            Text(
+                                text = stringResource(R.string.quick_add_templates),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                        },
+                        supporting = {
+                            Text(
+                                text = stringResource(R.string.quick_templates_subtitle),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        leading = {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.secondaryContainer,
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Bolt,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        },
+                        trailing = {
+                            Icon(
+                                Icons.Rounded.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        onClick = { onNavigateToQuickTemplates() },
                         shape = ListItemPosition.Middle.toShape(),
                         padding = PaddingValues(0.dp)
                     )

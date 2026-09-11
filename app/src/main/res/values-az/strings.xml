@@ -425,8 +425,6 @@ Yaşıl (+) = Əmanət | Qırmızı (-) = Artıq xərcləmə</string>
     <string name="merchant_label">Ticarətçi</string>
     <string name="description_optional_label">Təsvir (İxtiyari)</string>
     <string name="transfer_action">Köçürmə</string>
-    <string name="apply_category_to_all_future_transactions_format">Bu kateqoriyanı "%1$s"-dən gələn bütün gələcək əməliyyatlara tətbiq et</string>
-    <string name="manual_entry_warning">Bu, əl ilə daxil edilmiş əməliyyatlarda işləməyəcək</string>
     <string name="update_existing_transactions_format">"%3$s"-dən %1$d mövcud, %2$s-i yeniləyin</string>
     <string name="preview_transaction_matches">Əməliyyat uyğunluqlarını önizlə</string>
     <string name="recurring_transaction">Təkrarlanan Əməliyyat</string>
@@ -833,15 +831,6 @@ Yaşıl (+) = Əmanət | Qırmızı (-) = Artıq xərcləmə</string>
     <string name="logo_comic">Komik</string>
     <string name="logo_zenith">Zenit</string>
     <string name="logo_monochrome">Monoxrom</string>
-    <string name="navigation_style">Naviqasiya</string>
-    <string name="nav_floating">Üzən</string>
-    <string name="nav_floating_sub">Müasir &amp; Səliqəli</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">Standart M3</string>
-    <string name="hide_nav_labels">Naviqasiya Etiketlərini Gizlət</string>
-    <string name="hide_nav_labels_desc">Naviqasiya çubuğundakı etiketləri gizlət</string>
-    <string name="hide_pill_indicator">Pill Göstəricisini Gizlət</string>
-    <string name="hide_pill_indicator_desc">Naviqasiya çubuğundakı seçim göstəricisini gizlət</string>
     <string name="fonts_title">Şriftlər</string>
     <string name="font_default_sub">Sistem</string>
     <string name="font_snpro">SN Pro</string>

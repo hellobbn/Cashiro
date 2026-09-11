@@ -3,7 +3,6 @@ package com.ritesh.cashiro.presentation.ui.features.settings.appearance
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.data.preferences.AppFont
 import com.ritesh.cashiro.data.preferences.ThemeStyle
 import com.ritesh.cashiro.data.preferences.AccentColor
@@ -29,12 +28,9 @@ class ThemeViewModel @Inject constructor(
                 isDynamicColorEnabled = preferences.isDynamicColorEnabled,
                 hasSkippedSmsPermission = preferences.hasSkippedSmsPermission,
                 isAmoledMode = preferences.isAmoledMode,
-                navigationBarStyle = preferences.navigationBarStyle,
                 appFont = preferences.appFont,
                 themeStyle = preferences.themeStyle,
                 accentColor = preferences.accentColor,
-                hideNavigationLabels = preferences.hideNavigationLabels,
-                hidePillIndicator = preferences.hidePillIndicator,
                 blurEffects = preferences.blurEffects,
                 isOnboardingFinished = preferences.hasShownScanTutorial,
                 currentAppIcon = preferences.appIcon,
@@ -65,11 +61,6 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
-    fun updateNavigationBarStyle(style: NavigationBarStyle) {
-        viewModelScope.launch {
-            userPreferencesRepository.updateNavigationBarStyle(style)
-        }
-    }
 
     fun updateAppFont(font: AppFont) {
         viewModelScope.launch {
@@ -89,18 +80,6 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
-    fun updateHideNavigationLabels(hide: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.updateHideNavigationLabels(hide)
-        }
-    }
-
-    fun updateHidePillIndicator(hide: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.updateHidePillIndicator(hide)
-        }
-    }
-
     fun updateBlurEffects(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.updateBlurEffects(enabled)
@@ -117,13 +96,10 @@ data class ThemeUiState(
     val isDynamicColorEnabled: Boolean = false, // Default to custom theme colors
     val hasSkippedSmsPermission: Boolean = false,
     val isAmoledMode: Boolean = false,
-    val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING,
     val appFont: AppFont = AppFont.SYSTEM,
     val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
     val accentColor: AccentColor = AccentColor.BLUE,
-    val hideNavigationLabels: Boolean = false,
-    val hidePillIndicator: Boolean = false,
-    val blurEffects: Boolean = true,
+    val blurEffects: Boolean = false,
     val isOnboardingFinished: Boolean = false,
     val currentAppIcon: AppIcon = AppIcon.ORIGINAL,
     val isLoaded: Boolean = false

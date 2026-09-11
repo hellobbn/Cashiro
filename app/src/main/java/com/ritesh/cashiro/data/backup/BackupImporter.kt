@@ -9,7 +9,6 @@ import com.ritesh.cashiro.data.database.CashiroDatabase
 import com.ritesh.cashiro.data.database.entity.*
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.repository.WebhookRepository
-import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.data.preferences.AppFont
 import com.ritesh.cashiro.data.preferences.ThemeStyle
 import com.ritesh.cashiro.data.preferences.AccentColor
@@ -738,15 +737,6 @@ class BackupImporter @Inject constructor(
             userPreferencesRepository.updateAmoledMode(it)
         }
         
-        preferences.theme.navigationBarStyle?.let { styleName ->
-            try {
-                val style = NavigationBarStyle.valueOf(styleName)
-                userPreferencesRepository.updateNavigationBarStyle(style)
-            } catch (e: Exception) {
-                // Ignore invalid style
-            }
-        }
-
         preferences.theme.appFont?.let { fontName ->
             try {
                 val font = AppFont.valueOf(fontName)
@@ -772,14 +762,6 @@ class BackupImporter @Inject constructor(
             } catch (e: Exception) {
                 // Ignore invalid color
             }
-        }
-
-        preferences.theme.hideNavigationLabels?.let {
-            userPreferencesRepository.updateHideNavigationLabels(it)
-        }
-
-        preferences.theme.hidePillIndicator?.let {
-            userPreferencesRepository.updateHidePillIndicator(it)
         }
 
         preferences.theme.blurEffects?.let {

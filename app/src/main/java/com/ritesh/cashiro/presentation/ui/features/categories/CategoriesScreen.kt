@@ -42,7 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -81,8 +81,6 @@ import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CategoryItem
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
@@ -150,17 +148,9 @@ fun CategoriesScreen(
     var showFloatingLabel by remember { mutableStateOf(true) }
     var showFilterMenu by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("All") }
-    val labels = listOf(stringResource(R.string.search_fruits), stringResource(R.string.search_shopping), stringResource(R.string.search_fitness), stringResource(R.string.search_sports))
-    var currentLabelIndex by remember { mutableIntStateOf(0) }
+    val searchLabel = stringResource(R.string.search_fruits)
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentLabelIndex = (currentLabelIndex + 1) % labels.size
-        }
-    }
 
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemIndex }.collect { firstVisibleItem ->
@@ -278,9 +268,7 @@ fun CategoriesScreen(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
                 .hazeSource(state = hazeState),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,
@@ -298,7 +286,7 @@ fun CategoriesScreen(
                     },
                     label = {
                         AnimatedContent(
-                            targetState = labels[currentLabelIndex],
+                            targetState = searchLabel,
                             transitionSpec = {
                                 (fadeIn(animationSpec = tween(400, delayMillis = 100)) +
                                         slideInVertically(
@@ -469,7 +457,7 @@ fun CategoriesScreen(
 
     // Add/Edit Category Bottom Sheet
     if (showAddEditDialog) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             sheetState = sheetState,
             onDismissRequest = { categoriesViewModel.hideDialog() },
             dragHandle = { BottomSheetDefaults.DragHandle() },
@@ -497,7 +485,7 @@ fun CategoriesScreen(
         val currentCategory =
             editingSubcategory?.categoryId?.let { catId -> categories.find { it.id == catId } }
 
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             sheetState = sheetState,
             onDismissRequest = { categoriesViewModel.hideSubcategoryDialog() },
             dragHandle = { BottomSheetDefaults.DragHandle() },
@@ -549,7 +537,7 @@ fun CategoriesScreen(
 
     // Category Migration Bottom Sheet
     if (showMigrationSheet && categoryToDelete != null) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { categoriesViewModel.hideMigrationSheet() },
             dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface,

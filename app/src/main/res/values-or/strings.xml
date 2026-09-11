@@ -425,8 +425,6 @@
     <string name="merchant_label">ବ୍ୟବସାୟୀ</string>
     <string name="description_optional_label">ବିବରଣୀ (ଇଚ୍ଛାନୁସାର)</string>
     <string name="transfer_action">ହସ୍ତାନ୍ତରଣ</string>
-    <string name="apply_category_to_all_future_transactions_format">"%1$s" ଠାରୁ ସମସ୍ତ ଭବିଷ୍ୟତ ଟ୍ରାଞ୍ଜାକ୍ସନ୍ସରେ ଏହି ବର୍ଗକୁ ଲାଗୁ କରନ୍ତୁ</string>
-    <string name="manual_entry_warning">ଏହା ମାନବ ଭାବରେ ଏଣ୍ଟର କରାଯାଇଥିବା ଟ୍ରାଞ୍ଜାକ୍ସନ୍ସ ପାଇଁ କାମ କରେ ନାହିଁ</string>
     <string name="update_existing_transactions_format">"%3$s" ପାଇଁ %1$d ର ଅବସ୍ଥିତ %2$s ଅଦ୍ୟତନ କରନ୍ତୁ</string>
     <string name="preview_transaction_matches">ଟ୍ରାଞ୍ଜାକ୍ସନ୍ସ ମେଳ ପୂର୍ବଦର୍ଶନ</string>
     <string name="recurring_transaction">ପୁନରାବୃତ୍ତ ଟ୍ରାଞ୍ଜାକ୍ସନ୍ସ</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">କୋମିକ୍</string>
     <string name="logo_zenith">ଜେନିଥ୍</string>
     <string name="logo_monochrome">ମୋନୋକ୍ରୋମ୍</string>
-    <string name="navigation_style">ନାଭିଗେସନ୍</string>
-    <string name="nav_floating">ଫ୍ଲୋଟିଂ</string>
-    <string name="nav_floating_sub">ଆଧୁନିକ ଏବଂ ସ୍ଲିକ୍</string>
-    <string name="nav_normal">ସାଧାରଣ</string>
-    <string name="nav_normal_sub">ସ୍ଟାଣ୍ଡାର୍ଡ M3</string>
-    <string name="hide_nav_labels">ନାଭିଗେସନ୍ ଲେବଲ୍ ଲୁକାନ୍ତୁ</string>
-    <string name="hide_nav_labels_desc">ନାଭିଗେସନ୍ ବାରରେ ଲେବଲ୍ ଲୁକାନ୍ତୁ</string>
-    <string name="hide_pill_indicator">ପିଲ୍ ସୂଚକାଙ୍କନ୍ତୁ ଲୁକାନ୍ତୁ</string>
-    <string name="hide_pill_indicator_desc">ନାଭିଗେସନ୍ ବାରରେ ଚୟନ ସୂଚକାଙ୍କନ୍ ସ୍ଥିତିକୁ ଲୁକାନ୍ତୁ</string>
     <string name="fonts_title">ଫୋଣ୍ଟ</string>
     <string name="font_default_sub">ସିଷ୍ଟମ୍</string>
     <string name="font_snpro">SN ପ୍ରୋ</string>

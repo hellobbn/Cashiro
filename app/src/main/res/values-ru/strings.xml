@@ -425,8 +425,6 @@
     <string name="merchant_label">Продавец</string>
     <string name="description_optional_label">Описание (необязательно)</string>
     <string name="transfer_action">Перевод</string>
-    <string name="apply_category_to_all_future_transactions_format">Применять эту категорию ко всем будущим транзакциям от "%1$s"</string>
-    <string name="manual_entry_warning">Это не работает для вручную введённых транзакций</string>
     <string name="update_existing_transactions_format">Обновить %1$d существующих %2$s от "%3$s"</string>
     <string name="preview_transaction_matches">Предварительный просмотр совпадений транзакций</string>
     <string name="recurring_transaction">Повторяющаяся транзакция</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">Комикс</string>
     <string name="logo_zenith">Зенит</string>
     <string name="logo_monochrome">Монохром</string>
-    <string name="navigation_style">Навигация</string>
-    <string name="nav_floating">Плавающая</string>
-    <string name="nav_floating_sub">Современный и стильный</string>
-    <string name="nav_normal">Обычный</string>
-    <string name="nav_normal_sub">Стандарт M3</string>
-    <string name="hide_nav_labels">Скрыть подписи навигации</string>
-    <string name="hide_nav_labels_desc">Скрыть подписи в панели навигации</string>
-    <string name="hide_pill_indicator">Скрыть индикатор выбора</string>
-    <string name="hide_pill_indicator_desc">Скрыть индикатор выбора в панели навигации</string>
     <string name="fonts_title">Шрифты</string>
     <string name="font_default_sub">Системный</string>
     <string name="font_snpro">SN Pro</string>

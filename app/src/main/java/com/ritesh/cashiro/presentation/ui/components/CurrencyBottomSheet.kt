@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
@@ -35,7 +37,6 @@ import com.ritesh.cashiro.data.currency.model.CurrencyConversion
 import com.ritesh.cashiro.data.model.Currency
 import com.ritesh.cashiro.presentation.accounts.CurrencyViewModel
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
@@ -69,7 +70,7 @@ fun CurrencyBottomSheet(
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -142,7 +143,6 @@ contentDescription = stringResource(R.string.search),
                         .fillMaxSize()
                         .verticalScroll(
                             state = scrollState,
-                            flingBehavior = rememberOverscrollFlingBehavior { scrollState }
                         )
                 ) {
                     val sourceCurrencies =
@@ -486,7 +486,7 @@ fun ExchangeRatesBottomSheet(
     }
     val baseCurrencyCode = uiState.selectedCurrency?.code ?: ""
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -807,7 +807,7 @@ fun AddCustomCurrencyBottomSheet(
     var rate by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -819,7 +819,6 @@ fun AddCustomCurrencyBottomSheet(
                     .fillMaxWidth()
                     .verticalScroll(
                         state = scrollState,
-                        flingBehavior = rememberOverscrollFlingBehavior { scrollState }
                     )
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)

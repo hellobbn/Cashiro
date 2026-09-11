@@ -43,7 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -83,7 +83,6 @@ import com.ritesh.cashiro.data.database.entity.BudgetType
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.presentation.common.icons.CategoryMapping
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.utils.titlecaseFirst
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.BudgetAnimatedGradientMeshCard
@@ -199,7 +198,7 @@ fun EditBudgetSheet(
 
     // Account Selection Sheet
     if (showAccountSheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showAccountSheet = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -216,7 +215,7 @@ fun EditBudgetSheet(
 
     // Color Picker Sheet
     if (showColorPicker) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showColorPicker = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -237,7 +236,7 @@ fun EditBudgetSheet(
     
     // Number pad for budget amount
     if (showNumberPad && editingCategoryLimit == null && pendingCategoryName == null) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -259,7 +258,7 @@ fun EditBudgetSheet(
         val categoryName = editingCategoryLimit ?: pendingCategoryName ?: ""
         val existingLimit = budgetState.categoryLimits.find { it.categoryName == categoryName }
         
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { 
                 showNumberPad = false
                 editingCategoryLimit = null
@@ -287,7 +286,7 @@ fun EditBudgetSheet(
     
     // Category selection sheet
     if (showCategorySheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showCategorySheet = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -307,7 +306,7 @@ fun EditBudgetSheet(
     }
 
     if (showTypeInfoSheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showTypeInfoSheet = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -327,7 +326,7 @@ fun EditBudgetSheet(
     }
 
     if (showTrackInfoSheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showTrackInfoSheet = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -352,7 +351,6 @@ fun EditBudgetSheet(
                 .imePadding()
                 .fillMaxSize()
                 .clip(RoundedCornerShape(28.dp))
-                .overScrollVertical()
                 .verticalScroll(
                     state = rememberScrollState()
                 )

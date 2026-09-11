@@ -75,7 +75,6 @@ import com.ritesh.cashiro.data.database.entity.WebhookRangePreset
 import com.ritesh.cashiro.data.webhook.WebhookHeader
 import com.ritesh.cashiro.data.webhook.WebhookProfileDraft
 import com.ritesh.cashiro.data.webhook.WebhookValidation
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DatePicker
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
@@ -169,7 +168,6 @@ fun WebhookEditorScreen(
                 modifier = Modifier
                     .hazeSource(hazeState)
                     .fillMaxSize()
-                    .overScrollVertical()
                     .imePadding()
                     .verticalScroll(state = rememberScrollState())
                     .padding(

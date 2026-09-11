@@ -1,5 +1,11 @@
 package com.ritesh.cashiro.presentation.ui.features.analytics
 
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
+import androidx.compose.animation.core.FastOutSlowInEasing
+
+import androidx.compose.animation.core.tween
+
 import com.ritesh.cashiro.utils.maxDoubleOrNull
 import com.ritesh.cashiro.utils.sumOfDouble
 import androidx.compose.animation.core.*
@@ -307,10 +313,7 @@ fun SpendingBarChart(
                 color = SolidColor(themeColors.onSurface.copy(alpha = 0.1f))
             )
         ),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
+        animationSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing),
     )
 }
 
@@ -334,10 +337,7 @@ fun CategoryPieChart(
                 selectedColor = (CategoryMapping.categories[category.name]?.color
                     ?: Color.Gray).copy(alpha = 0.8f),
                 selected = false,
-                scaleAnimEnterSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
+                scaleAnimEnterSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing),
                 colorAnimEnterSpec = tween(500)
             )
         }
@@ -369,10 +369,7 @@ fun CategoryPieChart(
                     }
                 },
                 selectedScale = 1.1f,
-                scaleAnimEnterSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
+                scaleAnimEnterSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing),
                 colorAnimEnterSpec = tween(500),
                 style = Pie.Style.Stroke(width = 12.dp)
             )

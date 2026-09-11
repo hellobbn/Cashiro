@@ -425,8 +425,6 @@ Yeşil (+) = Tasarruf | Kırmızı (-) = Harcama Fazlası</string>
     <string name="merchant_label">Satıcı</string>
     <string name="description_optional_label">Açıklama (Opsiyonel)</string>
     <string name="transfer_action">Aktarım</string>
-    <string name="apply_category_to_all_future_transactions_format">"%1$s" kaynaklı tüm gelecekteki işlemlere bu kategoriyi uygula</string>
-    <string name="manual_entry_warning">Bu, manuel girilen işlemlerde çalışmaz</string>
     <string name="update_existing_transactions_format">"%3$s" kaynağından %2$s olan %1$d mevcut işlemi güncelle</string>
     <string name="preview_transaction_matches">İşlem eşleşmelerini önizle</string>
     <string name="recurring_transaction">Tekrarlayan İşlem</string>
@@ -833,15 +831,6 @@ Yeşil (+) = Tasarruf | Kırmızı (-) = Harcama Fazlası</string>
     <string name="logo_comic">Çizgi Roman</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monokrom</string>
-    <string name="navigation_style">Gezinme</string>
-    <string name="nav_floating">Yüzen</string>
-    <string name="nav_floating_sub">Modern &amp; Şık</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">Standart M3</string>
-    <string name="hide_nav_labels">Gezinme Etiketlerini Gizle</string>
-    <string name="hide_nav_labels_desc">Gezinme çubuğundaki etiketleri gizle</string>
-    <string name="hide_pill_indicator">Pill Göstergesini Gizle</string>
-    <string name="hide_pill_indicator_desc">Gezinme çubuğundaki seçim göstergesini gizle</string>
     <string name="fonts_title">Yazı Tipleri</string>
     <string name="font_default_sub">Sistem</string>
     <string name="font_snpro">SN Pro</string>

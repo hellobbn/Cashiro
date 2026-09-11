@@ -423,8 +423,6 @@
     <string name="merchant_label">વેપારી</string>
     <string name="description_optional_label">વર્ણન (વૈકલ્પિક)</string>
     <string name="transfer_action">સ્ટ્રાન્સફર</string>
-    <string name="apply_category_to_all_future_transactions_format">આ કેટેગરી "%1$s" થી તમામ ભવિષ્યના ટ્રાન્ઝેક્શન્સ પર લાગુ કરો</string>
-    <string name="manual_entry_warning">આ હાથેથી દાખલ કરેલા ટ્રાન્ઝેક્શન્સ પર કાર્ય કરશે નહીં</string>
     <string name="update_existing_transactions_format">આપડેટ કરો %1$d હાજર %2$s થી "%3$s"</string>
     <string name="preview_transaction_matches">ટ્રાન્ઝેક્શન મેળ ખાતા પ્રીવ્યૂ</string>
     <string name="recurring_transaction">નિયમિત ટ્રાન્ઝેક્શન</string>
@@ -831,15 +829,6 @@
     <string name="logo_comic">कॉમિક</string>
     <string name="logo_zenith">ઝેનિથ</string>
     <string name="logo_monochrome">મોનોક્રોમ</string>
-    <string name="navigation_style">નૅવિગેશન</string>
-    <string name="nav_floating">ફ્લોટિંગ</string>
-    <string name="nav_floating_sub">આધુનિક અને ચપળ</string>
-    <string name="nav_normal">સાધારણ</string>
-    <string name="nav_normal_sub">સ્ટાન્ડર્ડ M3</string>
-    <string name="hide_nav_labels">નૅવિગેશન લેબલ છુપાવો</string>
-    <string name="hide_nav_labels_desc">નૅવિગેશન બારમાં લેબલ છુપાવો</string>
-    <string name="hide_pill_indicator">પિલ સૂચક છુપાવો</string>
-    <string name="hide_pill_indicator_desc">નૅવિગેશન બારમાં પસંદગી સૂચક છુપાવો</string>
     <string name="fonts_title">ફોન્ટ</string>
     <string name="font_default_sub">સિસ્ટમ</string>
     <string name="font_snpro">SN પ્રો</string>

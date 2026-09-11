@@ -425,8 +425,6 @@
     <string name="merchant_label">סוחר</string>
     <string name="description_optional_label">תיאור (אופציונלי)</string>
     <string name="transfer_action">העברה</string>
-    <string name="apply_category_to_all_future_transactions_format">החל קטגוריה זו על כל העסקאות העתידיות מ"%1$s"</string>
-    <string name="manual_entry_warning">זה לא עובד על עסקאות שהוזנו ידנית</string>
     <string name="update_existing_transactions_format">עדכן %1$d %2$s קיימים מ"%3$s"</string>
     <string name="preview_transaction_matches">הצג תצוגה מקדימה של התאמות עסקאות</string>
     <string name="recurring_transaction">עסקה חוזרת</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">קומיקס</string>
     <string name="logo_zenith">זנית</string>
     <string name="logo_monochrome">מונוכרום</string>
-    <string name="navigation_style">ניווט</string>
-    <string name="nav_floating">צף</string>
-    <string name="nav_floating_sub">מודרני ומרשים</string>
-    <string name="nav_normal">נורמלי</string>
-    <string name="nav_normal_sub">M3 סטנדרטי</string>
-    <string name="hide_nav_labels">הסתר תוויות ניווט</string>
-    <string name="hide_nav_labels_desc">הסתר תוויות בסרגל הניווט</string>
-    <string name="hide_pill_indicator">הסתר את האינדיקטור</string>
-    <string name="hide_pill_indicator_desc">הסתר את אינדיקטור הבחירה בסרגל הניווט</string>
     <string name="fonts_title">גופנים</string>
     <string name="font_default_sub">מערכת</string>
     <string name="font_snpro">SN פרו</string>

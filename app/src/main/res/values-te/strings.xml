@@ -425,8 +425,6 @@
     <string name="merchant_label">వాణిజ్యదర్శి</string>
     <string name="description_optional_label">వివరణ (ఐచ్ఛికం)</string>
     <string name="transfer_action">మార్పిడి</string>
-    <string name="apply_category_to_all_future_transactions_format">ఈ శ్రేణిని "%1$s" నుండి అన్ని భవిష్యత్తు లావాదేవీలకు వర్తింపజేయండి</string>
-    <string name="manual_entry_warning">ఇది మానువల్‌గా నమోదు చేసిన లావాదేవీలకు పని చేయదు</string>
     <string name="update_existing_transactions_format">"%3$s" నుండి %1$d ఉన్న %2$s ను అప్‌డేట్ చేయండి</string>
     <string name="preview_transaction_matches">లావాదేవీ మ్యాచ్‌ల ప్రివ్యూ</string>
     <string name="recurring_transaction">పునరావృత లావాదేవీ</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">కామిక్</string>
     <string name="logo_zenith">జెనిత్</string>
     <string name="logo_monochrome">మోనోక్రోమ్</string>
-    <string name="navigation_style">నావిగేషన్</string>
-    <string name="nav_floating">ఫ్లోటింగ్</string>
-    <string name="nav_floating_sub">ఆధునిక &amp; స్లీక్</string>
-    <string name="nav_normal">సాధారణ</string>
-    <string name="nav_normal_sub">స్టాండర్డ్ M3</string>
-    <string name="hide_nav_labels">నావిగేషన్ లేబుల్స్ ని దాచు</string>
-    <string name="hide_nav_labels_desc">నావిగేషన్ బార్ లో లేబుల్స్ ని దాచండి</string>
-    <string name="hide_pill_indicator">పిల్ సూచికను దాచు</string>
-    <string name="hide_pill_indicator_desc">నావిగేషన్ బార్ లోని సెలెక్షన్ సూచికను దాచండి</string>
     <string name="fonts_title">ఫాంట్లు</string>
     <string name="font_default_sub">సిస్టమ్</string>
     <string name="font_snpro">SN ప్రో</string>

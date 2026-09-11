@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -26,7 +28,7 @@ internal fun TransactionSummarySheet(
     onOpenDetails: () -> Unit
 ) {
     val locale = LocalConfiguration.current.locales[0]
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow

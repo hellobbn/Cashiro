@@ -38,7 +38,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -209,7 +209,7 @@ fun AddEditLendBorrowTransactionSheet(
         }
     }
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -831,7 +831,7 @@ fun AddEditLendBorrowTransactionSheet(
     }
 
     if (showNumberPad) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
             containerColor = MaterialTheme.colorScheme.surface
         ) {
@@ -899,7 +899,7 @@ fun AddEditLendBorrowTransactionSheet(
     }
 
     if (showAccountSheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showAccountSheet = false },
             containerColor = MaterialTheme.colorScheme.surface
         ) {
@@ -916,7 +916,7 @@ fun AddEditLendBorrowTransactionSheet(
     }
 
     if (showCategoryMenu) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showCategoryMenu = false },
             containerColor = MaterialTheme.colorScheme.surface
         ) {

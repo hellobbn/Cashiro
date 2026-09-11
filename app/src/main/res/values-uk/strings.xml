@@ -424,8 +424,6 @@
     <string name="merchant_label">Купець</string>
     <string name="description_optional_label">Опис (необов\'язково)</string>
     <string name="transfer_action">Переказ</string>
-    <string name="apply_category_to_all_future_transactions_format">Застосувати цю категорію до всіх майбутніх транзакцій з \"%1$s\"</string>
-    <string name="manual_entry_warning">Це не працює над введенням операцій вручну</string>
     <string name="update_existing_transactions_format">Оновити %1$d існуючий %2$s з \"%3$s\"</string>
     <string name="preview_transaction_matches">Попередній перегляд збігів транзакції</string>
     <string name="recurring_transaction">Повторювана транзакція</string>
@@ -832,15 +830,6 @@
     <string name="logo_comic">Комік</string>
     <string name="logo_zenith">Зені́т</string>
     <string name="logo_monochrome">Монохром</string>
-    <string name="navigation_style">Навігація</string>
-    <string name="nav_floating">Плаваюча</string>
-    <string name="nav_floating_sub">Сучасний та стильний</string>
-    <string name="nav_normal">Стандартний</string>
-    <string name="nav_normal_sub">Стандарт M3</string>
-    <string name="hide_nav_labels">Сховати підписи навігації</string>
-    <string name="hide_nav_labels_desc">Сховати підписи на панелі навігації</string>
-    <string name="hide_pill_indicator">Сховати індикатор вибору</string>
-    <string name="hide_pill_indicator_desc">Сховати індикатор вибору на панелі навігації</string>
     <string name="fonts_title">Шрифти</string>
     <string name="font_default_sub">Системний</string>
     <string name="font_snpro">SN Pro</string>

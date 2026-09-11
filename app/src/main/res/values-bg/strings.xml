@@ -425,8 +425,6 @@
     <string name="merchant_label">Търговец</string>
     <string name="description_optional_label">Описание (по избор)</string>
     <string name="transfer_action">Прехвърляне</string>
-    <string name="apply_category_to_all_future_transactions_format">Прилагане на тази категория към всички бъдещи транзакции от "%1$s"</string>
-    <string name="manual_entry_warning">Това не работи при ръчно въведени транзакции</string>
     <string name="update_existing_transactions_format">Актуализирай %1$d съществуващи %2$s от "%3$s"</string>
     <string name="preview_transaction_matches">Преглед на съвпаденията на транзакцията</string>
     <string name="recurring_transaction">Постоянна транзакция</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">Комикс</string>
     <string name="logo_zenith">Зенит</string>
     <string name="logo_monochrome">Монохром</string>
-    <string name="navigation_style">Навигация</string>
-    <string name="nav_floating">Плаваща</string>
-    <string name="nav_floating_sub">Модерна и Стилна</string>
-    <string name="nav_normal">Нормална</string>
-    <string name="nav_normal_sub">Стандарт M3</string>
-    <string name="hide_nav_labels">Скрий етикети на навигацията</string>
-    <string name="hide_nav_labels_desc">Скрий етикети в навигационната лента</string>
-    <string name="hide_pill_indicator">Скрий индикатор на таблетката</string>
-    <string name="hide_pill_indicator_desc">Скрий индикатора за избор в навигационната лента</string>
     <string name="fonts_title">Шрифтове</string>
     <string name="font_default_sub">Система</string>
     <string name="font_snpro">SN Pro</string>

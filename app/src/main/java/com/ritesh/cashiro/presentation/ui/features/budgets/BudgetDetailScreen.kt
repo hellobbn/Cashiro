@@ -27,7 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -47,8 +47,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BudgetCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DashedLine
@@ -119,7 +117,7 @@ fun SharedTransitionScope.BudgetDetailScreen(
     val transactions = uiState.selectedBudgetTransactions
 
     if (showEditSheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { 
                 showEditSheet = false
                 budgetViewModel.clearEditState()
@@ -235,8 +233,7 @@ fun SharedTransitionScope.BudgetDetailScreen(
             } else {
                 LazyColumn(
                     state = lazyListState,
-                    flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
-                    modifier = Modifier.fillMaxSize().overScrollVertical(),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
                         top = paddingValues.calculateTopPadding() + Spacing.md,
                         bottom = 100.dp

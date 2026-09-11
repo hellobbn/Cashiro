@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import androidx.compose.animation.core.tween
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -100,8 +103,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.common.TimePeriod
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BatchEditTransactionsBottomSheet
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CurrencySelectionBottomSheet
@@ -668,9 +669,7 @@ fun TransactionsScreen(
                             .weight(1f)
                             .padding(horizontal = Dimensions.Padding.content)
                             .padding(top = Spacing.sm)
-                            .clip(RoundedCornerShape(20.dp))
-                            .overScrollVertical(),
-                        flingBehavior = rememberOverscrollFlingBehavior { listState },
+                            .clip(RoundedCornerShape(20.dp)),
                         contentPadding = PaddingValues(
                             bottom = 150.dp
                         )
@@ -786,8 +785,8 @@ fun TransactionsScreen(
             // Floating Pill Shape Button for Batch Edit
             AnimatedVisibility(
                 visible = selectionMode && selectedTransactionIds.isNotEmpty(),
-                enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) + slideInVertically(spring(stiffness = Spring.StiffnessLow)) { it / 2 },
-                exit = fadeOut(spring(stiffness = Spring.StiffnessLow)) + slideOutVertically(spring(stiffness = Spring.StiffnessLow)) { it / 2 },
+                enter = fadeIn(tween(durationMillis = MotionDurations.standard)) + slideInVertically(tween(durationMillis = MotionDurations.standard)) { it / 2 },
+                exit = fadeOut(tween(durationMillis = MotionDurations.standard)) + slideOutVertically(tween(durationMillis = MotionDurations.standard)) { it / 2 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 92.dp)

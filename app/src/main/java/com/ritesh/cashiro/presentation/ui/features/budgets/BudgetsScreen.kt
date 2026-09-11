@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -28,7 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -55,8 +59,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BudgetCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
@@ -101,7 +103,7 @@ fun SharedTransitionScope.BudgetsScreen(
     
     // Edit budget sheet
     if (showEditSheet) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { 
                 showEditSheet = false
                 editingBudgetId = null
@@ -162,7 +164,7 @@ fun SharedTransitionScope.BudgetsScreen(
 
     // Budget Type Wizard
     if (showTypeWizard) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showTypeWizard = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -185,7 +187,7 @@ fun SharedTransitionScope.BudgetsScreen(
 
     // Budget Track Type Wizard
     if (showTrackWizard) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showTrackWizard = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -226,10 +228,7 @@ fun SharedTransitionScope.BudgetsScreen(
             rememberSharedContentState(key = "budget_card_$sharedElementPrefix"),
             animatedVisibilityScope = animatedContentScope,
             boundsTransform = { _, _ ->
-                spring(
-                    stiffness = Spring.StiffnessLow,
-                    dampingRatio = Spring.DampingRatioNoBouncy
-                )
+                tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
             },
             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                 contentScale = ContentScale.Inside,
@@ -355,9 +354,7 @@ private fun SharedTransitionScope.BudgetsList(
         state = lazyListState,
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .overScrollVertical(),
-        flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
             start = Spacing.md,
             end = Spacing.md,

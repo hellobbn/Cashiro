@@ -1,5 +1,11 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
+import androidx.compose.animation.core.FastOutSlowInEasing
+
+import androidx.compose.animation.core.tween
+
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
@@ -138,10 +144,7 @@ private fun Modifier.animatedOffsetModifier(
 
     val animatedOffsetX by transition.animateFloat(
         transitionSpec = {
-            spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMediumLow
-            )
+            tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
         },
         label = "offsetX"
     ) { (_, _, offset) -> offset }

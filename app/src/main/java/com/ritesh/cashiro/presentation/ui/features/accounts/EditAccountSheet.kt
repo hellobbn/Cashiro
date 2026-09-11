@@ -38,7 +38,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -95,6 +95,7 @@ fun EditAccountSheet(
     isSaving: Boolean = false,
     saveError: String? = null,
     onClearSaveError: () -> Unit = {},
+    showHeading: Boolean = true,
     onDismiss: () -> Unit,
     onDelete: (() -> Unit)? = null,
     onSave: (bankName: String,
@@ -145,7 +146,7 @@ fun EditAccountSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (showNumberPad) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -169,7 +170,7 @@ fun EditAccountSheet(
     }
 
     if (showIconSelector) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showIconSelector = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -218,16 +219,18 @@ fun EditAccountSheet(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState(), overscrollEffect = null)
                 .padding(horizontal = Spacing.md, vertical = Spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Text(
-                text = if (account == null) stringResource(R.string.add_account_title) else stringResource(R.string.edit_account_title),
-                style = MaterialTheme.typography.titleMediumEmphasized,
-                fontWeight = FontWeight.Bold
-            )
+            if (showHeading) {
+                Text(
+                    text = if (account == null) stringResource(R.string.add_account_title) else stringResource(R.string.edit_account_title),
+                    style = MaterialTheme.typography.titleMediumEmphasized,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             // Account Type Selection
             if (account == null) {

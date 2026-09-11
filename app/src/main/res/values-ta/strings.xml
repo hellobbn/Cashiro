@@ -425,8 +425,6 @@
     <string name="merchant_label">வர்த்தகர்</string>
     <string name="description_optional_label">விபரம் (விருப்பமானது)</string>
     <string name="transfer_action">பரிமாற்றம்</string>
-    <string name="apply_category_to_all_future_transactions_format">"%1$s" இல் இருந்து வரும் அனைத்து எதிர்கால பரிவர்த்தனைகளுக்கும் இந்த வகையைதோர் ஜாக்கிரதி செய்யவும்</string>
-    <string name="manual_entry_warning">இது கைமுறையாக உள்ளிட்ட பரிவர்த்தனைகளில் வேலை செய்யாது</string>
     <string name="update_existing_transactions_format">"%3$s" இலிருந்து %1$d உள்ள %2$s புதுப்பிக்கவும்</string>
     <string name="preview_transaction_matches">பரிவர்த்தனை பொருந்துதல்களின் முன்னோட்டம்</string>
     <string name="recurring_transaction">மீண்டும் நிகழும் பரிவர்த்தனை</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">காமிக்</string>
     <string name="logo_zenith">சென்னித்</string>
     <string name="logo_monochrome">ஒற்றைநிறம்</string>
-    <string name="navigation_style">நெவிகேஷன்</string>
-    <string name="nav_floating">மிதக்கும்</string>
-    <string name="nav_floating_sub">நவீனமும் ஸ்லீக்கும்</string>
-    <string name="nav_normal">சாதாரண</string>
-    <string name="nav_normal_sub">தரநிலை M3</string>
-    <string name="hide_nav_labels">நெவிகேஷன் லேபிள்களை மறைக்கவும்</string>
-    <string name="hide_nav_labels_desc">நெவிகேஷன் பட்டியில் லேபிள்களை மறைக்கவும்</string>
-    <string name="hide_pill_indicator">பில் குறியீட்டை மறைக்கவும்</string>
-    <string name="hide_pill_indicator_desc">நெவிகேஷன் பட்டியில் தேர்வு குறியீட்டை மறைக்கவும்</string>
     <string name="fonts_title">அச்சுருக்கள்</string>
     <string name="font_default_sub">சிஸ்டம்</string>
     <string name="font_snpro">எஸ்என் ப்ரோ</string>

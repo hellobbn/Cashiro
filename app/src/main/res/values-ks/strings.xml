@@ -425,8 +425,6 @@
     <string name="merchant_label">مرچنٹ</string>
     <string name="description_optional_label">تفصیل (اختیاری)</string>
     <string name="transfer_action">منتقلی</string>
-    <string name="apply_category_to_all_future_transactions_format">یہِ زمرٕ کٔرِو "%1$s" پیٹھٕ مُستقبِل کِس تمام لین دین پیٹھ لاگو</string>
-    <string name="manual_entry_warning">یہِ چھُنہٕ دستی طور دٲخٕل کَرنہٕ آمٕتۍ لین دین پیٹھ کٲم کران</string>
     <string name="update_existing_transactions_format">اپ ڈیٹ %1$d موجودٕ %2$s "%3$s" پیٹھٕ</string>
     <string name="preview_transaction_matches">ٹرانزیکشن میچَن ہُنٛد پیش نظارٕ</string>
     <string name="recurring_transaction">بار بار لین دین</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">کامِک</string>
     <string name="logo_zenith">زینتھ</string>
     <string name="logo_monochrome">مونوکروم</string>
-    <string name="navigation_style">نیویگیشن</string>
-    <string name="nav_floating">فلوٹنگ</string>
-    <string name="nav_floating_sub">جدید تہٕ چیکُن</string>
-    <string name="nav_normal">عام</string>
-    <string name="nav_normal_sub">اسٹینڈرڈ M3</string>
-    <string name="hide_nav_labels">نیویگیشن لیبل کٔرِو ہٲوِو</string>
-    <string name="hide_nav_labels_desc">نیویگیشن بارَس مَنٛز کٔرِو لیبَل ہٲوِتھ</string>
-    <string name="hide_pill_indicator">پِلِٹ اِنڈیکیٹَر کٔرِو ہٲوِو</string>
-    <string name="hide_pill_indicator_desc">نیویگیشن بارَس منٛز کٔرِو سلیکشن اِنڈیکیٹر ہٲوِو</string>
     <string name="fonts_title">فانٹ</string>
     <string name="font_default_sub">سسٹم</string>
     <string name="font_snpro">ایس این پرو</string>

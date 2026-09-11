@@ -425,8 +425,6 @@ Grænn (+) = Sparnaður | Rauður (-) = Ofureyðsla</string>
     <string name="merchant_label">Viðskiptafélagi</string>
     <string name="description_optional_label">Lýsing (Valfrjálst)</string>
     <string name="transfer_action">Millifærsla</string>
-    <string name="apply_category_to_all_future_transactions_format">Nota þessa flokk inn á allar framtíðarfærslur frá "%1$s"</string>
-    <string name="manual_entry_warning">Þetta virkar ekki á færslum sem eru skráðar handvirkt</string>
     <string name="update_existing_transactions_format">Uppfæra %1$d núverandi %2$s frá "%3$s"</string>
     <string name="preview_transaction_matches">Forskoða samsvörun færslna</string>
     <string name="recurring_transaction">Endurtekin færsla</string>
@@ -833,15 +831,6 @@ Grænn (+) = Sparnaður | Rauður (-) = Ofureyðsla</string>
     <string name="logo_comic">Teiknimynd</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Eintóna</string>
-    <string name="navigation_style">Leiðsögn</string>
-    <string name="nav_floating">Fljótandi</string>
-    <string name="nav_floating_sub">Nútímalegt &amp; Slétt</string>
-    <string name="nav_normal">Venjulegt</string>
-    <string name="nav_normal_sub">Staðlað M3</string>
-    <string name="hide_nav_labels">Fela leiðsagnarmerkingar</string>
-    <string name="hide_nav_labels_desc">Fela merkingar í leiðsagnarstikunni</string>
-    <string name="hide_pill_indicator">Fela valmiðamerki</string>
-    <string name="hide_pill_indicator_desc">Fela valmiðamerkið í leiðsagnarstikunni</string>
     <string name="fonts_title">Leturgerðir</string>
     <string name="font_default_sub">Kerfi</string>
     <string name="font_snpro">SN Pro</string>

@@ -29,7 +29,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -90,7 +90,7 @@ fun AddEditPersonSheet(
     val numberPadSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (showNumberPad) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
             sheetState = numberPadSheetState,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -125,7 +125,7 @@ fun AddEditPersonSheet(
             }
         }
 
-    ModalBottomSheet(
+    CashiroModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle() },

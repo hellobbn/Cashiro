@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -57,8 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.navigation.TransactionDetail
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
 import com.ritesh.cashiro.presentation.navigation.safePopBackStack
@@ -109,10 +111,7 @@ fun SharedTransitionScope.AccountDetailScreen(
                         rememberSharedContentState(key = "account_${bankName}_${accountLast4}"),
                         animatedVisibilityScope = animatedContentScope,
                         boundsTransform = { _, _ ->
-                            spring(
-                                stiffness =  Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
-                            )
+                            tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
                     )
@@ -136,9 +135,7 @@ fun SharedTransitionScope.AccountDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .overScrollVertical()
                 .hazeSource(state = hazeState),
-            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
             contentPadding = PaddingValues(
                 top = Dimensions.Padding.content + paddingValues.calculateTopPadding()
             ),

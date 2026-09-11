@@ -35,7 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -72,7 +72,6 @@ import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.domain.brokerage.BrokerageAccount
 import com.ritesh.cashiro.domain.brokerage.BrokerageError
 import com.ritesh.cashiro.domain.brokerage.Holding
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
@@ -165,7 +164,7 @@ fun InvestmentsScreen(
         onManageManualAccounts = onManageManualAccounts
     )
     if (showAddMenu) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { showAddMenu = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             containerColor = MaterialTheme.colorScheme.surface,
@@ -206,7 +205,7 @@ fun InvestmentsScreen(
         }
     }
     if (showAddAccount) {
-        ModalBottomSheet(
+        CashiroModalBottomSheet(
             onDismissRequest = { if (!accountState.isSavingAccount) showAddAccount = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             containerColor = MaterialTheme.colorScheme.surface,
@@ -318,7 +317,6 @@ internal fun InvestmentsContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(state = hazeState)
-                    .overScrollVertical()
                     .padding(horizontal = Dimensions.Padding.content)
                     .testTag("investments_list"),
                 contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 96.dp),

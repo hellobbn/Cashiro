@@ -422,8 +422,6 @@
     <string name="merchant_label">Marchand</string>
     <string name="description_optional_label">Description (facultatif)</string>
     <string name="transfer_action">Transférer</string>
-    <string name="apply_category_to_all_future_transactions_format">Appliquer cette catégorie à toutes les transactions futures de \"%1$s\"</string>
-    <string name="manual_entry_warning">Cela ne fonctionne pas sur les transactions saisies manuellement</string>
     <string name="update_existing_transactions_format">Mettre à jour %1$d %2$s existant depuis \"%3$s\"</string>
     <string name="preview_transaction_matches">Aperçu des correspondances de la transaction</string>
     <string name="recurring_transaction">Transaction récurrente</string>
@@ -830,15 +828,6 @@
     <string name="logo_comic">Bande dessinée</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
-    <string name="navigation_style">Navigation</string>
-    <string name="nav_floating">Flottante</string>
-    <string name="nav_floating_sub">Moderne et élégante</string>
-    <string name="nav_normal">Normale</string>
-    <string name="nav_normal_sub">Standard M3</string>
-    <string name="hide_nav_labels">Masquer les étiquettes de navigation</string>
-    <string name="hide_nav_labels_desc">Masquer les étiquettes dans la barre de navigation</string>
-    <string name="hide_pill_indicator">Masquer l\'indicateur de sélection</string>
-    <string name="hide_pill_indicator_desc">Masquer l\'indicateur de sélection dans la barre de navigation</string>
     <string name="fonts_title">Polices</string>
     <string name="font_default_sub">Système</string>
     <string name="font_snpro">SN Pro</string>

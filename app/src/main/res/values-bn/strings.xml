@@ -425,8 +425,6 @@
     <string name="merchant_label">বণিক</string>
     <string name="description_optional_label">বর্ণনা (ঐচ্ছিক)</string>
     <string name="transfer_action">স্থানান্তরণ</string>
-    <string name="apply_category_to_all_future_transactions_format">"%1$s" থেকে সমস্ত ভবিষ্যত লেনদেনে এই শ্রেণি প্রয়োগ করুন</string>
-    <string name="manual_entry_warning">এটি ম্যানুয়ালি প্রবেশ করা লেনদেনে কাজ করে না</string>
     <string name="update_existing_transactions_format">"%3$s" থেকে %1$d বিদ্যমান %2$s আপডেট করুন</string>
     <string name="preview_transaction_matches">লেনদেন মিলের প্রিভিউ</string>
     <string name="recurring_transaction">পুনরাবৃত্ত লেনদেন</string>
@@ -833,15 +831,6 @@
     <string name="logo_comic">কমিক</string>
     <string name="logo_zenith">সেনিথ</string>
     <string name="logo_monochrome">মনোক্রোম</string>
-    <string name="navigation_style">নেভিগেশন</string>
-    <string name="nav_floating">ভাসমান</string>
-    <string name="nav_floating_sub">আধুনিক ও মসৃণ</string>
-    <string name="nav_normal">সাধারণ</string>
-    <string name="nav_normal_sub">স্ট্যান্ডার্ড M3</string>
-    <string name="hide_nav_labels">নেভিগেশন লেবেল লুকান</string>
-    <string name="hide_nav_labels_desc">নেভিগেশন বারের লেবেলগুলি লুকান</string>
-    <string name="hide_pill_indicator">পিল সূচক লুকান</string>
-    <string name="hide_pill_indicator_desc">নেভিগেশন বারে নির্বাচনী সূচকটি লুকান</string>
     <string name="fonts_title">ফন্ট</string>
     <string name="font_default_sub">সিস্টেম</string>
     <string name="font_snpro">SN প্রো</string>

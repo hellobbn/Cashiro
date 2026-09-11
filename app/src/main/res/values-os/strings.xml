@@ -422,8 +422,6 @@
     <string name="merchant_label">Merchant</string>
     <string name="description_optional_label">Description (Optional)</string>
     <string name="transfer_action">Transfer</string>
-    <string name="apply_category_to_all_future_transactions_format">Apply this category to all future transactions from \"%1$s\"</string>
-    <string name="manual_entry_warning">This doesn\'t work on manually entered transactions</string>
     <string name="update_existing_transactions_format">Update %1$d existing %2$s from \"%3$s\"</string>
     <string name="preview_transaction_matches">Preview transaction matches</string>
     <string name="recurring_transaction">Recurring Transaction</string>
@@ -830,15 +828,6 @@
     <string name="logo_comic">Comic</string>
     <string name="logo_zenith">Zenith</string>
     <string name="logo_monochrome">Monochrome</string>
-    <string name="navigation_style">Navigation</string>
-    <string name="nav_floating">Floating</string>
-    <string name="nav_floating_sub">Modern &amp; Sleek</string>
-    <string name="nav_normal">Normal</string>
-    <string name="nav_normal_sub">Standard M3</string>
-    <string name="hide_nav_labels">Hide Navigation Labels</string>
-    <string name="hide_nav_labels_desc">Hide labels in the navigation bar</string>
-    <string name="hide_pill_indicator">Hide Pill Indicator</string>
-    <string name="hide_pill_indicator_desc">Hide the selection indicator in the navigation bar</string>
     <string name="fonts_title">Fonts</string>
     <string name="font_default_sub">System</string>
     <string name="font_snpro">SN Pro</string>
