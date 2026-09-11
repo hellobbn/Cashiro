@@ -7,7 +7,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -37,13 +36,6 @@ interface ExchangeRateProvider {
 class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
 
     private val client = HttpClient(Android) {
-        // Without this the Android engine waits its 100 s default on each of the two
-        // endpoints, so one unreachable CDN blocks every currency conversion for minutes.
-        install(HttpTimeout) {
-            connectTimeoutMillis = 10_000
-            requestTimeoutMillis = 15_000
-            socketTimeoutMillis = 15_000
-        }
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
