@@ -40,7 +40,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -63,6 +66,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColorPickerDialog(
     initialColor: Int,
@@ -145,6 +149,8 @@ fun ColorPickerDialog(
             }
         }
 
+    // A dialog is a popup too: its colour grid and slider row must not stretch either.
+    CompositionLocalProvider(LocalOverscrollFactory provides null) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -188,4 +194,5 @@ fun ColorPickerDialog(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     )
+    }
 }

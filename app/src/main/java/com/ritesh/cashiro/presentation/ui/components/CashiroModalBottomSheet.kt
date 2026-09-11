@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.BottomSheetDefaults
@@ -9,6 +11,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -32,9 +35,10 @@ private object SheetScrollIsolation : NestedScrollConnection {
 
 /**
  * Drop-in replacement for [ModalBottomSheet] used throughout the app. Same parameters; the
- * content is wrapped so its scrolling never drives the sheet (see [SheetScrollIsolation]).
+ * content is wrapped so its scrolling never drives the sheet (see [SheetScrollIsolation]) and
+ * so no list inside it stretches at its edges. Outside sheets the platform effect is kept.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CashiroModalBottomSheet(
     onDismissRequest: () -> Unit,
@@ -53,8 +57,10 @@ fun CashiroModalBottomSheet(
         tonalElevation = tonalElevation,
         dragHandle = dragHandle
     ) {
-        Column(modifier = Modifier.nestedScroll(SheetScrollIsolation)) {
-            content()
+        CompositionLocalProvider(LocalOverscrollFactory provides null) {
+            Column(modifier = Modifier.nestedScroll(SheetScrollIsolation)) {
+                content()
+            }
         }
     }
 }
