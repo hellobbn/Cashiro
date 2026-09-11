@@ -42,13 +42,14 @@ class CurrencyConversionService @Inject constructor(
         amount: BigDecimal,
         fromCurrency: String,
         toCurrency: String,
-        forceRefresh: Boolean = false
+        forceRefresh: Boolean = false,
+        allowNetwork: Boolean = true
     ): BigDecimal {
         if (fromCurrency.equals(toCurrency, ignoreCase = true)) {
             return amount
         }
 
-        val rate = getExchangeRate(fromCurrency, toCurrency, forceRefresh)
+        val rate = getExchangeRate(fromCurrency, toCurrency, forceRefresh, allowNetwork)
         return if (rate != null) {
             amount.multiply(rate).setScale(2, RoundingMode.HALF_UP)
         } else {
@@ -59,10 +60,15 @@ class CurrencyConversionService @Inject constructor(
     /**
      * Get exchange rate between two currencies
      */
+    /**
+     * @param allowNetwork when false, returns null instead of fetching a missing rate. Callers
+     * that must produce a figure without waiting on the rate API use this for a first pass.
+     */
     suspend fun getExchangeRate(
         fromCurrency: String,
         toCurrency: String,
-        forceRefresh: Boolean = false
+        forceRefresh: Boolean = false,
+        allowNetwork: Boolean = true
     ): BigDecimal? {
         val cacheKey = "${fromCurrency.uppercase()}_${toCurrency.uppercase()}"
 
@@ -132,6 +138,7 @@ class CurrencyConversionService @Inject constructor(
         }
 
         // Fetch from API if not found, forced refresh, or rates are stale
+        if (!allowNetwork) return null
         return fetchAndCacheRate(fromCurrency, toCurrency)
     }
 

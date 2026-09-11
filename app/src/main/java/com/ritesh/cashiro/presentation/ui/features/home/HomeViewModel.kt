@@ -216,53 +216,68 @@ class HomeViewModel @Inject constructor(
                     val key = "${account.bankName}_${account.accountLast4}"
                     !hiddenAccounts.contains(key)
                 }
+                Triple(balances, selectedCurrency, connections)
+            }.flowOn(Dispatchers.Default).collectLatest { (balances, selectedCurrency, connections) ->
                 // Keep zero-balance accounts discoverable in the grouped account list.
-                val regularAccounts =
-                    balances.filter { !it.isCreditCard }
+                val regularAccounts = balances.filter { !it.isCreditCard }
                 val creditCards = balances.filter { it.isCreditCard }
 
                 // Account loading completed
                 Log.d("HomeViewModel", "Loaded ${balances.size} account(s)")
 
-                // Check if we have multiple currencies and refresh exchange rates if needed
-                val accountCurrencies = regularAccounts.map { it.currency }.distinct()
-                val hasMultipleCurrencies = accountCurrencies.size > 1
+                val snapshots = connections.investmentSnapshotsOrEmpty()
 
-                if (hasMultipleCurrencies && accountCurrencies.isNotEmpty()) {
+                suspend fun publishTotals(allowNetwork: Boolean) {
+                    val totalBalanceInSelectedCurrency = balances.netWorthIn(
+                        selectedCurrency,
+                        currencyConversionService,
+                        investmentSnapshots = snapshots,
+                        allowNetwork = allowNetwork
+                    )
+
+                    var totalAvailableCreditInSelectedCurrency = BigDecimal.ZERO
+                    for (card in creditCards) {
+                        val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) - card.balance
+                        val amt = if (card.currency == selectedCurrency) {
+                            availableInCardCurrency
+                        } else {
+                            currencyConversionService.convertAmount(
+                                amount = availableInCardCurrency,
+                                fromCurrency = card.currency,
+                                toCurrency = selectedCurrency,
+                                allowNetwork = allowNetwork
+                            )
+                        }
+                        totalAvailableCreditInSelectedCurrency =
+                            totalAvailableCreditInSelectedCurrency.add(amt)
+                    }
+
+                    _uiState.update {
+                        it.copy(
+                            accountBalances = regularAccounts,
+                            creditCards = creditCards,
+                            totalBalance = totalBalanceInSelectedCurrency,
+                            totalAvailableCredit = totalAvailableCreditInSelectedCurrency,
+                            selectedCurrency = selectedCurrency
+                        )
+                    }
+                }
+
+                // First pass on stored rates only. The net worth card starts at zero, and
+                // fetching a missing rate can take as long as the request timeout, so waiting
+                // for the network here is what made the balance read 0 on a poor connection.
+                withContext(Dispatchers.Default) { publishTotals(allowNetwork = false) }
+
+                val accountCurrencies = regularAccounts.map { it.currency }.distinct()
+                if (accountCurrencies.size > 1) {
                     currencyConversionService.refreshExchangeRatesForAccount(accountCurrencies)
                 }
 
-                val totalBalanceInSelectedCurrency = balances.netWorthIn(
-                    selectedCurrency,
-                    currencyConversionService,
-                    investmentSnapshots = connections.investmentSnapshotsOrEmpty()
-                )
-
-                var totalAvailableCreditInSelectedCurrency = BigDecimal.ZERO
-                for (card in creditCards) {
-                    val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) - card.balance
-                    val amt = if (card.currency == selectedCurrency) {
-                        availableInCardCurrency
-                    } else {
-                        currencyConversionService.convertAmount(
-                            amount = availableInCardCurrency,
-                            fromCurrency = card.currency,
-                            toCurrency = selectedCurrency
-                        )
-                    }
-                    totalAvailableCreditInSelectedCurrency = totalAvailableCreditInSelectedCurrency.add(amt)
+                // Only currencies that differ from the display currency need a rate at all.
+                if (balances.any { it.currency != selectedCurrency } || snapshots.keys.any { it != selectedCurrency }) {
+                    withContext(Dispatchers.Default) { publishTotals(allowNetwork = true) }
                 }
-
-                _uiState.update { 
-                    it.copy(
-                        accountBalances = regularAccounts,
-                        creditCards = creditCards,
-                        totalBalance = totalBalanceInSelectedCurrency,
-                        totalAvailableCredit = totalAvailableCreditInSelectedCurrency,
-                        selectedCurrency = selectedCurrency
-                    )
-                }
-            }.flowOn(Dispatchers.Default).collectLatest { }
+            }
         }
 
         viewModelScope.launch {
