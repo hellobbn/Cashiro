@@ -32,6 +32,7 @@ import com.ritesh.cashiro.domain.model.PersonInfo
 import com.ritesh.cashiro.presentation.ui.components.BalancePoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +47,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -353,19 +355,35 @@ class HomeViewModel @Inject constructor(
                 selectedCurrencyCombined,
                 currencyConversionService.rateChangeTrigger
             ) { transactions, selectedCurrency, _ ->
-                // Calculate converted amounts for shown transactions if transaction currency differs from selected currency
-                val converted = transactions
-                    .filter { it.currency != selectedCurrency }
-                    .associate { tx ->
-                        tx.id to (currencyConversionService.convertAmount(tx.amount, tx.currency, selectedCurrency) ?: tx.amount)
-                    }
-                
+                transactions to selectedCurrency
+            }.flowOn(Dispatchers.Default).collectLatest { (transactions, selectedCurrency) ->
+                // Publish the rows first. Converting to the selected currency can require a
+                // network round trip, and isLoading is cleared here only; waiting for the
+                // conversion left the card on its loading indicator for the whole request.
                 _uiState.update { it.copy(
                     recentTransactions = transactions,
-                    convertedAmounts = converted,
                     isLoading = false
                 ) }
-            }.flowOn(Dispatchers.Default).collectLatest { }
+
+                val converted = withContext(Dispatchers.Default) {
+                    transactions
+                        .filter { it.currency != selectedCurrency }
+                        .associate { tx ->
+                            // Not runCatching: that would swallow the cancellation thrown when
+                            // a newer list arrives and collectLatest restarts this block.
+                            tx.id to (
+                                try {
+                                    currencyConversionService.convertAmount(tx.amount, tx.currency, selectedCurrency)
+                                } catch (e: CancellationException) {
+                                    throw e
+                                } catch (_: Exception) {
+                                    tx.amount
+                                }
+                            )
+                        }
+                }
+                _uiState.update { it.copy(convertedAmounts = converted) }
+            }
         }
 
         viewModelScope.launch {
