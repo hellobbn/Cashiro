@@ -35,6 +35,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -458,8 +459,8 @@ class HomeViewModel @Inject constructor(
             ) { allBalances, selectedCurrency, _ ->
                 allBalances to selectedCurrency
             }.collectLatest { (allBalances, selectedCurrency) ->
-                // Group balances by date to calculate daily totals
-                val dailyPortfolioHistory = allBalances
+                // Group balances by date to calculate daily totals (off Main: scans every snapshot)
+                val dailyPortfolioHistory = withContext(Dispatchers.Default) { allBalances
                     .filter { it.timestamp.isAfter(startDate) }
                     .groupBy { it.timestamp.toLocalDate() }
                     .mapValues { (_, balances) ->
@@ -494,6 +495,7 @@ class HomeViewModel @Inject constructor(
                             currency = selectedCurrency
                         )
                     }
+                }
 
                 _uiState.update { it.copy(
                     balanceHistory = dailyPortfolioHistory
@@ -702,7 +704,7 @@ class HomeViewModel @Inject constructor(
     fun checkForInAppReview(activity: ComponentActivity) {
         viewModelScope.launch {
             // Get current transaction count as additional eligibility factor
-            val transactionCount = transactionRepository.getAllTransactions().first().size
+            val transactionCount = transactionRepository.countVisibleTransactions()
             inAppReviewManager.checkAndShowReviewIfEligible(activity, transactionCount)
         }
     }

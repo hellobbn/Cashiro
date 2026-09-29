@@ -81,6 +81,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
@@ -656,9 +657,19 @@ fun TransactionsScreen(
                     )
                 }
                 else -> {
+                    // Benchmarks time the tab tap to this trace section: the first frame
+                    // that draws the list, i.e. with rows.
+                    val firstDrawTraced = remember { BooleanArray(1) }
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
+                            .drawWithContent {
+                                drawContent()
+                                if (!firstDrawTraced[0]) {
+                                    firstDrawTraced[0] = true
+                                    androidx.core.os.trace("TransactionsList.firstDraw") {}
+                                }
+                            }
                             .weight(1f)
                             .padding(horizontal = Dimensions.Padding.content)
                             .padding(top = Spacing.sm)

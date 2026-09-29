@@ -74,7 +74,7 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
             com.ritesh.cashiro.data.database.entity.LendBorrowTransactionEntity::class,
             com.ritesh.cashiro.data.database.entity.QuickTemplateEntity::class
         ],
-        version = 64,
+        version = 65,
     exportSchema = true,
     autoMigrations =
         [
@@ -161,7 +161,8 @@ MIGRATION_55_56,
                                 MIGRATION_60_61,
                                 MIGRATION_61_62,
                                 MIGRATION_62_63,
-                                MIGRATION_63_64
+                                MIGRATION_63_64,
+                                MIGRATION_64_65
                             )
                             .build()
                     INSTANCE = instance
@@ -664,6 +665,17 @@ MIGRATION_55_56,
          * SMS / bank-notification ingestion. Nothing reads them any more.
          */
         /** Quick-add templates for the Add Transaction screen. */
+        /** Index for the date-range queries behind every list, Home widget and chart. */
+        val MIGRATION_64_65 =
+            object : Migration(64, 65) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE INDEX IF NOT EXISTS `index_transactions_is_deleted_date_time` " +
+                            "ON `transactions` (`is_deleted`, `date_time`)"
+                    )
+                }
+            }
+
         val MIGRATION_63_64 =
             object : Migration(63, 64) {
                 override fun migrate(db: SupportSQLiteDatabase) {

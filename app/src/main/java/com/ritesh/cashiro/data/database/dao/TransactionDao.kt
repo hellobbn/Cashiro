@@ -15,6 +15,37 @@ interface TransactionDao {
     @Query("SELECT COUNT(*) FROM transactions WHERE is_deleted = 0")
     fun getTransactionCount(): Flow<Int>
 
+    @Query(
+            """
+        SELECT COUNT(*) FROM transactions
+        WHERE is_deleted = 0 AND transaction_type != 'BALANCE_UPDATE'
+    """
+    )
+    suspend fun countVisibleTransactions(): Int
+
+    @Query(
+            """
+        SELECT * FROM transactions
+        WHERE is_deleted = 0 AND transaction_type != 'BALANCE_UPDATE'
+        ORDER BY date_time DESC
+        LIMIT :limit
+    """
+    )
+    fun getRecentVisibleTransactions(limit: Int): Flow<List<TransactionEntity>>
+
+    @Query(
+            """
+        SELECT * FROM transactions
+        WHERE is_deleted = 0 AND transaction_type != 'BALANCE_UPDATE'
+        AND date_time BETWEEN :startDate AND :endDate
+        ORDER BY date_time DESC
+    """
+    )
+    fun getVisibleTransactionsBetweenDates(
+            startDate: LocalDateTime,
+            endDate: LocalDateTime
+    ): Flow<List<TransactionEntity>>
+
     @Query("SELECT * FROM transactions WHERE id = :transactionId")
     suspend fun getTransactionById(transactionId: Long): TransactionEntity?
 

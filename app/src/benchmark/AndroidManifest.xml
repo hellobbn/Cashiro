@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Lets Macrobenchmark and Perfetto trace this non-debuggable build. -->
+        <profileable android:shell="true" />
+
+        <!-- Benchmark builds only: seeds a deterministic data set and skips onboarding. -->
+        <activity
+            android:name="com.ritesh.cashiro.benchmark.SeedActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    </application>
+</manifest>

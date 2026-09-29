@@ -19,6 +19,14 @@ dependencyResolutionManagement {
     }
 }
 
+buildCache {
+    local {
+        // CI keeps this directory between runs with actions/cache; see perf-device.yml.
+        System.getenv("GRADLE_BUILD_CACHE_DIR")?.let { directory = file(it) }
+    }
+}
+
 rootProject.name = "cashiro-beta"
 include(":app")
 include(":parser-core")
+include(":benchmark")

@@ -67,6 +67,9 @@ jobs:
           java-version: '17'
           distribution: temurin
       - uses: android-actions/setup-android@v3
+        with:
+          # The default also installs the removed "tools" package, which now fails.
+          packages: platform-tools
       - uses: actions/cache@v4
         with:
           path: |

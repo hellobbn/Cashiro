@@ -28,7 +28,8 @@ class CurrencyConversionService @Inject constructor(
     private val backgroundScope = CoroutineScope(Dispatchers.IO)
 
     // Cache rates for performance
-    private val rateCache = mutableMapOf<String, BigDecimal>()
+    // Read and written from several ViewModels' pipelines on Default and Main.
+    private val rateCache = java.util.concurrent.ConcurrentHashMap<String, BigDecimal>()
     private var lastCacheUpdate: LocalDateTime = LocalDateTime.MIN
 
     // Emits a new value whenever a custom rate is saved or reset, so ViewModels can react

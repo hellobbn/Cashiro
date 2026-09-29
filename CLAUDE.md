@@ -107,12 +107,72 @@ Semantic versions from upstream, currently `2.1.63` (`versionCode` 97).
 
 Bump `versionName` / `versionCode` in `app/build.gradle.kts` together.
 
+## Commits and pull requests
+
+- Do not add a `Claude-Session:` line (or any session link) to commit messages or PR
+  descriptions.
+
 ## Module Structure
 
 ```
 app/            Android application (namespace com.ritesh.cashiro)
 parser-core/    JVM bank-SMS parsers (package com.ritesh.parser.core)
+benchmark/      Macrobenchmark tests against app's `benchmark` build type
 ```
+
+## Performance
+
+- `app` has a `benchmark` build type: release code (R8, `-dontobfuscate`), debug-signed,
+  `<profileable>`, applicationId `com.ritesh.cashiro.benchmark`.
+- `app/src/benchmark` adds `SeedActivity`, which writes a fixed data set (4 CNY accounts,
+  ~3,400 transactions) and skips onboarding. It exists only in benchmark builds.
+- `.github/workflows/perf-device.yml` runs `:benchmark` on a physical phone in Firebase
+  Test Lab (default Pixel 10 Pro, `model=blazer,version=36`). Needs the
+  `FIREBASE_SERVICE_ACCOUNT` secret; runs on dispatch or `[ftl]` in a commit message on a
+  non-`main` branch. Physical-device time is billed, so it does not run on every push.
+- It A/B tests on one phone: a baseline (the base ref's `app/src/main`, replaced wholesale,
+  built with this branch's benchmark setup and `-PbenchmarkIdSuffix=.benchmark.base`, so both
+  builds install side by side) and the candidate, measured base, candidate, candidate, base
+  in one run. The `variants` instrumentation argument sets that order; iteration counts in
+  `ScreenBenchmark` are per round (latency tests 5, frame tests 2). Test names end in
+  `[<index>]`, which `scripts/benchmark/compare.py --order` maps back.
+- The two builds run as parallel jobs; the baseline APK is cached by base commit plus this
+  branch's other build inputs. By default the run covers all of `ScreenBenchmark`.
+- `compare.py` pools both rounds per build and reports, per scenario, both medians (frame
+  metrics: percentiles), the change, a 95% bootstrap interval and a verdict (`RULES`):
+  latency fails when the whole interval is past +10% and 10 ms (warns past +3% / 5 ms),
+  frame overrun P90/P99 fails past +8 ms (warns past +2 ms), and more list publishes than
+  base fail. A build whose two rounds disagree marks the metric unstable and downgrades a
+  failure to a warning. The table goes to the job summary and to one comment on the
+  branch's pull request, updated per run; the job fails on a regression.
+- Commit message options: `[ftl base=<ref>]` picks the baseline (default `main`),
+  `[ftl tests=a+b]` runs only those `ScreenBenchmark` methods, `[ftl compose-trace]` adds
+  composable names to the traces (benchmark builds carry `runtime-tracing`; it slows
+  composition, so use it to diagnose, not to compare). `[apks]` alone only builds: the
+  `apk-base` and `apk-candidate` artifacts hold benchmark APKs that install side by side.
+- `flingDownAndUp` swipes with UiObject2's fling gesture but not `fling()` itself: that waits
+  5 s for a scroll-finished event Compose lists never send. It sleeps while the list coasts.
+- Baseline Profile: `app/src/main/baseline-prof.txt`, installed on sideloaded builds by
+  `profileinstaller`. `[ftl profile]` regenerates it: `BaselineProfileGenerator` runs on the
+  unminified `profiling` build type (the benchmark build without R8, same package) on Test
+  Lab and uploads the `baseline-profile` artifact; copy its `baseline-prof.txt` over the
+  file (already filtered: no benchmark-only classes, and Kotlin `internal` names use the
+  `app_standardRelease` module suffix). Regenerate after large UI changes. The `*WithProfile` tests compile each build with
+  its own profile (`CompilationMode.Partial`), so base vs candidate shows what it wins.
+- `BenchmarkBackupGenerator` (unit test, skipped unless `CASHIRO_BENCHMARK_BACKUP` is set)
+  writes the same data set as an importable backup zip for testing on a real device.
+- Never compare numbers across separate runs or devices; only within one run.
+- Emulators were dropped: they render on the CPU, so frame times mostly measured
+  SwiftShader, and the emulator process died flinging the Transactions list.
+- `transactionsDataReady` times tab tap to the list on screen, which frame metrics miss
+  because data loads off the main thread. It records no frame metrics: the window holds
+  only 4-6 frames, so their percentiles are noise. `tapToListDrawnMs` reads it from the trace: tap
+  (`deliverInputEvent`) to the `TransactionsList.firstDraw` section the app emits on the
+  list's first draw; exact, and adds no work to the app. `transactionsDataReadyMs` polls
+  with UiAutomator (wait-for-idle off, else it times "UI quiet for 500 ms") and includes
+  its lookup overhead; it stays for baselines that predate the trace section.
+- `./gradlew :app:compileStandardReleaseKotlin -PcomposeReports` writes Compose stability
+  reports to `app/build/compose_compiler`.
 
 App packages:
 
