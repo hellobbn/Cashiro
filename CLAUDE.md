@@ -128,8 +128,9 @@ benchmark/      Macrobenchmark tests against app's `benchmark` build type
   ~3,400 transactions) and skips onboarding. It exists only in benchmark builds.
 - `.github/workflows/perf-device.yml` runs `:benchmark` on a physical phone in Firebase
   Test Lab (default Pixel 10 Pro, `model=blazer,version=36`). Needs the
-  `FIREBASE_SERVICE_ACCOUNT` secret; runs on dispatch or `[ftl]` in a commit message on a
-  non-`main` branch. Physical-device time is billed, so it does not run on every push.
+  `FIREBASE_SERVICE_ACCOUNT` secret. Physical-device time is billed, so it only runs when
+  started by hand (Actions → Performance (device) → Run workflow, on the branch to
+  measure); nothing in a commit message triggers it.
 - It A/B tests on one phone: a baseline (the base ref's `app/src/main`, replaced wholesale,
   built with this branch's benchmark setup and `-PbenchmarkIdSuffix=.benchmark.base`, so both
   builds install side by side) and the candidate, measured base, candidate, candidate, base
@@ -145,15 +146,16 @@ benchmark/      Macrobenchmark tests against app's `benchmark` build type
   base fail. A build whose two rounds disagree marks the metric unstable and downgrades a
   failure to a warning. The table goes to the job summary and to one comment on the
   branch's pull request, updated per run; the job fails on a regression.
-- Commit message options: `[ftl base=<ref>]` picks the baseline (default `main`),
-  `[ftl tests=a+b]` runs only those `ScreenBenchmark` methods, `[ftl compose-trace]` adds
-  composable names to the traces (benchmark builds carry `runtime-tracing`; it slows
-  composition, so use it to diagnose, not to compare). `[apks]` alone only builds: the
-  `apk-base` and `apk-candidate` artifacts hold benchmark APKs that install side by side.
+- Run inputs: `mode` is `benchmark` (the A/B), `profile` (see Baseline Profile) or `apks`
+  (only build: the `apk-base` and `apk-candidate` artifacts hold benchmark APKs that
+  install side by side); `base_ref` picks the baseline (default `main`); `tests` names
+  `ScreenBenchmark` methods to run instead of all; `compose_trace` adds composable names
+  to the traces (benchmark builds carry `runtime-tracing`; it slows composition, so use it
+  to diagnose, not to compare).
 - `flingDownAndUp` swipes with UiObject2's fling gesture but not `fling()` itself: that waits
   5 s for a scroll-finished event Compose lists never send. It sleeps while the list coasts.
 - Baseline Profile: `app/src/main/baseline-prof.txt`, installed on sideloaded builds by
-  `profileinstaller`. `[ftl profile]` regenerates it: `BaselineProfileGenerator` runs on the
+  `profileinstaller`. A run with `mode: profile` regenerates it: `BaselineProfileGenerator` runs on the
   unminified `profiling` build type (the benchmark build without R8, same package) on Test
   Lab and uploads the `baseline-profile` artifact; copy its `baseline-prof.txt` over the
   file (already filtered: no benchmark-only classes, and Kotlin `internal` names use the

@@ -280,7 +280,8 @@ def report(data, header):
 
     fails = [r for r in rows if r["verdict"] == FAIL]
     warns = [r for r in rows if r["verdict"] == WARN]
-    unstable = [r for r in rows if r["unstable"]]
+    # An unstable metric needs a look unless it is already a warning or clearly better.
+    unstable = [r for r in rows if r["unstable"] and r["verdict"] not in (WARN, BETTER)]
     better = [r for r in rows if r["verdict"] == BETTER]
     if not rows:
         title = "❌ 没有拿到任何结果"
@@ -328,7 +329,7 @@ def report(data, header):
 
 
 def annotate(rows, fails, warns, unstable):
-    for level, items in (("error", fails), ("warning", warns + [r for r in unstable if r not in warns])):
+    for level, items in (("error", fails), ("warning", warns + unstable)):
         for r in items:
             scenario = SCENARIOS.get(r["test"], r["test"])
             note = "（本次不稳定）" if r["unstable"] else ""

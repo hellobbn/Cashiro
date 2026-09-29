@@ -37,6 +37,8 @@ class ScreenBenchmark(private val variant: Variant) {
         iterations: Int = FRAME_ITERATIONS,
         metrics: List<Metric> = listOf(FrameTimingMetric()),
         compilationMode: CompilationMode = CompilationMode.None(),
+        // Frame tests wait for Home to settle; latency tests start from it at once.
+        settle: Boolean = true,
         setup: MacrobenchmarkScope.() -> Unit = {},
         block: MacrobenchmarkScope.() -> Unit,
     ) = rule.measureRepeated(
@@ -50,6 +52,7 @@ class ScreenBenchmark(private val variant: Variant) {
             seedData()
             startActivityAndWait()
             waitForHome()
+            if (settle) settle()
             setup()
         },
         measureBlock = {
@@ -94,7 +97,7 @@ class ScreenBenchmark(private val variant: Variant) {
 
     private fun dataReady(compilationMode: CompilationMode, customMetric: String) {
         val runs = mutableListOf<Double>()
-        measure(LATENCY_ITERATIONS, transactionsMetrics, compilationMode) {
+        measure(LATENCY_ITERATIONS, transactionsMetrics, compilationMode, settle = false) {
             runs += msUntilSeededRows { clickTab("Transactions") }
         }
         CustomMetrics.write("$customMetric[$variant]", "ms", runs)

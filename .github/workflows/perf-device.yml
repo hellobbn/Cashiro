@@ -9,49 +9,53 @@ name: Performance (device)
 # Needs the FIREBASE_SERVICE_ACCOUNT secret: the JSON key of a service account in a
 # Firebase project with the Cloud Testing and Cloud Tool Results APIs enabled.
 #
-# Runs on dispatch, or on a branch push whose commit message contains "[ftl]"
-# ("[ftl base=<branch|sha>]" picks another baseline; "[ftl tests=a+b]" runs only those
-# ScreenBenchmark methods instead of all of them). Physical-device time is billed, so this
-# is not run on every push. "[apks]" alone only builds: the apk-base and apk-candidate
-# artifacts hold benchmark builds that install side by side (apk-candidate also has the
-# test APK).
-# "[ftl profile]" instead records a Baseline Profile (BaselineProfileGenerator on the
-# unminified profiling build) and uploads it as the baseline-profile artifact; copy its
-# baseline-prof.txt over app/src/main/baseline-prof.txt.
+# Runs only when started by hand: Actions → Performance (device) → Run workflow, on the
+# branch to measure (physical-device time is billed). "mode" picks what to do:
+#   benchmark  A/B of the branch against base_ref (default main), all of ScreenBenchmark
+#              unless "tests" names methods
+#   profile    record a Baseline Profile (BaselineProfileGenerator on the unminified
+#              profiling build) and upload it as the baseline-profile artifact; copy its
+#              baseline-prof.txt over app/src/main/baseline-prof.txt
+#   apks       only build: apk-base and apk-candidate hold benchmark builds that install
+#              side by side (apk-candidate also has the test APK)
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: "What to run"
+        type: choice
+        options: [benchmark, profile, apks]
+        default: benchmark
       base_ref:
         description: "Baseline branch or SHA"
         required: false
         default: main
+      tests:
+        description: "ScreenBenchmark methods, comma-separated (default: all)"
+        required: false
+        default: ""
+      compose_trace:
+        description: "Record composable names in traces (slows composition: diagnose, don't compare)"
+        type: boolean
+        default: false
       device:
         description: "Test Lab device (gcloud firebase test android models list)"
         required: false
         default: model=blazer,version=36
-      tests:
-        description: "Test targets, comma-separated (default: all of ScreenBenchmark)"
-        required: false
-        default: ""
-  push:
-    branches-ignore: [main]
 
 env:
   # Pixel 10 Pro, Android 16.
   DEFAULT_DEVICE: model=blazer,version=36
   # Measuring order of the two builds; compare.py maps test indexes back with it.
   ORDER: base+candidate+candidate+base
-  DEFAULT_TESTS: class com.ritesh.cashiro.benchmark.ScreenBenchmark
+  TEST_CLASS: com.ritesh.cashiro.benchmark.ScreenBenchmark
 
 jobs:
   # The two builds run in parallel; the Test Lab job starts once both are done.
   candidate:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      ((contains(github.event.head_commit.message, '[ftl') || contains(github.event.head_commit.message, '[apks]')) &&
-       !contains(github.event.head_commit.message, '[ftl profile]'))
+    if: inputs.mode != 'profile'
     name: Build candidate
-    # Job-level, so a push that skips these jobs does not cancel a run in flight.
+    # A new run on the same branch replaces one in flight.
     concurrency:
       group: perf-candidate-${{ github.ref }}
       cancel-in-progress: true
@@ -104,10 +108,7 @@ jobs:
           retention-days: 14
 
   base:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      ((contains(github.event.head_commit.message, '[ftl') || contains(github.event.head_commit.message, '[apks]')) &&
-       !contains(github.event.head_commit.message, '[ftl profile]'))
+    if: inputs.mode != 'profile'
     name: Build baseline
     concurrency:
       group: perf-base-${{ github.ref }}
@@ -124,14 +125,9 @@ jobs:
       - name: Resolve baseline
         id: ref
         env:
-          INPUT_BASE: ${{ github.event.inputs.base_ref }}
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          INPUT_BASE: ${{ inputs.base_ref }}
         run: |
-          BASE_REF="$INPUT_BASE"
-          if [ -z "$BASE_REF" ]; then
-            BASE_REF=$(printf '%s' "$COMMIT_MESSAGE" | sed -n 's/.*\[ftl base=\([^]]*\)\].*/\1/p' | head -n 1)
-          fi
-          BASE_REF=${BASE_REF:-main}
+          BASE_REF=${INPUT_BASE:-main}
           REV="$BASE_REF"
           if git rev-parse --verify -q "origin/$BASE_REF" > /dev/null; then REV="origin/$BASE_REF"; fi
           SHA=$(git rev-parse --verify "$REV^{commit}")
@@ -208,10 +204,7 @@ jobs:
 
   device:
     needs: [candidate, base]
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (contains(github.event.head_commit.message, '[ftl') &&
-       !contains(github.event.head_commit.message, '[ftl profile]'))
+    if: inputs.mode == 'benchmark'
     name: Firebase Test Lab
     concurrency:
       group: perf-device-${{ github.ref }}
@@ -234,29 +227,24 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - name: Run on Test Lab
         env:
-          DEVICE: ${{ github.event.inputs.device || env.DEFAULT_DEVICE }}
-          INPUT_TESTS: ${{ github.event.inputs.tests }}
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          DEVICE: ${{ inputs.device || env.DEFAULT_DEVICE }}
+          INPUT_TESTS: ${{ inputs.tests }}
+          COMPOSE_TRACE: ${{ inputs.compose_trace }}
         run: |
           set -o pipefail
-          TESTS="$INPUT_TESTS"
-          if [ -z "$TESTS" ]; then
-            # The last one, so a commit body can mention the syntax above it.
-            METHODS=$(printf '%s' "$COMMIT_MESSAGE" | sed -n 's/.*\[ftl tests=\([^]]*\)\].*/\1/p' | tail -n 1)
-            if [ -n "$METHODS" ]; then
-              TESTS=$(printf '%s' "$METHODS" | tr '+' '\n' | sed 's/^/class com.ritesh.cashiro.benchmark.ScreenBenchmark#/' | paste -sd, -)
-            fi
+          # "a, b" -> "class <TEST_CLASS>#a,class <TEST_CLASS>#b"; empty -> the whole class.
+          TARGETS="class $TEST_CLASS"
+          METHODS=$(printf '%s' "$INPUT_TESTS" | tr ', +' '\n\n\n' | sed '/^$/d')
+          if [ -n "$METHODS" ]; then
+            TARGETS=$(printf '%s\n' "$METHODS" | sed "s/^/class $TEST_CLASS#/" | paste -sd, -)
           fi
-          TESTS=${TESTS:-$DEFAULT_TESTS}
-          # "[ftl compose-trace]" records composable names (runtime-tracing, benchmark builds
-          # only). It slows composition, so only use it to diagnose, not to compare.
+          # Composable names in traces (runtime-tracing, benchmark builds only).
           EXTRA_ARGS=""
-          if printf '%s' "$COMMIT_MESSAGE" | grep -qF '[ftl compose-trace]'; then
+          if [ "$COMPOSE_TRACE" = "true" ]; then
             EXTRA_ARGS=",androidx.benchmark.fullTracing.enable=true"
           fi
           RESULTS_DIR="cashiro-perf/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "RESULTS_DIR=$RESULTS_DIR" >> "$GITHUB_ENV"
-          TARGETS=$(printf '%s' "$TESTS" | tr -d '\n' | sed 's/, */,/g')
           # The test APK instruments itself, so it is both --app and --test; the two
           # builds under test go in as additional APKs. Instrumentation arguments:
           # variants sets the measuring order, additionalTestOutputDir where results
@@ -292,7 +280,7 @@ jobs:
         env:
           BASE_REF: ${{ needs.base.outputs.ref }}
           BASE_SHA: ${{ needs.base.outputs.sha }}
-          DEVICE: ${{ github.event.inputs.device || env.DEFAULT_DEVICE }}
+          DEVICE: ${{ inputs.device || env.DEFAULT_DEVICE }}
         run: |
           RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           HEADER="base \`$BASE_REF\` (${BASE_SHA:0:7}) · candidate \`${GITHUB_SHA:0:7}\` · $DEVICE · [运行记录]($RUN_URL)"
@@ -331,7 +319,7 @@ jobs:
           retention-days: 14
 
   profile:
-    if: contains(github.event.head_commit.message, '[ftl profile]')
+    if: inputs.mode == 'profile'
     name: Baseline Profile (Test Lab)
     concurrency:
       group: perf-profile-${{ github.ref }}

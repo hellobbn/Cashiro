@@ -71,6 +71,10 @@ fun MacrobenchmarkScope.waitForHome() {
         if (dismissSystemAnr()) continue
         if (System.currentTimeMillis() > deadline) fail("Home did not appear")
     }
+}
+
+/** Lets the screen finish loading and animating (at most [IDLE_MS]) before frames count. */
+fun MacrobenchmarkScope.settle() {
     device.waitForIdle(IDLE_MS)
 }
 
@@ -150,8 +154,9 @@ const val FLING_NORMAL_DP_PER_S = 2500
  */
 fun MacrobenchmarkScope.flingDownAndUp(times: Int, dpPerSecond: Int = FLING_MAX_DP_PER_S) {
     val speed = (dpPerSecond * Resources.getSystem().displayMetrics.density).toInt()
-    // Android's fling decay stops after about 2.4 s from 7500 dp/s and 1.1 s from 2500 dp/s.
-    val coastMs = if (dpPerSecond > FLING_NORMAL_DP_PER_S) 2_500L else 1_200L
+    // Android's fling decay runs about 2.4 s from 7500 dp/s and 1.1 s from 2500 dp/s; the
+    // last second of the fast one only crawls, so it is cut short.
+    val coastMs = if (dpPerSecond > FLING_NORMAL_DP_PER_S) 1_500L else 1_200L
     fun fling(direction: Direction, label: String) {
         step("$label at $speed px/s")
         val list = mainList()
