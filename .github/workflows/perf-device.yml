@@ -49,6 +49,11 @@ env:
   # Measuring order of the two builds; compare.py maps test indexes back with it.
   ORDER: base+candidate+candidate+base
   TEST_CLASS: com.ritesh.cashiro.benchmark.ScreenBenchmark
+  # BuildConfig carries the commit SHA and count (app/build.gradle.kts). Fixed values here
+  # keep it identical across commits, so Gradle's build cache can reuse the app's
+  # compilation and R8 output when only other files changed.
+  ORG_GRADLE_PROJECT_gitSha: benchmark
+  ORG_GRADLE_PROJECT_gitCommitCount: "0"
 
 jobs:
   # The two builds run in parallel; the Test Lab job starts once both are done.
