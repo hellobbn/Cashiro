@@ -1,7 +1,6 @@
 package com.ritesh.cashiro.benchmark
 
 import androidx.test.platform.app.InstrumentationRegistry
-import java.io.File
 
 /** One measured pass over one build: [variant] is "base" or "candidate". */
 data class Variant(val index: Int, val variant: String, val round: Int, val packageName: String) {
@@ -38,15 +37,4 @@ object Variants {
     }
 
     fun params(): List<Array<Any>> = all.map { arrayOf<Any>(it) }
-}
-
-/**
- * Where Macrobenchmark writes its results: additionalTestOutputDir when the runner sets
- * it (device farms pull that directory), else the test APK's media directory.
- */
-@Suppress("DEPRECATION")
-fun outputDir(): File {
-    val dir = InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")?.let(::File)
-        ?: InstrumentationRegistry.getInstrumentation().context.externalMediaDirs.first()
-    return dir.apply { mkdirs() }
 }

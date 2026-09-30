@@ -4,7 +4,6 @@ import android.content.res.Resources
 import android.util.Log
 import androidx.benchmark.macro.MacrobenchmarkScope
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.Configurator
 import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
@@ -88,31 +87,6 @@ fun MacrobenchmarkScope.clickTab(label: String) {
 fun MacrobenchmarkScope.openTab(label: String) {
     clickTab(label)
     device.waitForIdle(IDLE_MS)
-}
-
-/**
- * Runs [action] and returns the milliseconds until a seeded row is on screen. Polls
- * every 10 ms rather than using Until, whose wait interval is too coarse for timing.
- *
- * Each UiAutomator lookup normally first waits until the UI has been quiet for about
- * 500 ms, which would time "until the screen settles" instead of "until the row shows";
- * that wait is turned off while polling.
- */
-fun MacrobenchmarkScope.msUntilSeededRows(action: () -> Unit): Double {
-    val configurator = Configurator.getInstance()
-    val idleTimeout = configurator.waitForIdleTimeout
-    configurator.waitForIdleTimeout = 0
-    try {
-        val start = System.nanoTime()
-        action()
-        while (device.findObject(By.text(SEEDED_MERCHANT)) == null) {
-            if (System.nanoTime() - start > TIMEOUT_MS * 1_000_000) fail("No seeded rows shown")
-            Thread.sleep(10)
-        }
-        return (System.nanoTime() - start) / 1_000_000.0
-    } finally {
-        configurator.waitForIdleTimeout = idleTimeout
-    }
 }
 
 /** Waits until a row from the seeded data set is on screen. */
