@@ -81,27 +81,21 @@ class ScreenBenchmark(private val variant: Variant) {
     )
 
     /**
-     * Time from tapping the Transactions tab until the first row is on screen, i.e. how
-     * long the list's data takes to load, which frame metrics do not capture.
-     *
-     * tapToListDrawnMs (from the trace) is exact but needs the app's trace section, so
-     * transactionsDataReadyMs (UiAutomator polling, includes its lookup overhead) stays for
-     * baselines that predate it.
+     * Time from tapping the Transactions tab until the list is drawn (tapToListDrawnMs, read
+     * from the trace), i.e. how long the list's data takes to load, which frame metrics do
+     * not capture. Waiting for the rows only ends the iteration; it is not timed.
      */
     @Test
-    fun transactionsDataReady() = dataReady(CompilationMode.None(), "transactionsDataReadyMs")
+    fun transactionsDataReady() = dataReady(CompilationMode.None())
 
     @Test
-    fun transactionsDataReadyWithProfile() =
-        dataReady(withProfile, "transactionsDataReadyWithProfileMs")
+    fun transactionsDataReadyWithProfile() = dataReady(withProfile)
 
-    private fun dataReady(compilationMode: CompilationMode, customMetric: String) {
-        val runs = mutableListOf<Double>()
+    private fun dataReady(compilationMode: CompilationMode) =
         measure(LATENCY_ITERATIONS, transactionsMetrics, compilationMode, settle = false) {
-            runs += msUntilSeededRows { clickTab("Transactions") }
+            clickTab("Transactions")
+            waitForSeededRows()
         }
-        CustomMetrics.write("$customMetric[$variant]", "ms", runs)
-    }
 
     /** Cold start to a populated Home, each build compiled with its Baseline Profile if any. */
     @Test

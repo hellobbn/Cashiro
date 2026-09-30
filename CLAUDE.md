@@ -170,9 +170,9 @@ benchmark/      Macrobenchmark tests against app's `benchmark` build type
   because data loads off the main thread. It records no frame metrics: the window holds
   only 4-6 frames, so their percentiles are noise. `tapToListDrawnMs` reads it from the trace: tap
   (`deliverInputEvent`) to the `TransactionsList.firstDraw` section the app emits on the
-  list's first draw; exact, and adds no work to the app. `transactionsDataReadyMs` polls
-  with UiAutomator (wait-for-idle off, else it times "UI quiet for 500 ms") and includes
-  its lookup overhead; it stays for baselines that predate the trace section.
+  list's first draw; exact, and adds no work to the app. UiAutomator only drives the
+  test (taps, flings, waiting for rows); it times nothing, since each lookup adds its own
+  overhead. Baselines older than the trace section report no data for it.
 - `./gradlew :app:compileStandardReleaseKotlin -PcomposeReports` writes Compose stability
   reports to `app/build/compose_compiler`.
 

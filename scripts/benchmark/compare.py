@@ -4,7 +4,7 @@
 Usage: compare.py <out dir> --order base+candidate+candidate+base
                   [--markdown report.md] [--header "markdown line"]
 
-Finds *benchmarkData.json and *-customMetric.json anywhere under <out>. Both builds are
+Finds *benchmarkData.json anywhere under <out>. Both builds are
 measured in one instrumentation run: test names end in "[<index>]", and --order says
 which build and round each index was. Iterations of all rounds are pooled per build.
 
@@ -50,7 +50,6 @@ METRICS = {
     "timeToInitialDisplayMs": ("首帧显示 (TTID)", "latency"),
     "timeToFullDisplayMs": ("完全绘制 (TTFD)", "latency"),
     "tapToListDrawnMs": ("点击 → 列表画出（trace）", "latency"),
-    "customDataReadyMs": ("点击 → 列表出现（UiAutomator，含其查找开销）", "latency"),
     "TransactionsList.publishCount": ("列表发布次数", "count"),
     "frameOverrunMs": ("帧超时", "frames"),
     "frameDurationCpuMs": ("帧 CPU 耗时", "info"),
@@ -123,12 +122,6 @@ def collect(out, order):
                 runs = [[float(v) for v in r] for r in m.get("runs", []) if r]
                 if runs:
                     add(index, test, metric, runs)
-    for f in out.rglob("*-customMetric.json"):
-        m = json.loads(f.read_text())
-        name, index = split_index(m["name"])
-        # "transactionsDataReadyMs" belongs to the transactionsDataReady test.
-        test = name[:-2] if name.endswith("Ms") else name
-        add(index, test, "customDataReadyMs", [float(v) for v in m["runs"]])
     return data
 
 
