@@ -9,7 +9,14 @@ import com.ritesh.cashiro.R
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-@Entity(tableName = "transactions", indices = [Index(value = ["transaction_hash"], unique = true)])
+@Entity(
+        tableName = "transactions",
+        indices = [
+                Index(value = ["transaction_hash"], unique = true),
+                // Every list, Home widget, Analytics and budget query filters on these two.
+                Index(value = ["is_deleted", "date_time"])
+        ]
+)
 data class TransactionEntity(
         @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
         @ColumnInfo(name = "amount") val amount: BigDecimal,

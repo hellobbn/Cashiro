@@ -286,7 +286,9 @@ class TransactionsViewModel @Inject constructor(
             .filter { it }
             .flatMapLatest {
                 merge(
-                    searchQuery.debounce(300).map { "search" },
+                    // debounce(300) also delayed the initial empty query by 300 ms, which
+                    // restarted the pipeline and loaded and drew the list a second time.
+                    searchQuery.debounce { if (it.isEmpty()) 0L else 300L }.map { "search" },
                     selectedPeriod.map { "period" },
                     categoryFilter.map { "category" },
                     subcategoryFilter.map { "subcategory" },
@@ -298,11 +300,15 @@ class TransactionsViewModel @Inject constructor(
                     sortOption.map { "sort" },
                     customDateRange.map { "customDate" },
                     baseCurrency.map { "baseCurrency" },
-                    currencyConversionService.rateChangeTrigger.map { "rates" },
-                    lendBorrowRepository.getAllTransactions().map { "lendBorrow" }
+                    currencyConversionService.rateChangeTrigger.map { "rates" }
+                    // Lend/borrow changes arrive through the combine below. As a trigger, the
+                    // Room query's first result lands after the list is already published
+                    // and made it load and draw the whole list a second time.
                 )
             }
             .transformLatest { trigger ->
+                // Benchmark traces name what restarted the list and which source re-emitted.
+                androidx.core.os.trace("TransactionsList.restart:$trigger") {}
                 // Get current values from all StateFlows
                 val query = searchQuery.value
                 val period = selectedPeriod.value
@@ -319,9 +325,12 @@ class TransactionsViewModel @Inject constructor(
                  // Get filtered transactions
                  combine(
                      getFilteredTransactions(query, period, category, subcategory, amountRange, accounts, filterCurrencies, typeFilter)
-                         .flowOn(Dispatchers.Default),
-                     lendBorrowRepository.getAllTransactions(),
+                         .flowOn(Dispatchers.Default)
+                         .onEach { androidx.core.os.trace("TransactionsList.source:transactions") {} },
+                     lendBorrowRepository.getAllTransactions()
+                         .onEach { androidx.core.os.trace("TransactionsList.source:lendBorrow") {} },
                      lendBorrowRepository.getPersons()
+                         .onEach { androidx.core.os.trace("TransactionsList.source:persons") {} }
                  ) { transactions, lbTransactions, persons ->
                      // No longer filtering by selectedCurrency. Show all unless explicitly filtered via filter sheet
                      val currencyFilteredTransactions = transactions
@@ -357,6 +366,8 @@ class TransactionsViewModel @Inject constructor(
                  }
             }
             .onEach { (transactions, groups, converted, personMapping, totals) ->
+                // Counted by the Macrobenchmark suite: each publish recomposes the list.
+                androidx.core.os.trace("TransactionsList.publish") {}
                 _uiState.value = _uiState.value.copy(
                     transactions = transactions,
                     groupedTransactions = groups,
@@ -787,12 +798,14 @@ class TransactionsViewModel @Inject constructor(
         filterCurrencies: Set<String>,
         typeFilter: Set<TransactionTypeFilter>
     ): Flow<List<TransactionEntity>> {
-        // Start with the base flow
-        val baseFlow = transactionRepository.getAllTransactions()
-        
-        // Apply period filter
+        // Date-bounded periods are filtered in SQL so only the range is loaded.
+        fun between(startDate: LocalDate, endDate: LocalDate) =
+            transactionRepository.getVisibleTransactionsBetween(
+                startDate.atStartOfDay(), endDate.atTime(23, 59, 59)
+            )
+
         val periodFilteredFlow = when (period) {
-            TimePeriod.ALL -> baseFlow
+            TimePeriod.ALL -> transactionRepository.getAllTransactions()
             TimePeriod.CUSTOM -> {
                 val customRange = customDateRange.value
                 // Guard against invalid state: CUSTOM period must have a date range
@@ -803,33 +816,18 @@ class TransactionsViewModel @Inject constructor(
                     // Auto-correct the invalid state
                     _selectedPeriod.value = TimePeriod.THIS_MONTH
                     val (startDate, endDate) = getDateRangeForPeriod(TimePeriod.THIS_MONTH)!!
-                    val startDateTime = startDate.atStartOfDay()
-                    val endDateTime = endDate.atTime(23, 59, 59)
-                    baseFlow.map { transactions ->
-                        transactions.filter { it.dateTime in startDateTime..endDateTime }
-                    }
+                    between(startDate, endDate)
                 } else {
                     val (startDate, endDate) = customRange
-                    val startDateTime = startDate.atStartOfDay()
-                    val endDateTime = endDate.atTime(23, 59, 59)
-
-                    baseFlow.map { transactions ->
-                        transactions.filter { it.dateTime in startDateTime..endDateTime }
-                    }
+                    between(startDate, endDate)
                 }
             }
             else -> {
                 val dateRange = getDateRangeForPeriod(period)
                 if (dateRange != null) {
-                    val (startDate, endDate) = dateRange
-                    val startDateTime = startDate.atStartOfDay()
-                    val endDateTime = endDate.atTime(23, 59, 59)
-
-                    baseFlow.map { transactions ->
-                        transactions.filter { it.dateTime in startDateTime..endDateTime }
-                    }
+                    between(dateRange.first, dateRange.second)
                 } else {
-                    baseFlow
+                    transactionRepository.getAllTransactions()
                 }
             }
         }

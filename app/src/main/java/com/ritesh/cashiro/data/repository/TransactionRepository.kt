@@ -23,6 +23,16 @@ class TransactionRepository @Inject constructor(
 
     fun getTransactionCount(): Flow<Int> = transactionDao.getTransactionCount()
 
+    /** Same rows as [getAllTransactions], counted in SQL. */
+    suspend fun countVisibleTransactions(): Int = transactionDao.countVisibleTransactions()
+
+    /** Same rows as [getAllTransactions] limited to a date range, filtered in SQL. */
+    fun getVisibleTransactionsBetween(
+            startDate: LocalDateTime,
+            endDate: LocalDateTime
+    ): Flow<List<TransactionEntity>> =
+            transactionDao.getVisibleTransactionsBetweenDates(startDate, endDate)
+
     suspend fun getTransactionById(id: Long): TransactionEntity? =
             transactionDao.getTransactionById(id)
 
@@ -399,12 +409,8 @@ class TransactionRepository @Inject constructor(
         }
     }
 
-    fun getRecentTransactions(limit: Int = 5): Flow<List<TransactionEntity>> {
-        return transactionDao.getAllTransactions().map { transactions -> transactions
-            .filter { it.transactionType != TransactionType.BALANCE_UPDATE }
-            .take(limit)
-        }
-    }
+    fun getRecentTransactions(limit: Int = 5): Flow<List<TransactionEntity>> =
+            transactionDao.getRecentVisibleTransactions(limit)
 
     fun getTransactionsByAccount(
             bankName: String,

@@ -157,6 +157,32 @@ android {
             buildConfigField("String", "UPDATE_CHANNEL", "\"testing\"")
             signingConfig = signingConfigs.getByName("release")
         }
+        // Release code (R8, no debuggable overhead) that :benchmark can drive.
+        // src/benchmark adds <profileable> and a data-seeding activity.
+        create("benchmark") {
+            initWith(getByName("release"))
+            matchingFallbacks += "release"
+            // -PbenchmarkIdSuffix=.benchmark.base builds a baseline that installs next to
+            // the candidate, so a device farm can measure both in one run.
+            applicationIdSuffix = providers.gradleProperty("benchmarkIdSuffix").getOrElse(".benchmark")
+            versionNameSuffix = "-benchmark"
+            manifestPlaceholders["appLabel"] = "Cashiro Benchmark"
+            signingConfig = signingConfigs.getByName("debug")
+            proguardFiles("benchmark-rules.pro")
+        }
+        // The benchmark build without R8, for BaselineProfileRule: the profile then names the
+        // app's own classes and methods, and R8 maps them when building release.
+        create("profiling") {
+            initWith(getByName("benchmark"))
+            matchingFallbacks += listOf("benchmark", "release")
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+    // Same seeding activity and <profileable> as the benchmark build.
+    sourceSets.getByName("profiling") {
+        java.srcDir("src/benchmark/java")
+        manifest.srcFile("src/benchmark/AndroidManifest.xml")
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -196,6 +222,15 @@ androidComponents {
     }
 }
 
+// ./gradlew :app:compileStandardReleaseKotlin -PcomposeReports
+// writes stability reports and metrics to app/build/compose_compiler.
+if (project.hasProperty("composeReports")) {
+    composeCompiler {
+        reportsDestination = layout.buildDirectory.dir("compose_compiler")
+        metricsDestination = layout.buildDirectory.dir("compose_compiler")
+    }
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
     arg("room.incremental", "true")
@@ -219,6 +254,9 @@ dependencies {
     implementation(libs.colorpicker.compose)
     implementation(libs.haze)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.profileinstaller)
+    // Composable names in Perfetto traces when Macrobenchmark runs with fullTracing.enable.
+    "benchmarkImplementation"(libs.androidx.compose.runtime.tracing)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.navigation.compose)

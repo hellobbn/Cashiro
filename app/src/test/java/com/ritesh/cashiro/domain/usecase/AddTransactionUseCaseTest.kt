@@ -397,6 +397,12 @@ class AddTransactionUseCaseTest {
 
         override fun getAllTransactions(): Flow<List<TransactionEntity>> = flowOf(emptyList())
         override fun getTransactionCount(): Flow<Int> = flowOf(0)
+        override suspend fun countVisibleTransactions(): Int = 0
+        override fun getRecentVisibleTransactions(limit: Int): Flow<List<TransactionEntity>> =
+            flowOf(emptyList())
+        override fun getVisibleTransactionsBetweenDates(
+            startDate: LocalDateTime, endDate: LocalDateTime
+        ): Flow<List<TransactionEntity>> = flowOf(emptyList())
         override suspend fun getTransactionById(transactionId: Long): TransactionEntity? = null
         override fun getTransactionsBetweenDates(
             startDate: LocalDateTime, endDate: LocalDateTime

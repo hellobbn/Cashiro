@@ -1,0 +1,421 @@
+name: Performance (device)
+
+# Macrobenchmark on a physical phone in Firebase Test Lab. Both builds are installed side
+# by side and measured alternately in one run (base, candidate, candidate, base) on the
+# same phone; compare.py turns that into an A/B table with 95% intervals and verdicts,
+# which goes to the job summary and to a comment on the branch's pull request. The job
+# fails on a regression (see RULES in scripts/benchmark/compare.py).
+#
+# Needs the FIREBASE_SERVICE_ACCOUNT secret: the JSON key of a service account in a
+# Firebase project with the Cloud Testing and Cloud Tool Results APIs enabled.
+#
+# Runs only when started by hand: Actions → Performance (device) → Run workflow, on the
+# branch to measure (physical-device time is billed). "mode" picks what to do:
+#   benchmark  A/B of the branch against base_ref (default main), all of ScreenBenchmark
+#              unless "tests" names methods
+#   profile    record a Baseline Profile (BaselineProfileGenerator on the unminified
+#              profiling build) and upload it as the baseline-profile artifact; copy its
+#              baseline-prof.txt over app/src/main/baseline-prof.txt
+#   apks       only build: apk-base and apk-candidate hold benchmark builds that install
+#              side by side (apk-candidate also has the test APK)
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "What to run"
+        type: choice
+        options: [benchmark, profile, apks]
+        default: benchmark
+      base_ref:
+        description: "Baseline branch or SHA"
+        required: false
+        default: main
+      tests:
+        description: "ScreenBenchmark methods, comma-separated (default: all)"
+        required: false
+        default: ""
+      compose_trace:
+        description: "Record composable names in traces (slows composition: diagnose, don't compare)"
+        type: boolean
+        default: false
+      device:
+        description: "Test Lab device (gcloud firebase test android models list)"
+        required: false
+        default: model=blazer,version=36
+
+env:
+  # Pixel 10 Pro, Android 16.
+  DEFAULT_DEVICE: model=blazer,version=36
+  # Measuring order of the two builds; compare.py maps test indexes back with it.
+  ORDER: base+candidate+candidate+base
+  TEST_CLASS: com.ritesh.cashiro.benchmark.ScreenBenchmark
+  # BuildConfig carries the commit SHA and count (app/build.gradle.kts). Fixed values here
+  # keep it identical across commits, so Gradle's build cache can reuse the app's
+  # compilation and R8 output when only other files changed.
+  ORG_GRADLE_PROJECT_gitSha: benchmark
+  ORG_GRADLE_PROJECT_gitCommitCount: "0"
+
+jobs:
+  # The two builds run in parallel; the Test Lab job starts once both are done.
+  candidate:
+    if: inputs.mode != 'profile'
+    name: Build candidate
+    # A new run on the same branch replaces one in flight.
+    concurrency:
+      group: perf-candidate-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      # Gradle's build cache (org.gradle.caching) outside ~/.gradle/caches: that cache's key
+      # only changes with the build files, so it would never save new task outputs. This
+      # one is saved after every run and restores the latest.
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/gradle-build-cache
+          key: gradle-build-cache-${{ github.job }}-${{ github.sha }}
+          restore-keys: |
+            gradle-build-cache-${{ github.job }}-
+            gradle-build-cache-
+      - name: Build candidate and tests
+        env:
+          GRADLE_BUILD_CACHE_DIR: ${{ runner.temp }}/gradle-build-cache
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleStandardBenchmark :benchmark:assembleStandardBenchmark --no-configuration-cache --stacktrace
+          mkdir -p apks
+          cp app/build/outputs/apk/standard/benchmark/app-standard-arm64-v8a-benchmark.apk apks/candidate.apk
+          cp benchmark/build/outputs/apk/standard/benchmark/benchmark-standard-benchmark.apk apks/tests.apk
+          # Gradle does not mark entries it reads, so bound the saved cache by age instead: an
+          # entry dropped here is simply rebuilt and stored again by the next miss.
+          find "$GRADLE_BUILD_CACHE_DIR" -type f -mtime +3 -delete
+          du -sh "$GRADLE_BUILD_CACHE_DIR"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-candidate
+          path: apks/
+          retention-days: 14
+
+  base:
+    if: inputs.mode != 'profile'
+    name: Build baseline
+    concurrency:
+      group: perf-base-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      ref: ${{ steps.ref.outputs.ref }}
+      sha: ${{ steps.ref.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve baseline
+        id: ref
+        env:
+          INPUT_BASE: ${{ inputs.base_ref }}
+        run: |
+          BASE_REF=${INPUT_BASE:-main}
+          REV="$BASE_REF"
+          if git rev-parse --verify -q "origin/$BASE_REF" > /dev/null; then REV="origin/$BASE_REF"; fi
+          SHA=$(git rev-parse --verify "$REV^{commit}")
+          git log -1 --format='Baseline app/src/main from %h %s' "$SHA"
+          # The baseline is the base commit's app/src/main built with everything else from
+          # this branch, so both go into the cache key.
+          SETUP=$(git ls-files -s -- app parser-core gradle '*.gradle.kts' gradle.properties .github/workflows/perf-device.yml \
+            | awk -F'\t' '$2 !~ /^app\/src\/main\//' | sha256sum | cut -c1-16)
+          {
+            echo "ref=$BASE_REF"
+            echo "sha=$SHA"
+            echo "key=perf-base-apk-$SHA-$SETUP"
+          } >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: apk
+        with:
+          path: apks/base.apk
+          key: ${{ steps.ref.outputs.key }}
+      - uses: actions/setup-java@v4
+        if: steps.apk.outputs.cache-hit != 'true'
+        with:
+          java-version: "17"
+          distribution: temurin
+      - uses: android-actions/setup-android@v3
+        if: steps.apk.outputs.cache-hit != 'true'
+        with:
+          packages: platform-tools
+      - uses: actions/cache@v4
+        if: steps.apk.outputs.cache-hit != 'true'
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      # Gradle's build cache (org.gradle.caching) outside ~/.gradle/caches: that cache's key
+      # only changes with the build files, so it would never save new task outputs. This
+      # one is saved after every run and restores the latest.
+      - uses: actions/cache@v4
+        if: steps.apk.outputs.cache-hit != 'true'
+        with:
+          path: ${{ runner.temp }}/gradle-build-cache
+          key: gradle-build-cache-${{ github.job }}-${{ github.sha }}
+          restore-keys: |
+            gradle-build-cache-${{ github.job }}-
+            gradle-build-cache-
+      - name: Build baseline
+        if: steps.apk.outputs.cache-hit != 'true'
+        env:
+          SHA: ${{ steps.ref.outputs.sha }}
+          GRADLE_BUILD_CACHE_DIR: ${{ runner.temp }}/gradle-build-cache
+        run: |
+          chmod +x gradlew
+          # Replace app/src/main wholesale: a plain checkout of the base's files would keep
+          # files that only this branch has (e.g. a new baseline-prof.txt) in the baseline.
+          rm -rf app/src/main
+          git checkout "$SHA" -- app/src/main
+          # Under its own applicationId, so it installs next to the candidate.
+          ./gradlew :app:assembleStandardBenchmark -PbenchmarkIdSuffix=.benchmark.base --no-configuration-cache --stacktrace
+          mkdir -p apks
+          cp app/build/outputs/apk/standard/benchmark/app-standard-arm64-v8a-benchmark.apk apks/base.apk
+          rm -rf app/src/main
+          git checkout HEAD -- app/src/main
+          # Gradle does not mark entries it reads, so bound the saved cache by age instead: an
+          # entry dropped here is simply rebuilt and stored again by the next miss.
+          find "$GRADLE_BUILD_CACHE_DIR" -type f -mtime +3 -delete
+          du -sh "$GRADLE_BUILD_CACHE_DIR"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-base
+          path: apks/base.apk
+          retention-days: 14
+
+  device:
+    needs: [candidate, base]
+    if: inputs.mode == 'benchmark'
+    name: Firebase Test Lab
+    concurrency:
+      group: perf-device-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: apk-*
+          path: apks
+          merge-multiple: true
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Run on Test Lab
+        env:
+          DEVICE: ${{ inputs.device || env.DEFAULT_DEVICE }}
+          INPUT_TESTS: ${{ inputs.tests }}
+          COMPOSE_TRACE: ${{ inputs.compose_trace }}
+        run: |
+          set -o pipefail
+          # "a, b" -> "class <TEST_CLASS>#a,class <TEST_CLASS>#b"; empty -> the whole class.
+          TARGETS="class $TEST_CLASS"
+          METHODS=$(printf '%s' "$INPUT_TESTS" | tr ', +' '\n\n\n' | sed '/^$/d')
+          if [ -n "$METHODS" ]; then
+            TARGETS=$(printf '%s\n' "$METHODS" | sed "s/^/class $TEST_CLASS#/" | paste -sd, -)
+          fi
+          # Composable names in traces (runtime-tracing, benchmark builds only).
+          EXTRA_ARGS=""
+          if [ "$COMPOSE_TRACE" = "true" ]; then
+            EXTRA_ARGS=",androidx.benchmark.fullTracing.enable=true"
+          fi
+          RESULTS_DIR="cashiro-perf/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "RESULTS_DIR=$RESULTS_DIR" >> "$GITHUB_ENV"
+          # The test APK instruments itself, so it is both --app and --test; the two
+          # builds under test go in as additional APKs. Instrumentation arguments:
+          # variants sets the measuring order, additionalTestOutputDir where results
+          # go (pulled below).
+          gcloud firebase test android run \
+            --type instrumentation \
+            --app apks/tests.apk \
+            --test apks/tests.apk \
+            --additional-apks apks/base.apk,apks/candidate.apk \
+            --device "$DEVICE" \
+            --test-targets "$TARGETS" \
+            --environment-variables "variants=$ORDER,additionalTestOutputDir=/sdcard/Download,no-isolated-storage=true$EXTRA_ARGS" \
+            --directories-to-pull /sdcard/Download \
+            --results-dir "$RESULTS_DIR" \
+            --timeout 40m \
+            --no-record-video \
+            --no-performance-metrics \
+            2>&1 | tee ftl.txt
+      - name: List physical devices
+        if: failure()
+        run: gcloud firebase test android models list --filter=form=PHYSICAL || true
+      - name: Download results
+        if: always()
+        run: |
+          # "Raw results will be stored in your GCS bucket at [https://console.developers.google.com/storage/browser/<bucket>/<dir>/]"
+          BUCKET=$(grep -o 'storage/browser/[^/]*' ftl.txt 2>/dev/null | head -n 1 | cut -d/ -f3)
+          if [ -z "$BUCKET" ] || [ -z "${RESULTS_DIR:-}" ]; then echo "No Test Lab results to fetch"; exit 0; fi
+          mkdir -p out
+          gcloud storage cp -r "gs://$BUCKET/$RESULTS_DIR/*" out/ || true
+          find out -type f | head -n 50
+      - name: Compare
+        if: always()
+        env:
+          BASE_REF: ${{ needs.base.outputs.ref }}
+          BASE_SHA: ${{ needs.base.outputs.sha }}
+          DEVICE: ${{ inputs.device || env.DEFAULT_DEVICE }}
+        run: |
+          RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          HEADER="base \`$BASE_REF\` (${BASE_SHA:0:7}) · candidate \`${GITHUB_SHA:0:7}\` · $DEVICE · [运行记录]($RUN_URL)"
+          # Exits 1 on a regression or when no results came back (e.g. the test targets
+          # matched no test); the report is written either way.
+          STATUS=0
+          python3 scripts/benchmark/compare.py out --order "$ORDER" --markdown report.md --header "$HEADER" || STATUS=$?
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+          exit "$STATUS"
+      - name: Comment on the pull request
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          [ -f report.md ] || exit 0
+          PR=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -z "$PR" ]; then echo "No open pull request for $BRANCH"; exit 0; fi
+          # One comment per pull request, updated by every run.
+          ID=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR/comments" \
+            --jq '.[] | select(.body | startswith("<!-- cashiro-perf -->")) | .id' | tail -n 1)
+          if [ -n "$ID" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$ID" -F body=@report.md > /dev/null
+          else
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file report.md
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macrobenchmark-device
+          path: |
+            out/
+            ftl.txt
+            report.md
+          retention-days: 14
+
+  profile:
+    if: inputs.mode == 'profile'
+    name: Baseline Profile (Test Lab)
+    concurrency:
+      group: perf-profile-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      # Gradle's build cache (org.gradle.caching) outside ~/.gradle/caches: that cache's key
+      # only changes with the build files, so it would never save new task outputs. This
+      # one is saved after every run and restores the latest.
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/gradle-build-cache
+          key: gradle-build-cache-${{ github.job }}-${{ github.sha }}
+          restore-keys: |
+            gradle-build-cache-${{ github.job }}-
+            gradle-build-cache-
+      - name: Build profiling app and tests
+        env:
+          GRADLE_BUILD_CACHE_DIR: ${{ runner.temp }}/gradle-build-cache
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleStandardProfiling :benchmark:assembleStandardBenchmark --no-configuration-cache --stacktrace
+          mkdir -p apks
+          cp app/build/outputs/apk/standard/profiling/app-standard-arm64-v8a-profiling.apk apks/app.apk
+          cp benchmark/build/outputs/apk/standard/benchmark/benchmark-standard-benchmark.apk apks/tests.apk
+          # Gradle does not mark entries it reads, so bound the saved cache by age instead: an
+          # entry dropped here is simply rebuilt and stored again by the next miss.
+          find "$GRADLE_BUILD_CACHE_DIR" -type f -mtime +3 -delete
+          du -sh "$GRADLE_BUILD_CACHE_DIR"
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Record the profile on Test Lab
+        run: |
+          set -o pipefail
+          RESULTS_DIR="cashiro-profile/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "RESULTS_DIR=$RESULTS_DIR" >> "$GITHUB_ENV"
+          gcloud firebase test android run \
+            --type instrumentation \
+            --app apks/tests.apk \
+            --test apks/tests.apk \
+            --additional-apks apks/app.apk \
+            --device "$DEFAULT_DEVICE" \
+            --test-targets "class com.ritesh.cashiro.benchmark.BaselineProfileGenerator" \
+            --environment-variables "additionalTestOutputDir=/sdcard/Download,no-isolated-storage=true" \
+            --directories-to-pull /sdcard/Download \
+            --results-dir "$RESULTS_DIR" \
+            --timeout 40m \
+            --no-record-video \
+            --no-performance-metrics \
+            2>&1 | tee ftl.txt
+      - name: Download the profile
+        if: always()
+        run: |
+          BUCKET=$(grep -o 'storage/browser/[^/]*' ftl.txt 2>/dev/null | head -n 1 | cut -d/ -f3)
+          if [ -z "$BUCKET" ] || [ -z "${RESULTS_DIR:-}" ]; then echo "No Test Lab results to fetch"; exit 1; fi
+          mkdir -p out profile
+          gcloud storage cp -r "gs://$BUCKET/$RESULTS_DIR/*" out/ || true
+          # With includeInStartupProfile the rule writes only *-startup-prof.txt, which holds
+          # every rule. Keep the untimestamped one.
+          RAW=$(find out -name '*-prof.txt' ! -name '*-20*' | head -n 1)
+          if [ -z "$RAW" ]; then echo "::error::No profile in the Test Lab output"; exit 1; fi
+          cp "$RAW" profile/raw-prof.txt
+          # Drop the benchmark-only classes, and rename Kotlin internal members' module
+          # suffix from the profiling build to the standard release build.
+          grep -v 'com/ritesh/cashiro/benchmark/\|SeedActivity' "$RAW" \
+            | sed 's/\$app_standardProfiling/$app_standardRelease/g' > profile/baseline-prof.txt
+          echo "### Baseline Profile: $(wc -l < profile/baseline-prof.txt) rules" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: baseline-profile
+          path: |
+            profile/
+            ftl.txt
+          retention-days: 14

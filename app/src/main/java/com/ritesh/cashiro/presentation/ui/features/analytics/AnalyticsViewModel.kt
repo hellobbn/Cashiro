@@ -273,11 +273,14 @@ class AnalyticsViewModel @Inject constructor(
                 )
             }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = AnalyticsUiState(isLoading = true)
-    )
+    }
+        // Grouping, conversion and trend calculation over the period's rows; keep it off Main.
+        .flowOn(kotlinx.coroutines.Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = AnalyticsUiState(isLoading = true)
+        )
 
     fun selectPeriod(period: TimePeriod) {
         _selectedPeriod.value = period
