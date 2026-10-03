@@ -25,6 +25,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
@@ -37,9 +39,14 @@ fun CategorySelectionSheet(
     categories: List<CategoryEntity>,
     subcategoriesMap: Map<Long, List<SubcategoryEntity>>,
     onSelectionComplete: (CategoryEntity, SubcategoryEntity?) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    recentCategories: List<String> = emptyList()
 ) {
-    val searchLabel = "Search Fruits"
+    val searchLabel = stringResource(R.string.search_categories)
+    val recent = remember(categories, recentCategories) {
+        val byName = categories.associateBy { it.name }
+        recentCategories.mapNotNull { byName[it] }
+    }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     
     // Filter categories based on search
@@ -121,6 +128,30 @@ fun CategorySelectionSheet(
                     }
                 } else { {} }
             )
+        }
+
+        // Recently used categories pick in one tap, without opening their subcategories
+        if (searchQuery.text.isBlank() && recent.isNotEmpty()) {
+            Column(modifier = Modifier.padding(horizontal = Dimensions.Padding.content, vertical = Spacing.xs)) {
+                Text(
+                    text = stringResource(R.string.recently_used),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = Spacing.xs)
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+                ) {
+                    recent.forEach { category ->
+                        AssistChip(
+                            onClick = { onSelectionComplete(category, null) },
+                            label = { Text(category.name, maxLines = 1) },
+                            leadingIcon = { CategoryIcon(category, 18.dp) }
+                        )
+                    }
+                }
+            }
         }
 
         if (filteredCategories.isEmpty()) {

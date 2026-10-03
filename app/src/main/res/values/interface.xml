@@ -7,4 +7,12 @@
     <string name="type_current_account">Current account</string>
     <string name="type_bank_account">Bank account</string>
     <string name="type_investment_account">Investment account</string>
+    <string name="merchant_optional">Merchant (optional)</string>
+    <string name="common_categories">Common categories</string>
+    <string name="all_categories">All</string>
+    <string name="recently_used">Recently used</string>
+    <string name="search_categories">Search categories</string>
+    <string name="template_suggested_pin">Keep as template</string>
+    <string name="template_suggested_dismiss">Don\'t suggest again</string>
+    <string name="template_suggested_desc">Suggested from %1$d recent entries</string>
 </resources>

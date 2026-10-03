@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.utils.displayTitle
 import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.material.icons.rounded.Bolt
 
@@ -1422,7 +1423,7 @@ private fun EditableTransactionHeader(
                 TextField(
                     value = transaction.merchantName,
                     onValueChange = { viewModel.updateMerchantName(it) },
-                    label = { Text(stringResource(R.string.merchant_label), fontWeight = FontWeight.SemiBold) },
+                    label = { Text(stringResource(R.string.merchant_optional), fontWeight = FontWeight.SemiBold) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(
@@ -1473,7 +1474,6 @@ private fun EditableTransactionHeader(
                             )
                         }
                     },
-                    isError = transaction.merchantName.isBlank(),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -3487,7 +3487,7 @@ private fun MatchPreviewSheetContent(
                             ListItem(
                                 headline = {
                                     Text(
-                                        text = txn.merchantName,
+                                        text = txn.displayTitle(),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.SemiBold,
                                         maxLines = 1,
@@ -3619,7 +3619,7 @@ private fun MatchPreviewSheetContent(
                         ListItem(
                             headline = {
                                 Text(
-                                    text = txn.merchantName,
+                                    text = txn.displayTitle(),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     maxLines = 1,
