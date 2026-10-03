@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.material.icons.rounded.Bolt
 
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -189,6 +190,7 @@ import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
+import com.ritesh.cashiro.presentation.ui.components.AccountField
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CategoryIcon
@@ -1591,114 +1593,20 @@ private fun EditableExtractedInfoCard(
                             verticalArrangement = Arrangement.spacedBy(1.5.dp)
                         ) {
                             // Source Account Card
-                            Card(
+                            AccountField(
+                                account = selectedAccount,
                                 onClick = onAccountClick,
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                                ),
-                                border = BorderStroke(0.dp, Color.Transparent)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    BrandIcon(
-                                        merchantName = selectedAccount?.bankName ?: "",
-                                        accountIconResId = selectedAccount?.iconResId ?: 0,
-                                        accountIconName = selectedAccount?.iconName,
-                                        size = 26.dp,
-                                        showBackground = false
-                                    )
-
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = selectedAccount?.bankName
-                                                ?: stringResource(R.string.select_source_account),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color =
-                                                if (selectedAccount != null)
-                                                    MaterialTheme.colorScheme.onSurface
-                                                else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        if (selectedAccount != null) {
-                                            Text(
-                                                text = if (selectedAccount?.accountLast4 == "wallet") "${selectedAccount?.accountLast4}" else "••${selectedAccount?.accountLast4}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-
-                                    Icon(
-                                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
+                                placeholder = stringResource(R.string.select_source_account),
+                                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                            )
 
                             // Target Account Card
-                            Card(
+                            AccountField(
+                                account = targetAccount,
                                 onClick = onTargetAccountClick,
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(
-                                    topStart = 4.dp,
-                                    topEnd = 4.dp,
-                                    bottomStart = 16.dp,
-                                    bottomEnd = 16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                                ),
-                                border = BorderStroke(0.dp, Color.Transparent)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    BrandIcon(
-                                        merchantName = targetAccount?.bankName ?: "",
-                                        accountIconResId = targetAccount?.iconResId ?: 0,
-                                        accountIconName = targetAccount?.iconName,
-                                        size = 26.dp,
-                                        showBackground = false
-                                    )
-
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = targetAccount?.bankName
-                                                ?: stringResource(R.string.select_target_account),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color =
-                                                if (targetAccount != null)
-                                                    MaterialTheme.colorScheme.onSurface
-                                                else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        if (targetAccount != null) {
-                                            Text(
-                                                text = if (targetAccount?.accountLast4 == "wallet") "${targetAccount?.accountLast4}" else "••${targetAccount?.accountLast4}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-
-                                    Icon(
-                                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
+                                placeholder = stringResource(R.string.select_target_account),
+                                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                            )
                         }
                         // Exchange Icon
                         Box(
@@ -1753,58 +1661,12 @@ private fun EditableExtractedInfoCard(
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
-                    Card(
+                    AccountField(
+                        account = selectedAccount,
                         onClick = onAccountClick,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp,
-                            bottomStart = 4.dp,
-                            bottomEnd = 4.dp
-                        ),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        ),
-                        border = BorderStroke(0.dp, Color.Transparent)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                                BrandIcon(
-                                    merchantName = selectedAccount?.bankName ?: "",
-                                    accountIconResId = selectedAccount?.iconResId ?: 0,
-                                    accountIconName = selectedAccount?.iconName,
-                                    size = 26.dp,
-                                    showBackground = false
-                                )
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = selectedAccount?.bankName ?: stringResource(R.string.select_account),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color =
-                                        if (selectedAccount != null)
-                                            MaterialTheme.colorScheme.onSurface
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                if (selectedAccount != null) {
-                                    Text(
-                                        text = if (selectedAccount?.accountLast4 == "wallet") "${selectedAccount?.accountLast4}" else "••${selectedAccount?.accountLast4}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-
-                            Icon(
-                                imageVector = Icons.Rounded.KeyboardArrowDown,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                        placeholder = stringResource(R.string.select_account),
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                    )
                     
                     // Category Selection
                     CategoryDropdown(
@@ -2602,23 +2464,26 @@ private fun TransactionReceipt(
                     val toAccount = transaction.toAccount
                     val isTransfer = transaction.transactionType == TransactionType.TRANSFER
                     
+                    // Prefer the account whose name also matches: two banks can share the last four digits.
+                    val fromAccountEntity = availableAccounts.find { it.accountLast4 == fromAccount && it.bankName == transaction.bankName }
+                        ?: availableAccounts.find { it.accountLast4 == fromAccount }
+                    val toAccountEntity = toAccount?.let { acc -> availableAccounts.find { it.accountLast4 == acc } }
+
                     val fromBankName = if (isTransfer) {
-                        availableAccounts.find { it.accountLast4 == fromAccount }?.bankName ?: transaction.bankName ?: fromAccount ?: stringResource(R.string.source)
+                        fromAccountEntity?.bankName ?: transaction.bankName ?: maskAccountNumber(fromAccount) ?: stringResource(R.string.source)
                     } else {
                         transaction.bankName ?: stringResource(R.string.account)
                     }
-                    
-                    val toBankName = if (isTransfer && toAccount != null) {
-                        availableAccounts.find { it.accountLast4 == toAccount }?.bankName ?: toAccount
-                    } else null
 
-                    val fromAccountEntity = availableAccounts.find { it.accountLast4 == fromAccount }
-                    val toAccountEntity = toAccount?.let { acc -> availableAccounts.find { it.accountLast4 == acc } }
+                    val toBankName = if (isTransfer && toAccount != null) {
+                        toAccountEntity?.bankName ?: maskAccountNumber(toAccount) ?: toAccount
+                    } else null
 
                     ReceiptInfoRow(
                         label = stringResource(R.string.account),
-                        value = if (isTransfer) fromAccount ?: stringResource(R.string.source) else transaction.bankName ?: stringResource(R.string.account),
-                        subValue = toAccount,
+                        // Transfers name both accounts instead of showing their last four digits.
+                        value = fromBankName,
+                        subValue = toBankName,
                         bankName = fromBankName,
                         subBankName = toBankName,
                         isTransfer = isTransfer,

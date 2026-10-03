@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.AccountRow
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 
 import com.ritesh.cashiro.utils.sumOfBigDecimal
@@ -145,69 +146,12 @@ fun MergeAccountSelectionDialog(
 
 @Composable
 fun AccountSelectionItem(account: AccountBalanceEntity, isSelected: Boolean, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected)
-                MaterialTheme.colorScheme.primaryContainer.copy(
-                    alpha = 0.3f
-                )
-            else MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-    ) {
-        Row(
-            modifier = Modifier.padding(Spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-        ) {
-            // Icon
-            BrandIcon(
-                merchantName = account.bankName,
-                size = 32.dp,
-                accountIconResId = account.iconResId,
-                accountColorHex = account.color,
-                showBackground = true
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = account.bankName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.basicMarquee(
-                        iterations = Int.MAX_VALUE
-                    )
-                )
-                Text(
-                    text = "**** ${account.accountLast4}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Text(
-                text = CurrencyFormatter.formatCurrency(
-                    account.balance,
-                    account.currency
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.basicMarquee()
-            )
-            Icon(
-                imageVector = if (isSelected) Icons.Filled.CheckCircle
-                    else Icons.Filled.RadioButtonUnchecked,
-                contentDescription = null,
-                tint = if (isSelected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
+    AccountRow(
+        account = account,
+        selected = isSelected,
+        onClick = onClick,
+        trailing = { RadioButton(selected = isSelected, onClick = null) }
+    )
 }
 
 enum class BalanceMergeOption {

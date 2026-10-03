@@ -77,6 +77,7 @@ import com.ritesh.cashiro.domain.model.LendBorrowTransactionItem
 import com.ritesh.cashiro.domain.model.PersonCategory
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
+import com.ritesh.cashiro.presentation.ui.components.AccountField
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.DatePicker
@@ -580,53 +581,12 @@ fun AddEditLendBorrowTransactionSheet(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
-                    Card(
+                    AccountField(
+                        account = selectedAccount,
                         onClick = { showAccountSheet = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp,
-                            bottomStart = 4.dp,
-                            bottomEnd = 4.dp
-                        ),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                        border = BorderStroke(0.dp, Color.Transparent)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            BrandIcon(
-                                merchantName = selectedAccount?.bankName ?: "",
-                                accountIconResId = selectedAccount?.iconResId ?: 0,
-                                accountIconName = selectedAccount?.iconName,
-                                size = 26.dp,
-                                showBackground = false
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = selectedAccount?.bankName
-                                        ?: stringResource(R.string.select_account),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = if (selectedAccount != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                if (selectedAccount != null) {
-                                    Text(
-                                        text = if (selectedAccount?.accountLast4 == "wallet") "${selectedAccount?.accountLast4}" else "••${selectedAccount?.accountLast4}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                            Icon(
-                                imageVector = Icons.Rounded.KeyboardArrowDown,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                        placeholder = stringResource(R.string.select_account),
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                    )
 
                     Box(modifier = Modifier.fillMaxWidth()) {
                         TextField(

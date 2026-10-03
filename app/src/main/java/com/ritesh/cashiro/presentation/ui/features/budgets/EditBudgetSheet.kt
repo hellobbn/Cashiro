@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
  
+import androidx.compose.ui.platform.LocalContext
+import com.ritesh.cashiro.presentation.ui.components.mainAccountKey
+import com.ritesh.cashiro.presentation.ui.components.sortedForDisplay
+import com.ritesh.cashiro.presentation.ui.components.AccountRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -1046,6 +1050,8 @@ private fun AccountMultiSelectionSheet(
     onSelectionChange: (List<String>) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    val sortedAccounts = remember(allAccounts) { allAccounts.sortedForDisplay(context.mainAccountKey()) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -1095,66 +1101,27 @@ private fun AccountMultiSelectionSheet(
                     }
                 }
 
-                items(allAccounts) { account ->
+                items(sortedAccounts) { account ->
                     val accountId = "${account.bankName}:${account.accountLast4}"
                     val isSelected = selectedAccountIds.contains(accountId)
 
-                    Surface(
+                    AccountRow(
+                        account = account,
+                        selected = isSelected,
+                        showBalance = false,
+                        modifier = Modifier.padding(vertical = 2.dp),
                         onClick = {
-                            val newList = if (isSelected) {
-                                selectedAccountIds - accountId
-                            } else {
-                                selectedAccountIds + accountId
-                            }
-                            onSelectionChange(newList)
+                            onSelectionChange(if (isSelected) selectedAccountIds - accountId else selectedAccountIds + accountId)
                         },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(Spacing.md),
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(
-                            alpha = 0.3f
-                        ),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            BrandIcon(
-                                merchantName = account.bankName,
-                                size = 40.dp,
-                                showBackground = true,
-                                accountIconResId = account.iconResId,
-                                accountIconName = account.iconName,
-                                accountColorHex = account.color
-                            )
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    account.bankName,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    stringResource(R.string.ending_in_format, account.accountLast4),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
+                        trailing = {
                             CashiroCheckbox(
                                 checked = isSelected,
                                 onCheckedChange = { checked ->
-                                    val newList = if (checked) {
-                                        selectedAccountIds + accountId
-                                    } else {
-                                        selectedAccountIds - accountId
-                                    }
-                                    onSelectionChange(newList)
+                                    onSelectionChange(if (checked) selectedAccountIds + accountId else selectedAccountIds - accountId)
                                 }
                             )
                         }
-                    }
+                    )
                 }
                 item{Spacer(modifier = Modifier.height(80.dp)) }
             }

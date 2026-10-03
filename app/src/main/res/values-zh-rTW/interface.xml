@@ -5,6 +5,7 @@
     <string name="settings_group_automation">自動化與通知</string>
     <string name="settings_group_app">關於應用</string>
     <string name="type_current_account">活期帳戶</string>
+    <string name="type_bank_account">銀行帳戶</string>
     <string name="type_investment_account">投資帳戶</string>
 
     <string name="account_already_exists">已存在名稱和末四碼相同的帳戶。</string>

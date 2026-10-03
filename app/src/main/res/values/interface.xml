@@ -5,5 +5,6 @@
     <string name="settings_group_automation">Automation &amp; notifications</string>
     <string name="settings_group_app">About the app</string>
     <string name="type_current_account">Current account</string>
+    <string name="type_bank_account">Bank account</string>
     <string name="type_investment_account">Investment account</string>
 </resources>

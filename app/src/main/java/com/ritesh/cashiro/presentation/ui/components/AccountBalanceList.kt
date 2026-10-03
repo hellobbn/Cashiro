@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.presentation.ui.theme.AccountSurfaceElevation
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
-import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.utils.formatBalance
 import dev.chrisbanes.haze.HazeDefaults
@@ -89,20 +88,7 @@ internal fun SharedTransitionScope.AccountBalanceRow(
     hazeState: HazeState
 ) {
     val isCreditCard = account.isCreditCard
-    val accountType = stringResource(
-        when {
-            account.isWallet -> R.string.type_wallet
-            isCreditCard -> R.string.type_credit_card
-            InstitutionCatalog.find(account.bankName)?.isBroker == true ->
-                R.string.type_investment_account
-            else -> R.string.type_savings_account
-        }
-    )
-    val subtitle = if (account.isWallet || account.accountLast4.isBlank()) {
-        accountType
-    } else {
-        "$accountType · ••${account.accountLast4}"
-    }
+    val subtitle = accountSubtitle(account)
     val shape = ListItemPosition.from(index, count).toShape()
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 

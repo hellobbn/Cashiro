@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
@@ -110,7 +111,7 @@ fun NumberPad(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "•••• $accountLast4",
+                                text = maskAccountNumber(accountLast4) ?: stringResource(R.string.type_wallet),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

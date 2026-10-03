@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.investments
 
+import com.ritesh.cashiro.presentation.ui.components.accountSubtitle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -429,7 +430,7 @@ private fun InvestmentAccountBreakdown(
         manuals.forEachIndexed { index, account ->
             ListItem(
                 headline = { Text(account.bankName, fontWeight = FontWeight.Medium) },
-                supporting = { Text(account.accountLast4) },
+                supporting = { Text(accountSubtitle(account)) },
                 trailing = {
                     Text(
                         CurrencyFormatter.formatCurrency(account.balance, account.currency),

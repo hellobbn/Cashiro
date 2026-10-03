@@ -535,10 +535,8 @@ fun DeleteAccountDialog(
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium
                             )
-                            val supportingText = when {
-                                isWallet -> stringResource(R.string.type_wallet_lowercase)
-                                else -> stringResource(R.string.account_last4_format, accountLast4)
-                            }
+                            val supportingText = if (isWallet) stringResource(R.string.type_wallet)
+                            else maskAccountNumber(accountLast4).orEmpty()
                             Text(
                                 text = supportingText,
                                 style = MaterialTheme.typography.bodySmall,

@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.presentation.ui.components.sortedForDisplay
 import java.math.BigDecimal
 
 internal enum class AccountSectionKind { WALLETS, BANKS, CREDIT_CARDS, INVESTMENTS }
@@ -31,9 +32,11 @@ internal fun AccountBalanceEntity.listKey(): String =
 
 internal fun buildAccountSections(
     accounts: List<AccountBalanceEntity>,
-    hiddenKeys: Set<String>
+    hiddenKeys: Set<String>,
+    mainKey: String? = null
 ): AccountSections {
-    val (hidden, visible) = accounts.partition {
+    // Same order as the account picker: one bank's accounts together, the main account first.
+    val (hidden, visible) = accounts.sortedForDisplay(mainKey).partition {
         "${it.bankName}_${it.accountLast4}" in hiddenKeys
     }
     return AccountSections(

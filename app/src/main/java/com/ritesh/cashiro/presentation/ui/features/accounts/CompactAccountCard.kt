@@ -15,8 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.presentation.ui.theme.AccountSurfaceElevation
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
-import com.ritesh.cashiro.presentation.ui.components.BrandIcon
-import com.ritesh.cashiro.utils.CurrencyFormatter
+import com.ritesh.cashiro.presentation.ui.components.AccountRowContent
 
 /** Compact account list treatment; detailed actions and supplementary content stay available. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -43,13 +42,11 @@ internal fun CompactAccountCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = AccountSurfaceElevation)
     ) {
-        WalletStyleRow(
-            title = account.bankName,
-            amount = CurrencyFormatter.formatCurrency(account.balance, account.currency),
-            subtitle = account.currency + (if (!account.isWallet && account.accountLast4.isNotBlank()) " · •• " + account.accountLast4 else "") + (if (isMain) " · " + stringResource(R.string.main) else ""),
-            icon = { BrandIcon(merchantName = account.bankName, size = 24.dp, showBackground = false,
-                accountIconResId = account.iconResId, accountIconName = account.iconName, accountColorHex = account.color) },
-            trailing = {
+        Row(
+            modifier = Modifier.heightIn(min = 72.dp).padding(start = 16.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AccountRowContent(account, note = if (isMain) stringResource(R.string.main) else null)
             Box {
                 IconButton(onClick = { menuExpanded = true }, shapes = IconButtonDefaults.shapes()) { Icon(Icons.Rounded.MoreHoriz, contentDescription = stringResource(R.string.more_options)) }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
@@ -67,8 +64,7 @@ internal fun CompactAccountCard(
                     DropdownMenuItem(text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }, onClick = { menuExpanded = false; onDeleteAccount() })
                 }
             }
-            }
-        )
+        }
         content()
     }
 }
