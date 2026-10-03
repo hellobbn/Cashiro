@@ -770,10 +770,10 @@ fun ManageAccountsScreen(
                 NumberPad(
                     initialValue =
                         selectedAccountEntity!!.balance.toPlainString(),
-                    title = stringResource(R.string.update_balance),
+                    title = stringResource(R.string.balance_calibration),
                     bankName = selectedAccount!!.first,
                     accountLast4 = selectedAccount!!.second,
-                    doneButtonLabel = stringResource(R.string.update_balance),
+                    doneButtonLabel = stringResource(R.string.balance_calibration),
                     onDone = { newValue ->
                         newValue.toBigDecimalOrNull()?.let { newBalance ->
                             manageAccountsViewModel.updateAccountBalance(

@@ -12,6 +12,9 @@ private const val SOURCE_TRANSACTION_SMS_BALANCE = "TRANSACTION_SMS_BALANCE"
 private const val SOURCE_MANUAL = "MANUAL"
 private const val SOURCE_MANUAL_EDIT = "MANUAL_EDIT"
 private const val SOURCE_SMS_BALANCE = "SMS_BALANCE"
+const val SOURCE_BALANCE_CALIBRATION = "BALANCE_CALIBRATION"
+/** Balance immediately before the oldest known transaction of an account; moves with older back-dated entries. */
+const val SOURCE_OPENING_BALANCE = "OPENING_BALANCE"
 
 @Dao
 abstract class AccountBalanceDao {
@@ -56,7 +59,10 @@ abstract class AccountBalanceDao {
             ab.is_credit_card AS isCreditCard,
             ab.transaction_id AS transactionId,
             t.amount AS transactionAmount,
-            t.transaction_type AS transactionType,
+            CASE WHEN t.transaction_type = 'TRANSFER' THEN
+                CASE WHEN t.bank_name = ab.bank_name AND t.account_number = ab.account_last4
+                    THEN 'EXPENSE' ELSE 'INCOME' END
+                ELSE t.transaction_type END AS transactionType,
             t.balance_after AS transactionBalanceAfter,
             t.is_deleted AS isDeleted
         FROM account_balances ab
@@ -70,6 +76,71 @@ abstract class AccountBalanceDao {
         accountLast4: String,
         timestamp: LocalDateTime
     ): List<AccountBalanceTransactionInfo>
+
+    @Query("SELECT is_deleted FROM transactions WHERE id = :id")
+    abstract suspend fun getTransactionDeletedState(id: Long): Boolean?
+
+    @Query("UPDATE transactions SET is_deleted = :deleted WHERE id = :id")
+    abstract suspend fun setTransactionDeletedState(id: Long, deleted: Boolean)
+
+    @Query("DELETE FROM transactions WHERE id = :id")
+    abstract suspend fun hardDeleteLedgerTransaction(id: Long)
+
+    @Query("SELECT * FROM account_balances WHERE transaction_id = :id ORDER BY timestamp, id")
+    abstract suspend fun getBalancesForTransaction(id: Long): List<AccountBalanceEntity>
+
+    /** State changes and both sides of a transfer are committed in one Room transaction. */
+    @Transaction
+    open suspend fun changeTransactionDeletion(ids: List<Long>, deleted: Boolean, hardDelete: Boolean = false) {
+        require(!hardDelete || deleted)
+        val affected = mutableListOf<AccountBalanceEntity>()
+        val toHardDelete = mutableListOf<Long>()
+        for (id in ids.distinct()) {
+            val wasDeleted = getTransactionDeletedState(id) ?: continue
+            if (wasDeleted != deleted) {
+                affected += getBalancesForTransaction(id)
+                setTransactionDeletedState(id, deleted)
+            }
+            if (hardDelete) toHardDelete += id
+        }
+        // Revisit each affected point: one batch may straddle an authoritative anchor.
+        // Read the predecessor after earlier recalculations, never from a stale UI entity.
+        for (entry in affected.distinctBy { it.id }.sortedWith(compareBy({ it.timestamp }, { it.id }))) {
+            if (entry.sourceType == SOURCE_TRANSACTION_SMS_BALANCE ||
+                entry.sourceType == SOURCE_SMS_BALANCE || entry.sourceType == SOURCE_BALANCE_CALIBRATION) continue
+            val previous = getBalanceHistoryForAccount(entry.bankName, entry.accountLast4)
+                .filter { it.timestamp < entry.timestamp }
+                .maxWithOrNull(compareBy({ it.timestamp }, { it.id }))
+                ?: insertOpeningBalanceBefore(entry)
+                ?: continue
+            recalculateBalancesAfter(entry.bankName, entry.accountLast4, previous.timestamp, previous.balance)
+        }
+        // The ledger rows are still needed above to know each entry's amount and type.
+        toHardDelete.forEach { hardDeleteLedgerTransaction(it) }
+    }
+
+    /**
+     * Rows written before opening balances were recorded have no predecessor when they are the
+     * oldest entry of an account. Their balance is the opening balance with the transaction
+     * applied, so reverse the transaction to recover it and persist it as [SOURCE_OPENING_BALANCE].
+     */
+    private suspend fun insertOpeningBalanceBefore(entry: AccountBalanceEntity): AccountBalanceEntity? {
+        val openingTimestamp = entry.timestamp.minusNanos(1_000_000)
+        val info = getBalancesAfterWithTransactions(entry.bankName, entry.accountLast4, openingTimestamp)
+            .firstOrNull { it.id == entry.id } ?: return null
+        val amount = info.transactionAmount ?: return null
+        val transactionType = info.transactionType?.let { runCatching { TransactionType.valueOf(it) }.getOrNull() }
+            ?: return null
+        val opening = entry.copy(
+            id = 0,
+            balance = reverseTransactionBalance(entry.balance, amount, transactionType, entry.isCreditCard),
+            timestamp = openingTimestamp,
+            transactionId = null,
+            smsSource = null,
+            sourceType = SOURCE_OPENING_BALANCE
+        )
+        return opening.copy(id = insertBalance(opening))
+    }
 
     /**
      * Inserts a balance entry linked to a transaction, and sequentially recalculates succeeding balances.
@@ -108,7 +179,20 @@ abstract class AccountBalanceDao {
         // so the calculation is based on the user's initial balance, not zero.
         val previousForBalance = previous ?: run {
             val earliest = getEarliestBalance(bankName, accountLast4)
-            if (earliest?.sourceType == SOURCE_MANUAL) earliest else null
+            if (earliest?.sourceType == SOURCE_MANUAL || earliest?.sourceType == SOURCE_OPENING_BALANCE) earliest else null
+        }
+
+        if (previous == null && explicitBalance == null) {
+            insertBalance(AccountBalanceEntity(
+                bankName = bankName, accountLast4 = accountLast4,
+                balance = previousForBalance?.balance ?: BigDecimal.ZERO,
+                timestamp = timestamp.minusNanos(1_000_000),
+                sourceType = SOURCE_OPENING_BALANCE, currency = currency,
+                isCreditCard = isCreditCard || (previousForBalance?.isCreditCard ?: false),
+                creditLimit = previousForBalance?.creditLimit ?: latest?.creditLimit,
+                iconResId = latest?.iconResId ?: 0, iconName = latest?.iconName ?: "",
+                isWallet = latest?.isWallet ?: false, color = latest?.color ?: "#33B5E5"
+            ))
         }
 
         val accountIsCreditCard = isCreditCard || (previousForBalance?.isCreditCard ?: false)
@@ -174,7 +258,9 @@ abstract class AccountBalanceDao {
             // must continue past it so that subsequent TRANSACTION_CALCULATED entries
             // (e.g., today's expenses) are correctly updated to reflect the backdated change.
             // The MANUAL entry itself is updated to carry the accumulated delta.
-            if (sourceType == SOURCE_MANUAL) {
+            // An OPENING_BALANCE row is the balance before what used to be the oldest transaction;
+            // an even older back-dated entry shifts it the same way.
+            if (sourceType == SOURCE_MANUAL || sourceType == SOURCE_OPENING_BALANCE) {
                 if (runningBalance != row.balance) {
                     updateAndInvalidate(row.id, runningBalance)
                 }
@@ -184,7 +270,8 @@ abstract class AccountBalanceDao {
             // Bank-reported explicit balances (SMS) are authoritative anchors — stop here.
             val isExplicitBalance = row.transactionBalanceAfter != null ||
                     sourceType == SOURCE_TRANSACTION_SMS_BALANCE ||
-                    sourceType == SOURCE_SMS_BALANCE
+                    sourceType == SOURCE_SMS_BALANCE ||
+                    sourceType == SOURCE_BALANCE_CALIBRATION
 
             if (isExplicitBalance) {
                 break
@@ -420,6 +507,21 @@ data class AccountBalanceTransactionInfo(
     val isDeleted: Boolean?
 )
 
+/** Inverse of [calculateTransactionBalance]: the balance before [amount] was applied. */
+private fun reverseTransactionBalance(
+    balanceAfter: BigDecimal,
+    amount: BigDecimal,
+    transactionType: TransactionType,
+    isCreditCard: Boolean
+): BigDecimal {
+    return when {
+        isCreditCard -> balanceAfter - amount
+        transactionType == TransactionType.INCOME || transactionType == TransactionType.CREDIT || transactionType == TransactionType.BORROWED -> balanceAfter - amount
+        transactionType == TransactionType.EXPENSE || transactionType == TransactionType.INVESTMENT || transactionType == TransactionType.LENT -> balanceAfter + amount
+        else -> balanceAfter
+    }
+}
+
 private fun calculateTransactionBalance(
     currentBalance: BigDecimal,
     amount: BigDecimal,
@@ -432,7 +534,7 @@ private fun calculateTransactionBalance(
         isCreditCard -> currentBalance + amount
         transactionType == TransactionType.INCOME || transactionType == TransactionType.CREDIT || transactionType == TransactionType.BORROWED -> currentBalance + amount
         transactionType == TransactionType.EXPENSE || transactionType == TransactionType.INVESTMENT || transactionType == TransactionType.LENT ->
-            (currentBalance - amount).max(BigDecimal.ZERO)
+            currentBalance - amount
         else -> currentBalance
     }
 }

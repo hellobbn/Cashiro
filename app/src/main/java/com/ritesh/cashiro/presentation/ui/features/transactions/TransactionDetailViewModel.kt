@@ -914,7 +914,7 @@ class TransactionDetailViewModel @Inject constructor(
         // including the latest balance. No additional delta application needed.
         val linkedEntry = accountBalanceRepository.getBalanceByTransactionId(oldTransaction.id)
         if (linkedEntry != null) {
-            val newBalance = (linkedEntry.balance - oldEffect + newEffect).max(BigDecimal.ZERO)
+            val newBalance = (linkedEntry.balance - oldEffect + newEffect).let { if (linkedEntry.isCreditCard) it.max(BigDecimal.ZERO) else it }
             accountBalanceRepository.updateBalance(linkedEntry.copy(balance = newBalance))
             accountBalanceRepository.recalculateBalancesAfter(bankName, accountLast4, timestamp, newBalance)
         }

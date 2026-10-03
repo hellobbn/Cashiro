@@ -451,12 +451,43 @@ class AccountBalanceRepositoryTest {
         assertEquals(BigDecimal("1500"), balanceT2.balance)
     }
 
+    @Test
+    fun expenseWarningUsesHistoricalBalanceAndAllowsNegativeProjection() = runTest {
+        val time = LocalDateTime.of(2026, 9, 8, 10, 0)
+        val dao = FakeAccountBalanceDao()
+        dao.seedBalance(AccountBalanceEntity(bankName = "Test Bank", accountLast4 = "1234",
+            balance = BigDecimal("100"), timestamp = time.minusDays(1), sourceType = "MANUAL"))
+        dao.seedBalance(AccountBalanceEntity(bankName = "Test Bank", accountLast4 = "1234",
+            balance = BigDecimal("5000"), timestamp = time.plusDays(1), sourceType = "BALANCE_CALIBRATION"))
+        val repository = AccountBalanceRepository(dao, ContextWrapper(null))
+        assertEquals(BigDecimal("-740"), repository.projectedExpenseBalance("Test Bank", "1234", time, BigDecimal("840")))
+        assertEquals(BigDecimal("4160"), repository.projectedExpenseBalance("Test Bank", "1234", time.plusDays(2), BigDecimal("840")))
+        // A warning preview never inserts or updates any balance rows.
+        assertEquals(0, dao.insertedBalances.size)
+        assertEquals(0, dao.updatedBalances.size)
+    }
+
+    @Test
+    fun ordinaryOverdraftWarningDoesNotApplyToCreditCards() = runTest {
+        val time = LocalDateTime.of(2026, 9, 8, 10, 0)
+        val dao = FakeAccountBalanceDao()
+        dao.seedBalance(AccountBalanceEntity(bankName = "Test Bank", accountLast4 = "1234",
+            balance = BigDecimal("100"), timestamp = time.minusDays(1), isCreditCard = true))
+        val repository = AccountBalanceRepository(dao, ContextWrapper(null))
+        assertEquals(null, repository.projectedExpenseBalance("Test Bank", "1234", time, BigDecimal("840")))
+    }
+
     private class FakeAccountBalanceDao(
         private val latestBalances: MutableMap<String, AccountBalanceEntity> = mutableMapOf(),
         private val balanceAtOrBefore: AccountBalanceEntity? = null,
         private val balancesAfter: List<AccountBalanceTransactionInfo> = emptyList(),
         private val suffixMatches: Map<String, Map<String, List<String>>> = emptyMap()
     ) : AccountBalanceDao() {
+        override suspend fun getTransactionDeletedState(id: Long): Boolean? = null
+        override suspend fun setTransactionDeletedState(id: Long, deleted: Boolean) = Unit
+        override suspend fun hardDeleteLedgerTransaction(id: Long) = Unit
+        override suspend fun getBalancesForTransaction(id: Long): List<AccountBalanceEntity> = emptyList()
+
         val insertedBalances = mutableListOf<AccountBalanceEntity>()
         val updatedBalances = mutableMapOf<Long, BigDecimal>()
         var suffixLookupCount = 0
