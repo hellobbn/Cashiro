@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.utils.displayTitle
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -103,7 +104,7 @@ fun TransactionItem(
     linkedLoanPersonColor: String? = null,
     linkedLoanPersonAvatar: String? = null
 ) {
-    val finalMerchantName = merchantName ?: transaction?.merchantName ?: ""
+    val finalMerchantName = merchantName ?: transaction?.displayTitle() ?: ""
     val finalAmount = amount ?: transaction?.amount ?: BigDecimal.ZERO
     val finalType = transactionType ?: transaction?.transactionType ?: TransactionType.EXPENSE
     val isRecurring = transaction?.isRecurring ?: false

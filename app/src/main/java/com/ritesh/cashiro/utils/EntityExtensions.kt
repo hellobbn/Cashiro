@@ -39,3 +39,12 @@ fun CardEntity.formatLastBalance(): String =
  */
 fun AccountBalanceEntity.formatCreditLimit(): String =
     CurrencyFormatter.formatCurrency(creditLimit ?: java.math.BigDecimal.ZERO, currency)
+/**
+ * What a transaction is listed as: its merchant, or for an entry without one (the merchant
+ * is optional) its category and the first line of its note, e.g. "Food · lunch with Li".
+ */
+fun TransactionEntity.displayTitle(): String {
+    if (merchantName.isNotBlank()) return merchantName
+    val note = description?.lineSequence()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() }
+    return listOfNotNull(subcategory?.takeIf { it.isNotBlank() } ?: category, note).joinToString(" · ")
+}

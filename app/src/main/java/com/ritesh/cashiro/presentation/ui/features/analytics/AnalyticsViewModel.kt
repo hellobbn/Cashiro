@@ -211,8 +211,9 @@ class AnalyticsViewModel @Inject constructor(
                     }
                     .sortedByDescending { it.amount }
 
-                // Group by merchant
+                // Group by merchant; entries without one (it is optional) have no merchant to rank
                 val merchantBreakdown = filteredTransactions
+                    .filter { it.merchantName.isNotBlank() }
                     .groupBy { it.merchantName }
                     .mapValues { (merchant, txns) ->
                         val primaryCategory = txns.groupBy { it.category }.maxByOrNull { it.value.size }?.key

@@ -81,6 +81,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.ui.features.lendborrow.AddEditPersonSheet
@@ -168,13 +169,21 @@ fun TransactionTabContent(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Quick-add templates
+            // Saved and suggested templates. A tap fills the form and, unless the template
+            // carries the amount, opens the number pad for it.
             val quickTemplates by viewModel.quickTemplates.collectAsState()
-            if (quickTemplates.isNotEmpty()) {
-                QuickTemplateRow(
+            val suggestedTemplates by viewModel.suggestedTemplates.collectAsState()
+            if (quickTemplates.isNotEmpty() || suggestedTemplates.isNotEmpty()) {
+                TemplateRow(
                     templates = quickTemplates,
+                    suggested = suggestedTemplates,
                     categories = categories,
-                    onSelect = viewModel::applyQuickTemplate
+                    onSelect = { template ->
+                        viewModel.applyQuickTemplate(template)
+                        if (viewModel.transactionUiState.value.amount.isBlank()) showNumberPad = true
+                    },
+                    onPin = viewModel::pinSuggestedTemplate,
+                    onDismiss = viewModel::dismissSuggestedTemplate
                 )
             }
 
@@ -235,6 +244,20 @@ fun TransactionTabContent(
                     }
                 }
             }
+            // The categories used most for this type, one tap each
+            if (uiState.transactionType in setOf(TransactionType.EXPENSE, TransactionType.INCOME,
+                    TransactionType.CREDIT, TransactionType.INVESTMENT)) {
+                val commonCategories by viewModel.commonCategories.collectAsState()
+                CommonCategoryRow(
+                    common = commonCategories,
+                    categories = categories,
+                    isIncome = uiState.transactionType == TransactionType.INCOME,
+                    selected = uiState.category,
+                    onSelect = viewModel::updateTransactionCategory,
+                    onShowAll = { showCategoryMenu = true }
+                )
+            }
+
             // Date and Time Selection
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1020,9 +1043,11 @@ fun TransactionTabContent(
                     dragHandle = { BottomSheetDefaults.DragHandle() },
                     containerColor = MaterialTheme.colorScheme.surface,
                 ) {
+                    val commonCategories by viewModel.commonCategories.collectAsState()
                     CategorySelectionSheet(
                         categories = categories,
                         subcategoriesMap = allSubcategories,
+                        recentCategories = commonCategories,
                         onSelectionComplete = { category, subcategory ->
                             viewModel.updateTransactionCategory(category.name)
                             viewModel.updateTransactionSubcategory(subcategory?.name)
@@ -1043,13 +1068,19 @@ fun TransactionTabContent(
                     uiState.transactionType != TransactionType.LENT &&
                         uiState.transactionType != TransactionType.BORROWED
                 ) {
-                // Merchant Name Input
+                // Merchant Name Input (optional), completed from earlier entries
+                var merchantFocused by remember { mutableStateOf(false) }
+                val merchantSuggestions by viewModel.merchantSuggestions.collectAsState()
+                val merchantMatches = remember(merchantSuggestions, uiState.merchant, uiState.transactionType) {
+                    EntrySuggestions.matchMerchants(merchantSuggestions, uiState.merchant, uiState.transactionType)
+                }
+                Column {
                 TextField(
                     value = uiState.merchant,
                     onValueChange = viewModel::updateTransactionMerchant,
-                    label = { Text(stringResource(R.string.merchant_lbl), fontWeight = FontWeight.SemiBold) },
+                    label = { Text(stringResource(R.string.merchant_optional), fontWeight = FontWeight.SemiBold) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().onFocusChanged { merchantFocused = it.isFocused },
                     shape =
                         RoundedCornerShape(
                             topStart = 16.dp,
@@ -1058,7 +1089,6 @@ fun TransactionTabContent(
                             bottomEnd = 4.dp
                         ),
                     leadingIcon = { Icon(Iconax.Shop, contentDescription = null) },
-                    isError = uiState.merchantError != null,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -1068,8 +1098,15 @@ fun TransactionTabContent(
                         unfocusedLabelColor =
                             MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
                     ),
-                    supportingText = uiState.merchantError?.let { { Text(it) } },
                 )
+                if (merchantFocused && merchantMatches.isNotEmpty()) {
+                    MerchantSuggestionRow(
+                        suggestions = merchantMatches,
+                        categories = categories,
+                        onSelect = viewModel::applyMerchantSuggestion
+                    )
+                }
+                }
                 }
 
                 // Save this entry as a quick-add template (not for transfers / loans)
@@ -1268,47 +1305,5 @@ fun TransactionTabContent(
             blurEffects = blurEffects,
             hazeState = hazeState
         )
-    }
-}
-
-
-/** Horizontal row of user-defined quick-add templates; a tap pre-fills the form. */
-@Composable
-private fun QuickTemplateRow(
-    templates: List<com.ritesh.cashiro.data.database.entity.QuickTemplateEntity>,
-    categories: List<com.ritesh.cashiro.data.database.entity.CategoryEntity>,
-    onSelect: (com.ritesh.cashiro.data.database.entity.QuickTemplateEntity) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.quick_add_templates),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(templates, key = { it.id }) { template ->
-                AssistChip(
-                    onClick = { onSelect(template) },
-                    label = {
-                        val amountText = template.amount
-                            ?.takeIf { template.prefillAmount }
-                            ?.let { " · " + CurrencyFormatter.formatCurrency(it, template.currency ?: "CNY") }
-                            ?: ""
-                        Text(template.name + amountText, maxLines = 1)
-                    },
-                    leadingIcon = {
-                        BrandIcon(
-                            merchantName = template.merchantName,
-                            size = 22.dp,
-                            showBackground = false,
-                            categoryEntity = categories.find { it.name == template.category },
-                            category = template.category,
-                            subcategory = template.subcategory
-                        )
-                    }
-                )
-            }
-        }
     }
 }

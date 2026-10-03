@@ -373,7 +373,9 @@ class TransactionDetailViewModel @Inject constructor(
         // Load count of other transactions from same merchant (always, not just for SMS)
         _uiState.value.transaction?.let { txn ->
             viewModelScope.launch {
-                val matches = transactionRepository.getTransactionsByMerchantContains(
+                // A blank merchant (it is optional) would "contain" every other transaction.
+                val matches = if (txn.merchantName.isBlank()) emptyList()
+                else transactionRepository.getTransactionsByMerchantContains(
                     txn.merchantName,
                     txn.id
                 )
@@ -630,11 +632,6 @@ class TransactionDetailViewModel @Inject constructor(
         val toSave = state.editableTransaction ?: return
 
         // Validate before saving
-        if (toSave.merchantName.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Merchant name is required") }
-            return
-        }
-
         if (toSave.amount <= BigDecimal.ZERO) {
             _uiState.update { it.copy(errorMessage = "Amount must be positive") }
             return
@@ -669,7 +666,7 @@ class TransactionDetailViewModel @Inject constructor(
                 syncSubscriptionForTransaction(normalizedTransaction)
 
                 // Update existing transactions if checkbox is checked (fuzzy/contains match)
-                if (state.updateExistingTransactions) {
+                if (state.updateExistingTransactions && normalizedTransaction.merchantName.isNotBlank()) {
                     transactionRepository.updateCategoryAndSubcategoryForMerchantContains(
                         normalizedTransaction.merchantName,
                         normalizedTransaction.category,
@@ -793,7 +790,7 @@ class TransactionDetailViewModel @Inject constructor(
             try {
                 quickTemplateRepository.add(
                     QuickTemplateEntity(
-                        name = txn.merchantName,
+                        name = txn.merchantName.ifBlank { txn.subcategory ?: txn.category },
                         merchantName = txn.merchantName,
                         category = txn.category,
                         subcategory = txn.subcategory,

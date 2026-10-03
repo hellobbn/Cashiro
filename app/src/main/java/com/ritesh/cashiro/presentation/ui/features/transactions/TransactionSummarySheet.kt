@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.utils.displayTitle
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 
 import androidx.compose.foundation.layout.*
@@ -41,7 +42,7 @@ internal fun TransactionSummarySheet(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 BrandIcon(merchantName = transaction.merchantName, size = 40.dp)
                 Column(Modifier.weight(1f)) {
-                    Text(transaction.merchantName, style = MaterialTheme.typography.titleLarge)
+                    Text(transaction.displayTitle(), style = MaterialTheme.typography.titleLarge)
                     Text(transaction.formatAmount(), style = MaterialTheme.typography.headlineMedium)
                 }
             }

@@ -165,9 +165,10 @@ constructor(
             merchant: String,
             date: LocalDateTime
     ): String {
-        // Create a unique hash for manual transactions
-        // Format: MANUAL_<amount>_<merchant>_<datetime>
-        val data = "MANUAL_${amount}_${merchant}_${date}"
+        // Create a unique hash for manual transactions. The insert ignores a duplicate hash, so
+        // two entries that look alike (same amount, a blank merchant or a template, a time
+        // picked to the minute) must still differ: the entry time makes each one unique.
+        val data = "MANUAL_${amount}_${merchant}_${date}_${System.nanoTime()}"
 
         return MessageDigest.getInstance("MD5").digest(data.toByteArray()).joinToString("") {
             "%02x".format(it)

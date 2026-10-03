@@ -12,6 +12,7 @@ import com.ritesh.cashiro.data.repository.AccountBalanceRepository
 import com.ritesh.cashiro.data.repository.QuickTemplateRepository
 import com.ritesh.cashiro.data.database.entity.QuickTemplateEntity
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
+import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.domain.usecase.AddEditLendBorrowPersonUseCase
 import com.ritesh.cashiro.domain.usecase.AddSubscriptionUseCase
@@ -50,6 +51,7 @@ constructor(
     private val subscriptionRepository: SubscriptionRepository,
     private val updateSubscriptionUseCase: UpdateSubscriptionUseCase,
     private val quickTemplateRepository: QuickTemplateRepository,
+    private val transactionRepository: TransactionRepository,
     val attachmentService: AttachmentService,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -95,6 +97,38 @@ constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    // Recent history behind the form's suggestions: common categories, merchant completion
+    // and suggested templates. Read once per screen; new entries close the form anyway.
+    private val recentHistory: StateFlow<List<com.ritesh.cashiro.data.database.entity.TransactionEntity>> =
+        flow {
+            val now = LocalDateTime.now()
+            emit(transactionRepository.getVisibleTransactionsBetween(
+                now.minusDays(EntrySuggestions.CATEGORY_DAYS), now.plusDays(1)).first())
+        }
+            .catch { e -> Log.w("AddViewModel", "History for suggestions not loaded", e); emit(emptyList()) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val dismissedSuggestions = MutableStateFlow(
+        sharedPrefs.getStringSet(DISMISSED_SUGGESTIONS_KEY, emptySet()).orEmpty().toSet()
+    )
+
+    /** Merchants used before, for completing the merchant field. */
+    val merchantSuggestions: StateFlow<List<MerchantSuggestion>> = recentHistory
+        .map { EntrySuggestions.merchants(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Frequent merchant + category pairs offered next to the saved templates. */
+    val suggestedTemplates: StateFlow<List<SuggestedTemplate>> =
+        combine(recentHistory, quickTemplateRepository.templates, dismissedSuggestions) { history, templates, dismissed ->
+            EntrySuggestions.frequentTemplates(history, LocalDateTime.now(), templates, dismissed)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** The categories used most for the selected transaction type. */
+    val commonCategories: StateFlow<List<String>> =
+        combine(recentHistory, _transactionUiState.map { it.transactionType }.distinctUntilChanged()) { history, type ->
+            EntrySuggestions.topCategories(history, type, LocalDateTime.now())
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Accounts for dropdown
     val accounts = accountBalanceRepository
@@ -207,8 +241,43 @@ constructor(
 
     fun updateTransactionMerchant(merchant: String) {
         _transactionUiState.update { currentState ->
-            currentState.copy(merchant = merchant, merchantError = validateMerchant(merchant))
+            currentState.copy(merchant = merchant, merchantError = null)
         }
+    }
+
+    /** Fill the merchant from history, with the category and account it was last used with. */
+    fun applyMerchantSuggestion(suggestion: MerchantSuggestion) {
+        val account = accounts.value.firstOrNull {
+            it.bankName == suggestion.bankName && it.accountLast4 == suggestion.accountLast4
+        }
+        _transactionUiState.update { current ->
+            current.copy(
+                merchant = suggestion.merchant,
+                merchantError = null,
+                category = suggestion.category,
+                subcategory = suggestion.subcategory,
+                categoryError = null,
+                selectedAccount = account ?: current.selectedAccount,
+                currency = account?.currency ?: current.currency
+            )
+        }
+        updateTransactionSubcategories(suggestion.category)
+    }
+
+    /** Keep a suggested template as a saved one. */
+    fun pinSuggestedTemplate(suggestion: SuggestedTemplate) {
+        viewModelScope.launch {
+            try { quickTemplateRepository.add(suggestion.toTemplate()) } catch (e: Exception) {
+                Log.w("AddViewModel", "Suggested template not saved", e)
+            }
+        }
+    }
+
+    /** Stop suggesting this merchant + category pair. */
+    fun dismissSuggestedTemplate(suggestion: SuggestedTemplate) {
+        val updated = dismissedSuggestions.value + suggestion.key
+        dismissedSuggestions.value = updated
+        sharedPrefs.edit().putStringSet(DISMISSED_SUGGESTIONS_KEY, updated).apply()
     }
 
     fun updateTransactionCategory(category: String) {
@@ -257,7 +326,7 @@ constructor(
     private suspend fun saveQuickTemplateFromState(state: TransactionUiState) {
         quickTemplateRepository.add(
             QuickTemplateEntity(
-                name = state.merchant.trim(),
+                name = state.merchant.trim().ifBlank { state.subcategory ?: state.category },
                 merchantName = state.merchant.trim(),
                 category = state.category,
                 subcategory = state.subcategory,
@@ -324,7 +393,6 @@ constructor(
         val isLoanType = state.transactionType == TransactionType.LENT ||
             state.transactionType == TransactionType.BORROWED
         val amountError = validateAmount(state.amount)
-        val merchantError = if (!isLoanType) validateMerchant(state.merchant) else null
         val categoryError = validateCategory(state.category)
 
         // Additional validation for Transfer transactions
@@ -348,11 +416,11 @@ constructor(
             }
         }
 
-        if (amountError != null || merchantError != null || categoryError != null) {
+        // The merchant is optional: lists show the category and note when it is blank.
+        if (amountError != null || categoryError != null) {
             _transactionUiState.update { currentState ->
                 currentState.copy(
                     amountError = amountError,
-                    merchantError = merchantError,
                     categoryError = categoryError
                 )
             }
@@ -764,13 +832,6 @@ constructor(
         }
     }
 
-    private fun validateMerchant(merchant: String): String? {
-        return when {
-            merchant.isBlank() -> context.getString(R.string.err_merchant_required)
-            merchant.length < 2 -> context.getString(R.string.err_too_short)
-            else -> null
-        }
-    }
 
     private fun validateCategory(category: String): String? {
         return when {
@@ -779,6 +840,8 @@ constructor(
         }
     }
 }
+
+private const val DISMISSED_SUGGESTIONS_KEY = "dismissed_template_suggestions"
 
 // UI State Classes
 data class AddUiState(val currentTab: Int = 0)
@@ -820,7 +883,7 @@ data class TransactionUiState(
             return if (isLoanType) {
                 baseValid && selectedPersonId != null
             } else {
-                baseValid && merchant.isNotBlank() && merchantError == null
+                baseValid && merchantError == null
             }
         }
 }
