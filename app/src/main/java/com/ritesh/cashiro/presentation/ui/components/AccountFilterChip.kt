@@ -81,7 +81,7 @@ fun AccountFilterChip(
                         modifier = Modifier.basicMarquee()
                     )
                     Text(
-                        text = if (account.isWallet) "wallet" else account.accountLast4,
+                        text = accountSubtitle(account),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f)
                     )

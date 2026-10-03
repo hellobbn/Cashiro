@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -824,7 +825,7 @@ private fun PreviewAccountCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (isWallet) stringResource(R.string.type_wallet_lowercase) else "**** **** **** $accountLast4",
+                            text = if (isWallet) stringResource(R.string.type_wallet) else maskAccountNumber(accountLast4).orEmpty(),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f)
                         )

@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
+import com.ritesh.cashiro.presentation.ui.components.AccountField
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.DatePicker
@@ -372,59 +373,12 @@ fun SubscriptionTabContent(
                 modifier = Modifier.fillMaxWidth().animateContentSize(),
                 verticalArrangement = Arrangement.spacedBy(1.5.dp)
             ) {
-                OutlinedCard(
+                AccountField(
+                    account = uiState.selectedAccount,
                     onClick = { showAccountSheet = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomStart = 4.dp,
-                        bottomEnd = 4.dp
-                    ),
-                    colors = CardDefaults.outlinedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-                    border = BorderStroke(0.dp, Color.Transparent)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        BrandIcon(
-                            merchantName = uiState.selectedAccount?.bankName ?: "",
-                            accountIconResId = uiState.selectedAccount?.iconResId ?: 0,
-                            accountIconName = uiState.selectedAccount?.iconName,
-                            size = 24.dp,
-                            showBackground = false
-                        )
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = uiState.selectedAccount?.bankName ?: stringResource(R.string.select_account),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color =
-                                    if (uiState.selectedAccount != null)
-                                        MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            if (uiState.selectedAccount != null) {
-                                Text(
-                                    text = "••${uiState.selectedAccount?.accountLast4}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
-                        Icon(
-                            imageVector = Icons.Rounded.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                    placeholder = stringResource(R.string.select_account),
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                )
 
                 // Category Selection
                 val categoryInteractionSource = remember { MutableInteractionSource() }

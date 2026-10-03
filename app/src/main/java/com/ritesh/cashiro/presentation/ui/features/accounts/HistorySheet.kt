@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -104,7 +105,7 @@ fun HistorySheet(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "$bankName ••$accountLast4",
+                text = listOfNotNull(bankName, maskAccountNumber(accountLast4)).joinToString(" · "),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

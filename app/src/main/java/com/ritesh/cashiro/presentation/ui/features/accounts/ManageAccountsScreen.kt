@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
+import com.ritesh.cashiro.presentation.ui.components.institutionKeyOf
+import com.ritesh.cashiro.presentation.ui.components.institutionKey
+import com.ritesh.cashiro.presentation.ui.components.AccountRow
 import com.ritesh.cashiro.utils.sumOfBigDecimal
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -145,8 +149,8 @@ fun ManageAccountsScreen(
     val categoryAccounts = remember(uiState.accounts, category) {
         uiState.accounts.filter { category == null || it.category() == category }
     }
-    val sections = remember(categoryAccounts, uiState.hiddenAccounts) {
-        buildAccountSections(categoryAccounts, uiState.hiddenAccounts)
+    val sections = remember(categoryAccounts, uiState.hiddenAccounts, uiState.mainAccountKey) {
+        buildAccountSections(categoryAccounts, uiState.hiddenAccounts, uiState.mainAccountKey)
     }
     val walletSection = sections.visible[0]
     val bankSection = sections.visible[1]
@@ -1021,7 +1025,8 @@ fun ManageAccountsScreen(
 
     if (selectedCardForLink != null) {
         val card = selectedCardForLink!!
-        val matchingAccounts = uiState.accounts.filter { it.bankName == card.bankName }
+        // Same institution, so "BofA (Checking)" is offered for a card from "BofA".
+        val matchingAccounts = uiState.accounts.filter { it.institutionKey() == institutionKeyOf(card.bankName) }
         LinkCardDialog(
             card = card,
             accounts = matchingAccounts,
@@ -1248,7 +1253,7 @@ private fun AccountItem(
                                             horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                                         ) {
                                             Text(
-                                                text = "**** **** **** ${card.cardLast4}",
+                                                text = "•••• ${card.cardLast4}",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                             if (!card.isActive
@@ -1331,7 +1336,7 @@ private fun OrphanedCardItem(
                             fontWeight = FontWeight.Medium
                         )
                         Text(
-                            text = "**** **** **** ${card.cardLast4}",
+                            text = "•••• ${card.cardLast4}",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium
                         )
@@ -1512,7 +1517,7 @@ private fun LinkCardDialog(
             ) {
                 Text(stringResource(R.string.link_card_title))
                 Text(
-                    text = "${card.bankName} ••${card.cardLast4}",
+                    text = listOfNotNull(card.bankName, maskAccountNumber(card.cardLast4)).joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1536,54 +1541,12 @@ private fun LinkCardDialog(
                     )
                     accounts.forEach { account ->
                         val isSelected = selectedAccount == account.accountLast4
-                        Surface(
-                            onClick = { selectedAccount = account.accountLast4 },
-                            modifier = Modifier.fillMaxWidth(),
-                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(0.3f)
-                                   else MaterialTheme.colorScheme.surface.copy(0.5f),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(
-                                1.dp,
-                                if (isSelected) MaterialTheme.colorScheme.primary 
-                                else MaterialTheme.colorScheme.outlineVariant
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(Spacing.md),
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                com.ritesh.cashiro.presentation.ui.components.BrandIcon(
-                                    merchantName = account.bankName,
-                                    accountIconResId = account.iconResId,
-                                    accountColorHex = account.color,
-                                    size = 32.dp
-                                )
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "••${account.accountLast4}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        text = CurrencyFormatter.formatCurrency(
-                                            account.balance,
-                                            account.currency
-                                        ),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                if (isSelected) {
-                                    Icon(
-                                        Icons.Rounded.CheckCircle,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-                        }
+                        AccountRow(
+                            account = account,
+                            selected = isSelected,
+                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                            onClick = { selectedAccount = account.accountLast4 }
+                        )
                     }
                 }
             }

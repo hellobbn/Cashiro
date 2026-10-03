@@ -128,6 +128,11 @@ android {
             versionNameSuffix = "-debug"
             manifestPlaceholders["appLabel"] = "Cashiro Debug"
             if (slimDebug) {
+                // The CI build people install day to day: not debuggable, so ART compiles it
+                // ahead of time with the Baseline Profile like a release (a debuggable app
+                // only ever runs interpreted/JIT and gets no profile). Local debug builds
+                // without -PslimDebug stay debuggable.
+                isDebuggable = false
                 isMinifyEnabled = true
                 isShrinkResources = true
                 proguardFiles(

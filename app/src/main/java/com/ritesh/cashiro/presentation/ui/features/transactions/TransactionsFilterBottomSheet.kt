@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.components.mainAccountKey
+import com.ritesh.cashiro.presentation.ui.components.sortedForDisplay
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 
 import androidx.compose.animation.animateContentSize
@@ -384,6 +386,10 @@ fun TransactionsFilterBottomSheet(
 
                     // Accounts
                     if (accountsMap.isNotEmpty()) {
+                        val context = LocalContext.current
+                        val sortedFilterAccounts = remember(accountsMap) {
+                            accountsMap.values.toList().sortedForDisplay(context.mainAccountKey())
+                        }
                         Text(
                             text = stringResource(R.string.accounts),
                             style = MaterialTheme.typography.titleSmall,
@@ -399,7 +405,7 @@ fun TransactionsFilterBottomSheet(
                             horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                         ) {
                             items(
-                                accountsMap.values.toList(),
+                                sortedFilterAccounts,
                                 key = { "${it.bankName}_${it.accountLast4}" }) { account ->
                                 val accountKey = "${account.bankName}_${account.accountLast4}"
                                 Box(modifier = Modifier.width(220.dp)) {

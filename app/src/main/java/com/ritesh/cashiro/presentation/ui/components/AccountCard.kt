@@ -322,8 +322,7 @@ text = {
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (account.isWallet) stringResource(R.string.type_wallet)
-                                    else "**** **** **** ${account.accountLast4}",
+                                    text = accountSubtitle(account),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

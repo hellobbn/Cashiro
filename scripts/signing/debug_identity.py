@@ -167,7 +167,10 @@ def verify_apk(apk):
     package = re.search(r"^package: name='([^']+)'", badging, re.M)
     if not package or package[1] != 'com.ritesh.cashiro.debug':
         raise ValueError('Unexpected debug application ID')
-    if "application-label:'Cashiro Debug'" not in badging or 'application-debuggable' not in badging:
+    # The debug build type marks its versionName with "-debug". The CI build is not
+    # debuggable (so ART compiles it with the Baseline Profile), so that flag is not checked.
+    version = re.search(r"versionName='([^']*)'", badging)
+    if "application-label:'Cashiro Debug'" not in badging or not version or not version[1].endswith('-debug'):
         raise ValueError('Unexpected debug application label or build type')
     print(json.dumps({'package': package[1], 'certificate_sha256': expected,
                       'label': 'Cashiro Debug', 'signature_verified': True}, indent=2))
