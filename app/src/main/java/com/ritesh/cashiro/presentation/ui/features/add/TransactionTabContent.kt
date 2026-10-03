@@ -155,6 +155,15 @@ fun TransactionTabContent(
     var showCategoryMenu by remember { mutableStateOf(false) }
     var showNumberPad by remember { mutableStateOf(false) }
 
+    // A template without an amount (tapped here, or from a shortcut or the widget) asks for it
+    val amountPadRequested by viewModel.amountPadRequested.collectAsState()
+    LaunchedEffect(amountPadRequested) {
+        if (amountPadRequested) {
+            showNumberPad = true
+            viewModel.onAmountPadOpened()
+        }
+    }
+
     val scrollState = rememberScrollState()
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -178,10 +187,7 @@ fun TransactionTabContent(
                     templates = quickTemplates,
                     suggested = suggestedTemplates,
                     categories = categories,
-                    onSelect = { template ->
-                        viewModel.applyQuickTemplate(template)
-                        if (viewModel.transactionUiState.value.amount.isBlank()) showNumberPad = true
-                    },
+                    onSelect = viewModel::applyQuickTemplate,
                     onPin = viewModel::pinSuggestedTemplate,
                     onDismiss = viewModel::dismissSuggestedTemplate
                 )

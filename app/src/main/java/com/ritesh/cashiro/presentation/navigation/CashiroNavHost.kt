@@ -804,6 +804,7 @@ fun CashiroNavHost(
                     initialTab = addTransaction.initialTab,
                     subscriptionId = addTransaction.subscriptionId,
                     transactionType = addTransaction.type,
+                    templateId = addTransaction.templateId,
                     blurEffects = themeUiState.blurEffects,
                 )
             }

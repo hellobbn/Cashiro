@@ -10,24 +10,6 @@
             android:targetPackage="com.ritesh.cashiro"
             android:targetClass="com.ritesh.cashiro.MainActivity" />
     </shortcut>
-    <shortcut
-        android:shortcutId="add_subscription"
-        android:enabled="true"
-        android:icon="@drawable/ic_shortcut_add_subscription"
-        android:shortcutShortLabel="@string/add_subscription">
-        <intent
-            android:action="com.ritesh.cashiro.action.ADD_SUBSCRIPTION"
-            android:targetPackage="com.ritesh.cashiro"
-            android:targetClass="com.ritesh.cashiro.MainActivity" />
-    </shortcut>
-    <shortcut
-        android:shortcutId="add_transfer"
-        android:enabled="true"
-        android:icon="@drawable/ic_shortcut_transfer"
-        android:shortcutShortLabel="@string/add_transfer">
-        <intent
-            android:action="com.ritesh.cashiro.action.ADD_TRANSFER"
-            android:targetPackage="com.ritesh.cashiro"
-            android:targetClass="com.ritesh.cashiro.MainActivity" />
-    </shortcut>
+    <!-- Quick templates, transfer and subscription are dynamic shortcuts (QuickEntryPublisher):
+         launchers show about four, manifest ones first, so only "Add" stays static. -->
 </shortcuts>

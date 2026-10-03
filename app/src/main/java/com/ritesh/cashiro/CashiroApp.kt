@@ -37,6 +37,7 @@ fun CashiroApp(
     onEditComplete: () -> Unit = {},
     addTransactionTab: Int? = null,
     addTransactionType: String? = null,
+    addTemplateId: Long? = null,
     onAddComplete: () -> Unit = {}
 ) {
     val themeUiState by themeViewModel.themeUiState.collectAsStateWithLifecycle()
@@ -85,9 +86,9 @@ fun CashiroApp(
         }
     }
 
-    LaunchedEffect(addTransactionTab, addTransactionType) {
+    LaunchedEffect(addTransactionTab, addTransactionType, addTemplateId) {
         addTransactionTab?.let { tab ->
-            navController.navigate(AddTransaction(initialTab = tab, type = addTransactionType))
+            navController.navigate(AddTransaction(initialTab = tab, type = addTransactionType, templateId = addTemplateId))
             onAddComplete()
         }
     }

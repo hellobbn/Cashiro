@@ -15,4 +15,8 @@
     <string name="template_suggested_pin">Keep as template</string>
     <string name="template_suggested_dismiss">Don\'t suggest again</string>
     <string name="template_suggested_desc">Suggested from %1$d recent entries</string>
+    <string name="widget_quick_add_title">Quick add</string>
+    <string name="widget_quick_add_description">Add an expense, or start from a quick template</string>
+    <string name="widget_quick_add_empty">Quick templates show up here. Save one with \"Save as quick chip\", or long-press a suggested one.</string>
+    <string name="quick_template_deleted">This quick template was deleted</string>
 </resources>

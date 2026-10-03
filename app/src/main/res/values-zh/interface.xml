@@ -15,4 +15,8 @@
     <string name="template_suggested_pin">固定为模板</string>
     <string name="template_suggested_dismiss">不再推荐</string>
     <string name="template_suggested_desc">根据最近 %1$d 笔记录推荐</string>
+    <string name="widget_quick_add_title">快捷记账</string>
+    <string name="widget_quick_add_description">记一笔，或从快捷模板开始</string>
+    <string name="widget_quick_add_empty">快捷模板会显示在这里。记账时打开「存为快捷」，或长按推荐的模板即可添加。</string>
+    <string name="quick_template_deleted">该快捷模板已删除</string>
 </resources>

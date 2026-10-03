@@ -162,7 +162,13 @@ data class Transactions(
 
 @Serializable data class TransactionDetail(val transactionId: Long, val sharedElementKey: String? = null)
 
-@Serializable data class AddTransaction(val initialTab: Int = 0, val subscriptionId: Long? = null, val type: String? = null)
+@Serializable data class AddTransaction(
+    val initialTab: Int = 0,
+    val subscriptionId: Long? = null,
+    val type: String? = null,
+    // A quick template to fill the form with, from a launcher shortcut or the home-screen widget
+    val templateId: Long? = null
+)
 
 @Serializable data class AccountDetail(val bankName: String, val accountLast4: String)
 

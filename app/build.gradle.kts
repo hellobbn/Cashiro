@@ -259,6 +259,7 @@ dependencies {
     implementation(libs.colorpicker.compose)
     implementation(libs.haze)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.profileinstaller)
     // Composable names in Perfetto traces when Macrobenchmark runs with fullTracing.enable.
     "benchmarkImplementation"(libs.androidx.compose.runtime.tracing)
