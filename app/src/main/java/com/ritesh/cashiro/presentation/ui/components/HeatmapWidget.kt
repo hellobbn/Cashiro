@@ -1,11 +1,12 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.foundation.background
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -16,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -34,6 +34,10 @@ import dev.chrisbanes.haze.hazeEffect
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+private val cellSize = 14.dp
+private val cellGap = 4.dp
+private val cellStep = cellSize + cellGap
 
 @OptIn(ExperimentalHazeApi::class)
 @Composable
@@ -88,11 +92,25 @@ fun HeatmapWidget(
         filteredLabels
     }
 
-    val scrollState = rememberScrollState()
-    
-    // Scroll to end (latest data) on initial load
-    LaunchedEffect(Unit) {
-        scrollState.scrollTo(scrollState.maxValue)
+    // Start at the end (latest weeks): the value is clamped to the scroll range on first
+    // layout, so no extra frame scrolls there afterwards.
+    val scrollState = rememberScrollState(Int.MAX_VALUE)
+
+    // One level per cell (-1 future, 0 none, 1-4 more transactions), recomputed only when the
+    // data changes rather than on every composition.
+    val levels = remember(data, startDate, today) {
+        IntArray(weeksToShow * 7) { index ->
+            val date = startDate.plusDays(index.toLong())
+            val count = data[date] ?: 0
+            when {
+                date > today -> -1
+                count == 0 -> 0
+                count == 1 -> 1
+                count < 3 -> 2
+                count < 5 -> 3
+                else -> 4
+            }
+        }
     }
 
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -125,39 +143,29 @@ fun HeatmapWidget(
                 .padding(Dimensions.Padding.content)
                 .horizontalScroll(scrollState)
         ) {
-            // Heatmap Grid
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.padding(bottom = 8.dp)
+            // Heatmap grid, drawn in one Canvas: 182 cells as separate composables made the
+            // home list stutter each time this item scrolled into view.
+            val empty = MaterialTheme.colorScheme.surfaceContainerHigh
+            val primary = MaterialTheme.colorScheme.primary
+            val palette = remember(empty, primary) {
+                listOf(empty, primary.copy(alpha = 0.25f), primary.copy(alpha = 0.5f), primary.copy(alpha = 0.75f), primary)
+            }
+            Canvas(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .size(width = cellStep * weeksToShow - cellGap, height = cellStep * 7 - cellGap)
             ) {
-                // iterate through weeks
-                for (w in 0 until weeksToShow) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        // Iterate through days of the week (Mon to Sun)
-                        for (d in 0 until 7) {
-                            val date = startDate.plusWeeks(w.toLong()).plusDays(d.toLong())
-                            val count = data[date] ?: 0
-                            
-                            val primary = MaterialTheme.colorScheme.primary
-                            val color = when {
-                                date > today -> MaterialTheme.colorScheme.surfaceContainerHigh
-                                count == 0 -> MaterialTheme.colorScheme.surfaceContainerHigh
-                                count == 1 -> primary.copy(alpha = 0.25f)
-                                count < 3 -> primary.copy(alpha = 0.5f)
-                                count < 5 -> primary.copy(alpha = 0.75f)
-                                else -> primary
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(color)
-                            )
-                        }
-                    }
+                val cell = cellSize.toPx()
+                val step = cellStep.toPx()
+                val corner = CornerRadius(4.dp.toPx())
+                for (index in levels.indices) {
+                    val level = levels[index]
+                    drawRoundRect(
+                        color = palette[if (level < 0) 0 else level],
+                        topLeft = Offset((index / 7) * step, (index % 7) * step),
+                        size = Size(cell, cell),
+                        cornerRadius = corner
+                    )
                 }
             }
 
@@ -167,7 +175,7 @@ fun HeatmapWidget(
             ) {
                 monthLabels.forEach { (weekIndex, label) ->
                     // horizontal offset based on weekIndex
-                    val xOffset = (weekIndex * 18).dp
+                    val xOffset = cellStep * weekIndex
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelSmall,
