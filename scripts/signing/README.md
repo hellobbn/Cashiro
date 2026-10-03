@@ -61,7 +61,7 @@ python3 scripts/signing/debug_identity.py build .debug-signing :app:assembleStan
 
 直接在 IDE 构建而不提供四个 `DEBUG_STORE_*` / `DEBUG_KEY_*` 环境变量时，仍使用该电脑自己的默认 debug 签名：它与 CI 固定签名不同。如需覆盖 CI 安装，请使用上述 helper，而不是默认 IDE 构建。
 
-CI 会校验实际 APK 包名、名称、debuggable 标志和签名证书，并发布 `SIGNING-CERTIFICATE.json`。APK 本身的 SHA256SUMS 随构建变化是正常的。
+CI 会校验实际 APK 包名、名称、版本名的 `-debug` 后缀（CI 包不可调试，以便系统按 Baseline Profile 预编译）和签名证书，并发布 `SIGNING-CERTIFICATE.json`。APK 本身的 SHA256SUMS 随构建变化是正常的。
 
 ## 4. 安装与迁移
 

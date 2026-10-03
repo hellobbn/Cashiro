@@ -153,13 +153,24 @@ class ApkCertificateReportTest(unittest.TestCase):
 
     def test_new_report_verifies_pin_package_and_label(self):
         report = f'V2 Signer: certificate SHA-256 digest: {self.digest}\n'
-        badging = "package: name='com.ritesh.cashiro.debug'\napplication-label:'Cashiro Debug'\napplication-debuggable\n"
+        badging = ("package: name='com.ritesh.cashiro.debug' versionCode='97' versionName='2.1.63-debug'\n"
+                   "application-label:'Cashiro Debug'\n")
         with patch.dict(os.environ, {'DEBUG_CERT_SHA256': self.digest}), \
                 patch.object(identity, 'sdk_tool', side_effect=lambda name: name), \
                 patch.object(identity, 'run', side_effect=[report, badging]), \
                 contextlib.redirect_stdout(io.StringIO()) as output:
             identity.verify_apk('fixture.apk')
         self.assertIn('"signature_verified": true', output.getvalue())
+
+    def test_non_debug_build_type_rejected(self):
+        report = f'V2 Signer: certificate SHA-256 digest: {self.digest}\n'
+        badging = ("package: name='com.ritesh.cashiro.debug' versionCode='97' versionName='2.1.63'\n"
+                   "application-label:'Cashiro Debug'\n")
+        with patch.dict(os.environ, {'DEBUG_CERT_SHA256': self.digest}), \
+                patch.object(identity, 'sdk_tool', side_effect=lambda name: name), \
+                patch.object(identity, 'run', side_effect=[report, badging]), \
+                self.assertRaisesRegex(ValueError, 'build type'):
+            identity.verify_apk('fixture.apk')
 
 
 if __name__ == '__main__':
