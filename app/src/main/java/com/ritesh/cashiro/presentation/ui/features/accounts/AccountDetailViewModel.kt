@@ -155,11 +155,8 @@ class AccountDetailViewModel @Inject constructor(
                     }
 
                 // Calculate converted amounts for the UI (TransactionItem) based on Main App Currency
-                val converted = filteredTransactions
-                    .filter { it.currency != mainCurrency }
-                    .associate { tx ->
-                        tx.id to (currencyConversionService.convertAmount(tx.amount, tx.currency, mainCurrency) ?: tx.amount)
-                    }
+                // Rates known now; missing ones arrive through rateChangeTrigger
+                val conversions = currencyConversionService.convert(filteredTransactions, mainCurrency)
 
                 _uiState.update { state ->
                     state.copy(
@@ -170,7 +167,7 @@ class AccountDetailViewModel @Inject constructor(
                         primaryCurrency = accountPrimaryCurrency,
                         baseCurrency = mainCurrency,
                         hasMultipleCurrencies = hasMultipleCurrencies,
-                        convertedAmounts = converted,
+                        conversions = conversions,
                         transactionPersonMapping = transactionPersonMapping,
                         isLoading = false
                     )

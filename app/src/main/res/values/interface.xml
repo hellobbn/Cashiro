@@ -19,4 +19,7 @@
     <string name="widget_quick_add_description">Add an expense, or start from a quick template</string>
     <string name="widget_quick_add_empty">Quick templates show up here. Save one with \"Save as quick chip\", or long-press a suggested one.</string>
     <string name="quick_template_deleted">This quick template was deleted</string>
+    <string name="rate_loading">Loading rate…</string>
+    <string name="rate_unavailable">No exchange rate</string>
+    <string name="rates_attribution">Rates by Exchange Rate API</string>
 </resources>

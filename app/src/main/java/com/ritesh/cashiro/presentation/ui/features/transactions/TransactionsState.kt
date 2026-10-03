@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.data.currency.Conversions
 import androidx.annotation.StringRes
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
@@ -11,7 +12,8 @@ import java.math.BigDecimal
 data class TransactionsUiState(
     val transactions: List<TransactionEntity> = emptyList(),
     val groupedTransactions: Map<DateGroup, List<TransactionEntity>> = emptyMap(),
-    val convertedAmounts: Map<Long, BigDecimal> = emptyMap(),
+    // Transactions in the main currency, where a rate is known
+    val conversions: Conversions = Conversions(),
     val isLoading: Boolean = true,
     val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap()
 )

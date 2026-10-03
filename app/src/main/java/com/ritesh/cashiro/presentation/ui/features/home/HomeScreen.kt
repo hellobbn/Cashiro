@@ -620,8 +620,9 @@ fun SharedTransitionScope.HomeScreen(
                                                             accountIconResId = accountEntity?.iconResId ?: 0,
                                                             accountIconName = accountEntity?.iconName,
                                                             accountColorHex = accountEntity?.color,
-                                                            convertedAmount = uiState.convertedAmounts[transaction.id],
+                                                            convertedAmount = uiState.conversions.amountOf(transaction),
                                                             mainCurrency = uiState.baseCurrency,
+                                                            rateLoading = uiState.conversions.isLoading(transaction),
                                                             onClick = {
                                                                 onTransactionClick(
                                                                     transaction.id,

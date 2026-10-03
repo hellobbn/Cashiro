@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.data.currency.Conversions
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -173,7 +174,7 @@ class TransactionsViewModel @Inject constructor(
         var investment = BigDecimal.ZERO
 
         state.transactions.forEach { tx ->
-            val valAmount = state.convertedAmounts[tx.id] ?: tx.amount
+            val valAmount = state.conversions.amountOf(tx) ?: tx.amount
             when (tx.transactionType) {
                 TransactionType.INCOME -> income += valAmount
                 TransactionType.EXPENSE -> expenses += valAmount
@@ -335,11 +336,9 @@ class TransactionsViewModel @Inject constructor(
                      // No longer filtering by selectedCurrency. Show all unless explicitly filtered via filter sheet
                      val currencyFilteredTransactions = transactions
                      
-                     // Calculate converted amounts for shown transactions if transaction currency differs from base (main) currency
-                     val converted = currencyFilteredTransactions.filter { !it.currency.equals(baseCurrencyCode, ignoreCase = true) }
-                         .associate { tx ->
-                             tx.id to currencyConversionService.convertAmount(tx.amount, tx.currency, baseCurrencyCode)
-                         }
+                     // Converted amounts from rates known now; missing ones are fetched in the
+                     // background and restart the list through rateChangeTrigger when they land.
+                     val conversions = currencyConversionService.convert(currencyFilteredTransactions, baseCurrencyCode)
 
                      withContext(Dispatchers.Default) {
                          // Create person mapping
@@ -357,7 +356,7 @@ class TransactionsViewModel @Inject constructor(
 
                          val sorted = sortTransactions(currencyFilteredTransactions, sort)
                          PreparedTransactionList(
-                             sorted, groupTransactionsByDate(sorted), converted,
+                             sorted, groupTransactionsByDate(sorted), conversions,
                              transactionPersonMapping, calculateCurrencyGroupedTotals(sorted)
                          )
                      }
@@ -365,13 +364,13 @@ class TransactionsViewModel @Inject constructor(
                      emit(prepared)
                  }
             }
-            .onEach { (transactions, groups, converted, personMapping, totals) ->
+            .onEach { (transactions, groups, conversions, personMapping, totals) ->
                 // Counted by the Macrobenchmark suite: each publish recomposes the list.
                 androidx.core.os.trace("TransactionsList.publish") {}
                 _uiState.value = _uiState.value.copy(
                     transactions = transactions,
                     groupedTransactions = groups,
-                    convertedAmounts = converted,
+                    conversions = conversions,
                     transactionPersonMapping = personMapping,
                     isLoading = false
                 )
@@ -958,7 +957,7 @@ class TransactionsViewModel @Inject constructor(
 private data class PreparedTransactionList(
     val transactions: List<TransactionEntity>,
     val groups: Map<DateGroup, List<TransactionEntity>>,
-    val converted: Map<Long, BigDecimal>,
+    val conversions: Conversions,
     val persons: Map<Long, PersonInfo>,
     val totals: CurrencyGroupedTotals
 )

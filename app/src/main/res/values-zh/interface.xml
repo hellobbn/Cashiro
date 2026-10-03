@@ -19,4 +19,7 @@
     <string name="widget_quick_add_description">记一笔，或从快捷模板开始</string>
     <string name="widget_quick_add_empty">快捷模板会显示在这里。记账时打开「存为快捷」，或长按推荐的模板即可添加。</string>
     <string name="quick_template_deleted">该快捷模板已删除</string>
+    <string name="rate_loading">汇率加载中…</string>
+    <string name="rate_unavailable">暂无汇率</string>
+    <string name="rates_attribution">汇率数据：Exchange Rate API</string>
 </resources>

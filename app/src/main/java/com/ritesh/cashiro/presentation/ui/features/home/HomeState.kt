@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import com.ritesh.cashiro.data.currency.Conversions
 import android.net.Uri
 import androidx.compose.ui.graphics.Color
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
@@ -44,7 +45,8 @@ data class HomeUiState(
     val activeBudgets: List<BudgetWithSpending> = emptyList(),
     val balanceHistory: List<BalancePoint> = emptyList(),
     val transactionHeatmap: Map<java.time.LocalDate, Int> = emptyMap(),
-    val convertedAmounts: Map<Long, BigDecimal> = emptyMap(),
+    // Transactions in the main currency, where a rate is known
+    val conversions: Conversions = Conversions(),
     val baseCurrency: String = "CNY",
     val lendBorrowSummary: com.ritesh.cashiro.domain.model.LendBorrowSummary = com.ritesh.cashiro.domain.model.LendBorrowSummary(),
     val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap()

@@ -6,6 +6,7 @@ import io.ktor.client.engine.android.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,12 +31,26 @@ interface ExchangeRateProvider {
 }
 
 /**
- * Implementation using the open-source fawazahmed0/exchange-api
- * Uses jsdelivr and cloudflare mirrors as primary/fallback endpoints
+ * Daily exchange rates from free, keyless sources, tried in order until one answers:
+ *
+ * 1. ExchangeRate-API's open access endpoint (open.er-api.com): about 160 currencies and
+ *    exact update times. Its terms ask for attribution, shown on the exchange-rate sheet.
+ * 2. Frankfurter (European Central Bank reference rates): about 30 major currencies,
+ *    including CNY, HKD, SGD, USD, EUR and JPY.
+ * 3. fawazahmed0/currency-api on jsdelivr and its Cloudflare mirror: the most currencies,
+ *    but jsdelivr is often slow or unreachable from mainland China, so it comes last.
+ *
+ * Every request has short timeouts: rates are fetched while screens wait to show converted
+ * amounts, and the engine's default would wait 100 s on a source that never answers.
  */
 class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
 
     private val client = HttpClient(Android) {
+        install(HttpTimeout) {
+            connectTimeoutMillis = 5_000
+            socketTimeoutMillis = 8_000
+            requestTimeoutMillis = 10_000
+        }
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -45,8 +60,10 @@ class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
         }
     }
 
-    private val PRIMARY_URL_BASE = "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1"
-    private val FALLBACK_URL_BASE = "https://latest.currency-api.pages.dev/v1"
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private val FAWAZ_URL_BASE = "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1"
+    private val FAWAZ_FALLBACK_URL_BASE = "https://latest.currency-api.pages.dev/v1"
 
     override suspend fun fetchExchangeRate(fromCurrency: String, toCurrency: String): BigDecimal? {
         if (fromCurrency.equals(toCurrency, ignoreCase = true)) {
@@ -67,94 +84,40 @@ class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
         return response?.rates
     }
 
+    /** A place to get rates from: the URL for a base currency and how to read its answer. */
+    private class RateSource(
+        val url: (base: String) -> String,
+        val parse: (Json, body: String, base: String) -> ExchangeRateResponseWithMetadata?
+    )
+
+    // Tried in this order; see the class comment for why
+    private val sources = listOf(
+        RateSource({ "https://open.er-api.com/v6/latest/$it" }, ::parseOpenErApi),
+        RateSource({ "https://api.frankfurter.dev/v1/latest?base=$it" }, ::parseFrankfurter),
+        RateSource({ "$FAWAZ_URL_BASE/currencies/${it.lowercase()}.json" }, ::parseFawaz),
+        RateSource({ "$FAWAZ_FALLBACK_URL_BASE/currencies/${it.lowercase()}.json" }, ::parseFawaz),
+    )
+
     override suspend fun fetchAllExchangeRatesWithMetadata(baseCurrency: String): ExchangeRateResponseWithMetadata? {
-        val currencyCode = baseCurrency.lowercase()
-        val endpoint = "currencies/$currencyCode.json"
-        
+        val base = baseCurrency.uppercase()
+        return withContext(Dispatchers.IO) {
+            sources.firstNotNullOfOrNull { source -> fetchFrom(source, base) }
+        }
+    }
+
+    private suspend fun fetchFrom(source: RateSource, base: String): ExchangeRateResponseWithMetadata? {
+        val url = source.url(base)
         return try {
-            withContext(Dispatchers.IO) {
-                var responseBody: String? = null
-                
-                // Try Primary URL
-                try {
-                    val response = client.get("$PRIMARY_URL_BASE/$endpoint") {
-                        header("User-Agent", "Cashiro/1.0")
-                    }
-                    if (response.status.value in 200..299) {
-                        responseBody = response.body<String>()
-                    }
-                } catch (e: Exception) {
-                    println("Primary API failed, trying fallback: ${e.message}")
-                }
-                
-                // Try Fallback URL if primary failed
-                if (responseBody == null) {
-                    try {
-                        val response = client.get("$FALLBACK_URL_BASE/$endpoint") {
-                            header("User-Agent", "Cashiro/1.0")
-                        }
-                        if (response.status.value in 200..299) {
-                            responseBody = response.body<String>()
-                        }
-                    } catch (e: Exception) {
-                        println("Fallback API also failed: ${e.message}")
-                    }
-                }
-
-                if (responseBody != null) {
-                    val json = Json { ignoreUnknownKeys = true }
-                    val jsonObject = json.parseToJsonElement(responseBody).jsonObject
-                    
-                    val dateStr = jsonObject["date"]?.jsonPrimitive?.content ?: ""
-                    val ratesObject = jsonObject[currencyCode]?.jsonObject ?: return@withContext null
-                    
-                    val lastUpdateTimeUnix = try {
-                        LocalDate.parse(dateStr).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()
-                    } catch (e: Exception) {
-                        System.currentTimeMillis() / 1000
-                    }
-                    
-                    // The API updates daily, so next update is roughly 24 hours later
-                    val nextUpdateTimeUnix = lastUpdateTimeUnix + (24 * 3600)
-                    
-                    val ratesMap = mutableMapOf<String, BigDecimal>()
-                    
-                    // Always ensure the base currency has a rate of 1.0
-                    ratesMap[baseCurrency.uppercase()] = BigDecimal.ONE.setScale(6, RoundingMode.HALF_UP)
-                    
-                    ratesObject.forEach { (key, value) ->
-                        try {
-                            val code = key.uppercase()
-                            // Skip if already set by base override to maintain precision
-                            if (code != baseCurrency.uppercase()) {
-                                ratesMap[code] = BigDecimal(value.jsonPrimitive.content)
-                                    .setScale(6, RoundingMode.HALF_UP)
-                            }
-                        } catch (e: Exception) {
-                            // Skip invalid rates
-                        }
-                    }
-
-                    ExchangeRateResponseWithMetadata(
-                        rates = ratesMap,
-                        nextUpdateTimeUnix = nextUpdateTimeUnix,
-                        lastUpdateTimeUnix = lastUpdateTimeUnix,
-                        provider = "fawazahmed0/currency-api",
-                        baseCurrency = baseCurrency.uppercase()
-                    )
-                } else {
-                    null
-                }
-            }
+            val response = client.get(url) { header("User-Agent", "Cashiro/1.0") }
+            if (response.status.value !in 200..299) return null
+            source.parse(json, response.body<String>(), base)
         } catch (e: Exception) {
-            println("Failed to fetch exchange rates: ${e.message}")
+            println("Exchange rates not loaded from $url: ${e.message}")
             null
         }
     }
 
-    override fun getProviderName(): String {
-        return "fawazahmed0/currency-api"
-    }
+    override fun getProviderName(): String = PROVIDER_OPEN_ER_API
 
     override suspend fun fetchAllCurrencies(): Map<String, String>? {
         val endpoint = "currencies.json"
@@ -164,7 +127,7 @@ class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
                 
                 // Try Primary URL
                 try {
-                    val response = client.get("$PRIMARY_URL_BASE/$endpoint")
+                    val response = client.get("$FAWAZ_URL_BASE/$endpoint")
                     if (response.status.value in 200..299) {
                         responseBody = response.body<String>()
                     }
@@ -173,7 +136,7 @@ class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
                 // Try Fallback URL
                 if (responseBody == null) {
                     try {
-                        val response = client.get("$FALLBACK_URL_BASE/$endpoint")
+                        val response = client.get("$FAWAZ_FALLBACK_URL_BASE/$endpoint")
                         if (response.status.value in 200..299) {
                             responseBody = response.body<String>()
                         }
@@ -201,6 +164,78 @@ class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
             "CAD", "AUD", "JPY", "CNY", "HKD", "TWD", "MOP", "NPR", "ETB"
         )
     }
+}
+
+const val PROVIDER_OPEN_ER_API = "ExchangeRate-API (open.er-api.com)"
+const val PROVIDER_FRANKFURTER = "Frankfurter (ECB)"
+const val PROVIDER_FAWAZ = "fawazahmed0/currency-api"
+
+private const val DAY_SECONDS = 24 * 3600L
+
+/** Rates keyed by upper-case code, six decimals, with the base itself at exactly 1. */
+private fun normalizedRates(base: String, raw: Map<String, String>): Map<String, BigDecimal> {
+    val rates = mutableMapOf(base to BigDecimal.ONE.setScale(6, RoundingMode.HALF_UP))
+    raw.forEach { (code, value) ->
+        val upper = code.uppercase()
+        if (upper != base) {
+            value.toBigDecimalOrNull()?.takeIf { it.signum() > 0 }?.let {
+                rates[upper] = it.setScale(6, RoundingMode.HALF_UP)
+            }
+        }
+    }
+    return rates
+}
+
+private fun JsonObject.stringValues(): Map<String, String> =
+    mapValues { (_, v) -> v.jsonPrimitive.content }
+
+/** A published date's start, in the device's zone; sources without times update daily. */
+private fun dayStart(date: String): Long =
+    LocalDate.parse(date).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()
+
+/** open.er-api.com: `{"result":"success","time_last_update_unix":..,"time_next_update_unix":..,"rates":{..}}` */
+internal fun parseOpenErApi(json: Json, body: String, base: String): ExchangeRateResponseWithMetadata? {
+    val root = json.parseToJsonElement(body).jsonObject
+    if (root["result"]?.jsonPrimitive?.content != "success") return null
+    val rates = root["rates"]?.jsonObject ?: return null
+    val last = root["time_last_update_unix"]?.jsonPrimitive?.longOrNull ?: return null
+    val next = root["time_next_update_unix"]?.jsonPrimitive?.longOrNull ?: (last + DAY_SECONDS)
+    return ExchangeRateResponseWithMetadata(
+        rates = normalizedRates(base, rates.stringValues()),
+        nextUpdateTimeUnix = next,
+        lastUpdateTimeUnix = last,
+        provider = PROVIDER_OPEN_ER_API,
+        baseCurrency = base
+    )
+}
+
+/** Frankfurter: `{"base":"USD","date":"2026-10-02","rates":{..}}` (the base is not in rates). */
+internal fun parseFrankfurter(json: Json, body: String, base: String): ExchangeRateResponseWithMetadata? {
+    val root = json.parseToJsonElement(body).jsonObject
+    val rates = root["rates"]?.jsonObject ?: return null
+    val last = dayStart(root["date"]?.jsonPrimitive?.content ?: return null)
+    return ExchangeRateResponseWithMetadata(
+        rates = normalizedRates(base, rates.stringValues()),
+        nextUpdateTimeUnix = last + DAY_SECONDS,
+        lastUpdateTimeUnix = last,
+        provider = PROVIDER_FRANKFURTER,
+        baseCurrency = base
+    )
+}
+
+/** fawazahmed0/currency-api: `{"date":"2026-10-02","usd":{"cny":6.7,..}}` with lower-case codes. */
+internal fun parseFawaz(json: Json, body: String, base: String): ExchangeRateResponseWithMetadata? {
+    val root = json.parseToJsonElement(body).jsonObject
+    val rates = root[base.lowercase()]?.jsonObject ?: return null
+    val last = root["date"]?.jsonPrimitive?.content?.let { runCatching { dayStart(it) }.getOrNull() }
+        ?: (System.currentTimeMillis() / 1000)
+    return ExchangeRateResponseWithMetadata(
+        rates = normalizedRates(base, rates.stringValues()),
+        nextUpdateTimeUnix = last + DAY_SECONDS,
+        lastUpdateTimeUnix = last,
+        provider = PROVIDER_FAWAZ,
+        baseCurrency = base
+    )
 }
 
 /**

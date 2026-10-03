@@ -98,6 +98,8 @@ fun TransactionItem(
     onLongClick: (() -> Unit)? = null,
     convertedAmount: BigDecimal? = null,
     mainCurrency: String? = null,
+    // The rate to mainCurrency is still being fetched: shown instead of a converted amount
+    rateLoading: Boolean = false,
     currentAccountContext: String? = null,
     currentBankNameContext: String? = null,
     linkedLoanPersonName: String? = null,
@@ -483,9 +485,19 @@ fun TransactionItem(
                         )
                     }
 
-                    if (convertedAmount != null && mainCurrency != null && transaction?.currency != mainCurrency) {
+                    // The amount stays in the currency it was recorded in; the main currency
+                    // follows in small type once its rate is known.
+                    val foreign = mainCurrency != null && transaction?.currency?.equals(mainCurrency, ignoreCase = true) != true
+                    val convertedText = when {
+                        !foreign -> null
+                        convertedAmount != null -> "≈ ${CurrencyFormatter.formatCurrency(convertedAmount, mainCurrency!!)}"
+                        transaction == null -> null
+                        rateLoading -> stringResource(R.string.rate_loading)
+                        else -> stringResource(R.string.rate_unavailable)
+                    }
+                    if (convertedText != null) {
                         Text(
-                            text = "≈ ${CurrencyFormatter.formatCurrency(convertedAmount, mainCurrency)}",
+                            text = convertedText,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Normal

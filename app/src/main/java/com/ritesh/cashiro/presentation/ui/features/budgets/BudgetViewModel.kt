@@ -214,11 +214,8 @@ class BudgetViewModel @Inject constructor(
                     lendBorrowRepository.getAllTransactions(),
                     lendBorrowRepository.getPersons()
                 ) { transactions, mainCurrency, _, lbTransactions, persons ->
-                    val converted = transactions
-                        .filter { it.currency != mainCurrency }
-                        .associate { tx ->
-                            tx.id to (currencyConversionService.convertAmount(tx.amount, tx.currency, mainCurrency) ?: tx.amount)
-                        }
+                    // Rates known now; missing ones arrive through rateChangeTrigger
+                    val conversions = currencyConversionService.convert(transactions, mainCurrency)
 
                     // Create person mapping
                     val personMap = persons.associateBy { it.id }
@@ -235,7 +232,7 @@ class BudgetViewModel @Inject constructor(
                     
                     _uiState.update { it.copy(
                         selectedBudgetTransactions = transactions,
-                        convertedAmounts = converted,
+                        conversions = conversions,
                         transactionPersonMapping = transactionPersonMapping
                     ) }
                 }.collectLatest { }

@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
+import com.ritesh.cashiro.data.currency.Conversions
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
 import com.ritesh.cashiro.data.repository.CategoryLimitWithSpending
@@ -21,7 +22,8 @@ data class BudgetUiState(
     val categoryLimitsWithSpending: List<CategoryLimitWithSpending> = emptyList(),
     val selectedBudgetTransactions: List<TransactionEntity> = emptyList(),
     val allAccounts: List<AccountBalanceEntity> = emptyList(),
-    val convertedAmounts: Map<Long, BigDecimal> = emptyMap(),
+    // Transactions in the main currency, where a rate is known
+    val conversions: Conversions = Conversions(),
     val baseCurrency: String = "CNY",
     val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap(),
     val error: String? = null

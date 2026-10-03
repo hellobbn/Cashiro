@@ -237,8 +237,9 @@ fun SharedTransitionScope.AccountDetailScreen(
                         accountIconResId = uiState.currentBalance?.iconResId ?: 0,
                         accountIconName = uiState.currentBalance?.iconName,
                         accountColorHex = uiState.currentBalance?.color,
-                        convertedAmount = uiState.convertedAmounts[transaction.id],
+                        convertedAmount = uiState.conversions.amountOf(transaction),
                         mainCurrency = uiState.baseCurrency,
+                        rateLoading = uiState.conversions.isLoading(transaction),
                         currentAccountContext = uiState.currentBalance?.accountLast4,
                         currentBankNameContext = bankName,
                         onClick = {

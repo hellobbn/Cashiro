@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalUriHandler
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 
 import androidx.compose.animation.*
@@ -560,6 +562,21 @@ fun ExchangeRatesBottomSheet(
                                 editTarget = conversion
                                 editRateText = conversion.displayRate
                             }
+                        )
+                    }
+
+                    // ExchangeRate-API's open access terms ask for a link back to them
+                    item {
+                        val uriHandler = LocalUriHandler.current
+                        Text(
+                            text = stringResource(R.string.rates_attribution),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary.copy(0.7f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { uriHandler.openUri("https://www.exchangerate-api.com") }
+                                .padding(top = 12.dp)
                         )
                     }
 

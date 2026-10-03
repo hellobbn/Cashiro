@@ -354,16 +354,12 @@ class HomeViewModel @Inject constructor(
                 selectedCurrencyCombined,
                 currencyConversionService.rateChangeTrigger
             ) { transactions, selectedCurrency, _ ->
-                // Calculate converted amounts for shown transactions if transaction currency differs from selected currency
-                val converted = transactions
-                    .filter { it.currency != selectedCurrency }
-                    .associate { tx ->
-                        tx.id to (currencyConversionService.convertAmount(tx.amount, tx.currency, selectedCurrency) ?: tx.amount)
-                    }
-                
+                // Amounts stay in their own currency; rates not stored yet are fetched in the
+                // background (rateChangeTrigger brings them here) and never hold up the rows.
+                val conversions = currencyConversionService.convert(transactions, selectedCurrency)
                 _uiState.update { it.copy(
                     recentTransactions = transactions,
-                    convertedAmounts = converted,
+                    conversions = conversions,
                     isLoading = false
                 ) }
             }.flowOn(Dispatchers.Default).collectLatest { }

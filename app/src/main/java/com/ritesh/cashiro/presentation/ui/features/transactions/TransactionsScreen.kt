@@ -779,8 +779,9 @@ fun TransactionsScreen(
                                                 transactionsViewModel.toggleTransactionSelection(transaction.id)
                                             }
                                         },
-                                        convertedAmount = uiState.convertedAmounts[transaction.id],
+                                        convertedAmount = uiState.conversions.amountOf(transaction),
                                         mainCurrency = baseCurrency,
+                                        rateLoading = uiState.conversions.isLoading(transaction),
                                         linkedLoanPersonName = uiState.transactionPersonMapping[transaction.id]?.name,
                                         linkedLoanPersonColor = uiState.transactionPersonMapping[transaction.id]?.color,
                                         linkedLoanPersonAvatar = uiState.transactionPersonMapping[transaction.id]?.avatar

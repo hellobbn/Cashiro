@@ -34,4 +34,7 @@
     <string name="widget_quick_add_description">記一筆，或從快捷範本開始</string>
     <string name="widget_quick_add_empty">快捷範本會顯示在這裡。記帳時開啟「存為快捷」，或長按推薦的範本即可新增。</string>
     <string name="quick_template_deleted">此快捷範本已刪除</string>
+    <string name="rate_loading">匯率載入中…</string>
+    <string name="rate_unavailable">暫無匯率</string>
+    <string name="rates_attribution">匯率資料：Exchange Rate API</string>
 </resources>
