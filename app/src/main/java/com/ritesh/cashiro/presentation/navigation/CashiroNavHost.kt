@@ -1,5 +1,10 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import com.ritesh.cashiro.presentation.ui.adaptive.ReadableWidth
+import androidx.compose.runtime.CompositionLocalProvider
+import com.ritesh.cashiro.presentation.ui.adaptive.rememberWindowLayout
+import com.ritesh.cashiro.presentation.ui.adaptive.NavigationRailWidth
+import com.ritesh.cashiro.presentation.ui.adaptive.LocalWindowLayout
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -161,6 +166,16 @@ fun CashiroNavHost(
 
     val hazeState = remember { HazeState() }
 
+    // Wide windows (an unfolded foldable, a tablet) navigate with a rail at the start edge
+    // instead of the bottom bar; lock and onboarding stay full screen.
+    val windowLayout = rememberWindowLayout()
+    val isFullScreenFlow = listOf(AppLock::class, OnBoarding::class).any {
+        currentRoute?.contains(it.qualifiedName ?: "") == true
+    }
+    val showRail = windowLayout.useNavigationRail && currentRoute != null && !isFullScreenFlow
+    val showBottomBar = showBottomNav && !windowLayout.useNavigationRail
+
+    CompositionLocalProvider(LocalWindowLayout provides windowLayout) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -171,7 +186,10 @@ fun CashiroNavHost(
             NavHost(
                 navController = navController,
                 startDestination = stableStartDestination,
-                modifier = Modifier.fillMaxSize().hazeSource(hazeState),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = if (showRail) NavigationRailWidth else 0.dp)
+                    .hazeSource(hazeState),
             ) {
                 // App Lock Screen
                 composable<AppLock>(
@@ -206,10 +224,12 @@ fun CashiroNavHost(
                 }
 
                 composable<Investments> {
+                    ReadableWidth {
                     com.ritesh.cashiro.presentation.ui.features.investments.InvestmentsScreen(
                         onNavigateBack = { navController.popBackStack() },
                         onManageManualAccounts = { navController.safeNavigate(AccountCategoryRoute("INVESTMENTS")) }
                     )
+                    }
                 }
 
                 /* BOTTOM NAV SCREENS ---- */
@@ -280,6 +300,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     SettingsScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToCategories = { navController.safeNavigate(Categories) },
@@ -298,6 +319,7 @@ fun CashiroNavHost(
                         onNavigateToCurrency = { navController.safeNavigate(CurrencySettings) },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
                 }
 
                 composable<Webhooks>(
@@ -306,12 +328,14 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     WebhooksScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToEditor = { profileId ->
                             navController.safeNavigate(WebhookEditor(profileId))
                         }
                     )
+                    }
                 }
 
                 composable<WebhookEditor>(
@@ -320,11 +344,13 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     val route = backStackEntry.toRoute<WebhookEditor>()
                     WebhookEditorScreen(
                         profileId = route.profileId,
                         onNavigateBack = { navController.safePopBackStack() }
                     )
+                    }
                 }
 
                 composable<About>(
@@ -333,12 +359,14 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     AboutScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToLicenses = { navController.safeNavigate(Licenses) },
                         onNavigateToDeveloper = { navController.safeNavigate(DeveloperOptions) },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
                 }
 
                 composable<Licenses>(
@@ -347,9 +375,11 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     LicensesScreen(
                         onNavigateBack = { navController.safePopBackStack() }
                     )
+                    }
                 }
 
                 composable<DataPrivacy>(
@@ -358,11 +388,13 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     DataPrivacyScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToAccounts = { navController.safeNavigate(ManageAccounts) },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
                 }
 
                 composable<CloudBackup>(
@@ -371,11 +403,13 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     BackupSyncScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToAccounts = { navController.safeNavigate(ManageAccounts) },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
                 }
 
                 composable<DeveloperOptions>(
@@ -384,9 +418,11 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     DeveloperScreen(
                         onNavigateBack = { navController.safePopBackStack() }
                     )
+                    }
                 }
 
                 composable<CurrencySettings>(
@@ -395,9 +431,11 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     CurrencySettingsScreen(
                         onNavigateBack = { navController.safePopBackStack() }
                     )
+                    }
                 }
 
                 composable<Profile>(
@@ -406,6 +444,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     SharedTransitionLayout {
                         ProfileScreen(
                             onNavigateBack = { navController.safePopBackStack() },
@@ -418,6 +457,7 @@ fun CashiroNavHost(
                             animatedContentScope = this@composable
                         )
                     }
+                    }
                 }
 
                 composable<Contacts>(
@@ -426,6 +466,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     SharedTransitionLayout {
                         val contactsRoute = backStackEntry.toRoute<Contacts>()
                         ContactsScreen(
@@ -440,6 +481,7 @@ fun CashiroNavHost(
                             blurEffects = themeUiState.blurEffects
                         )
                     }
+                    }
                 }
 
                 composable<Appearance>(
@@ -448,9 +490,11 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     AppearanceScreen(
                         onNavigateBack = { navController.safePopBackStack() }
                     )
+                    }
                 }
 
                 composable<NotificationSettings>(
@@ -459,10 +503,12 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     NotificationScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         blurEffects = themeUiState.blurEffects,
                     )
+                    }
                 }
 
                 composable<Categories>(
@@ -471,10 +517,12 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     CategoriesScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
                 }
 
 
@@ -484,6 +532,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { entry ->
+                    ReadableWidth {
                     val selected = com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.entries.firstOrNull {
                         it.name == entry.toRoute<AccountCategoryRoute>().category
                     } ?: com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.WALLETS
@@ -494,6 +543,7 @@ fun CashiroNavHost(
                         blurEffects = themeUiState.blurEffects,
                         category = selected
                     )
+                    }
                 }
 
                 composable<ManageAccounts>(
@@ -502,6 +552,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     ManageAccountsScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToAccountDetail = { bankName, last4 ->
@@ -510,6 +561,7 @@ fun CashiroNavHost(
                         onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
                 }
 
                 composable<AddAccount>(
@@ -518,6 +570,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { entry ->
+                    ReadableWidth {
                     val initialCategory = entry.toRoute<AddAccount>().category?.let { name ->
                         com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.entries.firstOrNull { it.name == name }
                     }
@@ -525,6 +578,7 @@ fun CashiroNavHost(
                         onNavigateBack = { navController.safePopBackStack() },
                         initialCategory = initialCategory
                     )
+                    }
                 }
 
                 composable<QuickTemplates>(
@@ -533,7 +587,9 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     QuickTemplatesScreen(onNavigateBack = { navController.safePopBackStack() })
+                    }
                 }
 
                 composable<Rules>(
@@ -542,6 +598,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     RulesScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToCreateRule = { navController.safeNavigate(CreateRule()) },
@@ -550,6 +607,7 @@ fun CashiroNavHost(
                         },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
                 }
 
                 composable<CreateRule>(
@@ -558,6 +616,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     val createRuleRoute = backStackEntry.toRoute<CreateRule>()
                     val rulesViewModel: RulesViewModel = hiltViewModel()
                     val rules by rulesViewModel.rules.collectAsState()
@@ -578,6 +637,7 @@ fun CashiroNavHost(
                         existingRule = existingRule,
                         rulesViewModel = rulesViewModel
                     )
+                    }
                 }
 
                 /* DETAIL SCREENS (with shared transitions) ---- */
@@ -587,6 +647,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.noneEnter,
                     popExitTransition = CashiroTransitions.noneExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     SharedTransitionLayout {
                         val transactionDetail = backStackEntry.toRoute<TransactionDetail>()
                         TransactionDetailScreen(
@@ -603,6 +664,7 @@ fun CashiroNavHost(
                             blurEffects = themeUiState.blurEffects,
                         )
                     }
+                    }
                 }
 
                 composable<AddTransaction>(
@@ -611,7 +673,9 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.noneEnter,
                     popExitTransition = CashiroTransitions.noneExit
                 ) {
+                    ReadableWidth {
                     Box(Modifier.fillMaxSize())
+                    }
                 }
 
                 composable<AccountDetail>(
@@ -620,6 +684,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     SharedTransitionLayout {
                         val accountDetail = backStackEntry.toRoute<AccountDetail>()
                         AccountDetailScreen(
@@ -629,6 +694,7 @@ fun CashiroNavHost(
                             animatedContentScope = this@composable
                         )
                     }
+                    }
                 }
 
                 composable<Subscriptions>(
@@ -637,6 +703,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.noneEnter,
                     popExitTransition = CashiroTransitions.noneExit
                 ) {
+                    ReadableWidth {
                     SharedTransitionLayout {
                         SubscriptionsScreen(
                             onNavigateBack = { navController.safePopBackStack() },
@@ -646,6 +713,7 @@ fun CashiroNavHost(
                             sharedTransitionScope = this@SharedTransitionLayout,
                             animatedContentScope = this@composable
                         )
+                    }
                     }
                 }
 
@@ -682,6 +750,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     SharedTransitionLayout {
                         val budgets = backStackEntry.toRoute<Budgets>()
                         BudgetsScreen(
@@ -697,6 +766,7 @@ fun CashiroNavHost(
                             blurEffects = themeUiState.blurEffects
                         )
                     }
+                    }
                 }
 
                 composable<BudgetDetail>(
@@ -705,6 +775,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     SharedTransitionLayout {
                         val budgetDetail = backStackEntry.toRoute<BudgetDetail>()
                         BudgetDetailScreen(
@@ -721,6 +792,7 @@ fun CashiroNavHost(
                             blurEffects = themeUiState.blurEffects
                         )
                     }
+                    }
                 }
 
                 composable<BudgetHistory>(
@@ -729,6 +801,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     SharedTransitionLayout {
                         val budgetHistory = backStackEntry.toRoute<BudgetHistory>()
                         BudgetHistoryScreen(
@@ -743,6 +816,7 @@ fun CashiroNavHost(
                             }
                         )
                     }
+                    }
                 }
 
                 composable<LendBorrow>(
@@ -751,6 +825,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
+                    ReadableWidth {
                     SharedTransitionLayout {
                         LendBorrowScreen(
                             onNavigateBack = { navController.safePopBackStack() },
@@ -763,6 +838,7 @@ fun CashiroNavHost(
                             blurEffects = themeUiState.blurEffects
                         )
                     }
+                    }
                 }
 
                 composable<PersonDetail>(
@@ -771,6 +847,7 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.noneEnter,
                     popExitTransition = CashiroTransitions.noneExit
                 ) { backStackEntry ->
+                    ReadableWidth {
                     SharedTransitionLayout {
                         val personDetail = backStackEntry.toRoute<PersonDetail>()
                         PersonDetailScreen(
@@ -781,6 +858,7 @@ fun CashiroNavHost(
                             sharedElementKey = personDetail.sharedElementKey,
                             animatedContentScope = this@composable
                         )
+                    }
                     }
                 }
             }
@@ -822,7 +900,7 @@ fun CashiroNavHost(
                         .align(Alignment.BottomEnd)
                         .padding(Dimensions.Padding.content)
                         .padding(
-                            bottom = if (showBottomNav) 84.dp else 10.dp
+                            bottom = if (showBottomBar) 84.dp else 10.dp
                         )
                         .navigationBarsPadding()
                 ) {
@@ -920,9 +998,18 @@ fun CashiroNavHost(
         CashiroBottomNavigation(
             navController = navController,
             currentDestination = currentDestination,
-            visible = showBottomNav,
+            visible = showBottomBar,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+
+        // Navigation rail on wide windows
+        CashiroNavigationRail(
+            navController = navController,
+            currentDestination = currentDestination,
+            visible = showRail,
+            modifier = Modifier.align(Alignment.CenterStart)
+        )
+    }
     }
 }
 
