@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.presentation.common.TransactionDecoration
 import com.ritesh.cashiro.utils.displayTitle
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -98,12 +99,27 @@ fun TransactionItem(
     onLongClick: (() -> Unit)? = null,
     convertedAmount: BigDecimal? = null,
     mainCurrency: String? = null,
+    // The rate to mainCurrency is still being fetched: shown instead of a converted amount
+    rateLoading: Boolean = false,
     currentAccountContext: String? = null,
     currentBankNameContext: String? = null,
     linkedLoanPersonName: String? = null,
     linkedLoanPersonColor: String? = null,
-    linkedLoanPersonAvatar: String? = null
+    linkedLoanPersonAvatar: String? = null,
+    // Category, account, person and converted amount looked up for a list row; explicit
+    // arguments above take precedence over it
+    decoration: TransactionDecoration? = null
 ) {
+    val categoryEntity = categoryEntity ?: decoration?.category
+    val subcategoryEntity = subcategoryEntity ?: decoration?.subcategory
+    val accountIconResId = accountIconResId.takeIf { it != 0 } ?: decoration?.account?.iconResId ?: 0
+    val accountIconName = accountIconName ?: decoration?.account?.iconName
+    val accountColorHex = accountColorHex ?: decoration?.account?.color
+    val convertedAmount = convertedAmount ?: decoration?.convertedAmount
+    val rateLoading = rateLoading || decoration?.rateLoading == true
+    val linkedLoanPersonName = linkedLoanPersonName ?: decoration?.person?.name
+    val linkedLoanPersonColor = linkedLoanPersonColor ?: decoration?.person?.color
+    val linkedLoanPersonAvatar = linkedLoanPersonAvatar ?: decoration?.person?.avatar
     val finalMerchantName = merchantName ?: transaction?.displayTitle() ?: ""
     val finalAmount = amount ?: transaction?.amount ?: BigDecimal.ZERO
     val finalType = transactionType ?: transaction?.transactionType ?: TransactionType.EXPENSE
@@ -483,9 +499,19 @@ fun TransactionItem(
                         )
                     }
 
-                    if (convertedAmount != null && mainCurrency != null && transaction?.currency != mainCurrency) {
+                    // The amount stays in the currency it was recorded in; the main currency
+                    // follows in small type once its rate is known.
+                    val foreign = mainCurrency != null && transaction?.currency?.equals(mainCurrency, ignoreCase = true) != true
+                    val convertedText = when {
+                        !foreign -> null
+                        convertedAmount != null -> "≈ ${CurrencyFormatter.formatCurrency(convertedAmount, mainCurrency!!)}"
+                        transaction == null -> null
+                        rateLoading -> stringResource(R.string.rate_loading)
+                        else -> stringResource(R.string.rate_unavailable)
+                    }
+                    if (convertedText != null) {
                         Text(
-                            text = "≈ ${CurrencyFormatter.formatCurrency(convertedAmount, mainCurrency)}",
+                            text = convertedText,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Normal

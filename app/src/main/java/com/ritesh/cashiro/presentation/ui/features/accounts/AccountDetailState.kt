@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.data.currency.Conversions
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.domain.model.PersonInfo
@@ -19,8 +20,8 @@ data class AccountDetailUiState(
     val primaryCurrency: String = "CNY",
     val baseCurrency: String = "CNY",
     val hasMultipleCurrencies: Boolean = false,
-    val convertedAmounts: Map<Long, BigDecimal> = emptyMap(),
-    val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap(),
+    // Transactions in the main currency, where a rate is known
+    val conversions: Conversions = Conversions(),
     val isLoading: Boolean = true
 )
 

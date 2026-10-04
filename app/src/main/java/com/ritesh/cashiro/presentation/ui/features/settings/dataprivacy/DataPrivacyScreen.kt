@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
+import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -255,44 +257,12 @@ fun DataPrivacyScreen(
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = { showTimeoutDialog = false },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    shapes = ButtonDefaults.shapes(),
-                    modifier = Modifier
-                        .padding(horizontal = Spacing.xl)
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+                DialogDismissButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { showTimeoutDialog = false }
+                )
             },
-            containerColor = if (blurEffects)
-                MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .then(
-                    if (blurEffects) Modifier.hazeEffect(
-                        state = hazeState,
-                        block = fun HazeEffectScope.() {
-                            inputScale = HazeInputScale.Auto
-                            style = HazeDefaults.style(
-                                backgroundColor = Color.Transparent,
-                                tint = HazeDefaults.tint(containerColor),
-                                blurRadius = 20.dp,
-                                noiseFactor = -1f,
-                            )
-                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                        }
-                    ) else Modifier
-                ),
-            shape = RoundedCornerShape(16.dp),
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 }

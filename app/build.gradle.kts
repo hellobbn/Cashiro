@@ -125,7 +125,8 @@ android {
         debug {
             buildConfigField("String", "UPDATE_CHANNEL", "\"debug\"")
             applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
+            // "-debug+<short sha>" (see androidComponents below)
+            versionNameSuffix = gitSha().let { if (it == "unknown") "-debug" else "-debug+$it" }
             manifestPlaceholders["appLabel"] = "Cashiro Debug"
             if (slimDebug) {
                 // The CI build people install day to day: not debuggable, so ART compiles it
@@ -219,6 +220,13 @@ android {
 }
 
 androidComponents {
+    // Every debug build carries its commit: the commit count as versionCode, so the installer
+    // and Settings show which build is installed, and "+<short sha>" after "-debug" in the
+    // versionName. The debug app has its own applicationId, so this never meets release codes.
+    onVariants(selector().withBuildType("debug")) { variant ->
+        val count = gitCommitCount()
+        if (count > 0) variant.outputs.forEach { it.versionCode.set(count) }
+    }
     onVariants(selector().withBuildType("preview")) { variant ->
         val count = gitCommitCount().coerceAtLeast(1)
         variant.outputs.forEach { output ->
@@ -259,6 +267,7 @@ dependencies {
     implementation(libs.colorpicker.compose)
     implementation(libs.haze)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.profileinstaller)
     // Composable names in Perfetto traces when Macrobenchmark runs with fullTracing.enable.
     "benchmarkImplementation"(libs.androidx.compose.runtime.tracing)

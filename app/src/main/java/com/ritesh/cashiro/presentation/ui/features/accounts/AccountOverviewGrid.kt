@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.softShadow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -15,6 +18,79 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.utils.CurrencyFormatter
+
+/** The figure an overview row shows on its right: amount, or why there is none. */
+@Composable
+private fun overviewValue(item: AccountOverviewItem): String = when (item.status) {
+    OverviewStatus.READY -> {
+        val debt = item.category == AccountCategory.CREDIT_CARDS
+        val contribution = item.netWorthContribution()
+        val sign = if (!debt || contribution?.signum() == 0) "" else if (contribution!!.signum() < 0) "−" else "+"
+        sign + (if (item.converted) "≈" else "") + CurrencyFormatter.formatCurrency(if (debt) item.amount!!.abs() else item.amount!!, item.currency)
+    }
+    OverviewStatus.CONNECT -> stringResource(R.string.overview_connect)
+    OverviewStatus.LOADING -> "—"
+    OverviewStatus.UNAVAILABLE -> stringResource(R.string.overview_unavailable)
+    OverviewStatus.MULTIPLE_SOURCES -> stringResource(R.string.overview_sources)
+}
+
+private fun AccountCategory.overviewIcon() = when (this) {
+    AccountCategory.WALLETS -> Icons.Rounded.AccountBalanceWallet
+    AccountCategory.BANKS -> Icons.Rounded.AccountBalance
+    AccountCategory.CREDIT_CARDS -> Icons.Rounded.CreditCard
+    AccountCategory.INVESTMENTS -> Icons.AutoMirrored.Rounded.ShowChart
+}
+
+/**
+ * Home's account overview: every category in one card, a 56 dp row each with the account
+ * count under the name, so the overview fits above the fold with the net worth.
+ */
+@Composable
+internal fun CompactAccountOverview(items: List<AccountOverviewItem>, onOpen: (AccountCategory) -> Unit, modifier: Modifier = Modifier) {
+    val shape = MaterialTheme.shapes.large
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = shape,
+        modifier = modifier.fillMaxWidth().softShadow(shape).testTag("account_overview_list")
+    ) {
+        Column {
+            items.forEachIndexed { index, item ->
+                if (index > 0) HorizontalDivider(Modifier.padding(start = 60.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpen(item.category) }
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .testTag("overview_${item.category.name}"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant) {
+                        Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                            Icon(item.category.overviewIcon(), null, Modifier.size(18.dp))
+                        }
+                    }
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(item.category.titleRes), style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                        Text(
+                            text = when (item.status) {
+                                OverviewStatus.CONNECT -> stringResource(R.string.overview_connect_hint)
+                                OverviewStatus.LOADING -> stringResource(R.string.overview_loading)
+                                else -> stringResource(R.string.overview_count, item.count)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                    Text(overviewValue(item), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, maxLines = 1)
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
+import com.ritesh.cashiro.presentation.ui.components.DialogActionsRow
+import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
+import com.ritesh.cashiro.presentation.ui.components.LendBorrowRow
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -187,7 +191,7 @@ fun SharedTransitionScope.HomeScreen(
     val deletedTransaction by homeViewModel.deletedTransaction.collectAsState()
     val categoriesMap by homeViewModel.categoriesMap.collectAsStateWithLifecycle()
     val subcategoriesMap by homeViewModel.subcategoriesMap.collectAsStateWithLifecycle()
-    val accountsMap by homeViewModel.accountsMap.collectAsStateWithLifecycle()
+    val lookups by homeViewModel.lookups.collectAsStateWithLifecycle()
     val homeWidgets by homeViewModel.homeWidgets.collectAsStateWithLifecycle()
     val overviewViewModel: com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewViewModel = hiltViewModel()
     val overviewItems by overviewViewModel.items.collectAsStateWithLifecycle()
@@ -387,18 +391,20 @@ fun SharedTransitionScope.HomeScreen(
                                 }
                             }
                             HomeWidget.LOANS -> {
-                                item(key = "loans") {
-                                    LendBorrowCard(
-                                        summary = uiState.lendBorrowSummary,
-                                        onClick = { onNavigateToLendBorrow(null) },
-                                        onLentClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_GET.name) },
-                                        onBorrowedClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_OWE.name) },
-                                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content),
-                                        currency = uiState.baseCurrency,
-                                        blurEffects = blurEffects && uiState.showBannerImage,
-                                        hazeState = hazeStateBanner,
-                                        animatedContentScope = animatedContentScope
-                                    )
+                                // One row, and none while nothing is lent or borrowed, so Home's
+                                // key figures fit without scrolling
+                                val loans = uiState.lendBorrowSummary
+                                if (loans.totalLentRemaining.signum() != 0 || loans.totalBorrowedRemaining.signum() != 0) {
+                                    item(key = "loans") {
+                                        LendBorrowRow(
+                                            summary = loans,
+                                            currency = uiState.baseCurrency,
+                                            onClick = { onNavigateToLendBorrow(null) },
+                                            onLentClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_GET.name) },
+                                            onBorrowedClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_OWE.name) },
+                                            modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                                        )
+                                    }
                                 }
                             }
                             HomeWidget.TRANSACTION_HEATMAP -> {
@@ -438,7 +444,7 @@ fun SharedTransitionScope.HomeScreen(
                             }
                             HomeWidget.ACCOUNT_CAROUSEL -> {
                                 item(key = "account_overview") {
-                                    com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewList(
+                                    com.ritesh.cashiro.presentation.ui.features.accounts.CompactAccountOverview(
                                         overviewItems, openCategory, Modifier.padding(horizontal = Dimensions.Padding.content))
                                 }
                             }
@@ -602,25 +608,16 @@ fun SharedTransitionScope.HomeScreen(
                                                     }
                                                 } else {
                                                     uiState.recentTransactions.forEachIndexed { index, transaction ->
-                                                        val categoryEntity = categoriesMap[transaction.category]
-                                                        val subcategoryEntity =
-                                                            if (categoryEntity != null && transaction.subcategory != null) {
-                                                                subcategoriesMap[transaction.subcategory]
-                                                            } else null
                                                         val position = ListItemPosition.from(
                                                             index,
                                                             uiState.recentTransactions.size
                                                         )
-
-                                                        val accountEntity = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]
+                                                        val decoration = remember(transaction, lookups, uiState.conversions) {
+                                                            lookups.decorate(transaction, uiState.conversions)
+                                                        }
                                                         TransactionItem(
                                                             transaction = transaction,
-                                                            categoryEntity = categoryEntity,
-                                                            subcategoryEntity = subcategoryEntity,
-                                                            accountIconResId = accountEntity?.iconResId ?: 0,
-                                                            accountIconName = accountEntity?.iconName,
-                                                            accountColorHex = accountEntity?.color,
-                                                            convertedAmount = uiState.convertedAmounts[transaction.id],
+                                                            decoration = decoration,
                                                             mainCurrency = uiState.baseCurrency,
                                                             onClick = {
                                                                 onTransactionClick(
@@ -631,10 +628,7 @@ fun SharedTransitionScope.HomeScreen(
                                                             shape = position.toShape(),
                                                             modifier = Modifier.fillMaxWidth(),
                                                             animatedContentScope = animatedContentScope,
-                                                            sharedElementKey = "transaction_${transaction.id}",
-                                                            linkedLoanPersonName = uiState.transactionPersonMapping[transaction.id]?.name,
-                                                            linkedLoanPersonColor = uiState.transactionPersonMapping[transaction.id]?.color,
-                                                            linkedLoanPersonAvatar = uiState.transactionPersonMapping[transaction.id]?.avatar
+                                                            sharedElementKey = "transaction_${transaction.id}"
                                                         )
                                                     }
                                                 }
@@ -838,9 +832,10 @@ private fun BreakdownDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = Spacing.md), // Reduced horizontal padding for wider modal
+            shape = MaterialTheme.shapes.extraLarge,
             colors =
                 CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = CashiroDialogDefaults.containerColor
                 )
         ) {
             Column(
@@ -933,10 +928,12 @@ private fun BreakdownDialog(
                 }
 
                 // Close button
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.End)
-                ) { Text(stringResource(R.string.close)) }
+                DialogActionsRow {
+                    DialogDismissButton(
+                        text = stringResource(R.string.close),
+                        onClick = onDismiss
+                    )
+                }
             }
         }
     }

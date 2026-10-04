@@ -1,5 +1,10 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import androidx.compose.material3.Surface
+import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
+import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
+import com.ritesh.cashiro.presentation.ui.components.DialogActionsRow
+import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
@@ -79,32 +84,11 @@ fun ExportTransactionsDialog(
             onDismiss()
         }
     }) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .clip(RoundedCornerShape(Dimensions.Radius.md))
-                .then(
-                    if (blurEffects) Modifier.hazeEffect(
-                        state = hazeState,
-                        block = fun HazeEffectScope.() {
-                            inputScale = HazeInputScale.Auto
-                            style = HazeDefaults.style(
-                                backgroundColor = Color.Transparent,
-                                tint = HazeDefaults.tint(containerColor),
-                                blurRadius = 20.dp,
-                                noiseFactor = -1f,
-                            )
-                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                        }
-                    ) else Modifier
-                ),
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(
-                containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-                else MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = CashiroDialogDefaults.containerColor,
+            contentColor = MaterialTheme.colorScheme.onSurface
         ) {
             Column(
                 modifier = Modifier
@@ -160,10 +144,9 @@ fun ExportTransactionsDialog(
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         // Summary info
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(0.5f)
-                            ),
+                        Surface(
+                            shape = MaterialTheme.shapes.large,
+                            color = MaterialTheme.colorScheme.surface,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(
@@ -286,164 +269,61 @@ fun ExportTransactionsDialog(
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 // Buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    when (exportState) {
+                DialogActionsRow {
+                    when (val state = exportState) {
                         is ExportState.Ready -> {
-                            Button(
-                                onClick = onDismiss,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                    contentColor = MaterialTheme.colorScheme.onSurface
-                                ),
-                                shape = RoundedCornerShape(
-                                    topStart = Dimensions.Radius.xxl,
-                                    topEnd = Dimensions.Radius.xs,
-                                    bottomStart = Dimensions.Radius.xxl,
-                                    bottomEnd = Dimensions.Radius.xs
-                                ),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.cancel))
-                            }
-                            
-                            Button(
+                            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+                            DialogConfirmButton(
+                                text = stringResource(R.string.export),
+                                enabled = transactions.isNotEmpty(),
                                 onClick = {
                                     scope.launch {
                                         viewModel.exportTransactions(transactions).collect { result ->
-                                            when (result) {
-                                                is ExportResult.Progress -> {
-                                                    exportState = ExportState.Exporting(
-                                                        progress = result.progress,
-                                                        message = result.message
-                                                    )
-                                                }
-                                                is ExportResult.Success -> {
-                                                    exportState = ExportState.Success(
-                                                        uri = result.uri,
-                                                        fileName = result.fileName,
-                                                        transactionCount = result.transactionCount,
-                                                        fileSizeBytes = result.fileSizeBytes
-                                                    )
-                                                }
-                                                is ExportResult.Error -> {
-                                                    exportState = ExportState.Error(
-                                                        message = result.message
-                                                    )
-                                                }
+                                            exportState = when (result) {
+                                                is ExportResult.Progress -> ExportState.Exporting(
+                                                    progress = result.progress,
+                                                    message = result.message
+                                                )
+                                                is ExportResult.Success -> ExportState.Success(
+                                                    uri = result.uri,
+                                                    fileName = result.fileName,
+                                                    transactionCount = result.transactionCount,
+                                                    fileSizeBytes = result.fileSizeBytes
+                                                )
+                                                is ExportResult.Error -> ExportState.Error(message = result.message)
                                             }
                                         }
                                     }
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                ),
-                                shape = RoundedCornerShape(
-                                    topStart = Dimensions.Radius.xs,
-                                    topEnd = Dimensions.Radius.xxl,
-                                    bottomStart = Dimensions.Radius.xs,
-                                    bottomEnd = Dimensions.Radius.xxl
-                                ),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.export))
-                            }
+                                }
+                            )
                         }
-                        
+
                         is ExportState.Exporting -> {
                             // No buttons during export
                         }
-                        
+
                         is ExportState.Success -> {
-                            Button(
-                                onClick = onDismiss,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                    contentColor = MaterialTheme.colorScheme.onSurface
-                                ),
-                                shape = RoundedCornerShape(
-                                    topStart = Dimensions.Radius.xxl,
-                                    topEnd = Dimensions.Radius.xs,
-                                    bottomStart = Dimensions.Radius.xxl,
-                                    bottomEnd = Dimensions.Radius.xs
-                                ),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.done))
-                            }
-                            
-                            Button(
+                            DialogDismissButton(stringResource(R.string.done), onDismiss)
+                            DialogConfirmButton(
+                                text = stringResource(R.string.share),
                                 onClick = {
-                                    // Share the exported file
                                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                         type = "text/csv"
-                                        putExtra(Intent.EXTRA_STREAM, (exportState as ExportState.Success).uri)
+                                        putExtra(Intent.EXTRA_STREAM, state.uri)
                                         putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.csv_export_subject))
                                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                     }
                                     context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_csv)))
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                ),
-                                shape = RoundedCornerShape(
-                                    topStart = Dimensions.Radius.xs,
-                                    topEnd = Dimensions.Radius.xxl,
-                                    bottomStart = Dimensions.Radius.xs,
-                                    bottomEnd = Dimensions.Radius.xxl
-                                ),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Share,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.share))
-                            }
+                                }
+                            )
                         }
-                        
+
                         is ExportState.Error -> {
-                            Button(
-                                onClick = onDismiss,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                    contentColor = MaterialTheme.colorScheme.onSurface
-                                ),
-                                shape = RoundedCornerShape(
-                                    topStart = Dimensions.Radius.xxl,
-                                    topEnd = Dimensions.Radius.xs,
-                                    bottomStart = Dimensions.Radius.xxl,
-                                    bottomEnd = Dimensions.Radius.xs
-                                ),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.close))
-                            }
-                            
-                            Button(
-                                onClick = {
-                                    exportState = ExportState.Ready
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = MaterialTheme.colorScheme.onError
-                                ),
-                                shape = RoundedCornerShape(
-                                    topStart = Dimensions.Radius.xs,
-                                    topEnd = Dimensions.Radius.xxl,
-                                    bottomStart = Dimensions.Radius.xs,
-                                    bottomEnd = Dimensions.Radius.xxl
-                                ),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.retry))
-                            }
+                            DialogDismissButton(stringResource(R.string.close), onDismiss)
+                            DialogConfirmButton(
+                                text = stringResource(R.string.retry),
+                                onClick = { exportState = ExportState.Ready }
+                            )
                         }
                     }
                 }

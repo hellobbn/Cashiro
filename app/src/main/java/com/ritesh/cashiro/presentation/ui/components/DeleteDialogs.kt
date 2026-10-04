@@ -73,89 +73,17 @@ fun DeleteTransactionDialog(
             )
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        if (isDeleting) {
-                            LoadingCircle(
-                                modifier = Modifier.size(16.dp)
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(R.string.delete),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                    }
-
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true,
+                loading = isDeleting
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-            if (blurEffects) Modifier.hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-                    inputScale = HazeInputScale.Auto
-
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = HazeDefaults.tint(containerColor),
-                        blurRadius = 20.dp,
-                        noiseFactor = -1f,
-                    )
-                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                }
-            ) else Modifier
-        ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
@@ -188,82 +116,16 @@ fun DeleteMultipleTransactionsDialog(
             )
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium)
-                    }
-
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-            if (blurEffects) Modifier.hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-                    inputScale = HazeInputScale.Auto
-
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = HazeDefaults.tint(containerColor),
-                        blurRadius = 20.dp,
-                        noiseFactor = -1f,
-                    )
-                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                }
-            ) else Modifier
-        ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
@@ -296,82 +158,16 @@ fun DeleteMultiplePersonsDialog(
             )
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-                if (blurEffects) Modifier.hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        inputScale = HazeInputScale.Auto
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            tint = HazeDefaults.tint(containerColor),
-                            blurRadius = 20.dp,
-                            noiseFactor = -1f,
-                        )
-                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                    }
-                ) else Modifier
-            ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
@@ -404,81 +200,16 @@ fun DeleteMultipleRecordsDialog(
             )
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium)
-                    }
-
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-                if (blurEffects) Modifier.hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        inputScale = HazeInputScale.Auto
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            tint = HazeDefaults.tint(containerColor),
-                            blurRadius = 20.dp,
-                            noiseFactor = -1f,
-                        )
-                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                    }
-                ) else Modifier
-            ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
@@ -560,81 +291,16 @@ fun DeleteAccountDialog(
             }
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium)
-                    }
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-            if (blurEffects) Modifier.hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-                    inputScale = HazeInputScale.Auto
-
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = HazeDefaults.tint(containerColor),
-                        blurRadius = 20.dp,
-                        noiseFactor = -1f,
-                    )
-                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                }
-            ) else Modifier
-        ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
@@ -708,27 +374,7 @@ fun DeleteCategoryDialog(
                     }
                 }
             },
-            containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
-            modifier = Modifier
-                .clip(RoundedCornerShape(Dimensions.Radius.md))
-                .then(
-                if (blurEffects) Modifier.hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        inputScale = HazeInputScale.Auto
-
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            tint = HazeDefaults.tint(containerColor),
-                            blurRadius = 20.dp,
-                            noiseFactor = -1f,
-                        )
-                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                    }
-                ) else Modifier
-            ),
-            shape = MaterialTheme.shapes.large
+            containerColor = CashiroDialogDefaults.containerColor
         )
     } else {
         AlertDialog(
@@ -736,81 +382,16 @@ fun DeleteCategoryDialog(
             title = { Text(stringResource(R.string.delete_category_title)) },
             text = { Text(stringResource(R.string.delete_category_confirm_no_transactions, categoryName)) },
             confirmButton = {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                    ) {
-                        Button(
-                            onClick = onDismiss,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                contentColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xxl,
-                                topEnd = Dimensions.Radius.xs,
-                                bottomStart = Dimensions.Radius.xxl,
-                                bottomEnd = Dimensions.Radius.xs
-                            ),
-                            modifier = Modifier
-                                .padding(start = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Button(
-                            onClick = onDelete,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xs,
-                                topEnd = Dimensions.Radius.xxl,
-                                bottomStart = Dimensions.Radius.xs,
-                                bottomEnd = Dimensions.Radius.xxl
-                            ),
-                            modifier = Modifier
-                                .padding(end = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.delete),
-                                style = MaterialTheme.typography.titleMedium)
-                        }
-                    }
-                }
+                DialogConfirmButton(
+                    text = stringResource(R.string.delete),
+                    onClick = onDelete,
+                    destructive = true
+                )
             },
-            containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
-            dismissButton = {},
-            modifier = Modifier
-                .clip(RoundedCornerShape(Dimensions.Radius.md))
-                .then(
-                if (blurEffects) Modifier.hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        inputScale = HazeInputScale.Auto
-
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            tint = HazeDefaults.tint(containerColor),
-                            blurRadius = 20.dp,
-                            noiseFactor = -1f,
-                        )
-                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                    }
-                ) else Modifier
-            ),
-            shape = MaterialTheme.shapes.large
+            dismissButton = {
+                DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+            },
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 }
@@ -831,81 +412,16 @@ fun DeleteBudgetDialog(
         title = { Text(stringResource(R.string.delete_budget_title)) },
         text = { Text(stringResource(R.string.delete_budget_confirm)) },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium)
-                    }
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-            if (blurEffects) Modifier.hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-                    inputScale = HazeInputScale.Auto
-
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = HazeDefaults.tint(containerColor),
-                        blurRadius = 20.dp,
-                        noiseFactor = -1f,
-                    )
-                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                }
-            ) else Modifier
-        ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
@@ -937,82 +453,16 @@ fun DeleteSubscriptionDialog(
             )
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-                if (blurEffects) Modifier.hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        inputScale = HazeInputScale.Auto
-
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            tint = HazeDefaults.tint(containerColor),
-                            blurRadius = 20.dp,
-                            noiseFactor = -1f,
-                        )
-                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                    }
-                ) else Modifier
-            ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
@@ -1043,82 +493,16 @@ fun DeleteSubcategoryDialog(
             )
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-                if (blurEffects) Modifier.hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        inputScale = HazeInputScale.Auto
-
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            tint = HazeDefaults.tint(containerColor),
-                            blurRadius = 20.dp,
-                            noiseFactor = -1f,
-                        )
-                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                    }
-                ) else Modifier
-            ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
@@ -1149,81 +533,15 @@ fun DeleteCloudSnapshotDialog(
             )
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.delete),
+                onClick = onDelete,
+                destructive = true
+            )
         },
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-                if (blurEffects) Modifier.hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        inputScale = HazeInputScale.Auto
-
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            tint = HazeDefaults.tint(containerColor),
-                            blurRadius = 20.dp,
-                            noiseFactor = -1f,
-                        )
-                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                    }
-                ) else Modifier
-            ),
-        shape = MaterialTheme.shapes.large
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }

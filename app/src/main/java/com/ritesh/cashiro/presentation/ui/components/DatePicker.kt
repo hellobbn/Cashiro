@@ -47,99 +47,23 @@ fun DatePicker(
     DatePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ){
-                Row(
-                    modifier = Modifier.align(Alignment.Center) ,
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onConfirm,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "OK",
-                            style = MaterialTheme.typography.titleMedium)
-                    }
-
-                }
-            }
-        },
-        dismissButton = {},
-        colors = DatePickerDefaults.colors(
-            containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-            if (blurEffects) Modifier.hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-                    inputScale = HazeInputScale.Auto
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = HazeDefaults.tint(containerColor),
-                        blurRadius = 18.dp,
-                        noiseFactor = -1f,
-                    )
-                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                }
-            ) else Modifier
-        ),
-        shape = MaterialTheme.shapes.large,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .hazeSource(state = hazeState)
-                .padding(Dimensions.Radius.sm)
-                .clip(RoundedCornerShape(Dimensions.Radius.md))
-                .background(color = MaterialTheme.colorScheme.surfaceContainerLow),
-            contentAlignment = Alignment.Center
-        ) {
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f)
-                )
+            DialogConfirmButton(
+                text = "OK",
+                onClick = onConfirm
             )
-        }
+        },
+        dismissButton = {
+            DialogDismissButton("Cancel", onDismiss)
+        },
+        colors = DatePickerDefaults.colors(
+            containerColor = CashiroDialogDefaults.containerColor,
+        ),
+    ) {
+        DatePicker(
+            state = datePickerState,
+            colors = DatePickerDefaults.colors(
+                containerColor = CashiroDialogDefaults.containerColor
+            )
+        )
     }
 }

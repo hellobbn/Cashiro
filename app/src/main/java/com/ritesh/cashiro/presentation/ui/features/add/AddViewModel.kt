@@ -3,6 +3,7 @@ package com.ritesh.cashiro.presentation.ui.features.add
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
@@ -34,6 +35,7 @@ import java.time.ZoneId
 import javax.inject.Inject
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import com.ritesh.cashiro.R
 
 @HiltViewModel
@@ -186,9 +188,16 @@ constructor(
                     val mainAccount = availableAccounts.find { 
                         "${it.bankName}_${it.accountLast4}" == mainAccountKey 
                     }
+                    // Only where nothing is chosen yet: a template applied meanwhile keeps its account.
                     if (mainAccount != null) {
-                        _transactionUiState.update { it.copy(selectedAccount = mainAccount, currency = mainAccount.currency) }
-                        _subscriptionUiState.update { it.copy(selectedAccount = mainAccount, currency = mainAccount.currency) }
+                        _transactionUiState.update {
+                            if (it.selectedAccount != null) it
+                            else it.copy(selectedAccount = mainAccount, currency = mainAccount.currency)
+                        }
+                        _subscriptionUiState.update {
+                            if (it.selectedAccount != null) it
+                            else it.copy(selectedAccount = mainAccount, currency = mainAccount.currency)
+                        }
                     }
                 }
             }
@@ -196,6 +205,7 @@ constructor(
     }
 
     fun resetAllStates() {
+        _amountPadRequested.value = false
         _transactionUiState.value = TransactionUiState()
         _subscriptionUiState.value = SubscriptionUiState()
         _transactionAttachments.value = emptyList()
@@ -277,7 +287,7 @@ constructor(
     fun dismissSuggestedTemplate(suggestion: SuggestedTemplate) {
         val updated = dismissedSuggestions.value + suggestion.key
         dismissedSuggestions.value = updated
-        sharedPrefs.edit().putStringSet(DISMISSED_SUGGESTIONS_KEY, updated).apply()
+        sharedPrefs.edit { putStringSet(DISMISSED_SUGGESTIONS_KEY, updated) }
     }
 
     fun updateTransactionCategory(category: String) {
@@ -299,7 +309,29 @@ constructor(
         _transactionUiState.update { it.copy(saveAsQuickTemplate = enabled) }
     }
 
-    /** Pre-fill the form from a template. The amount is only applied when the template says so. */
+    // Set when the form should open the number pad for the amount, e.g. after a template
+    // without one. The form clears it once the pad is open.
+    private val _amountPadRequested = MutableStateFlow(false)
+    val amountPadRequested: StateFlow<Boolean> = _amountPadRequested.asStateFlow()
+
+    fun onAmountPadOpened() {
+        _amountPadRequested.value = false
+    }
+
+    /** Fill the form from the template with this id (launcher shortcut, home-screen widget). */
+    fun applyQuickTemplateById(id: Long) {
+        viewModelScope.launch {
+            val template = quickTemplateRepository.getById(id) ?: return@launch
+            // The template names its account; wait for the accounts so it can be matched.
+            withTimeoutOrNull(3_000) { accounts.first { it.isNotEmpty() } }
+            applyQuickTemplate(template)
+        }
+    }
+
+    /**
+     * Pre-fill the form from a template. The amount is only applied when the template says
+     * so; without one, the number pad opens for it.
+     */
     fun applyQuickTemplate(template: QuickTemplateEntity) {
         val account = accounts.value.firstOrNull {
             it.bankName == template.bankName && it.accountLast4 == template.accountLast4
@@ -321,6 +353,7 @@ constructor(
             )
         }
         updateTransactionSubcategories(template.category)
+        if (_transactionUiState.value.amount.isBlank()) _amountPadRequested.value = true
     }
 
     private suspend fun saveQuickTemplateFromState(state: TransactionUiState) {

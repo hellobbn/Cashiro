@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
+import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
+import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
 import com.ritesh.cashiro.utils.displayTitle
 import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.material.icons.rounded.Bolt
@@ -936,16 +939,18 @@ fun SharedTransitionScope.TransactionDetailScreen(
             title = { Text(stringResource(R.string.unmark_loan_confirm_title)) },
             text = { Text(stringResource(R.string.unmark_loan_confirm_desc)) },
             confirmButton = {
-                TextButton(onClick = { transactionDetailViewModel.unmarkAsLoan() }) {
-                    Text(stringResource(R.string.unmark_as_loan))
-                }
+                DialogConfirmButton(
+                    text = stringResource(R.string.unmark_as_loan),
+                    onClick = { transactionDetailViewModel.unmarkAsLoan() }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { transactionDetailViewModel.hideUnmarkLoanConfirm() }) {
-                    Text(stringResource(R.string.cancel))
-                }
+                DialogDismissButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { transactionDetailViewModel.hideUnmarkLoanConfirm() }
+                )
             },
-            shape = RoundedCornerShape(24.dp)
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 }

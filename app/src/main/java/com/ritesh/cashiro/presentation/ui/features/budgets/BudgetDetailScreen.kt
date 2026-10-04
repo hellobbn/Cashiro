@@ -90,13 +90,7 @@ fun SharedTransitionScope.BudgetDetailScreen(
     val categories by categoriesViewModel.categories.collectAsStateWithLifecycle()
     val subcategories by categoriesViewModel.subcategories.collectAsStateWithLifecycle()
     
-    val categoriesMap = remember(categories) { categories.associateBy { it.name } }
-    val subcategoriesMap = remember(subcategories) { 
-        subcategories.values.flatten().associateBy { it.name } 
-    }
-    val accountsMap = remember(uiState.allAccounts) {
-        uiState.allAccounts.associateBy { "${it.bankName}_${it.accountLast4}" }
-    }
+    val lookups by budgetViewModel.lookups.collectAsStateWithLifecycle()
 
     var showEditSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -366,26 +360,18 @@ fun SharedTransitionScope.BudgetDetailScreen(
                             key = { _, it -> it.id }
                         ) { index, transaction ->
                             val position = ListItemPosition.from(index, transactions.size)
-                            val accountKey = "${transaction.bankName}_${transaction.accountNumber}"
-                            val account = accountsMap[accountKey]
-                            
+                            val decoration = remember(transaction, lookups, uiState.conversions) {
+                                lookups.decorate(transaction, uiState.conversions)
+                            }
                             TransactionItem(
                                 transaction = transaction,
-                                categoryEntity = categoriesMap[transaction.category],
-                                subcategoryEntity = transaction.subcategory?.let { subcategoriesMap[it] },
-                                accountIconResId = account?.iconResId ?: 0,
-                                accountIconName = account?.iconName,
-                                accountColorHex = account?.color,
+                                decoration = decoration,
                                 onClick = { onTransactionClick(transaction.id, "budget_txn_${transaction.id}") },
                                 modifier = Modifier.padding(horizontal = Spacing.md),
                                 animatedContentScope = animatedContentScope,
                                 shape = position.toShape(),
                                 sharedElementKey = "budget_txn_${transaction.id}",
-                                convertedAmount = uiState.convertedAmounts[transaction.id],
-                                mainCurrency = uiState.baseCurrency,
-                                linkedLoanPersonName = uiState.transactionPersonMapping[transaction.id]?.name,
-                                linkedLoanPersonColor = uiState.transactionPersonMapping[transaction.id]?.color,
-                                linkedLoanPersonAvatar = uiState.transactionPersonMapping[transaction.id]?.avatar
+                                mainCurrency = uiState.baseCurrency
                             )
                         }
                     }

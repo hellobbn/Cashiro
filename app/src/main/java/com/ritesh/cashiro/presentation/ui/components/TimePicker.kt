@@ -64,80 +64,14 @@ fun TimePicker(
             }
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ){
-                Row(
-                    modifier = Modifier.align(Alignment.Center) ,
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    Button(
-                        onClick = onConfirm,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.ok),
-                            style = MaterialTheme.typography.titleMedium)
-                    }
-
-                }
-            }
+            DialogConfirmButton(
+                text = stringResource(R.string.ok),
+                onClick = onConfirm
+            )
         },
-        dismissButton = {},
-        modifier = Modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-            if (blurEffects) Modifier.hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-                    inputScale = HazeInputScale.Auto
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = HazeDefaults.tint(containerColor),
-                        blurRadius = 18.dp,
-                        noiseFactor = -1f,
-                    )
-                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                }
-            ) else Modifier
-        ),
-        shape = MaterialTheme.shapes.large,
-        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
+        dismissButton = {
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
+        },
+        containerColor = CashiroDialogDefaults.containerColor,
     )
 }

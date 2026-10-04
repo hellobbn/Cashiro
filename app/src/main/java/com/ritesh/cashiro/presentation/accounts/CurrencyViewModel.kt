@@ -8,6 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.data.currency.ExchangeRateProvider
+import com.ritesh.cashiro.data.currency.RateServerChoice
+import com.ritesh.cashiro.data.currency.RateSyncState
+import com.ritesh.cashiro.data.currency.RateSyncStatus
+import com.ritesh.cashiro.data.repository.AccountBalanceRepository
 import com.ritesh.cashiro.data.currency.model.CurrencyConversion
 import com.ritesh.cashiro.data.currency.model.CurrencySymbols
 import com.ritesh.cashiro.data.model.Currency
@@ -31,8 +35,14 @@ class CurrencyViewModel @Inject constructor(
     private val currencyConversionService: CurrencyConversionService,
     private val currencyRepository: CurrencyRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val accountBalanceRepository: AccountBalanceRepository,
+    private val rateSyncState: RateSyncState,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    /** The servers syncs use, and how the last sync went. */
+    val serverChoice: StateFlow<RateServerChoice> = rateSyncState.choice
+    val lastSync: StateFlow<RateSyncStatus?> = rateSyncState.lastSync
 
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
@@ -47,6 +57,11 @@ class CurrencyViewModel @Inject constructor(
         monitorNetworkConnectivity()
         loadCurrencies()
         observeBaseCurrency()
+        viewModelScope.launch {
+            accountBalanceRepository.getAllLatestBalances().collect { accounts ->
+                _uiState.update { it.copy(accountCurrencies = accounts.map { a -> a.currency.uppercase() }.toSet()) }
+            }
+        }
     }
 
     private fun observeBaseCurrency() {
@@ -126,91 +141,81 @@ class CurrencyViewModel @Inject constructor(
                 selectedCurrency?.let { loadConversions(it.code) }
             } else {
                 // Fallback to supported currencies if API fails
+                // The currency names come from the network; the rates do not need them, so the
+                // base currency is still chosen and its stored rates shown.
+                val effectiveCurrencyCode = currencyRepository.effectiveBaseCurrencyCode.first()
+                val currencies = Currency.SUPPORTED_CURRENCIES
+                val selectedCurrency = currencies.find { it.code.equals(effectiveCurrencyCode, ignoreCase = true) }
+                    ?: Currency(code = effectiveCurrencyCode, name = effectiveCurrencyCode,
+                        symbol = CurrencySymbols.getSymbol(effectiveCurrencyCode))
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        currencies = Currency.SUPPORTED_CURRENCIES,
+                        currencies = currencies,
+                        selectedCurrency = it.selectedCurrency ?: selectedCurrency,
                         error = "Failed to load currencies from API, using defaults.",
                         isOfflineMode = !_isConnected.value
                     )
                 }
+                loadConversions((_uiState.value.selectedCurrency ?: selectedCurrency).code)
             }
         }
     }
 
+    /**
+     * Shows the stored rates for [currencyCode] at once, then syncs them when online. The list
+     * stays visible while syncing; the status card says how it went.
+     */
     fun loadConversions(currencyCode: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingConversions = true, conversionError = null) }
-            
-            val customCurrencies = userPreferencesRepository.customCurrencies.first()
-            val customSymbols = customCurrencies.associate { it.code to it.symbol }
+            showStoredConversions(currencyCode)
+            if (_isConnected.value) sync(currencyCode)
+        }
+    }
 
-            // 1. Load from cache immediately
-            val (cachedRates, lastUpdated) = currencyConversionService.getStoredConversions(currencyCode)
-            if (cachedRates.isNotEmpty()) {
-                val conversions = cachedRates.map { entity ->
-                    CurrencyConversion(
-                        currencyCode = entity.toCurrency,
-                        rate = entity.rate.toDouble(),
-                        lastUpdated = entity.updatedAtUnix * 1000,
-                        isCustom = entity.isCustom,
-                        customSymbol = customSymbols[entity.toCurrency]
-                    )
-                }.sortedBy { it.currencyCode }
-                
-                _uiState.update { 
-                    it.copy(
-                        conversions = conversions, 
-                        lastUpdated = lastUpdated,
-                        isLoadingConversions = !_isConnected.value // Keep loading if we expect a refresh
-                    )
-                }
-            }
+    /** The user's "Sync now". */
+    fun syncNow() {
+        val base = _uiState.value.selectedCurrency?.code ?: return
+        viewModelScope.launch { sync(base) }
+    }
 
-            // 2. Refresh from API if online
-            if (_isConnected.value) {
-                try {
-                    currencyConversionService.fetchAndSaveAllRates(currencyCode)
-                    
-                    // Reload from updated DB
-                    val (updatedRates, updatedTime) = currencyConversionService.getStoredConversions(currencyCode)
-                    val conversions = updatedRates.map { entity ->
-                        CurrencyConversion(
-                            currencyCode = entity.toCurrency,
-                            rate = entity.rate.toDouble(),
-                            lastUpdated = entity.updatedAtUnix * 1000,
-                            isCustom = entity.isCustom,
-                            customSymbol = customSymbols[entity.toCurrency]
-                        )
-                    }.sortedBy { it.currencyCode }
+    /** Pins the servers a sync uses and syncs with them. */
+    fun selectServer(choice: RateServerChoice) {
+        rateSyncState.setChoice(choice)
+        syncNow()
+    }
 
-                    _uiState.update {
-                        it.copy(
-                            isLoadingConversions = false,
-                            conversions = conversions,
-                            lastUpdated = updatedTime,
-                            conversionError = null,
-                            isOfflineMode = false
-                        )
-                    }
-                } catch (e: Exception) {
-                    _uiState.update {
-                        it.copy(
-                            isLoadingConversions = false,
-                            conversionError = if (it.conversions.isEmpty()) "Failed to load exchange rates" else null,
-                            isOfflineMode = true
-                        )
-                    }
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoadingConversions = false,
-                        isOfflineMode = true,
-                        conversionError = if (it.conversions.isEmpty()) "Connect to internet to fetch latest rates" else null
-                    )
-                }
-            }
+    private suspend fun sync(base: String) {
+        if (_uiState.value.isSyncing) return
+        _uiState.update { it.copy(isSyncing = true) }
+        try {
+            currencyConversionService.syncNow(base)
+        } finally {
+            _uiState.update { it.copy(isSyncing = false) }
+        }
+        showStoredConversions(base)
+    }
+
+    private suspend fun showStoredConversions(base: String) {
+        val customSymbols = userPreferencesRepository.customCurrencies.first().associate { it.code to it.symbol }
+        val (rates, lastUpdated) = currencyConversionService.getStoredConversions(base)
+        val conversions = rates.map { entity ->
+            CurrencyConversion(
+                currencyCode = entity.toCurrency,
+                rate = entity.rate.toDouble(),
+                lastUpdated = entity.updatedAtUnix * 1000,
+                isCustom = entity.isCustom,
+                customSymbol = customSymbols[entity.toCurrency]
+            )
+        }.sortedBy { it.currencyCode }
+        _uiState.update {
+            it.copy(
+                conversions = conversions,
+                lastUpdated = lastUpdated,
+                isLoadingConversions = false,
+                isOfflineMode = !_isConnected.value,
+                conversionError = null
+            )
         }
     }
 
@@ -251,6 +256,10 @@ class CurrencyViewModel @Inject constructor(
 
     data class CurrencyUiState(
         val isLoading: Boolean = false,
+        // A rate sync is running
+        val isSyncing: Boolean = false,
+        // Currencies the accounts are kept in, listed first
+        val accountCurrencies: Set<String> = emptySet(),
         val currencies: List<Currency> = emptyList(),
         val selectedCurrency: Currency? = null,
         val error: String? = null,

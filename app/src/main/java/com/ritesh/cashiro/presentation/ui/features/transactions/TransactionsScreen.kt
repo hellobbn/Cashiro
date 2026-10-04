@@ -176,7 +176,7 @@ fun TransactionsScreen(
     val categoriesMap by transactionsViewModel.categories.collectAsStateWithLifecycle()
     val subcategoriesMap by transactionsViewModel.subcategories.collectAsStateWithLifecycle()
     val allSubcategoriesByCategoryId by transactionsViewModel.allSubcategoriesByCategoryId.collectAsStateWithLifecycle()
-    val accountsMap by transactionsViewModel.accountsMap.collectAsStateWithLifecycle()
+    val lookups by transactionsViewModel.lookups.collectAsStateWithLifecycle()
     val filteredTotals by transactionsViewModel.filteredTotals.collectAsStateWithLifecycle()
     val currencyGroupedTotals by transactionsViewModel.currencyGroupedTotals.collectAsStateWithLifecycle()
     val availableCurrencies by transactionsViewModel.availableCurrencies.collectAsStateWithLifecycle()
@@ -757,13 +757,12 @@ fun TransactionsScreen(
                                     contentType = { _, _ -> "transaction" }
                                 ) { index, transaction ->
                                     val position = ListItemPosition.from(index, transactions.size)
+                                    val decoration = remember(transaction, lookups, uiState.conversions) {
+                                        lookups.decorate(transaction, uiState.conversions)
+                                    }
                                     TransactionItem(
                                         transaction = transaction,
-                                        categoryEntity = categoriesMap[transaction.category],
-                                        subcategoryEntity = transaction.subcategory?.let { subcategoriesMap[it] },
-                                        accountIconResId = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.iconResId ?: 0,
-                                        accountIconName = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.iconName,
-                                        accountColorHex = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.color,
+                                        decoration = decoration,
                                         showDate = dateGroup == DateGroup.EARLIER,
                                         shape = position.toShape(),
                                         onClick = { detailTransactionId = transaction.id },
@@ -779,11 +778,7 @@ fun TransactionsScreen(
                                                 transactionsViewModel.toggleTransactionSelection(transaction.id)
                                             }
                                         },
-                                        convertedAmount = uiState.convertedAmounts[transaction.id],
-                                        mainCurrency = baseCurrency,
-                                        linkedLoanPersonName = uiState.transactionPersonMapping[transaction.id]?.name,
-                                        linkedLoanPersonColor = uiState.transactionPersonMapping[transaction.id]?.color,
-                                        linkedLoanPersonAvatar = uiState.transactionPersonMapping[transaction.id]?.avatar
+                                        mainCurrency = baseCurrency
                                     )
                                 }
                             }

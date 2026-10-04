@@ -24,26 +24,35 @@ internal fun NavBackStackEntry.mainTabTag(): String? {
     }
 }
 
+private val TAB_ORDER = listOf("home", "analytics", "transactions")
+
 /**
- * Peer tabs switch with no animation: a tap that lands while the previous switch is still
- * animating used to leave the old tab's content on screen while the bar already showed the new
- * tab. Contextual/detail routes keep their slide motion.
+ * Every screen change moves sideways with a fade. Between the bottom-bar tabs it is a short
+ * shared-axis X motion, in the direction of the tab bar (Home → Analytics → Transactions
+ * slides left); to and from other screens, the same horizontal slide as every sub-screen.
+ *
+ * Tab switches were once instant because a tap landing mid-animation could leave the old
+ * tab's content on screen; the tab motion is kept short (MotionDurations.short) for that.
  */
 internal object MainTabMotion {
-    private fun AnimatedContentTransitionScope<NavBackStackEntry>.isPeerSwitch() =
-        initialState.mainTabTag() != null && targetState.mainTabTag() != null
+    /** +1 when moving to a tab to the right in the bar, -1 to the left, null if not tab to tab. */
+    private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabDirection(): Int? {
+        val from = TAB_ORDER.indexOf(initialState.mainTabTag() ?: return null)
+        val to = TAB_ORDER.indexOf(targetState.mainTabTag() ?: return null)
+        return if (to >= from) 1 else -1
+    }
 
     val enter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
-        if (isPeerSwitch()) EnterTransition.None else CashiroTransitions.verticalSlideEnter(this)
+        tabDirection()?.let { CashiroTransitions.sharedAxisXEnter(it) } ?: CashiroTransitions.horizontalSlideEnter(this)
     }
     val exit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
-        if (isPeerSwitch()) ExitTransition.None else CashiroTransitions.verticalSlideExit(this)
+        tabDirection()?.let { CashiroTransitions.sharedAxisXExit(it) } ?: CashiroTransitions.horizontalSlideExit(this)
     }
     val popEnter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
-        if (isPeerSwitch()) EnterTransition.None else CashiroTransitions.verticalSlidePopEnter(this)
+        tabDirection()?.let { CashiroTransitions.sharedAxisXEnter(it) } ?: CashiroTransitions.horizontalSlidePopEnter(this)
     }
     val popExit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
-        if (isPeerSwitch()) ExitTransition.None else CashiroTransitions.verticalSlidePopExit(this)
+        tabDirection()?.let { CashiroTransitions.sharedAxisXExit(it) } ?: CashiroTransitions.horizontalSlidePopExit(this)
     }
 }
 

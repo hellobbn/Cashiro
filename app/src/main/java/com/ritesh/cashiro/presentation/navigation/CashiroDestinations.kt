@@ -14,9 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.navigation.NavBackStackEntry
 import kotlinx.serialization.Serializable
 
@@ -52,35 +50,20 @@ object CashiroTransitions {
         ) + fadeOut(animationSpec = tween(durationMillis = MotionDurations.standard))
     }
     
-    // Vertical slide transitions
-    val verticalSlideEnter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
-        slideInVertically(
-            initialOffsetY = { it },
-            animationSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
-        ) + fadeIn(animationSpec = tween(durationMillis = MotionDurations.standard))
-    }
-    
-    val verticalSlideExit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
-        slideOutVertically(
-            targetOffsetY = { -it / 4},
-            animationSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
-        ) + fadeOut(animationSpec = tween(durationMillis = MotionDurations.standard))
-    }
+    // Shared axis X between peer tabs: a short slide (a tenth of the width) with a fade, in
+    // the direction of travel (+1 to the right in the tab bar, -1 to the left)
+    fun sharedAxisXEnter(direction: Int): EnterTransition =
+        slideInHorizontally(
+            initialOffsetX = { direction * it / 10 },
+            animationSpec = tween(durationMillis = MotionDurations.short, easing = FastOutSlowInEasing)
+        ) + fadeIn(animationSpec = tween(durationMillis = MotionDurations.short))
 
-    val verticalSlidePopEnter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
-        slideInVertically(
-            initialOffsetY = { -it / 4 },
-            animationSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
-        ) + fadeIn(animationSpec = tween(durationMillis = MotionDurations.standard))
-    }
+    fun sharedAxisXExit(direction: Int): ExitTransition =
+        slideOutHorizontally(
+            targetOffsetX = { -direction * it / 10 },
+            animationSpec = tween(durationMillis = MotionDurations.short, easing = FastOutSlowInEasing)
+        ) + fadeOut(animationSpec = tween(durationMillis = MotionDurations.short))
 
-    val verticalSlidePopExit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
-        slideOutVertically(
-            targetOffsetY = { -it },
-            animationSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
-        ) + fadeOut(animationSpec = tween(durationMillis = MotionDurations.standard))
-    }
-    
     // FAB to screen scale transitions
     val fabScaleEnter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
         fadeIn(animationSpec = tween(durationMillis = MotionDurations.standard)) +
@@ -162,7 +145,13 @@ data class Transactions(
 
 @Serializable data class TransactionDetail(val transactionId: Long, val sharedElementKey: String? = null)
 
-@Serializable data class AddTransaction(val initialTab: Int = 0, val subscriptionId: Long? = null, val type: String? = null)
+@Serializable data class AddTransaction(
+    val initialTab: Int = 0,
+    val subscriptionId: Long? = null,
+    val type: String? = null,
+    // A quick template to fill the form with, from a launcher shortcut or the home-screen widget
+    val templateId: Long? = null
+)
 
 @Serializable data class AccountDetail(val bankName: String, val accountLast4: String)
 

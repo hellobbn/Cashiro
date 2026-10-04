@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.data.currency.Conversions
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -53,7 +54,7 @@ class TransactionsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val currencyRepository: CurrencyRepository,
     private val currencyConversionService: CurrencyConversionService,
-    private val lendBorrowRepository: LendBorrowRepository,
+    transactionLookupsSource: com.ritesh.cashiro.presentation.common.TransactionLookupsSource,
     private val savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -173,7 +174,7 @@ class TransactionsViewModel @Inject constructor(
         var investment = BigDecimal.ZERO
 
         state.transactions.forEach { tx ->
-            val valAmount = state.convertedAmounts[tx.id] ?: tx.amount
+            val valAmount = state.conversions.amountOf(tx) ?: tx.amount
             when (tx.transactionType) {
                 TransactionType.INCOME -> income += valAmount
                 TransactionType.EXPENSE -> expenses += valAmount
@@ -249,6 +250,9 @@ class TransactionsViewModel @Inject constructor(
             initialValue = emptyMap()
         )
 
+    // Category, account and lend/borrow person lookups for the transaction rows
+    val lookups = transactionLookupsSource.lookups
+
     val accountsMap: StateFlow<Map<String, AccountBalanceEntity>> = accountBalanceRepository.getAllLatestBalances()
         .map { accountList ->
             accountList.associateBy { "${it.bankName}_${it.accountLast4}" }
@@ -322,57 +326,37 @@ class TransactionsViewModel @Inject constructor(
                 val baseCurrencyCode = baseCurrency.value
                 val sort = sortOption.value
  
-                 // Get filtered transactions
-                 combine(
-                     getFilteredTransactions(query, period, category, subcategory, amountRange, accounts, filterCurrencies, typeFilter)
-                         .flowOn(Dispatchers.Default)
-                         .onEach { androidx.core.os.trace("TransactionsList.source:transactions") {} },
-                     lendBorrowRepository.getAllTransactions()
-                         .onEach { androidx.core.os.trace("TransactionsList.source:lendBorrow") {} },
-                     lendBorrowRepository.getPersons()
-                         .onEach { androidx.core.os.trace("TransactionsList.source:persons") {} }
-                 ) { transactions, lbTransactions, persons ->
+                 // Get filtered transactions. Categories, accounts and lend/borrow people come
+                 // from the shared lookups the screen reads, so they never republish the list.
+                 getFilteredTransactions(query, period, category, subcategory, amountRange, accounts, filterCurrencies, typeFilter)
+                     .flowOn(Dispatchers.Default)
+                     .onEach { androidx.core.os.trace("TransactionsList.source:transactions") {} }
+                     .map { transactions ->
                      // No longer filtering by selectedCurrency. Show all unless explicitly filtered via filter sheet
                      val currencyFilteredTransactions = transactions
                      
-                     // Calculate converted amounts for shown transactions if transaction currency differs from base (main) currency
-                     val converted = currencyFilteredTransactions.filter { !it.currency.equals(baseCurrencyCode, ignoreCase = true) }
-                         .associate { tx ->
-                             tx.id to currencyConversionService.convertAmount(tx.amount, tx.currency, baseCurrencyCode)
-                         }
+                     // Converted amounts from rates known now; missing ones are fetched in the
+                     // background and restart the list through rateChangeTrigger when they land.
+                     val conversions = currencyConversionService.convert(currencyFilteredTransactions, baseCurrencyCode)
 
                      withContext(Dispatchers.Default) {
-                         // Create person mapping
-                         val personMap = persons.associateBy { it.id }
-                         val transactionPersonMapping = lbTransactions
-                             .filter { it.transactionId != null }
-                             .associate { lb ->
-                                 val person = personMap[lb.personId]
-                                 lb.transactionId!! to PersonInfo(
-                                     name = person?.name ?: lb.title,
-                                     color = person?.color ?: "#4CAF50",
-                                     avatar = person?.avatar
-                                 )
-                             }
-
                          val sorted = sortTransactions(currencyFilteredTransactions, sort)
                          PreparedTransactionList(
-                             sorted, groupTransactionsByDate(sorted), converted,
-                             transactionPersonMapping, calculateCurrencyGroupedTotals(sorted)
+                             sorted, groupTransactionsByDate(sorted), conversions,
+                             calculateCurrencyGroupedTotals(sorted)
                          )
                      }
                  }.collect { prepared ->
                      emit(prepared)
                  }
             }
-            .onEach { (transactions, groups, converted, personMapping, totals) ->
+            .onEach { (transactions, groups, conversions, totals) ->
                 // Counted by the Macrobenchmark suite: each publish recomposes the list.
                 androidx.core.os.trace("TransactionsList.publish") {}
                 _uiState.value = _uiState.value.copy(
                     transactions = transactions,
                     groupedTransactions = groups,
-                    convertedAmounts = converted,
-                    transactionPersonMapping = personMapping,
+                    conversions = conversions,
                     isLoading = false
                 )
                 // Calculate totals for filtered transactions
@@ -958,7 +942,6 @@ class TransactionsViewModel @Inject constructor(
 private data class PreparedTransactionList(
     val transactions: List<TransactionEntity>,
     val groups: Map<DateGroup, List<TransactionEntity>>,
-    val converted: Map<Long, BigDecimal>,
-    val persons: Map<Long, PersonInfo>,
+    val conversions: Conversions,
     val totals: CurrencyGroupedTotals
 )

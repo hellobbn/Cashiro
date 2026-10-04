@@ -62,107 +62,37 @@ fun DateRangePickerDialog(
     DatePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ){
-                Row(
-                    modifier = Modifier.align(Alignment.Center) ,
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            style = MaterialTheme.typography.titleMedium
-                        )
+            DialogConfirmButton(
+                text = "OK",
+                onClick = {
+                    val startMillis = dateRangePickerState.selectedStartDateMillis
+                    val endMillis = dateRangePickerState.selectedEndDateMillis
+
+                    if (startMillis != null && endMillis != null) {
+                        // Convert milliseconds to LocalDate using epoch day to avoid timezone issues
+                        val startDate = LocalDate.ofEpochDay(startMillis / 86400000L)
+                        val endDate = LocalDate.ofEpochDay(endMillis / 86400000L)
+
+                        // Validate date range (should always be true with Material DateRangePicker, but be defensive)
+                        if (startDate <= endDate) {
+                            onConfirm(startDate, endDate)
+                        }
                     }
-                    Button(
-                        onClick = {
-                            val startMillis = dateRangePickerState.selectedStartDateMillis
-                            val endMillis = dateRangePickerState.selectedEndDateMillis
-
-                            if (startMillis != null && endMillis != null) {
-                                // Convert milliseconds to LocalDate using epoch day to avoid timezone issues
-                                val startDate = LocalDate.ofEpochDay(startMillis / 86400000L)
-                                val endDate = LocalDate.ofEpochDay(endMillis / 86400000L)
-
-                                // Validate date range (should always be true with Material DateRangePicker, but be defensive)
-                                if (startDate <= endDate) {
-                                    onConfirm(startDate, endDate)
-                                }
-                            }
-                        },
-                        enabled = dateRangePickerState.selectedStartDateMillis != null &&
-                                dateRangePickerState.selectedEndDateMillis != null,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "OK",
-                            style = MaterialTheme.typography.titleMedium)
-                    }
-
-                }
-            }
+                },
+                enabled = dateRangePickerState.selectedStartDateMillis != null &&
+                        dateRangePickerState.selectedEndDateMillis != null
+            )
         },
-        dismissButton = {},
+        dismissButton = {
+            DialogDismissButton("Cancel", onDismiss)
+        },
         colors = DatePickerDefaults.colors(
-            containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = CashiroDialogDefaults.containerColor,
         ),
-        shape = RoundedCornerShape(Dimensions.Radius.md),
         modifier = modifier
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .then(
-            if (blurEffects) Modifier.hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-                    inputScale = HazeInputScale.Auto
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = HazeDefaults.tint(containerColor),
-                        blurRadius = 20.dp,
-                        noiseFactor = -1f,
-                    )
-                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                }
-            ) else Modifier
-        )
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .hazeSource(state = hazeState)
-                .padding(Dimensions.Radius.sm)
-                .clip(RoundedCornerShape(Dimensions.Radius.md))
-                .background(color = MaterialTheme.colorScheme.surfaceContainerLow),
+            modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
             DateRangePicker(
@@ -186,7 +116,7 @@ fun DateRangePickerDialog(
                 },
                 showModeToggle = true, // Allow switching between calendar and text input
                 colors = DatePickerDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                    containerColor = CashiroDialogDefaults.containerColor,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                     headlineContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     weekdayContentColor = MaterialTheme.colorScheme.onSurface,

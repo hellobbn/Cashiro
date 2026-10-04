@@ -44,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         const val ACTION_ADD_TRANSACTION = "com.ritesh.cashiro.action.ADD_TRANSACTION"
         const val ACTION_ADD_SUBSCRIPTION = "com.ritesh.cashiro.action.ADD_SUBSCRIPTION"
         const val ACTION_ADD_TRANSFER = "com.ritesh.cashiro.action.ADD_TRANSFER"
+        /** With [ACTION_ADD_TRANSACTION]: the quick template to fill the form with. */
+        const val EXTRA_TEMPLATE_ID = "com.ritesh.cashiro.extra.TEMPLATE_ID"
     }
 
     private val themeViewModel: ThemeViewModel by viewModels()
@@ -65,6 +67,10 @@ class MainActivity : AppCompatActivity() {
 
     // Initial transaction type to pre-select
     var addTransactionType by mutableStateOf<String?>(null)
+        private set
+
+    // Quick template to fill the Add form with (launcher shortcut or home-screen widget)
+    var addTemplateId by mutableStateOf<Long?>(null)
         private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,9 +112,11 @@ class MainActivity : AppCompatActivity() {
                 onEditComplete = { editTransactionId = null },
                 addTransactionTab = addTransactionTab,
                 addTransactionType = addTransactionType,
+                addTemplateId = addTemplateId,
                 onAddComplete = { 
                     addTransactionTab = null
                     addTransactionType = null
+                    addTemplateId = null
                 },
                 appLockViewModel = appLockViewModel,
                 themeViewModel = themeViewModel,
@@ -125,6 +133,7 @@ class MainActivity : AppCompatActivity() {
     private fun handleIntent(intent: Intent?) {
         when (intent?.action) {
             ACTION_ADD_TRANSACTION -> {
+                addTemplateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, 0L).takeIf { it > 0 }
                 addTransactionTab = 0
             }
             ACTION_ADD_SUBSCRIPTION -> {
