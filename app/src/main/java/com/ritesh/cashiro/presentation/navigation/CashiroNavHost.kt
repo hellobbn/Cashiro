@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import com.ritesh.cashiro.presentation.ui.features.accounts.ACCOUNT_LIST_DETAIL_MIN_WIDTH_DP
+import com.ritesh.cashiro.presentation.ui.features.accounts.PaneAccount
+import com.ritesh.cashiro.presentation.ui.features.accounts.AccountDetailPane
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.ritesh.cashiro.presentation.ui.features.transactions.LIST_DETAIL_MIN_WIDTH_DP
@@ -537,17 +541,17 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) { entry ->
-                    ReadableWidth {
                     val selected = com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.entries.firstOrNull {
                         it.name == entry.toRoute<AccountCategoryRoute>().category
                     } ?: com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.WALLETS
-                    ManageAccountsScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToAccountDetail = { name, suffix -> navController.safeNavigate(AccountDetail(name, suffix)) },
-                        onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
-                        blurEffects = themeUiState.blurEffects,
-                        category = selected
-                    )
+                    AccountsListDetail(navController, this@composable) { openAccount ->
+                        ManageAccountsScreen(
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onNavigateToAccountDetail = openAccount,
+                            onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
+                            blurEffects = themeUiState.blurEffects,
+                            category = selected
+                        )
                     }
                 }
 
@@ -557,15 +561,13 @@ fun CashiroNavHost(
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
-                    ReadableWidth {
-                    ManageAccountsScreen(
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToAccountDetail = { bankName, last4 ->
-                            navController.safeNavigate(AccountDetail(bankName, last4))
-                        },
-                        onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
-                        blurEffects = themeUiState.blurEffects
-                    )
+                    AccountsListDetail(navController, this@composable) { openAccount ->
+                        ManageAccountsScreen(
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onNavigateToAccountDetail = openAccount,
+                            onNavigateToAddAccount = { cat -> navController.safeNavigate(AddAccount(cat?.name)) },
+                            blurEffects = themeUiState.blurEffects
+                        )
                     }
                 }
 
@@ -1092,3 +1094,42 @@ private fun NavigationTransitionInputBlocker(
         )
     }
 }
+
+/**
+ * An accounts list, with the chosen account beside it on wide windows (an unfolded foldable)
+ * and as its own screen otherwise. [list] receives what opening an account should do.
+ */
+@Composable
+private fun AccountsListDetail(
+    navController: NavHostController,
+    animatedContentScope: AnimatedVisibilityScope,
+    list: @Composable (openAccount: (bankName: String, accountLast4: String) -> Unit) -> Unit
+) {
+    if (LocalWindowLayout.current.widthDp < ACCOUNT_LIST_DETAIL_MIN_WIDTH_DP) {
+        ReadableWidth {
+            list { bankName, last4 -> navController.safeNavigate(AccountDetail(bankName, last4)) }
+        }
+        return
+    }
+    var paneAccount by rememberSaveable(stateSaver = PaneAccountSaver) { mutableStateOf<PaneAccount?>(null) }
+    BackHandler(enabled = paneAccount != null) { paneAccount = null }
+    Row(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f)) {
+            list { bankName, last4 -> paneAccount = PaneAccount(bankName, last4) }
+        }
+        VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        Box(modifier = Modifier.weight(1f)) {
+            AccountDetailPane(
+                account = paneAccount,
+                navController = navController,
+                animatedContentScope = animatedContentScope,
+                onClose = { paneAccount = null }
+            )
+        }
+    }
+}
+
+private val PaneAccountSaver = androidx.compose.runtime.saveable.listSaver<PaneAccount?, String>(
+    save = { account -> account?.let { listOf(it.bankName, it.accountLast4) } ?: emptyList() },
+    restore = { values -> if (values.size == 2) PaneAccount(values[0], values[1]) else null }
+)
