@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.home
 
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -531,6 +533,7 @@ fun SharedTransitionScope.HomeScreen(
                                                         ) {
                                                             // Search button
                                                             TextButton(
+                                                                shapes = ButtonDefaults.shapes(),
                                                                 onClick = onNavigateToTransactionsWithSearch,
                                                                 modifier = Modifier.then(
                                                                     if (animatedContentScope != null) {
@@ -636,6 +639,7 @@ fun SharedTransitionScope.HomeScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             TextButton(
+                                                shapes = ButtonDefaults.shapes(),
                                                 onClick = onNavigateToTransactions,
                                                 modifier = Modifier
                                                     .then(

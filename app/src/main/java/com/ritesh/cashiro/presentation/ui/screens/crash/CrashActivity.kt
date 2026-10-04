@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.screens.crash
 
+import androidx.compose.material3.IconButtonDefaults
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -148,7 +151,7 @@ fun CrashScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = onClose) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onClose) {
                         Icon(
                             imageVector = Icons.Rounded.Close,
                             contentDescription = "Close"

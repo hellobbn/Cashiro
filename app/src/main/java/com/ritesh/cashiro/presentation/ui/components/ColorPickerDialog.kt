@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.ui.res.stringResource
@@ -164,7 +166,7 @@ fun ColorPickerDialog(
             // Material Expressive Button - Primary action
             Button(
                 onClick = { onColorSelected(selectedColor) },
-                shape = RoundedCornerShape(50),
+                shapes = ButtonDefaults.shapes(),
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -175,7 +177,7 @@ fun ColorPickerDialog(
         dismissButton = {
             FilledTonalButton(
                 onClick = onDismiss,
-                shape = RoundedCornerShape(50),
+                shapes = ButtonDefaults.shapes(),
                 colors =
                     ButtonDefaults.filledTonalButtonColors(
                         containerColor =

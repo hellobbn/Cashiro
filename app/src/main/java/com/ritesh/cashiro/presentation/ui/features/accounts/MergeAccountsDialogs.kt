@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
@@ -138,6 +140,7 @@ fun MergeAccountSelectionDialog(
                 contentAlignment = Alignment.BottomCenter
             ) {
                 Button(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = { onNext(selectedAccounts.toList()) },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     enabled = selectedAccounts.isNotEmpty()

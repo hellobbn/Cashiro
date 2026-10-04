@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.features.settings.webhooks
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.animation.AnimatedVisibility
@@ -465,7 +467,7 @@ private fun WebhookProfileCard(
             }
 
             Box {
-                IconButton(onClick = { showMenu = true }) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { showMenu = true }) {
                     Icon(
                         Icons.Rounded.MoreVert,
                         contentDescription = stringResource(R.string.more_options_desc),

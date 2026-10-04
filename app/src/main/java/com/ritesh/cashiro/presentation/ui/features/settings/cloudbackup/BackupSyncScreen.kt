@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.settings.cloudbackup
 
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LoadingIndicator
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
@@ -500,6 +501,7 @@ fun BackupSyncScreen(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Button(
+                                                shapes = ButtonDefaults.shapes(),
                                                 onClick = {
                                                     viewModel.testConnection(
                                                         CloudProviderType.WEBDAV
@@ -514,6 +516,7 @@ fun BackupSyncScreen(
                                                 Text(stringResource(R.string.test_connection))
                                             }
                                             Button(
+                                                shapes = ButtonDefaults.shapes(),
                                                 onClick = {
                                                     viewModel.updateWebDavConfig(
                                                         webDavUrl,
@@ -573,6 +576,7 @@ fun BackupSyncScreen(
                                                 horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                                             ) {
                                                 Button(
+                                                    shapes = ButtonDefaults.shapes(),
                                                     onClick = {
                                                         gDriveSignInClient.signOut()
                                                         viewModel.onGoogleDriveSignOut()
@@ -582,6 +586,7 @@ fun BackupSyncScreen(
                                                     Text(stringResource(R.string.sign_out))
                                                 }
                                                 Button(
+                                                    shapes = ButtonDefaults.shapes(),
                                                     onClick = {
                                                         viewModel.testConnection(
                                                             CloudProviderType.GOOGLE_DRIVE
@@ -605,6 +610,7 @@ fun BackupSyncScreen(
                                             )
                                             Spacer(modifier = Modifier.size(Spacing.sm))
                                             Button(
+                                                shapes = ButtonDefaults.shapes(),
                                                 onClick = {
                                                     gDriveSignInLauncher.launch(gDriveSignInClient.signInIntent)
                                                 },
@@ -784,6 +790,7 @@ fun BackupSyncScreen(
                                     horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                                 ) {
                                     Button(
+                                        shapes = ButtonDefaults.shapes(),
                                         onClick = { viewModel.performManualBackup() },
                                         modifier = Modifier.weight(1f),
                                         enabled = uiState.syncStatus is SyncStatus.Idle
@@ -797,6 +804,7 @@ fun BackupSyncScreen(
                                         Text(stringResource(R.string.create_backup))
                                     }
                                     Button(
+                                        shapes = ButtonDefaults.shapes(),
                                         onClick = { viewModel.performManualSync() },
                                         modifier = Modifier.weight(1f),
                                         colors = ButtonDefaults.buttonColors(
@@ -1256,10 +1264,10 @@ fun SnapshotListItem(
         supporting = { Text(stringResource(R.string.snapshot_subtitle_format, timeStr, sizeMb)) },
         trailing = {
             Row {
-                IconButton(onClick = onRestore) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = onRestore) {
                     Icon(Icons.Default.Restore, contentDescription = stringResource(R.string.restore_snapshot), tint = MaterialTheme.colorScheme.primary)
                 }
-                IconButton(onClick = onDelete) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = onDelete) {
                     Icon(Iconax.Bag, contentDescription = stringResource(R.string.delete_snapshot), tint = MaterialTheme.colorScheme.error)
                 }
             }

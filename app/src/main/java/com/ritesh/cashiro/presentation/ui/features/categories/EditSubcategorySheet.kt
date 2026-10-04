@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.categories
 
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
@@ -258,7 +260,7 @@ fun EditSubcategorySheet(
                                 )
                             )
                         ),
-                        shape = MaterialTheme.shapes.extraExtraLarge
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Icon(
                             imageVector = Iconax.Bag,
@@ -274,7 +276,7 @@ fun EditSubcategorySheet(
                     modifier = Modifier
                         .weight(1f)
                         .height(56.dp),
-                    shape = MaterialTheme.shapes.extraExtraLarge
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Text(
                         text = if (subcategory == null) stringResource(R.string.create_subcategory) else stringResource(R.string.update_subcategory),
@@ -286,6 +288,7 @@ fun EditSubcategorySheet(
                 // Reset button (only for system subcategories)
                 if (subcategory?.isSystem == true && onReset != null) {
                     IconButton(
+                        shapes = IconButtonDefaults.shapes(),
                         onClick = {
                             name = subcategory.defaultName ?: subcategory.name
                             colorHex = subcategory.defaultColor ?: categoryColor

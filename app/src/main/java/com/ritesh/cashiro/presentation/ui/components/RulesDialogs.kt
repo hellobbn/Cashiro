@@ -136,6 +136,7 @@ fun RulesBatchApplyDialog(
                 )
                 if(progress == null && result == null) {
                     IconButton(
+                        shapes = IconButtonDefaults.shapes(),
                         onClick = onDismiss,
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),

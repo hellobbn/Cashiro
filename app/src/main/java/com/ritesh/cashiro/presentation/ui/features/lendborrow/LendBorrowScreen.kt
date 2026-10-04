@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.lendborrow
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -198,10 +199,6 @@ fun SharedTransitionScope.LendBorrowScreen(
                                     if (allSelected) viewModel.clearSelection()
                                     else viewModel.selectAllPersons()
                                 },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onBackground
-                                ),
                                 shapes = IconButtonDefaults.shapes()
                             ) {
                                 Icon(
@@ -214,10 +211,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                                 onClick = { showDeleteConfirmation = true },
                                 enabled = uiState.selectedPersonIds.isNotEmpty(),
                                 colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = if (uiState.selectedPersonIds.isNotEmpty())
-                                        MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                                    contentColor = MaterialTheme.colorScheme.error
                                 ),
                                 shapes = IconButtonDefaults.shapes(),
                                 modifier = Modifier.padding(end = 16.dp)
@@ -359,7 +353,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                         trailingIcon = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (searchInput.text.isNotEmpty()) {
-                                    IconButton(onClick = {
+                                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                                         searchInput = TextFieldValue("")
                                         viewModel.onSearchQueryChanged("")
                                     }) {
@@ -370,7 +364,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                                     }
                                 }
                                 Box {
-                                    IconButton(onClick = { showCategoryMenu = true }) {
+                                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = { showCategoryMenu = true }) {
                                         Icon(
                                             imageVector = Icons.Default.MoreHoriz,
                                             contentDescription = stringResource(R.string.category_filter),

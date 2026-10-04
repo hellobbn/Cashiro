@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.lendborrow
 
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
@@ -75,12 +77,7 @@ fun LendBorrowTransactionActionDialog(
                             containerColor = MaterialTheme.colorScheme.tertiary,
                             contentColor = MaterialTheme.colorScheme.onTertiary
                         ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.md,
-                            topEnd = Dimensions.Radius.md,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
+                        shapes = ButtonDefaults.shapes(),
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
@@ -101,12 +98,7 @@ fun LendBorrowTransactionActionDialog(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                             contentColor = MaterialTheme.colorScheme.onSurface
                         ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
+                        shapes = ButtonDefaults.shapes(),
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
@@ -127,12 +119,7 @@ fun LendBorrowTransactionActionDialog(
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer
                         ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.md,
-                            bottomEnd = Dimensions.Radius.md
-                        ),
+                        shapes = ButtonDefaults.shapes(),
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {

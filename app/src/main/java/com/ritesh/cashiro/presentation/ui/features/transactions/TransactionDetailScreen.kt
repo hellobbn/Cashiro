@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.components.TooltipIconButton
+import androidx.compose.material3.ripple
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -483,16 +487,13 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                 .padding(end = 16.dp)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
+                                    indication = ripple(),
                                     onClick ={ transactionDetailViewModel.enterEditMode() },
                                 ),
                         ) {
                             IconButton(
+                                shapes = IconButtonDefaults.shapes(),
                                 onClick = { transactionDetailViewModel.enterEditMode() },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onBackground
-                                )
                             ) {
                                 Icon(
                                     imageVector = Iconax.Edit2,
@@ -658,6 +659,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                         val dropContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         Box {
                             IconButton(
+                                shapes = IconButtonDefaults.shapes(),
                                 onClick = { showMoreMenu = true },
                                 colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -961,12 +963,11 @@ private fun TransactionNavigationContent(
     isEditMode: Boolean,
     onBackClick: () -> Unit
 ) {
-    IconButton(onClick = onBackClick, shapes = IconButtonDefaults.shapes()) {
-        Icon(
-            imageVector = if (isEditMode) Icons.Rounded.Close else Iconax.ArrowLeft02,
-            contentDescription = stringResource(if (isEditMode) R.string.cancel else R.string.cd_navigate_back)
-        )
-    }
+    TooltipIconButton(
+        icon = if (isEditMode) Icons.Rounded.Close else Iconax.ArrowLeft02,
+        label = stringResource(if (isEditMode) R.string.cancel else R.string.cd_navigate_back),
+        onClick = onBackClick
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -1682,7 +1683,7 @@ private fun EditableExtractedInfoCard(
                             .fillMaxWidth()
                             .clickable(
                                 onClick = {viewModel.toggleUpdateExistingTransactions()},
-                                indication = null,
+                                indication = ripple(),
                                 interactionSource = remember { MutableInteractionSource() }
                             )
                             .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
@@ -1893,7 +1894,7 @@ private fun CategoryDropdown(
                 .fillMaxWidth()
                 .clickable(
                     interactionSource = categoryInteractionSource,
-                    indication = null
+                    indication = ripple()
                 ) {
                     onClick()
                 },
@@ -2044,7 +2045,7 @@ private fun DateTimeField(
                 .padding(4.dp)
                 .clickable(
                     onClick = { showDatePicker = true },
-                    indication = null,
+                    indication = ripple(),
                     interactionSource = remember { MutableInteractionSource() }
                 ),
             contentAlignment = Alignment.Center
@@ -2546,7 +2547,7 @@ private fun TransactionReceipt(
                             )
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
+                                indication = ripple(),
                                 onClick = { isDescriptionExpanded = !isDescriptionExpanded }
                             ),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -2616,7 +2617,7 @@ private fun TransactionReceipt(
                             .padding(top = Spacing.md)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
+                                indication = ripple(),
                                 onClick = { isSMSExpanded = !isSMSExpanded }
                             ),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -3370,10 +3371,6 @@ private fun MatchPreviewSheetContent(
                     onClick = {
                         if (allSelected) onDeselectAll() else onSelectAll()
                     },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        contentColor = MaterialTheme.colorScheme.onBackground
-                    ),
                     shapes = IconButtonDefaults.shapes(),
                 ) {
                     Icon(
@@ -3411,7 +3408,7 @@ private fun MatchPreviewSheetContent(
                 },
                 trailingIcon = {
                     BlurredAnimatedVisibility(searchTextFieldValue.text.isNotEmpty()) {
-                        IconButton(onClick = {
+                        IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                             searchTextFieldValue = TextFieldValue("")
                             onSearchQueryChange("")
                         }) {

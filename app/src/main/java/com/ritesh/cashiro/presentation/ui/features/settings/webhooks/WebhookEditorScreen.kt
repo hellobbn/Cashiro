@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.settings.webhooks
 
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -303,6 +304,7 @@ fun WebhookEditorScreen(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Button(
+                        shapes = ButtonDefaults.shapes(),
                         onClick = { headers.add(WebhookHeader("", "")) },
                         contentPadding = PaddingValues(horizontal = 12.dp),
                         modifier = Modifier.height(32.dp),
@@ -343,6 +345,7 @@ fun WebhookEditorScreen(
                                 )
                                 Spacer(modifier = Modifier.weight(1f))
                                 IconButton(
+                                    shapes = IconButtonDefaults.shapes(),
                                     onClick = { headers.removeAt(index) },
                                     modifier = Modifier.size(24.dp)
                                 ) {
@@ -446,6 +449,7 @@ fun WebhookEditorScreen(
                          // Delete button (only for existing budgets)
                          if (profileId != null) {
                              OutlinedButton(
+                                 shapes = ButtonDefaults.shapes(),
                                  onClick = { showDeleteDialog = true },
                                  modifier = Modifier.height(56.dp),
                                  colors = ButtonDefaults.outlinedButtonColors(
@@ -481,6 +485,7 @@ fun WebhookEditorScreen(
                     },
                     confirmButton = {
                         TextButton(
+                            shapes = ButtonDefaults.shapes(),
                             onClick = {
                                 showDeleteDialog = false
                                 viewModel.deleteProfile(profileId)
@@ -494,7 +499,7 @@ fun WebhookEditorScreen(
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDeleteDialog = false }) {
+                        TextButton(shapes = ButtonDefaults.shapes(), onClick = { showDeleteDialog = false }) {
                             Text(stringResource(R.string.cancel))
                         }
                     }

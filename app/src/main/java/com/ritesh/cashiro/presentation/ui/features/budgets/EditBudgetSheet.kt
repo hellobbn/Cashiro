@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.budgets
  
 import androidx.compose.ui.platform.LocalContext
@@ -694,6 +696,7 @@ fun EditBudgetSheet(
                         )
                         
                         TextButton(
+                            shapes = ButtonDefaults.shapes(),
                             onClick = { showCategorySheet = true }
                         ) {
                             Icon(
@@ -774,6 +777,7 @@ fun EditBudgetSheet(
                 // Delete button (only for existing budgets)
                 if (onDelete != null && !budgetState.isNewBudget) {
                     OutlinedButton(
+                        shapes = ButtonDefaults.shapes(),
                         onClick = { showDeleteConfirmation = true },
                         modifier = Modifier.height(56.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
@@ -870,7 +874,7 @@ private fun CategoryLimitItem(
             }
         }
         
-        IconButton(onClick = onRemove) {
+        IconButton(shapes = IconButtonDefaults.shapes(), onClick = onRemove) {
             Icon(
                 imageVector = Iconax.Bag,
                 contentDescription = "Remove limit",

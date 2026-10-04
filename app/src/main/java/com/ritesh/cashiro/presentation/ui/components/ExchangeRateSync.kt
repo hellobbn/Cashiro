@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -175,7 +177,7 @@ fun RateSyncCard(
             ) {
                 var menuOpen by remember { mutableStateOf(false) }
                 Box(modifier = Modifier.weight(1f)) {
-                    TextButton(onClick = { menuOpen = true }) {
+                    TextButton(shapes = ButtonDefaults.shapes(), onClick = { menuOpen = true }) {
                         Column(horizontalAlignment = Alignment.Start) {
                             Text(stringResource(R.string.rate_server_label), style = MaterialTheme.typography.labelSmall,
                                 color = supporting)
@@ -192,7 +194,7 @@ fun RateSyncCard(
                         }
                     }
                 }
-                FilledTonalButton(onClick = onSyncNow, enabled = !isSyncing) {
+                FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = onSyncNow, enabled = !isSyncing) {
                     Text(stringResource(R.string.rate_sync_now))
                 }
             }
@@ -239,7 +241,7 @@ fun CurrencyCalculatorDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { val f = from; from = to; to = f }) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = { val f = from; from = to; to = f }) {
                         Icon(Icons.Rounded.SwapVert, contentDescription = stringResource(R.string.rate_calculator_swap))
                     }
                     Text(
@@ -262,7 +264,7 @@ fun CurrencyCalculatorDialog(
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } }
+        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text(stringResource(R.string.close)) } }
     )
 }
 
@@ -277,7 +279,7 @@ internal fun convertRate(rates: Map<String, BigDecimal>, from: String, to: Strin
 private fun CurrencyPicker(selected: String, currencies: List<String>, onSelect: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        TextButton(onClick = { open = true }) {
+        TextButton(shapes = ButtonDefaults.shapes(), onClick = { open = true }) {
             Text(selected, fontWeight = FontWeight.SemiBold)
             Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(18.dp))
         }

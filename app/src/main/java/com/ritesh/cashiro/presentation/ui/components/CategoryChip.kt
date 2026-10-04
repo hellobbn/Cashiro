@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +51,7 @@ fun CategoryChip(
 
         if (onClick != null) {
             IconButton(
+                shapes = IconButtonDefaults.shapes(),
                 onClick = onClick,
                 modifier = Modifier.size(44.dp).
                 background(

@@ -117,7 +117,7 @@ fun OnBoardingScreen(
             onDismissRequest = onBoardingViewModel::clearError,
             title = { Text(stringResource(R.string.onboarding_try_again)) },
             text = { Text(message) },
-            confirmButton = { TextButton(onClick = onBoardingViewModel::clearError) { Text(stringResource(R.string.ok)) } }
+            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = onBoardingViewModel::clearError) { Text(stringResource(R.string.ok)) } }
         )
     }
     if (state.isLoading) {
@@ -215,7 +215,7 @@ private fun NotificationStep(onSkip: () -> Unit) {
         Icon(Icons.Rounded.Notifications, contentDescription = null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.primary)
         Text(stringResource(R.string.stay_informed), style = MaterialTheme.typography.headlineLarge)
         Text(stringResource(R.string.onboarding_notifications_body), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-        TextButton(onClick = onSkip, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.onboarding_not_now)) }
+        TextButton(shapes = ButtonDefaults.shapes(), onClick = onSkip, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.onboarding_not_now)) }
     }
 }
 
@@ -329,7 +329,7 @@ fun ManualAccountEntryStep(
 
         Spacer(modifier = Modifier.height(Spacing.xl))
 
-        FilledTonalButton(onClick = onImportBackup, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = onImportBackup, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Icon(Icons.Rounded.Restore, contentDescription = null)
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.onboarding_import_backup))

@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.contacts
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.animation.core.tween
@@ -187,10 +188,6 @@ fun SharedTransitionScope.ContactsScreen(
                                         viewModel.selectAllPersons()
                                     }
                                 },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onBackground
-                                ),
                                 shapes = IconButtonDefaults.shapes(),
                             ) {
                                 Icon(
@@ -203,10 +200,7 @@ fun SharedTransitionScope.ContactsScreen(
                                 onClick = { showDeleteConfirmation = true },
                                 enabled = selectedPersonIds.isNotEmpty(),
                                 colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = if (selectedPersonIds.isNotEmpty())
-                                        MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                                    contentColor = MaterialTheme.colorScheme.error
                                 ),
                                 shapes = IconButtonDefaults.shapes(),
                                 modifier = Modifier.padding(end = 16.dp)
@@ -302,7 +296,7 @@ fun SharedTransitionScope.ContactsScreen(
                         },
                         trailingIcon = {
                             if (searchInput.text.isNotEmpty()) {
-                                IconButton(onClick = {
+                                IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                                     searchInput = TextFieldValue("")
                                     viewModel.onSearchQueryChanged("")
                                 }) {

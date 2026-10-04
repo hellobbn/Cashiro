@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.ai
 
+import androidx.compose.material3.IconButtonDefaults
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -352,7 +355,7 @@ private fun ProviderCard(
                     )
                 }
                 if (config.isConfigured && !editing) {
-                    TextButton(onClick = { editing = true }) { Text(stringResource(R.string.ai_edit)) }
+                    TextButton(shapes = ButtonDefaults.shapes(), onClick = { editing = true }) { Text(stringResource(R.string.ai_edit)) }
                 }
             }
             if (!config.isConfigured || editing) {
@@ -456,6 +459,7 @@ private fun ProviderForm(
     }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Button(
+            shapes = ButtonDefaults.shapes(),
             onClick = { onSave(AiConfig(preset.protocol, baseUrl, model, apiKey)) },
             enabled = ready && model.isNotBlank()
         ) { Text(stringResource(R.string.ai_save)) }
@@ -528,7 +532,7 @@ private fun ModelField(model: String, models: ModelListState, onClick: () -> Uni
             }
             when {
                 models.loading -> LoadingIndicator(modifier = Modifier.size(32.dp))
-                models.error != null -> TextButton(onClick = onRetry) { Text(stringResource(R.string.ai_retry)) }
+                models.error != null -> TextButton(shapes = ButtonDefaults.shapes(), onClick = onRetry) { Text(stringResource(R.string.ai_retry)) }
                 else -> Icon(Icons.Rounded.ArrowDropDown, contentDescription = null)
             }
         }
@@ -618,7 +622,7 @@ private fun FilesSection(names: List<Pair<String, Boolean>>, onAdd: () -> Unit, 
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f)
             )
-            TextButton(onClick = onAdd) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onAdd) {
                 Icon(Icons.Rounded.AttachFile, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(Spacing.xs))
                 Text(stringResource(R.string.ai_add_files))
@@ -657,7 +661,7 @@ private fun ErrorCard(message: String, onDismiss: () -> Unit) {
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.weight(1f).padding(vertical = Spacing.md)
             )
-            IconButton(onClick = onDismiss) { Icon(Icons.Rounded.Close, contentDescription = null) }
+            IconButton(shapes = IconButtonDefaults.shapes(), onClick = onDismiss) { Icon(Icons.Rounded.Close, contentDescription = null) }
         }
     }
 }

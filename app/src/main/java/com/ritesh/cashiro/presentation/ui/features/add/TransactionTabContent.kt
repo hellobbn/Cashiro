@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import androidx.compose.material3.ripple
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.toggleable
 import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
@@ -286,7 +287,7 @@ fun TransactionTabContent(
                         .padding(8.dp)
                         .clickable(
                             onClick = { showDatePicker = true },
-                            indication = null,
+                            indication = ripple(),
                             interactionSource = remember { MutableInteractionSource() }
                         ),
                     contentAlignment = Alignment.Center
@@ -709,7 +710,7 @@ fun TransactionTabContent(
                             Modifier.fillMaxWidth()
                                 .clickable(
                                     interactionSource = categoryInteractionSource,
-                                    indication = null
+                                    indication = ripple()
                                 ) {
                                     showCategoryMenu = true
                                 },
@@ -786,7 +787,7 @@ fun TransactionTabContent(
                             Modifier.fillMaxWidth()
                                 .clickable(
                                     interactionSource = categoryInteractionSource,
-                                    indication = null
+                                    indication = ripple()
                                 ) {
                                     showCategoryMenu = true
                                 },
@@ -1259,13 +1260,13 @@ fun TransactionTabContent(
             text = { Text(stringResource(R.string.balance_overdraft_message,
                 uiState.currency, projected.toPlainString())) },
             confirmButton = {
-                TextButton(onClick = { viewModel.saveTransaction(allowOverdraft = true, onSuccess = onSave) },
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = { viewModel.saveTransaction(allowOverdraft = true, onSuccess = onSave) },
                     enabled = !uiState.isLoading) {
                     Text(stringResource(R.string.balance_overdraft_continue))
                 }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::dismissOverdraftWarning) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = viewModel::dismissOverdraftWarning) {
                     Text(stringResource(R.string.cancel))
                 }
             }

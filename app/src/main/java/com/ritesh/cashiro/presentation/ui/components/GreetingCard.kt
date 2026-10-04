@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -173,31 +177,10 @@ fun GreetingCard(
         // Material icon buttons provide an accessible 48dp touch target and ripple.
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (onAiClick != null) {
-                IconButton(onClick = onAiClick) {
-                    Icon(
-                        imageVector = Icons.Rounded.AutoAwesome,
-                        contentDescription = stringResource(R.string.ai_assistant_title),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                TooltipIconButton(Icons.Rounded.AutoAwesome, stringResource(R.string.ai_assistant_title), onAiClick)
             }
-            IconButton(onClick = onNotificationClick) {
-                Icon(
-                    imageVector = Iconax.NotificationOutline,
-                    contentDescription = stringResource(R.string.notification),
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            IconButton(onClick = onMoreClick) {
-                Icon(
-                    imageVector = Icons.Rounded.MoreHoriz,
-                    contentDescription = stringResource(R.string.more_options),
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            TooltipIconButton(Iconax.NotificationOutline, stringResource(R.string.notification), onNotificationClick)
+            TooltipIconButton(Icons.Rounded.MoreHoriz, stringResource(R.string.more_options), onMoreClick)
         }
     }
 }

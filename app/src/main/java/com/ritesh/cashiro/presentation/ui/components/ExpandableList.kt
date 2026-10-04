@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.animation.SharedTransitionScope
@@ -43,6 +45,7 @@ fun <T> ExpandableList(
                 contentAlignment = Alignment.Center
             ) {
                 TextButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = { isExpanded = !isExpanded },
                     modifier = Modifier.height(26.dp),
                     colors = ButtonDefaults.textButtonColors(

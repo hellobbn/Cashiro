@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.layout.width
 
 import androidx.compose.foundation.layout.height
@@ -142,6 +145,7 @@ fun EditWidgetsSheet(
 
             Spacer(Modifier.height(Spacing.md))
             TextButton(
+                shapes = ButtonDefaults.shapes(),
                 onClick = onResetLayout,
                 modifier = Modifier
                     .fillMaxWidth()

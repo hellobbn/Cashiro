@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.components.TooltipIconButton
+import androidx.compose.material3.ButtonDefaults
 import com.ritesh.cashiro.presentation.ui.icons.ImportArrow01
 import androidx.compose.animation.core.tween
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -371,9 +375,11 @@ fun TransactionsScreen(
                 },
                 actionContent = {
                     if (!selectionMode) {
-                        IconButton(onClick = onExport, shapes = IconButtonDefaults.shapes()) {
-                            Icon(Iconax.ImportArrow01, contentDescription = stringResource(R.string.export_transactions))
-                        }
+                        TooltipIconButton(
+                            icon = Iconax.ImportArrow01,
+                            label = stringResource(R.string.export_transactions),
+                            onClick = onExport
+                        )
                     }
                     BlurredAnimatedVisibility(selectionMode) {
                         Row(
@@ -464,7 +470,7 @@ fun TransactionsScreen(
                     trailingIcon = {
                         Row{
                             BlurredAnimatedVisibility(searchTextFieldValue.text.isNotEmpty()) {
-                                IconButton(onClick = {
+                                IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                                     searchTextFieldValue = TextFieldValue("")
                                     transactionsViewModel.updateSearchQuery("")
                                 }) {
@@ -478,6 +484,7 @@ fun TransactionsScreen(
                             // More options button
                             Box {
                                 IconButton(
+                                    shapes = IconButtonDefaults.shapes(),
                                     onClick = { showMainMenu = true },
                                     modifier = Modifier
                                         .size(48.dp)

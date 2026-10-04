@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
@@ -221,6 +225,7 @@ fun HistorySheet(
             text = { Text(stringResource(R.string.delete_balance_record_confirm)) },
             confirmButton = {
                 TextButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = {
                         onDeleteBalance(balanceId)
                         showDeleteConfirmation = null
@@ -230,7 +235,7 @@ fun HistorySheet(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirmation = null }) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = { showDeleteConfirmation = null }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -306,6 +311,7 @@ private fun HistoryRecordItem(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         IconButton(
+                            shapes = IconButtonDefaults.shapes(),
                             onClick = onEditClick,
                             modifier = Modifier.size(32.dp)
                         ) {
@@ -317,6 +323,7 @@ private fun HistoryRecordItem(
                             )
                         }
                         IconButton(
+                            shapes = IconButtonDefaults.shapes(),
                             onClick = onDeleteClick,
                             modifier = Modifier.size(32.dp)
                         ) {
@@ -358,6 +365,7 @@ private fun HistoryRecordItem(
                         horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
                         Button(
+                            shapes = ButtonDefaults.shapes(),
                             onClick = onSaveEdit,
                             enabled = editingValue.toBigDecimalOrNull() != null,
                             modifier = Modifier.weight(1f)
@@ -367,6 +375,7 @@ private fun HistoryRecordItem(
                             Text(stringResource(R.string.save))
                         }
                         OutlinedButton(
+                            shapes = ButtonDefaults.shapes(),
                             onClick = onCancelEdit,
                             modifier = Modifier.weight(1f)
                         ) {
@@ -467,6 +476,7 @@ private fun HistoryRecordItem(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             IconButton(
+                                shapes = IconButtonDefaults.shapes(),
                                 onClick = { clipboard.setText(AnnotatedString(smsSource)) },
                                 modifier = Modifier
                                     .align(Alignment.End)

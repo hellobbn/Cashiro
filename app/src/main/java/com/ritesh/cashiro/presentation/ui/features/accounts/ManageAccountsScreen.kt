@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import androidx.compose.material3.ripple
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -584,7 +587,7 @@ fun ManageAccountsScreen(
                                     .fillMaxWidth()
                                     .clickable(
                                         onClick = { showHiddenAccounts = !showHiddenAccounts },
-                                        indication = null,
+                                        indication = ripple(),
                                         interactionSource = remember { MutableInteractionSource() }
                                     ),
                                 colors = CardDefaults.cardColors(
@@ -1181,7 +1184,7 @@ private fun BrokerageConnectionRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            TextButton(onClick = onDisconnect) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDisconnect) {
                 Text(stringResource(R.string.investments_disconnect))
             }
         }
@@ -1313,7 +1316,7 @@ private fun OrphanedCardItem(
     Card(
         modifier = Modifier.fillMaxWidth().clickable(
             onClick = { expandedSource = !expandedSource },
-            indication = null,
+            indication = ripple(),
             interactionSource = remember { MutableInteractionSource() }
         ),
         colors = CardDefaults.cardColors(

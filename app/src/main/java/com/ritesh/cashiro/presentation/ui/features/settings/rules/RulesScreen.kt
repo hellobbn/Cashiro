@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.rules
 
+import androidx.compose.material3.ButtonDefaults
 import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -116,10 +119,6 @@ fun RulesScreen(
 
                     IconButton(
                         onClick = { showResetDialog = true },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            contentColor = MaterialTheme.colorScheme.onBackground
-                        ),
                         shapes =  IconButtonDefaults.shapes(),
                         modifier = Modifier.padding(end = 16.dp)
                     ) {
@@ -420,6 +419,7 @@ private fun RuleCard(
                 if (rule.isActive) {
                     Box {
                         IconButton(
+                            shapes = IconButtonDefaults.shapes(),
                             onClick = { showActionsMenu = true }
                         ) {
                             Icon(

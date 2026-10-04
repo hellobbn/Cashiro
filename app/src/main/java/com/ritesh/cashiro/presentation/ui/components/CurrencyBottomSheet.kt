@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import com.ritesh.cashiro.data.currency.RateServerChoice
@@ -119,7 +121,7 @@ contentDescription = stringResource(R.string.search),
                         },
                         trailingIcon = {
                             if (searchQuery.text.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = TextFieldValue("") }) {
+                                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { searchQuery = TextFieldValue("") }) {
                                     Icon(
                                         imageVector = Iconax.CloseCircle,
                                         contentDescription = stringResource(R.string.clear),
@@ -127,7 +129,7 @@ contentDescription = stringResource(R.string.search),
                                     )
                                 }
                             } else {
-                                IconButton(onClick = { showExchangeRateInfo = true }) {
+                                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { showExchangeRateInfo = true }) {
                                     Icon(
                                         imageVector = Iconax.Information,
                                         contentDescription = "Info",
@@ -263,7 +265,7 @@ contentDescription = stringResource(R.string.search),
                     onClick = { showAddCustomCurrencySheet = true },
                     modifier = Modifier
                         .height(56.dp),
-                    shape = MaterialTheme.shapes.extraExtraLarge
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
@@ -344,6 +346,7 @@ contentDescription = stringResource(R.string.search),
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Button(
+                                    shapes = ButtonDefaults.shapes(),
                                     onClick = { showExchangeRateInfo = false },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -353,6 +356,7 @@ contentDescription = stringResource(R.string.search),
                                     Text(text = stringResource(R.string.ok))
                                 }
                                 Button(
+                                    shapes = ButtonDefaults.shapes(),
                                     onClick = {
                                         showExchangeRateSheet = true
                                         showExchangeRateInfo = false
@@ -530,6 +534,7 @@ fun ExchangeRatesBottomSheet(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 IconButton(
+                    shapes = IconButtonDefaults.shapes(),
                     onClick = {
                         val other = (uiState.accountCurrencies - baseCurrencyCode.uppercase()).firstOrNull() ?: "USD"
                         calculatorPair = other to baseCurrencyCode
@@ -614,6 +619,7 @@ fun ExchangeRatesBottomSheet(
                 if (groups.other.isNotEmpty() && searchQuery.text.isBlank()) {
                     item(key = "toggle-others") {
                         TextButton(
+                            shapes = ButtonDefaults.shapes(),
                             onClick = { showOthers = !showOthers },
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -979,7 +985,7 @@ fun AddCustomCurrencyBottomSheet(
                     },
                     modifier = Modifier
                         .height(56.dp),
-                    shape = MaterialTheme.shapes.extraExtraLarge
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Text(
                         text = stringResource(R.string.save_currency),

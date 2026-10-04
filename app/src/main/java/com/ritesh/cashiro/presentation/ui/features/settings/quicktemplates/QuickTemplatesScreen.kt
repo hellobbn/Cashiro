@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.quicktemplates
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.toggleable
 import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
@@ -236,10 +240,10 @@ private fun QuickTemplateRow(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        IconButton(onClick = onEdit) {
+        IconButton(shapes = IconButtonDefaults.shapes(), onClick = onEdit) {
             Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.edit))
         }
-        IconButton(onClick = onDelete) {
+        IconButton(shapes = IconButtonDefaults.shapes(), onClick = onDelete) {
             Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
         }
         Icon(
@@ -305,12 +309,12 @@ private fun QuickTemplateEditDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(name, amount, prefill) }, enabled = !amountInvalid) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = { onSave(name, amount, prefill) }, enabled = !amountInvalid) {
                 Text(stringResource(R.string.action_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         }
     )
 }

@@ -205,10 +205,6 @@ fun SharedTransitionScope.PersonDetailScreen(
                                         if (allSelected) viewModel.clearSelection()
                                         else viewModel.selectAllRecords()
                                     },
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                        contentColor = MaterialTheme.colorScheme.onBackground
-                                    ),
                                     shapes = IconButtonDefaults.shapes()
                                 ) {
                                     Icon(
@@ -221,10 +217,7 @@ fun SharedTransitionScope.PersonDetailScreen(
                                     onClick = { showDeleteConfirmation = true },
                                     enabled = uiState.selectedRecordIds.isNotEmpty(),
                                     colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                        contentColor = if (uiState.selectedRecordIds.isNotEmpty())
-                                            MaterialTheme.colorScheme.error
-                                        else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                                        contentColor = MaterialTheme.colorScheme.error
                                     ),
                                     shapes = IconButtonDefaults.shapes(),
                                     modifier = Modifier.padding(end = 16.dp)
@@ -699,7 +692,7 @@ private fun SharedTransitionScope.PersonHeaderCard(
                 onClick = onSettleClick,
                 enabled = person.netBalance.compareTo(BigDecimal.ZERO) != 0,
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp)
+                shapes = ButtonDefaults.shapes()
             ) {
                 Text(
                     text = stringResource(R.string.settle_up),
@@ -742,6 +735,7 @@ private fun SharedTransitionScope.PersonHeaderCard(
         ) {
             if (!person.phoneNumber.isNullOrBlank()) {
                 Button(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = onCallClick,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -756,6 +750,7 @@ private fun SharedTransitionScope.PersonHeaderCard(
                     )
                 }
                 Button(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = onSmsClick,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -770,6 +765,7 @@ private fun SharedTransitionScope.PersonHeaderCard(
                     )
                 }
                 Button(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = onWhatsAppClick,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -785,6 +781,7 @@ private fun SharedTransitionScope.PersonHeaderCard(
                     )
                 }
                 Button(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = onTelegramClick,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
