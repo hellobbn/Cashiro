@@ -3,6 +3,7 @@ package com.ritesh.cashiro
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.net.Uri
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -36,6 +37,8 @@ import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.ritesh.cashiro.presentation.ui.features.ai.AiShareInbox
+import androidx.core.content.IntentCompat
 import kotlin.getValue
 
 @AndroidEntryPoint
@@ -56,6 +59,13 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
+
+    @Inject
+    lateinit var aiShareInbox: AiShareInbox
+
+    // Files were shared to Cashiro: open AI bookkeeping
+    var openAiAssistant by mutableStateOf(false)
+        private set
 
     // Transaction ID to edit when launched from notification
     var editTransactionId by mutableStateOf<Long?>(null)
@@ -113,6 +123,8 @@ class MainActivity : AppCompatActivity() {
                 addTransactionTab = addTransactionTab,
                 addTransactionType = addTransactionType,
                 addTemplateId = addTemplateId,
+                openAiAssistant = openAiAssistant,
+                onAiAssistantOpened = { openAiAssistant = false },
                 onAddComplete = { 
                     addTransactionTab = null
                     addTransactionType = null
@@ -143,7 +155,27 @@ class MainActivity : AppCompatActivity() {
                 addTransactionTab = 0
                 addTransactionType = "TRANSFER"
             }
+            Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> {
+                val uris = sharedUris(intent)
+                if (uris.isNotEmpty()) {
+                    aiShareInbox.offer(uris)
+                    openAiAssistant = true
+                }
+            }
         }
+    }
+
+    private fun sharedUris(intent: Intent): List<Uri> {
+        val streams = if (intent.action == Intent.ACTION_SEND_MULTIPLE) {
+            IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri::class.java).orEmpty()
+        } else {
+            listOfNotNull(IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java))
+        }
+        if (streams.isNotEmpty()) return streams
+        // Shared text (an SMS, a copied bill) has no file: keep it as one
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() } ?: return emptyList()
+        val file = java.io.File(cacheDir, "shared-text-${System.currentTimeMillis()}.txt").apply { writeText(text) }
+        return listOf(Uri.fromFile(file))
     }
 
     /**

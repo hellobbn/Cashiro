@@ -62,6 +62,33 @@ Personal Chinese / cross-border manual accounts:
 - A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth.
 - Prefer account UX, currency defaults, and imports over SMS automation.
 
+## AI bookkeeping
+
+Cloud only, with the user's own key; no on-device model. Plain HTTP over the existing Ktor
+client, no provider SDKs, to keep the app small.
+
+- `data/ai/AiChat.kt` speaks two protocols: the Claude Messages API and OpenAI-compatible Chat
+  Completions (OpenRouter, OpenAI, DeepSeek, Qwen…). Replies are appended verbatim (thinking blocks
+  included). Server-side refusal fallbacks are only sent to `api.anthropic.com`.
+- `AiSettings` keeps protocol, address, model and key in encrypted preferences.
+- `LedgerTools` is the API a model gets:
+  - `find_transactions` answers at once.
+  - `add_transactions`, `update_transactions` and `delete_transactions` only queue a `LedgerChange`.
+  - Updates touch merchant, category, subcategory and notes only. Amount, date, type or account
+    changes are a delete plus an add.
+  - `apply` goes through `AddTransactionUseCase` and the repository's delete, so balances stay
+    right, and returns what `undo` needs.
+- `AiLedgerSession` runs the tool loop. The accounts (as refs `A1`, `A2`…) and the categories are
+  in the system prompt.
+- `AiAttachmentReader` handles the input files:
+  - Tall screenshots are cut into tiles.
+  - PDFs go to Claude as documents and to other providers as their text layer, or as the file
+    when they have none. Password-protected PDFs are unlocked locally.
+  - Text files are decoded as UTF-8, falling back to GB18030.
+- UI: Settings → AI bookkeeping (`AiAssistantScreen`). Files shared to Cashiro (`SEND` /
+  `SEND_MULTIPLE` on `MainActivity`) wait in `AiShareInbox` until the app is unlocked.
+  Nothing is written before the user ticks the proposed changes; likely duplicates start unticked.
+
 ## Design Principles
 
 - Material You dynamic color on Android 12+

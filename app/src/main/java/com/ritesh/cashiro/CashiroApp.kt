@@ -17,6 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
+import com.ritesh.cashiro.presentation.navigation.AiAssistant
 import com.ritesh.cashiro.presentation.navigation.AppLock
 import com.ritesh.cashiro.presentation.navigation.Home
 import com.ritesh.cashiro.presentation.navigation.CashiroNavHost
@@ -38,7 +39,9 @@ fun CashiroApp(
     addTransactionTab: Int? = null,
     addTransactionType: String? = null,
     addTemplateId: Long? = null,
-    onAddComplete: () -> Unit = {}
+    onAddComplete: () -> Unit = {},
+    openAiAssistant: Boolean = false,
+    onAiAssistantOpened: () -> Unit = {}
 ) {
     val themeUiState by themeViewModel.themeUiState.collectAsStateWithLifecycle()
     val appLockUiState by appLockViewModel.uiState.collectAsStateWithLifecycle()
@@ -90,6 +93,15 @@ fun CashiroApp(
         addTransactionTab?.let { tab ->
             navController.navigate(AddTransaction(initialTab = tab, type = addTransactionType, templateId = addTemplateId))
             onAddComplete()
+        }
+    }
+
+    // Shared files wait in AiShareInbox until the app is unlocked
+    val locked = appLockUiState.isLocked && appLockUiState.isLockEnabled
+    LaunchedEffect(openAiAssistant, locked) {
+        if (openAiAssistant && !locked) {
+            navController.navigate(AiAssistant) { launchSingleTop = true }
+            onAiAssistantOpened()
         }
     }
 

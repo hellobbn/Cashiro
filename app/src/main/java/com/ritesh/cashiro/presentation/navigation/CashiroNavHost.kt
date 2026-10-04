@@ -112,6 +112,7 @@ import com.ritesh.cashiro.presentation.ui.features.settings.notifications.Notifi
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.CreateRuleScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.RulesScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.quicktemplates.QuickTemplatesScreen
+import com.ritesh.cashiro.presentation.ui.features.ai.AiAssistantScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.RulesViewModel
 import com.ritesh.cashiro.presentation.ui.features.settings.webhooks.WebhookEditorScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.webhooks.WebhooksScreen
@@ -316,6 +317,7 @@ fun CashiroNavHost(
                         onNavigateToManageAccounts = { navController.safeNavigate(ManageAccounts) },
                         onNavigateToRules = { navController.safeNavigate(Rules) },
                         onNavigateToQuickTemplates = { navController.safeNavigate(QuickTemplates) },
+                        onNavigateToAiAssistant = { navController.safeNavigate(AiAssistant) },
                         onNavigateToAppearance = { navController.safeNavigate(Appearance) },
                         onNavigateToProfile = { navController.safeNavigate(Profile) },
                         onNavigateToNotifications = { navController.safeNavigate(NotificationSettings) },
@@ -585,6 +587,17 @@ fun CashiroNavHost(
                         onNavigateBack = { navController.safePopBackStack() },
                         initialCategory = initialCategory
                     )
+                    }
+                }
+
+                composable<AiAssistant>(
+                    enterTransition = CashiroTransitions.horizontalSlideEnter,
+                    exitTransition = CashiroTransitions.horizontalSlideExit,
+                    popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
+                    popExitTransition = CashiroTransitions.horizontalSlidePopExit
+                ) {
+                    ReadableWidth {
+                    AiAssistantScreen(onNavigateBack = { navController.safePopBackStack() })
                     }
                 }
 

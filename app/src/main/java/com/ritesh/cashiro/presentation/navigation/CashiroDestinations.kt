@@ -161,6 +161,8 @@ data class Transactions(
 @Serializable object Rules
 @Serializable object QuickTemplates
 
+@Serializable object AiAssistant
+
 @Serializable data class CreateRule(val ruleId: String? = null)
 
 @Serializable object Appearance
