@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
+import com.ritesh.cashiro.presentation.ui.components.DialogActionsRow
+import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
 import com.ritesh.cashiro.presentation.ui.components.LendBorrowRow
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -829,9 +832,10 @@ private fun BreakdownDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = Spacing.md), // Reduced horizontal padding for wider modal
+            shape = MaterialTheme.shapes.extraLarge,
             colors =
                 CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = CashiroDialogDefaults.containerColor
                 )
         ) {
             Column(
@@ -924,10 +928,12 @@ private fun BreakdownDialog(
                 }
 
                 // Close button
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.End)
-                ) { Text(stringResource(R.string.close)) }
+                DialogActionsRow {
+                    DialogDismissButton(
+                        text = stringResource(R.string.close),
+                        onClick = onDismiss
+                    )
+                }
             }
         }
     }

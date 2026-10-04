@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.cloudbackup
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
+import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
+import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
 import android.app.Activity
 import android.net.Uri
 import android.util.Log
@@ -964,44 +967,12 @@ fun BackupSyncScreen(
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = { showScheduleDialog = false },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    shapes = ButtonDefaults.shapes(),
-                    modifier = Modifier
-                        .padding(horizontal = Spacing.xl)
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+                DialogDismissButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { showScheduleDialog = false }
+                )
             },
-            containerColor = if (blurEffects)
-                MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .then(
-                    if (blurEffects) Modifier.hazeEffect(
-                        state = hazeState,
-                        block = fun HazeEffectScope.() {
-                            inputScale = HazeInputScale.Auto
-                            style = HazeDefaults.style(
-                                backgroundColor = Color.Transparent,
-                                tint = HazeDefaults.tint(containerColor),
-                                blurRadius = 20.dp,
-                                noiseFactor = -1f,
-                            )
-                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                        }
-                    ) else Modifier
-                ),
-            shape = RoundedCornerShape(16.dp),
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 
@@ -1035,44 +1006,12 @@ fun BackupSyncScreen(
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = { showRetentionDialog = false },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    shapes = ButtonDefaults.shapes(),
-                    modifier = Modifier
-                        .padding(horizontal = Spacing.xl)
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+                DialogDismissButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { showRetentionDialog = false }
+                )
             },
-            containerColor = if (blurEffects)
-                MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .then(
-                    if (blurEffects) Modifier.hazeEffect(
-                        state = hazeState,
-                        block = fun HazeEffectScope.() {
-                            inputScale = HazeInputScale.Auto
-                            style = HazeDefaults.style(
-                                backgroundColor = Color.Transparent,
-                                tint = HazeDefaults.tint(containerColor),
-                                blurRadius = 20.dp,
-                                noiseFactor = -1f,
-                            )
-                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                        }
-                    ) else Modifier
-                ),
-            shape = RoundedCornerShape(16.dp),
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 
@@ -1115,83 +1054,23 @@ fun BackupSyncScreen(
                 }
             },
             confirmButton = {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                    ) {
-                        Button(
-                            onClick = { showE2eDialog = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                contentColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xxl,
-                                topEnd = Dimensions.Radius.xs,
-                                bottomStart = Dimensions.Radius.xxl,
-                                bottomEnd = Dimensions.Radius.xs
-                            ),
-                            modifier = Modifier
-                                .padding(start = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                if (e2ePassphraseInput.isNotBlank()) {
-                                    viewModel.setE2eEncryption(true, e2ePassphraseInput)
-                                    showE2eDialog = false
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xs,
-                                topEnd = Dimensions.Radius.xxl,
-                                bottomStart = Dimensions.Radius.xs,
-                                bottomEnd = Dimensions.Radius.xxl
-                            ),
-                            modifier = Modifier
-                                .padding(end = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.enable_and_save),
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                DialogConfirmButton(
+                    text = stringResource(R.string.enable_and_save),
+                    onClick = {
+                        if (e2ePassphraseInput.isNotBlank()) {
+                            viewModel.setE2eEncryption(true, e2ePassphraseInput)
+                            showE2eDialog = false
                         }
                     }
-                }
+                )
             },
-            containerColor = if (blurEffects) containerColor.copy(0.5f) else containerColor,
-            dismissButton = {},
-            modifier = Modifier
-                .clip(RoundedCornerShape(Dimensions.Radius.md))
-                .then(
-                    if (blurEffects) Modifier.hazeEffect(
-                        state = hazeState,
-                        block = fun HazeEffectScope.() {
-                            inputScale = HazeInputScale.Auto
-                            style = HazeDefaults.style(
-                                backgroundColor = Color.Transparent,
-                                tint = HazeDefaults.tint(containerColor),
-                                blurRadius = 20.dp,
-                                noiseFactor = -1f,
-                            )
-                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                        }
-                    ) else Modifier
-                ),
-            shape = MaterialTheme.shapes.large
+            dismissButton = {
+                DialogDismissButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { showE2eDialog = false }
+                )
+            },
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 
@@ -1234,85 +1113,25 @@ fun BackupSyncScreen(
                 }
             },
             confirmButton = {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                    ) {
-                        Button(
-                            onClick = {
-                                viewModel.dismissRestorePassphraseDialog()
-                                restorePassphraseInput = ""
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                contentColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xxl,
-                                topEnd = Dimensions.Radius.xs,
-                                bottomStart = Dimensions.Radius.xxl,
-                                bottomEnd = Dimensions.Radius.xs
-                            ),
-                            modifier = Modifier
-                                .padding(start = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                if (restorePassphraseInput.isNotBlank()) {
-                                    viewModel.retryRestoreWithPassphrase(restorePassphraseInput)
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xs,
-                                topEnd = Dimensions.Radius.xxl,
-                                bottomStart = Dimensions.Radius.xs,
-                                bottomEnd = Dimensions.Radius.xxl
-                            ),
-                            modifier = Modifier
-                                .padding(end = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.restore),
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                DialogConfirmButton(
+                    text = stringResource(R.string.restore),
+                    onClick = {
+                        if (restorePassphraseInput.isNotBlank()) {
+                            viewModel.retryRestoreWithPassphrase(restorePassphraseInput)
                         }
                     }
-                }
+                )
             },
-            containerColor = if (blurEffects) containerColor.copy(0.5f) else containerColor,
-            dismissButton = {},
-            modifier = Modifier
-                .clip(RoundedCornerShape(Dimensions.Radius.md))
-                .then(
-                    if (blurEffects) Modifier.hazeEffect(
-                        state = hazeState,
-                        block = fun HazeEffectScope.() {
-                            inputScale = HazeInputScale.Auto
-                            style = HazeDefaults.style(
-                                backgroundColor = Color.Transparent,
-                                tint = HazeDefaults.tint(containerColor),
-                                blurRadius = 20.dp,
-                                noiseFactor = -1f,
-                            )
-                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                        }
-                    ) else Modifier
-                ),
-            shape = MaterialTheme.shapes.large
+            dismissButton = {
+                DialogDismissButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = {
+                        viewModel.dismissRestorePassphraseDialog()
+                        restorePassphraseInput = ""
+                    }
+                )
+            },
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 
@@ -1480,92 +1299,27 @@ fun ExportOptionsDialog(
             }
         },
         confirmButton = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xxl,
-                            topEnd = Dimensions.Radius.xs,
-                            bottomStart = Dimensions.Radius.xxl,
-                            bottomEnd = Dimensions.Radius.xs
-                        ),
-                        modifier = Modifier
-                            .padding(start = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = MaterialTheme.typography.titleMedium
+            DialogConfirmButton(
+                text = stringResource(R.string.export),
+                onClick = {
+                    onConfirm(
+                        BackupConfiguration(
+                            includeTransactionalData = includeTransactional,
+                            includeProfileData = includeProfile,
+                            includeBudgets = includeBudgets,
+                            includeAppPreferences = includePreferences
                         )
-                    }
-                    Button(
-                        onClick = {
-                            onConfirm(
-                            BackupConfiguration(
-                                includeTransactionalData = includeTransactional,
-                                includeProfileData = includeProfile,
-                                includeBudgets = includeBudgets,
-                                includeAppPreferences = includePreferences
-                            ))},
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = Dimensions.Radius.xs,
-                            topEnd = Dimensions.Radius.xxl,
-                            bottomStart = Dimensions.Radius.xs,
-                            bottomEnd = Dimensions.Radius.xxl
-                        ),
-                        modifier = Modifier
-                            .padding(end = Spacing.xl)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                            Text(
-                                text = stringResource(R.string.export),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-
-                    }
-
+                    )
                 }
-            }
+            )
         },
-        containerColor = if (blurEffects)
-            MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-        else MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .then(
-                if (blurEffects) Modifier.hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        inputScale = HazeInputScale.Auto
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            tint = HazeDefaults.tint(containerColor),
-                            blurRadius = 20.dp,
-                            noiseFactor = -1f,
-                        )
-                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                    }
-                ) else Modifier
-            ),
-        shape = RoundedCornerShape(16.dp),
-        dismissButton = {},
-
+        dismissButton = {
+            DialogDismissButton(
+                text = stringResource(R.string.cancel),
+                onClick = onDismiss
+            )
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 

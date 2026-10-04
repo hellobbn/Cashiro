@@ -706,98 +706,30 @@ fun ExchangeRatesBottomSheet(
                 }
             },
             confirmButton = {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                    ) {
-                        Button(
-                            onClick = { editTarget = null },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                contentColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xxl,
-                                topEnd = Dimensions.Radius.xs,
-                                bottomStart = Dimensions.Radius.xxl,
-                                bottomEnd = Dimensions.Radius.xs
-                            ),
-                            modifier = Modifier
-                                .padding(start = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                DialogConfirmButton(
+                    text = stringResource(R.string.save),
+                    onClick = {
+                        val rate = editRateText.toDoubleOrNull()
+                        if (rate != null && rate > 0) {
+                            onSaveCustomRate(baseCurrencyCode, conversion.currencyCode, rate)
                         }
-
-                        if (conversion.isCustom) {
-                            Button(
-                                onClick = {
-                                    onResetCustomRate(baseCurrencyCode, conversion.currencyCode)
-                                    editTarget = null
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                    contentColor = MaterialTheme.colorScheme.onSurface
-                                ),
-                                shape = RoundedCornerShape(
-                                    topStart = Dimensions.Radius.xs,
-                                    topEnd = Dimensions.Radius.xs,
-                                    bottomStart = Dimensions.Radius.xs,
-                                    bottomEnd = Dimensions.Radius.xs
-                                ),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.reset),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                        }
-
-                        Button(
-                            onClick = {
-                                val rate = editRateText.toDoubleOrNull()
-                                if (rate != null && rate > 0) {
-                                    onSaveCustomRate(baseCurrencyCode, conversion.currencyCode, rate)
-                                }
-                                editTarget = null
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xs,
-                                topEnd = Dimensions.Radius.xxl,
-                                bottomStart = Dimensions.Radius.xs,
-                                bottomEnd = Dimensions.Radius.xxl
-                            ),
-                            modifier = Modifier
-                                .padding(end = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.save),
-                                style = MaterialTheme.typography.titleMedium)
-                        }
+                        editTarget = null
                     }
+                )
+            },
+            dismissButton = {
+                DialogDismissButton(stringResource(R.string.cancel), { editTarget = null })
+                if (conversion.isCustom) {
+                    DialogDismissButton(
+                        text = stringResource(R.string.reset),
+                        onClick = {
+                            onResetCustomRate(baseCurrencyCode, conversion.currencyCode)
+                            editTarget = null
+                        }
+                    )
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            dismissButton = {},
-            modifier = Modifier
-                .clip(RoundedCornerShape(Dimensions.Radius.md)),
-            shape = MaterialTheme.shapes.large
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 }

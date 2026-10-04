@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.about
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
+import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
+import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
 import android.content.Intent
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -569,84 +572,22 @@ fun AboutScreen(
                 )
             },
             confirmButton = {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(1.5.dp),
-                    ) {
-                        Button(
-                            onClick = { showDeleteDialog = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
-                                contentColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xxl,
-                                topEnd = Dimensions.Radius.xs,
-                                bottomStart = Dimensions.Radius.xxl,
-                                bottomEnd = Dimensions.Radius.xs
-                            ),
-                            modifier = Modifier
-                                .padding(start = Spacing.xl)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                settingsViewModel.deleteAllData()
-                                showDeleteDialog = false
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer
-                            ),
-                            shape = RoundedCornerShape(
-                                topStart = Dimensions.Radius.xs,
-                                topEnd = Dimensions.Radius.xxl,
-                                bottomStart = Dimensions.Radius.xs,
-                                bottomEnd = Dimensions.Radius.xxl
-                            ),
-                            modifier = Modifier
-                                .padding(end = Spacing.xs)
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.delete_all),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                    }
-                }
+                DialogConfirmButton(
+                    text = stringResource(R.string.delete_all),
+                    onClick = {
+                        settingsViewModel.deleteAllData()
+                        showDeleteDialog = false
+                    },
+                    destructive = true
+                )
             },
-            containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
-            dismissButton = {},
-            modifier = Modifier
-                .clip(RoundedCornerShape(Dimensions.Radius.md))
-                .then(
-                    if (blurEffects) Modifier.hazeEffect(
-                        state = hazeState,
-                        block = fun HazeEffectScope.() {
-                            inputScale = HazeInputScale.Auto
-                            style = HazeDefaults.style(
-                                backgroundColor = Color.Transparent,
-                                tint = HazeDefaults.tint(containerColor),
-                                blurRadius = 20.dp,
-                                noiseFactor = -1f,
-                            )
-                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                        }
-                    ) else Modifier
-                ),
-            shape = MaterialTheme.shapes.large
+            dismissButton = {
+                DialogDismissButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { showDeleteDialog = false }
+                )
+            },
+            containerColor = CashiroDialogDefaults.containerColor
         )
     }
 }
@@ -709,10 +650,12 @@ private fun UpdateChannelDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        }
+            DialogDismissButton(
+                text = stringResource(R.string.cancel),
+                onClick = onDismiss
+            )
+        },
+        containerColor = CashiroDialogDefaults.containerColor
     )
 }
 
