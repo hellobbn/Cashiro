@@ -1,5 +1,11 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
+import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material.icons.rounded.Bolt
 
 import androidx.compose.material3.Switch
@@ -1125,6 +1131,11 @@ fun TransactionTabContent(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
                             .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .toggleable(
+                                value = uiState.saveAsQuickTemplate,
+                                role = Role.Switch,
+                                onValueChange = viewModel::updateSaveAsQuickTemplate
+                            )
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1136,10 +1147,7 @@ fun TransactionTabContent(
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.weight(1f)
                         )
-                        Switch(
-                            checked = uiState.saveAsQuickTemplate,
-                            onCheckedChange = viewModel::updateSaveAsQuickTemplate
-                        )
+                        CashiroSwitch(checked = uiState.saveAsQuickTemplate, onCheckedChange = null)
                     }
                 }
 
@@ -1234,7 +1242,7 @@ fun TransactionTabContent(
                 enabled = uiState.isValid && !uiState.isLoading,
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    LoadingIndicator(modifier = Modifier.size(24.dp))
                 } else {
                     Icon(Icons.Default.Done, contentDescription = null)
                     Spacer(Modifier.width(Spacing.sm))

@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.webhooks
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
@@ -315,7 +316,7 @@ private fun ScheduledTimeRow(
             }
         )
         Box(modifier = Modifier.weight(1f))
-        Switch(
+        CashiroSwitch(
             checked = time.enabled,
             onCheckedChange = onToggle,
             modifier = Modifier.semantics {

@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -147,7 +150,7 @@ fun RateSyncCard(
             when {
                 isSyncing -> {
                     Text(stringResource(R.string.rate_sync_syncing), style = MaterialTheme.typography.bodySmall, color = supporting)
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp))
+                    LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp))
                 }
                 lastSync != null && !lastSync.succeeded -> {
                     Text(

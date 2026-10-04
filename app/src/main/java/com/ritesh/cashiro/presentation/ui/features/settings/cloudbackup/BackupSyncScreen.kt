@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.cloudbackup
 
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -823,7 +827,7 @@ fun BackupSyncScreen(
                                             .padding(Spacing.lg),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        CircularProgressIndicator()
+                                        LoadingIndicator()
                                     }
                                 } else if (uiState.remoteSnapshots.isEmpty()) {
                                     Surface(
@@ -1183,12 +1187,12 @@ fun OperationProgressCard(message: String, progress: Int? = null) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             if (progress != null) {
-                LinearProgressIndicator(
+                LinearWavyProgressIndicator(
                     progress = { progress / 100f },
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
     }

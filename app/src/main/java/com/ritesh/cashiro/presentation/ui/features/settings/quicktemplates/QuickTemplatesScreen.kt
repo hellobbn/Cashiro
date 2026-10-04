@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.quicktemplates
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
+import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 import sh.calvin.reorderable.ReorderableItem
@@ -282,7 +285,14 @@ private fun QuickTemplateEditDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .toggleable(
+                            value = prefill && amount != null,
+                            enabled = amount != null,
+                            role = Role.Switch,
+                            onValueChange = { prefill = it }
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -290,11 +300,7 @@ private fun QuickTemplateEditDialog(
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    Switch(
-                        checked = prefill && amount != null,
-                        onCheckedChange = { prefill = it },
-                        enabled = amount != null
-                    )
+                    CashiroSwitch(checked = prefill && amount != null, onCheckedChange = null, enabled = amount != null)
                 }
             }
         },

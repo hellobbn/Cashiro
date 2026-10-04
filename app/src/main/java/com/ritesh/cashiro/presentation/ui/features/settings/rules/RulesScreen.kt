@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.rules
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -500,10 +501,7 @@ private fun RuleCard(
                     }
                 }
 
-                Switch(
-                    checked = rule.isActive,
-                    onCheckedChange = onToggle
-                )
+                CashiroSwitch(checked = rule.isActive, onCheckedChange = onToggle)
             }
         }
     }

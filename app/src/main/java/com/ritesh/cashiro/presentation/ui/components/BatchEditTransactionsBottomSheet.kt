@@ -534,14 +534,7 @@ private fun BatchEditOptionCard(
                         color = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
-                Switch(
-                    checked = checked,
-                    onCheckedChange = onCheckedChange,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary
-                    )
-                )
+                CashiroSwitch(checked = checked, onCheckedChange = onCheckedChange)
             }
 
             if (checked) {

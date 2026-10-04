@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.investments
 
+import androidx.compose.material3.LinearWavyProgressIndicator
 import com.ritesh.cashiro.presentation.ui.components.accountSubtitle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -707,7 +710,7 @@ internal fun IbkrConnectDialog(
                 )
                 if (error != null) InvestmentError(error)
                 if (busy) {
-                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                    LinearWavyProgressIndicator(Modifier.fillMaxWidth())
                     Text(stringResource(R.string.investments_syncing))
                 }
                 Button(

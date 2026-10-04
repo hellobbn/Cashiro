@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.webhooks
 
+import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -202,10 +206,7 @@ fun WebhooksScreen(
                 },
                 trailing = {
                     if (uiState.isSyncing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
+                        LoadingIndicator(modifier = Modifier.size(24.dp))
                     } else {
                         Icon(
                             Icons.Rounded.ChevronRight,
@@ -507,10 +508,7 @@ private fun WebhookProfileCard(
                 }
             }
 
-            Switch(
-                checked = profile.enabled,
-                onCheckedChange = onToggle
-            )
+            CashiroSwitch(checked = profile.enabled, onCheckedChange = onToggle)
         }
 
         if (profile.dataTypes.isNotEmpty()) {

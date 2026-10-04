@@ -1,26 +1,24 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.ToggleButton
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.ritesh.cashiro.presentation.ui.theme.Dimensions
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 
+/**
+ * One choice out of a few, as a Material 3 Expressive connected button group: toggle buttons
+ * whose shapes join at the inner edges and morph when pressed. Each is announced as a radio
+ * button.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GenericTypeSwitcher(
     selectedIndex: Int,
@@ -28,71 +26,25 @@ fun GenericTypeSwitcher(
     options: List<String>,
     modifier: Modifier = Modifier
 ) {
-    val themeColors = MaterialTheme.colorScheme
-    val isDarkTheme = isSystemInDarkTheme()
-
-    BoxWithConstraints(
-        modifier = modifier
-            .height(48.dp)
-            .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .background(themeColors.surfaceVariant.copy(alpha = 0.5f))
-            .padding(6.dp)
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
     ) {
-        val maxWidth = maxWidth
-        val indicatorWidth = maxWidth / options.size
-        val indicatorOffset by animateDpAsState(
-            targetValue = indicatorWidth * selectedIndex,
-            animationSpec = tween(durationMillis = 300),
-            label = "Indicator offset"
-        )
-
-        // Animated Indicator
-        Box(
-            modifier = Modifier
-                .offset(x = indicatorOffset)
-                .width(indicatorWidth)
-                .fillMaxHeight()
-                .shadow(2.dp, RoundedCornerShape(12.dp))
-                .clip(RoundedCornerShape(12.dp))
-                .background(if (isDarkTheme) themeColors.surface else Color.White)
-        )
-
-        Row(modifier = Modifier.fillMaxSize()) {
-            options.forEachIndexed { index, text ->
-                TypeButton(
-                    text = text,
-                    isSelected = selectedIndex == index,
-                    onClick = { onIndexChange(index) },
-                    modifier = Modifier.weight(1f)
-                )
+        options.forEachIndexed { index, label ->
+            ToggleButton(
+                checked = index == selectedIndex,
+                onCheckedChange = { onIndexChange(index) },
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { role = Role.RadioButton }
+            ) {
+                Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-    }
-}
-
-@Composable
-private fun TypeButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = if (isSelected) MaterialTheme.colorScheme.inverseSurface
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
-        )
     }
 }

@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.developer
 
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -182,11 +185,7 @@ fun DeveloperScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             if (uiState.isSeeding) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp,
-                                    color = grey_dark
-                                )
+                                LoadingIndicator(modifier = Modifier.size(24.dp))
                             } else {
                                 Icon(
                                     Iconax.Glass,

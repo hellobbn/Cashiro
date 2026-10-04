@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -193,9 +196,7 @@ fun RulesBatchApplyDialog(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
                         Text(
                             text = stringResource(R.string.processing_transactions_format, progress.first, progress.second),
                             style = MaterialTheme.typography.bodySmall

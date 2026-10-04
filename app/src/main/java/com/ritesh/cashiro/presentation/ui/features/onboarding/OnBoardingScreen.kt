@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.onboarding
 
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import android.Manifest
 import android.net.Uri
 import android.os.Build
@@ -146,7 +150,7 @@ private fun OnboardingScaffold(
         topBar = {
             Column(Modifier.statusBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.onboarding_step_count, state.step.ordinal + 1, OnboardingStep.entries.size), style = MaterialTheme.typography.labelLarge)
-                LinearProgressIndicator(progress = { (state.step.ordinal + 1f) / OnboardingStep.entries.size }, modifier = Modifier.fillMaxWidth())
+                LinearWavyProgressIndicator(progress = { (state.step.ordinal + 1f) / OnboardingStep.entries.size }, modifier = Modifier.fillMaxWidth())
             }
         },
         bottomBar = {
