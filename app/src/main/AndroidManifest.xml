@@ -26,6 +26,17 @@
             android:exported="true"
             android:theme="@style/Theme.Cashiro.SplashScreen"
             android:windowSoftInputMode="adjustResize">
+            <!-- Screenshots, statements and exports shared to Cashiro open AI bookkeeping -->
+            <intent-filter android:label="@string/ai_share_label">
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="text/csv" />
+                <data android:mimeType="text/comma-separated-values" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
 
         <activity-alias

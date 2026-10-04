@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.lazy.LazyListScope
+import com.ritesh.cashiro.presentation.ui.adaptive.LocalWindowLayout
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogActionsRow
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -115,6 +118,7 @@ import com.ritesh.cashiro.data.preferences.HomeWidget
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.navigation.AccountDetail
 import com.ritesh.cashiro.presentation.navigation.NotificationSettings
+import com.ritesh.cashiro.presentation.navigation.AiAssistant
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
 import com.ritesh.cashiro.presentation.ui.components.AccountBalanceRow
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountSectionSummary
@@ -296,6 +300,7 @@ fun SharedTransitionScope.HomeScreen(
                     profileBackgroundColor = uiState.profileBackgroundColor,
                     onProfileClick = onNavigateToSettings,
                     onNotificationClick = { navController.safeNavigate(NotificationSettings) },
+                    onAiClick = { navController.safeNavigate(AiAssistant) },
                     onMoreClick = { showMoreBottomSheet = true }
                 )
             }
@@ -364,18 +369,9 @@ fun SharedTransitionScope.HomeScreen(
                 }
             }
 
-            HomeContentList(
-                state = lazyListState,
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentPadding =
-                    PaddingValues(
-                        top = Dimensions.Padding.content + paddingValues.calculateTopPadding(),
-                        bottom = 0.dp
-                    ),
-                verticalArrangement = Arrangement.spacedBy(Spacing.md)
-            ) {
-                homeWidgets.forEach { widgetModel ->
+            // The cards Home shows, as lazy items; the two-column layout splits them
+            val widgetItems: LazyListScope.(List<HomeWidgetUiModel>) -> Unit = { widgets ->
+                widgets.forEach { widgetModel ->
                     if (widgetModel.isVisible) {
                         when (widgetModel.widget) {
                             HomeWidget.NETWORTH_SUMMARY -> {
@@ -699,8 +695,40 @@ fun SharedTransitionScope.HomeScreen(
                     }
                 }
 
-                item{
-                    Spacer(Modifier.height(200.dp)) //Extra space for better scroll
+            }
+            val contentPadding = PaddingValues(
+                top = Dimensions.Padding.content + paddingValues.calculateTopPadding(),
+                bottom = 0.dp
+            )
+            if (LocalWindowLayout.current.widthDp < HOME_TWO_COLUMN_MIN_WIDTH_DP) {
+                HomeContentList(
+                    state = lazyListState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = contentPadding,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+                    widgetItems(homeWidgets)
+                    item {
+                        Spacer(Modifier.height(200.dp)) //Extra space for better scroll
+                    }
+                }
+            } else {
+                // Wide window (an unfolded foldable): balances on the left, activity on the
+                // right, each column in the user's order, so the key figures fit on one screen.
+                val (activity, balances) = homeWidgets.partition { it.widget in HOME_ACTIVITY_WIDGETS }
+                val activityListState = rememberLazyListState()
+                Row(modifier = Modifier.fillMaxSize()) {
+                    listOf(balances to lazyListState, activity to activityListState).forEach { (column, state) ->
+                        HomeContentList(
+                            state = state,
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            contentPadding = contentPadding,
+                            verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                        ) {
+                            widgetItems(column)
+                            item { Spacer(Modifier.height(120.dp)) }
+                        }
+                    }
                 }
             }
 
@@ -1143,7 +1171,10 @@ private fun NetworthSummaryCards(
     balanceContent(false)
 }
 
+/** Home splits into two columns from this window width (an unfolded foldable). */
+private const val HOME_TWO_COLUMN_MIN_WIDTH_DP = 720
 
-
-
-
+/** What the right-hand column shows on wide windows; the rest are balances, on the left. */
+private val HOME_ACTIVITY_WIDGETS = setOf(
+    HomeWidget.RECENT_TRANSACTIONS, HomeWidget.BUDGET_CAROUSEL, HomeWidget.TRANSACTION_HEATMAP
+)

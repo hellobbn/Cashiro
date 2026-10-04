@@ -596,6 +596,7 @@ class AddTransactionUseCaseTest {
         override suspend fun getSubscriptionsByStateList(state: com.ritesh.cashiro.data.database.entity.SubscriptionState): List<com.ritesh.cashiro.data.database.entity.SubscriptionEntity> = emptyList()
         override suspend fun deleteSampleSubscriptions() = Unit
         override suspend fun deleteAllSubscriptions() = Unit
+        override suspend fun renameBank(oldBankName: String, newBankName: String): Int = 0
     }
 
     private class FakeAccountBalanceDao : AccountBalanceDao() {

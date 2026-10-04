@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material3.Icon
@@ -44,6 +45,7 @@ fun GreetingCard(
     profileBackgroundColor: Color,
     onProfileClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
+    onAiClick: (() -> Unit)? = null,
     onMoreClick: () -> Unit = {},
     onUpdatesClick: () -> Unit = {},
 ) {
@@ -170,6 +172,16 @@ fun GreetingCard(
 
         // Material icon buttons provide an accessible 48dp touch target and ripple.
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onAiClick != null) {
+                IconButton(onClick = onAiClick) {
+                    Icon(
+                        imageVector = Icons.Rounded.AutoAwesome,
+                        contentDescription = stringResource(R.string.ai_assistant_title),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
             IconButton(onClick = onNotificationClick) {
                 Icon(
                     imageVector = Iconax.NotificationOutline,

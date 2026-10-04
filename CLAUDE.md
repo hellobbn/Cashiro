@@ -61,6 +61,52 @@ Personal Chinese / cross-border manual accounts:
 - Choosing an institution does not add SMS parsing, login, or holdings sync.
 - A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth.
 - Prefer account UX, currency defaults, and imports over SMS automation.
+- Accounts have no id of their own: everything refers to one by bank name + last 4. Rename through
+  `AccountRenamer`, which moves balances, transactions, cards, templates, budgets, subscriptions and
+  the hidden/main preferences in one transaction.
+
+## AI bookkeeping
+
+Cloud only, with the user's own key; no on-device model. Plain HTTP over the existing Ktor
+client, no provider SDKs, to keep the app small.
+
+- `data/ai/AiChat.kt` speaks two protocols: the Claude Messages API and OpenAI-compatible Chat
+  Completions (OpenRouter, OpenAI, DeepSeek, Qwen…). Replies are appended verbatim (thinking blocks
+  included). Server-side refusal fallbacks are only sent to `api.anthropic.com`.
+- `AiSettings` keeps protocol, address, model and key in encrypted preferences.
+- Once a key is entered, the form lists the provider's models (`AiChat.listModels`) and the user
+  picks one from a searchable sheet (or types an id the list lacks). OpenRouter models that cannot
+  call tools are left out, and those that read images are marked.
+- `LedgerTools` is the API a model gets:
+  - `find_transactions` answers at once.
+  - `add_transactions`, `update_transactions`, `delete_transactions` and `create_account` only queue
+    a `LedgerChange`.
+  - `create_account` returns a ref (`N1`…) the same session's transactions can use. Icon, color and
+    currency come from `InstitutionCatalog` when the name matches.
+  - `set_balance` calibrates a listed account's balance (and card limit) with a new
+    `BALANCE_CALIBRATION` row, as the app's own balance edit does.
+  - `update_account` renames an account or changes its kind or credit limit; a rename goes through
+    `AccountRenamer`. Currency and last 4 are not changeable, and the model never deletes accounts.
+  - Updates touch merchant, category, subcategory and notes only. Amount, date, type or account
+    changes are a delete plus an add.
+  - `apply` goes through `AddTransactionUseCase` and the repository's delete, so balances stay
+    right, and returns what `undo` needs. New accounts are created first; a transaction on a new
+    account the user left out is saved without an account. Balance calibrations and account edits
+    come last, so a rename also carries the transactions just added.
+- `AiLedgerSession` runs the tool loop. The accounts (as refs `A1`, `A2`…) and the categories are
+  in the system prompt.
+- `AiAttachmentReader` handles the input files:
+  - Tall screenshots are cut into tiles.
+  - PDFs go to Claude as documents and to other providers as their text layer, or as the file
+    when they have none. Password-protected PDFs are unlocked locally.
+  - Text files are decoded as UTF-8, falling back to GB18030.
+- UI: `AiAssistantScreen`, opened from the ✨ button on Home or Settings → AI bookkeeping.
+  - Files shared to Cashiro (`SEND` / `SEND_MULTIPLE` on `MainActivity`) are copied into
+    `AiShareInbox` at once (the read permission ends with the activity). They stay there until
+    used or removed. The screen opens only once the app-lock state is loaded and unlocked.
+  - The review (`AiReview.kt`) shows proposed changes as transaction rows, grouped into new,
+    edits and deletions. A row opens a sheet where a new transaction can be corrected, or any
+    change left out. Likely duplicates start left out; nothing is written before Save.
 
 ## Design Principles
 
@@ -68,7 +114,14 @@ Personal Chinese / cross-border manual accounts:
 - Light / dark / dynamic themes
 - 8dp grid
 - Material 3 type scale
-- NavigationBar on phones, NavigationRail on tablets
+- Adaptive layout (`presentation/ui/adaptive/WindowLayout.kt`, read from the window width):
+  - Below 600 dp: bottom NavigationBar.
+  - From 600 dp: NavigationRail at the start edge on every screen but lock/onboarding.
+    Screens other than the three main tabs are at most 720 dp wide, centered (`ReadableWidth`).
+  - From 720 dp:
+    - Home and Analytics are two columns.
+    - Transactions and the account lists are list-detail (`TransactionDetailPane`,
+      `AccountDetailPane`); system back closes an open pane first.
 - Edge-to-edge via the existing scaffold / TopAppBar pattern
 - Chinese UI should avoid awkward letter-spacing and should use `9月1日` style dates
 

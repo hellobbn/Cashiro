@@ -38,7 +38,8 @@ class AppLockViewModel @Inject constructor(
                     it.copy(
                         isLockEnabled = isEnabled,
                         timeoutMinutes = timeoutMinutes,
-                        isLocked = shouldLock && isEnabled
+                        isLocked = shouldLock && isEnabled,
+                        isLoaded = true
                     )
                 }
             }
@@ -154,6 +155,8 @@ class AppLockViewModel @Inject constructor(
 data class AppLockUiState(
     val isLockEnabled: Boolean = false,
     val isLocked: Boolean = false,
+    // False until the saved lock settings have been read; isLocked means nothing before that
+    val isLoaded: Boolean = false,
     val timeoutMinutes: Int = 1,
     val canUseBiometric: Boolean = false,
     val biometricCapability: BiometricCapability = BiometricCapability.Unknown,

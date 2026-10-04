@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRail
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -58,6 +62,42 @@ fun CashiroBottomNavigation(
                     alwaysShowLabel = true
                 )
             }
+        }
+    }
+}
+
+/**
+ * The same destinations as a Material 3 [NavigationRail] at the start edge, for wide windows
+ * (an unfolded foldable, a tablet), where a bottom bar would stretch across the screen.
+ */
+@Composable
+fun CashiroNavigationRail(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    currentDestination: NavDestination?,
+    visible: Boolean
+) {
+    val navigationItems = listOf(BottomNavItem.Home, BottomNavItem.Analytics, BottomNavItem.Transactions)
+    val view = LocalView.current
+    AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut(), modifier = modifier) {
+        NavigationRail(modifier = Modifier.fillMaxHeight()) {
+            Spacer(Modifier.weight(1f))
+            navigationItems.forEach { item ->
+                val selected = currentDestination?.hierarchy?.any {
+                    it.route?.contains(item.destinationType.qualifiedName ?: "") == true
+                } == true
+                NavigationRailItem(
+                    selected = selected,
+                    onClick = {
+                        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                        navController.selectMainTab(item)
+                    },
+                    icon = { Icon(imageVector = item.icon, contentDescription = stringResource(item.titleRes)) },
+                    label = { Text(text = stringResource(item.titleRes), maxLines = 1) },
+                    alwaysShowLabel = true
+                )
+            }
+            Spacer(Modifier.weight(1f))
         }
     }
 }

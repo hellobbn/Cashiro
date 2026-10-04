@@ -76,4 +76,8 @@ interface SubscriptionDao {
 
     @Query("DELETE FROM subscriptions")
     suspend fun deleteAllSubscriptions()
+
+    // Subscriptions keep only the institution name, not the account
+    @Query("UPDATE subscriptions SET bank_name = :newBankName WHERE bank_name = :oldBankName")
+    suspend fun renameBank(oldBankName: String, newBankName: String): Int
 }
