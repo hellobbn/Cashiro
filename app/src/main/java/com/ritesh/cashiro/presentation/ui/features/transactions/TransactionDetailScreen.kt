@@ -955,34 +955,17 @@ fun SharedTransitionScope.TransactionDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TransactionNavigationContent(
     isEditMode: Boolean,
     onBackClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .animateContentSize()
-            .padding(start = 16.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onBackClick,
-            ),
-    ) {
-        IconButton(
-            onClick = onBackClick,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onBackground
-            )
-        ) {
-            Icon(
-                imageVector = if (isEditMode) Icons.Rounded.Close else Iconax.ArrowLeft02,
-                contentDescription = if (isEditMode) stringResource(R.string.cancel) else null,
-                modifier = Modifier.size(18.dp)
-            )
-        }
+    IconButton(onClick = onBackClick, shapes = IconButtonDefaults.shapes()) {
+        Icon(
+            imageVector = if (isEditMode) Icons.Rounded.Close else Iconax.ArrowLeft02,
+            contentDescription = stringResource(if (isEditMode) R.string.cancel else R.string.cd_navigate_back)
+        )
     }
 }
 

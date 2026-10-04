@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.contacts
 
+import androidx.compose.material3.Surface
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -469,14 +470,13 @@ fun SharedTransitionScope.DisplayProfileImageCard(
                             .align(Alignment.TopStart)
                             .padding(12.dp)
                     ) {
-                        CashiroCheckbox(
-                            checked = isSelected,
-                            onCheckedChange = { onSelectionToggle() },
-                            modifier = Modifier.size(40.dp),
-                            checkedColor = MaterialTheme.colorScheme.primary,
-                            uncheckedColor = Color.White.copy(alpha = 0.85f),
-                            checkmarkColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                        // Over the contact's photo: a surface disc keeps the box readable
+                        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                            CashiroCheckbox(
+                                checked = isSelected,
+                                onCheckedChange = { onSelectionToggle() }
+                            )
+                        }
                     }
                 }
             }

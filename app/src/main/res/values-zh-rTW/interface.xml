@@ -121,4 +121,5 @@
     <string name="ai_limit_change">額度 %1$s → %2$s</string>
     <string name="ai_kind_changed">帳戶類型變更</string>
     <string name="ai_rename_note">它名下的交易、卡片、範本和預算會一併改到新名稱。</string>
+    <string name="cd_navigate_back">返回</string>
 </resources>

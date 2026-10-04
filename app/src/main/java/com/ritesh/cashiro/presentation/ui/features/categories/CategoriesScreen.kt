@@ -624,32 +624,15 @@ private fun SwipeableCategoryItem(
 
 
 
+/** The top bar's back button: a standard icon button, as Material 3 places navigation icons. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NavigationContent(onNavigateBack: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .animateContentSize()
-            .padding(start = 16.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onNavigateBack,
-                ),
-    ) {
-        IconButton(
-            onClick = onNavigateBack,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onBackground
-            ),
-            shapes =  IconButtonDefaults.shapes()
-        ) {
-            Icon(
-                    imageVector = Iconax.ArrowLeft02,
-                    contentDescription = "Back Button",
-            )
-        }
+    IconButton(onClick = onNavigateBack, shapes = IconButtonDefaults.shapes()) {
+        Icon(
+            imageVector = Iconax.ArrowLeft02,
+            contentDescription = stringResource(R.string.cd_navigate_back)
+        )
     }
 }
 

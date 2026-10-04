@@ -1,25 +1,19 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
-
-// Search Box Composable used in Category icon selection bottomSheet
+/**
+ * The search field on list screens and pickers, styled like the Material 3 search bar: a full
+ * pill on surfaceContainerHigh with onSurfaceVariant placeholder and icons.
+ */
 @Composable
 fun SearchBarBox(
     modifier: Modifier = Modifier,
@@ -29,31 +23,28 @@ fun SearchBarBox(
     trailingIcon: @Composable () -> Unit = {},
     label: @Composable () -> Unit,
 ) {
-    val themeColors = MaterialTheme.colorScheme
+    val colors = MaterialTheme.colorScheme
     TextField(
-        value =  searchQuery,
+        value = searchQuery,
         onValueChange = onSearchQueryChange,
         placeholder = { label() },
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 0.dp,
-                shape = RoundedCornerShape(75.dp)
-            )
-            .background(themeColors.surfaceContainerLow, shape = RoundedCornerShape(75.dp)),
+        modifier = modifier.fillMaxWidth(),
+        shape = CircleShape,
         singleLine = true,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
-        textStyle = MaterialTheme.typography.bodyMedium,
+        textStyle = MaterialTheme.typography.bodyLarge,
         colors = TextFieldDefaults.colors(
-            unfocusedPlaceholderColor = themeColors.inverseOnSurface,
-            unfocusedIndicatorColor = Color.Transparent,
+            focusedContainerColor = colors.surfaceContainerHigh,
+            unfocusedContainerColor = colors.surfaceContainerHigh,
+            focusedPlaceholderColor = colors.onSurfaceVariant,
+            unfocusedPlaceholderColor = colors.onSurfaceVariant,
+            focusedLeadingIconColor = colors.onSurface,
+            unfocusedLeadingIconColor = colors.onSurfaceVariant,
+            focusedTrailingIconColor = colors.onSurfaceVariant,
+            unfocusedTrailingIconColor = colors.onSurfaceVariant,
             focusedIndicatorColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-            focusedLabelColor = themeColors.inverseSurface,
-            unfocusedLabelColor = themeColors.inverseSurface,
-//            unfocusedTextColor = themeColors.inverseOnSurface.copy(alpha = 0.7f)
+            unfocusedIndicatorColor = Color.Transparent
         )
     )
 }

@@ -2,6 +2,7 @@ package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.*
@@ -82,7 +83,10 @@ fun ListItem(
         onClick: (() -> Unit)? = null,
         onLongClick: (() -> Unit)? = null,
         listColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
-        selectedListColor: Color = MaterialTheme.colorScheme.primaryContainer
+        selectedListColor: Color = MaterialTheme.colorScheme.primaryContainer,
+        // A row that is one switch: the whole row toggles, announced as a switch
+        toggled: Boolean? = null,
+        onToggle: ((Boolean) -> Unit)? = null
 ) {
     Box(
         modifier = modifier
@@ -101,7 +105,9 @@ fun ListItem(
                 } else Modifier
             )
             .then(
-                if (onClick != null || onLongClick != null) {
+                if (toggled != null && onToggle != null) {
+                    Modifier.toggleable(value = toggled, role = Role.Switch, onValueChange = onToggle)
+                } else if (onClick != null || onLongClick != null) {
                     Modifier.combinedClickable(
                         onClick = onClick ?: {},
                         role = Role.Button,

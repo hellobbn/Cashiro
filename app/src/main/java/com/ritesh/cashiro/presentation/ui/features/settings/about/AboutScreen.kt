@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.about
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.selectable
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -626,14 +628,16 @@ private fun UpdateChannelDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onSelect(channel) }
+                            .selectable(
+                                selected = selected == channel,
+                                role = Role.RadioButton,
+                                onClick = { onSelect(channel) }
+                            )
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        RadioButton(
-                            selected = selected == channel,
-                            onClick = { onSelect(channel) }
-                        )
+                        // The row is the target; the radio only shows the state
+                        RadioButton(selected = selected == channel, onClick = null)
                         Column(modifier = Modifier.padding(start = 8.dp)) {
                             Text(
                                 text = channelLabel(channel),
