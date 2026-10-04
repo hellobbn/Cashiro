@@ -90,7 +90,9 @@ fun SharedTransitionScope.AccountDetailScreen(
     bankName: String = "",
     accountLast4: String = "",
     accountDetailViewModel: AccountDetailViewModel = hiltViewModel(),
-    animatedContentScope: AnimatedVisibilityScope? = null
+    animatedContentScope: AnimatedVisibilityScope? = null,
+    // In a detail pane, back closes the pane instead of leaving the screen
+    onNavigateBack: (() -> Unit)? = null
 ) {
     val uiState by accountDetailViewModel.uiState.collectAsState()
     val selectedDateRange by accountDetailViewModel.selectedDateRange.collectAsState()
@@ -127,7 +129,7 @@ fun SharedTransitionScope.AccountDetailScreen(
                 title = uiState.bankName.ifEmpty { stringResource(R.string.account_details) },
                 hasBackButton = true,
                 hazeState = hazeState,
-                navigationContent = { NavigationContent { navController.safePopBackStack() } },
+                navigationContent = { NavigationContent { onNavigateBack?.invoke() ?: navController.safePopBackStack() } },
             )
         }
     ) { paddingValues ->

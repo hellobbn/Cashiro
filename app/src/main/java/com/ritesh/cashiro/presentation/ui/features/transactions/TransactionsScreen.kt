@@ -149,7 +149,10 @@ fun TransactionsScreen(
     onTransactionClick: (Long, String) -> Unit = { _, _ -> },
     onNavigateToSettings: () -> Unit = {},
     animatedContentScope: AnimatedVisibilityScope? = null,
-    blurEffects: Boolean
+    blurEffects: Boolean,
+    // Set on wide windows: a tap shows the transaction in the detail pane beside the list
+    // instead of the summary sheet
+    onTransactionSelected: ((Long) -> Unit)? = null
 ) {
     var detailTransactionId by rememberSaveable { mutableStateOf<Long?>(null) }
     val context = LocalContext.current
@@ -765,7 +768,10 @@ fun TransactionsScreen(
                                         decoration = decoration,
                                         showDate = dateGroup == DateGroup.EARLIER,
                                         shape = position.toShape(),
-                                        onClick = { detailTransactionId = transaction.id },
+                                        onClick = {
+                                            onTransactionSelected?.invoke(transaction.id)
+                                                ?: run { detailTransactionId = transaction.id }
+                                        },
                                         isSelectionMode = selectionMode,
                                         isSelected = selectedTransactionIds.contains(transaction.id),
                                         onSelectionToggle = { transactionsViewModel.toggleTransactionSelection(transaction.id) },

@@ -62,4 +62,6 @@
     <string name="rate_calculator_swap">交換貨幣</string>
     <string name="rate_calculator_no_rate">暫無這兩種貨幣之間的匯率</string>
     <string name="rate_failure_line">%1$s：%2$s</string>
+    <string name="transaction_pane_empty">選擇一筆交易查看詳情</string>
+    <string name="account_pane_empty">選擇一個帳戶查看詳情</string>
 </resources>

@@ -47,4 +47,6 @@
     <string name="rate_calculator_swap">Swap currencies</string>
     <string name="rate_calculator_no_rate">No rate between these currencies yet</string>
     <string name="rate_failure_line">%1$s: %2$s</string>
+    <string name="transaction_pane_empty">Select a transaction to see its details</string>
+    <string name="account_pane_empty">Select an account to see its details</string>
 </resources>

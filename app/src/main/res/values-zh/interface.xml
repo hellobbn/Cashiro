@@ -47,4 +47,6 @@
     <string name="rate_calculator_swap">交换货币</string>
     <string name="rate_calculator_no_rate">暂无这两种货币之间的汇率</string>
     <string name="rate_failure_line">%1$s：%2$s</string>
+    <string name="transaction_pane_empty">选择一笔交易查看详情</string>
+    <string name="account_pane_empty">选择一个账户查看详情</string>
 </resources>
