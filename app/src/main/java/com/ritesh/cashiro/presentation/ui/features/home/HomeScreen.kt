@@ -118,6 +118,7 @@ import com.ritesh.cashiro.data.preferences.HomeWidget
 import com.ritesh.cashiro.utils.capitalizeFirst
 import com.ritesh.cashiro.presentation.navigation.AccountDetail
 import com.ritesh.cashiro.presentation.navigation.NotificationSettings
+import com.ritesh.cashiro.presentation.navigation.AiAssistant
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
 import com.ritesh.cashiro.presentation.ui.components.AccountBalanceRow
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountSectionSummary
@@ -299,6 +300,7 @@ fun SharedTransitionScope.HomeScreen(
                     profileBackgroundColor = uiState.profileBackgroundColor,
                     onProfileClick = onNavigateToSettings,
                     onNotificationClick = { navController.safeNavigate(NotificationSettings) },
+                    onAiClick = { navController.safeNavigate(AiAssistant) },
                     onMoreClick = { showMoreBottomSheet = true }
                 )
             }

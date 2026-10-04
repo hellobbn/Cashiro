@@ -103,4 +103,7 @@
     <string name="ai_search_models">搜尋模型</string>
     <string name="ai_models_count">可用 %1$d 個模型</string>
     <string name="ai_reads_images">可讀圖片</string>
+    <string name="ai_models_loading">正在取得模型…</string>
+    <string name="ai_retry">重試</string>
+    <string name="ai_use_model_id">使用「%1$s」</string>
 </resources>

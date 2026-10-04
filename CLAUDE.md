@@ -71,8 +71,9 @@ client, no provider SDKs, to keep the app small.
   Completions (OpenRouter, OpenAI, DeepSeek, Qwen…). Replies are appended verbatim (thinking blocks
   included). Server-side refusal fallbacks are only sent to `api.anthropic.com`.
 - `AiSettings` keeps protocol, address, model and key in encrypted preferences.
-- Once a key is entered, the form lists the provider's models (`AiChat.listModels`). OpenRouter
-  models that cannot call tools are left out, and those that read images are marked.
+- Once a key is entered, the form lists the provider's models (`AiChat.listModels`) and the user
+  picks one from a searchable sheet (or types an id the list lacks). OpenRouter models that cannot
+  call tools are left out, and those that read images are marked.
 - `LedgerTools` is the API a model gets:
   - `find_transactions` answers at once.
   - `add_transactions`, `update_transactions` and `delete_transactions` only queue a `LedgerChange`.
@@ -87,7 +88,7 @@ client, no provider SDKs, to keep the app small.
   - PDFs go to Claude as documents and to other providers as their text layer, or as the file
     when they have none. Password-protected PDFs are unlocked locally.
   - Text files are decoded as UTF-8, falling back to GB18030.
-- UI: Settings → AI bookkeeping (`AiAssistantScreen`). Files shared to Cashiro (`SEND` /
+- UI: `AiAssistantScreen`, opened from the ✨ button on Home or Settings → AI bookkeeping. Files shared to Cashiro (`SEND` /
   `SEND_MULTIPLE` on `MainActivity`) wait in `AiShareInbox` until the app is unlocked.
   Nothing is written before the user ticks the proposed changes; likely duplicates start unticked.
 

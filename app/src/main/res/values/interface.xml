@@ -88,4 +88,7 @@
     <string name="ai_search_models">Search models</string>
     <string name="ai_models_count">%1$d models available</string>
     <string name="ai_reads_images">Reads images</string>
+    <string name="ai_models_loading">Loading models…</string>
+    <string name="ai_retry">Retry</string>
+    <string name="ai_use_model_id">Use “%1$s”</string>
 </resources>

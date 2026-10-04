@@ -5,6 +5,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -122,7 +126,8 @@ fun AiAssistantScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        // Shrink above the keyboard so the field being typed in and the action bar stay visible
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).imePadding(),
         topBar = {
             CustomTitleTopAppBar(
                 title = stringResource(R.string.ai_assistant_title),
@@ -248,8 +253,8 @@ private fun AiBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimensions.Padding.content, vertical = Spacing.sm)
-                .padding(bottom = 16.dp),
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(horizontal = Dimensions.Padding.content, vertical = Spacing.sm),
             horizontalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -327,12 +332,12 @@ private fun ProviderCard(
     }
 }
 
-/** Shortcuts for the provider form: each fills the protocol, address and a model. */
-private enum class AiPreset(val labelRes: Int, val protocol: AiProtocol, val baseUrl: String, val model: String) {
-    CLAUDE(R.string.ai_preset_claude, AiProtocol.ANTHROPIC, AiProtocol.ANTHROPIC.defaultBaseUrl, AiProtocol.ANTHROPIC.defaultModel),
-    // One key for Claude, Gemini, GPT, DeepSeek, Qwen…; model ids are "vendor/model"
-    OPENROUTER(R.string.ai_preset_openrouter, AiProtocol.OPENAI_COMPATIBLE, "https://openrouter.ai/api/v1", "anthropic/claude-opus-5.5"),
-    CUSTOM(R.string.ai_preset_custom, AiProtocol.OPENAI_COMPATIBLE, "", "");
+/** Shortcuts for the provider form: each fills the protocol and address. */
+private enum class AiPreset(val labelRes: Int, val protocol: AiProtocol, val baseUrl: String) {
+    CLAUDE(R.string.ai_preset_claude, AiProtocol.ANTHROPIC, AiProtocol.ANTHROPIC.defaultBaseUrl),
+    // One key for Claude, Gemini, GPT, DeepSeek, Qwen…
+    OPENROUTER(R.string.ai_preset_openrouter, AiProtocol.OPENAI_COMPATIBLE, "https://openrouter.ai/api/v1"),
+    CUSTOM(R.string.ai_preset_custom, AiProtocol.OPENAI_COMPATIBLE, "");
 
     companion object {
         fun of(config: AiConfig): AiPreset = when {
@@ -343,6 +348,10 @@ private enum class AiPreset(val labelRes: Int, val protocol: AiProtocol, val bas
     }
 }
 
+/**
+ * Provider, key, then model: once the key is in, the provider's models load and the picker
+ * opens, so the model is chosen from what the key can actually use.
+ */
 @Composable
 private fun ProviderForm(
     config: AiConfig,
@@ -355,12 +364,20 @@ private fun ProviderForm(
     var model by rememberSaveable { mutableStateOf(config.model) }
     var apiKey by rememberSaveable { mutableStateOf(config.apiKey) }
     var picking by remember { mutableStateOf(false) }
+    val ready = apiKey.isNotBlank() && baseUrl.isNotBlank()
 
-    // Once there is a key, list what it can use; wait for typing to pause first
+    // List what the key can use once typing pauses; open the picker if nothing usable is chosen
     LaunchedEffect(preset, baseUrl, apiKey) {
-        if (apiKey.isBlank() || baseUrl.isBlank()) return@LaunchedEffect
+        if (!ready) return@LaunchedEffect
         delay(600)
         onLoadModels(AiConfig(preset.protocol, baseUrl.trim().trimEnd('/'), "", apiKey.trim()))
+    }
+    // On first setup, or when the chosen model is not on the list, open the picker once per list
+    var offered by rememberSaveable { mutableStateOf(config.isConfigured) }
+    LaunchedEffect(models.models) {
+        if (models.models.isEmpty()) return@LaunchedEffect
+        if (!offered || models.models.none { it.id == model }) picking = true
+        offered = true
     }
 
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -371,19 +388,22 @@ private fun ProviderForm(
                     if (preset != p) {
                         preset = p
                         baseUrl = p.baseUrl
-                        model = p.model
+                        model = ""
                     }
                 },
                 shape = SegmentedButtonDefaults.itemShape(index, AiPreset.entries.size)
             ) { Text(stringResource(p.labelRes), maxLines = 1) }
         }
     }
-    OutlinedTextField(
-        value = baseUrl, onValueChange = { baseUrl = it }, singleLine = true,
-        label = { Text(stringResource(R.string.ai_base_url)) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-        modifier = Modifier.fillMaxWidth()
-    )
+    if (preset == AiPreset.CUSTOM) {
+        OutlinedTextField(
+            value = baseUrl, onValueChange = { baseUrl = it }, singleLine = true,
+            label = { Text(stringResource(R.string.ai_base_url)) },
+            placeholder = { Text("https://api.deepseek.com/v1") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
     OutlinedTextField(
         value = apiKey, onValueChange = { apiKey = it }, singleLine = true,
         label = { Text(stringResource(R.string.ai_api_key)) },
@@ -391,32 +411,18 @@ private fun ProviderForm(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         modifier = Modifier.fillMaxWidth()
     )
-    OutlinedTextField(
-        value = model, onValueChange = { model = it }, singleLine = true,
-        label = { Text(stringResource(R.string.ai_model)) },
-        trailingIcon = {
-            when {
-                models.loading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                models.models.isNotEmpty() -> IconButton(onClick = { picking = true }) {
-                    Icon(Icons.Rounded.ArrowDropDown, contentDescription = stringResource(R.string.ai_choose_model))
-                }
-            }
-        },
-        supportingText = when {
-            models.error != null -> {
-                { Text(models.error, color = MaterialTheme.colorScheme.error) }
-            }
-            models.models.isNotEmpty() -> {
-                { Text(stringResource(R.string.ai_models_count, models.models.size)) }
-            }
-            else -> null
-        },
-        modifier = Modifier.fillMaxWidth()
-    )
+    if (ready) {
+        ModelField(
+            model = model,
+            models = models,
+            onClick = { picking = true },
+            onRetry = { onLoadModels(AiConfig(preset.protocol, baseUrl.trim().trimEnd('/'), "", apiKey.trim())) }
+        )
+    }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Button(
             onClick = { onSave(AiConfig(preset.protocol, baseUrl, model, apiKey)) },
-            enabled = baseUrl.isNotBlank() && model.isNotBlank() && apiKey.isNotBlank()
+            enabled = ready && model.isNotBlank()
         ) { Text(stringResource(R.string.ai_save)) }
     }
 
@@ -430,6 +436,66 @@ private fun ProviderForm(
             },
             onDismiss = { picking = false }
         )
+    }
+}
+
+/** The chosen model as a row that opens the picker, with loading and error states. */
+@Composable
+private fun ModelField(model: String, models: ModelListState, onClick: () -> Unit, onRetry: () -> Unit) {
+    val chosen = models.models.firstOrNull { it.id == model }
+    Surface(
+        onClick = onClick,
+        enabled = !models.loading,
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm).heightIn(min = 40.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.ai_model),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = when {
+                        models.loading -> stringResource(R.string.ai_models_loading)
+                        chosen != null -> chosen.name
+                        model.isNotBlank() -> model
+                        else -> stringResource(R.string.ai_choose_model)
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                val detail = when {
+                    models.error != null -> models.error
+                    chosen != null && chosen.name != chosen.id -> chosen.id
+                    models.models.isNotEmpty() && chosen == null ->
+                        stringResource(R.string.ai_models_count, models.models.size)
+                    else -> null
+                }
+                detail?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (models.error != null) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            when {
+                models.loading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                models.error != null -> TextButton(onClick = onRetry) { Text(stringResource(R.string.ai_retry)) }
+                else -> Icon(Icons.Rounded.ArrowDropDown, contentDescription = null)
+            }
+        }
     }
 }
 
@@ -452,6 +518,21 @@ private fun ModelPicker(models: List<AiModel>, selected: String, onPick: (String
             modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.Padding.content)
         )
         LazyColumn(contentPadding = PaddingValues(vertical = Spacing.sm)) {
+            // An id the list does not have (a provider without a model list, a brand-new model)
+            val typed = query.trim()
+            if (typed.isNotEmpty() && models.none { it.id == typed }) {
+                item(key = "typed") {
+                    Text(
+                        text = stringResource(R.string.ai_use_model_id, typed),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onPick(typed) }
+                            .padding(horizontal = Dimensions.Padding.content, vertical = Spacing.md)
+                    )
+                }
+            }
             items(shown, key = { it.id }) { m ->
                 Row(
                     modifier = Modifier
