@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import com.ritesh.cashiro.presentation.ui.components.LendBorrowRow
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -387,18 +388,20 @@ fun SharedTransitionScope.HomeScreen(
                                 }
                             }
                             HomeWidget.LOANS -> {
-                                item(key = "loans") {
-                                    LendBorrowCard(
-                                        summary = uiState.lendBorrowSummary,
-                                        onClick = { onNavigateToLendBorrow(null) },
-                                        onLentClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_GET.name) },
-                                        onBorrowedClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_OWE.name) },
-                                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content),
-                                        currency = uiState.baseCurrency,
-                                        blurEffects = blurEffects && uiState.showBannerImage,
-                                        hazeState = hazeStateBanner,
-                                        animatedContentScope = animatedContentScope
-                                    )
+                                // One row, and none while nothing is lent or borrowed, so Home's
+                                // key figures fit without scrolling
+                                val loans = uiState.lendBorrowSummary
+                                if (loans.totalLentRemaining.signum() != 0 || loans.totalBorrowedRemaining.signum() != 0) {
+                                    item(key = "loans") {
+                                        LendBorrowRow(
+                                            summary = loans,
+                                            currency = uiState.baseCurrency,
+                                            onClick = { onNavigateToLendBorrow(null) },
+                                            onLentClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_GET.name) },
+                                            onBorrowedClick = { onNavigateToLendBorrow(LendBorrowFilter.YOU_OWE.name) },
+                                            modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                                        )
+                                    }
                                 }
                             }
                             HomeWidget.TRANSACTION_HEATMAP -> {
@@ -438,7 +441,7 @@ fun SharedTransitionScope.HomeScreen(
                             }
                             HomeWidget.ACCOUNT_CAROUSEL -> {
                                 item(key = "account_overview") {
-                                    com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewList(
+                                    com.ritesh.cashiro.presentation.ui.features.accounts.CompactAccountOverview(
                                         overviewItems, openCategory, Modifier.padding(horizontal = Dimensions.Padding.content))
                                 }
                             }

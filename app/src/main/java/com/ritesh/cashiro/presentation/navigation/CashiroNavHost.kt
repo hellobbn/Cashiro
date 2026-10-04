@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -873,8 +874,10 @@ fun CashiroNavHost(
                                         )
                                     )
                                         .skipToLookaheadSize()
-                                )
-                                .clip(MaterialTheme.shapes.large),
+                                ),
+                            // The shape, not a clip: clipping the button cut off its shadow
+                            shape = MaterialTheme.shapes.large,
+                            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 6.dp, pressedElevation = 3.dp),
                             containerColor = fabContainerColor,
                             contentColor = fabContentColor,
                         ) {

@@ -102,6 +102,7 @@ fun BalanceCard(
                 .animateContentSize(
                     MaterialTheme.motionScheme.fastSpatialSpec()
                 )
+                .softShadow(RoundedCornerShape(Dimensions.Radius.lg))
                 .clip(RoundedCornerShape(Dimensions.Radius.lg))
                 .then(
                     if (blurEffects) Modifier.hazeEffect(
