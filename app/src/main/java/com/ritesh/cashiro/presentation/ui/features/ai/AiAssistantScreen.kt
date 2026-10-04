@@ -404,7 +404,9 @@ private fun ProviderForm(
                         model = ""
                     }
                 },
-                shape = SegmentedButtonDefaults.itemShape(index, AiPreset.entries.size)
+                shape = SegmentedButtonDefaults.itemShape(index, AiPreset.entries.size),
+                // No check mark: the filled segment already shows the choice
+                icon = {}
             ) { Text(stringResource(p.labelRes), maxLines = 1) }
         }
     }

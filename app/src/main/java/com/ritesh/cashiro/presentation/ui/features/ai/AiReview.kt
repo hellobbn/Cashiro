@@ -269,7 +269,9 @@ private fun DraftForm(draft: TransactionDraft, lookups: TransactionLookups, onCh
             SegmentedButton(
                 selected = draft.type == type,
                 onClick = { onChange(draft.copy(type = type, toAccount = if (type == TransactionType.TRANSFER) draft.toAccount else null)) },
-                shape = SegmentedButtonDefaults.itemShape(i, types.size)
+                shape = SegmentedButtonDefaults.itemShape(i, types.size),
+                // No check mark: the filled segment already shows the choice
+                icon = {}
             ) { Text(stringResource(type.labelRes)) }
         }
     }
