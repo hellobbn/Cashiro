@@ -31,7 +31,8 @@ interface ExchangeRateProvider {
 }
 
 /**
- * Daily exchange rates from free, keyless sources, tried in order until one answers:
+ * Daily exchange rates from free, keyless sources. By default ([RateServerChoice.AUTO]) they are
+ * tried in this order until one answers; the exchange-rate sheet can pin one instead:
  *
  * 1. ExchangeRate-API's open access endpoint (open.er-api.com): about 160 currencies and
  *    exact update times. Its terms ask for attribution, shown on the exchange-rate sheet.
@@ -43,7 +44,9 @@ interface ExchangeRateProvider {
  * Every request has short timeouts: rates are fetched while screens wait to show converted
  * amounts, and the engine's default would wait 100 s on a source that never answers.
  */
-class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
+class FreeExchangeRateProvider @Inject constructor(
+    private val syncState: RateSyncState
+) : ExchangeRateProvider {
 
     private val client = HttpClient(Android) {
         install(HttpTimeout) {
@@ -84,36 +87,57 @@ class FreeExchangeRateProvider @Inject constructor() : ExchangeRateProvider {
         return response?.rates
     }
 
-    /** A place to get rates from: the URL for a base currency and how to read its answer. */
-    private class RateSource(
-        val url: (base: String) -> String,
-        val parse: (Json, body: String, base: String) -> ExchangeRateResponseWithMetadata?
-    )
+    private fun url(server: RateServer, base: String): String = when (server) {
+        RateServer.EXCHANGE_RATE_API -> "https://open.er-api.com/v6/latest/$base"
+        RateServer.FRANKFURTER -> "https://api.frankfurter.dev/v1/latest?base=$base"
+        RateServer.CURRENCY_API -> "$FAWAZ_URL_BASE/currencies/${base.lowercase()}.json"
+        RateServer.CURRENCY_API_MIRROR -> "$FAWAZ_FALLBACK_URL_BASE/currencies/${base.lowercase()}.json"
+    }
 
-    // Tried in this order; see the class comment for why
-    private val sources = listOf(
-        RateSource({ "https://open.er-api.com/v6/latest/$it" }, ::parseOpenErApi),
-        RateSource({ "https://api.frankfurter.dev/v1/latest?base=$it" }, ::parseFrankfurter),
-        RateSource({ "$FAWAZ_URL_BASE/currencies/${it.lowercase()}.json" }, ::parseFawaz),
-        RateSource({ "$FAWAZ_FALLBACK_URL_BASE/currencies/${it.lowercase()}.json" }, ::parseFawaz),
-    )
+    private fun parse(server: RateServer, body: String, base: String): ExchangeRateResponseWithMetadata? =
+        when (server) {
+            RateServer.EXCHANGE_RATE_API -> parseOpenErApi(json, body, base)
+            RateServer.FRANKFURTER -> parseFrankfurter(json, body, base)
+            RateServer.CURRENCY_API, RateServer.CURRENCY_API_MIRROR -> parseFawaz(json, body, base)
+        }
 
+    /** Tries the chosen servers in order and records which answered and why the others did not. */
     override suspend fun fetchAllExchangeRatesWithMetadata(baseCurrency: String): ExchangeRateResponseWithMetadata? {
         val base = baseCurrency.uppercase()
         return withContext(Dispatchers.IO) {
-            sources.firstNotNullOfOrNull { source -> fetchFrom(source, base) }
+            val failures = mutableListOf<Pair<RateServer, RateFailure>>()
+            var result: ExchangeRateResponseWithMetadata? = null
+            var answered: RateServer? = null
+            for (server in syncState.choice.value.servers) {
+                when (val outcome = fetchFrom(server, base)) {
+                    is FetchOutcome.Rates -> { result = outcome.rates; answered = server; break }
+                    is FetchOutcome.Failed -> failures += server to outcome.failure
+                }
+            }
+            syncState.record(RateSyncStatus(System.currentTimeMillis(), base, answered, failures))
+            result
         }
     }
 
-    private suspend fun fetchFrom(source: RateSource, base: String): ExchangeRateResponseWithMetadata? {
-        val url = source.url(base)
+    private sealed interface FetchOutcome {
+        data class Rates(val rates: ExchangeRateResponseWithMetadata) : FetchOutcome
+        data class Failed(val failure: RateFailure) : FetchOutcome
+    }
+
+    private suspend fun fetchFrom(server: RateServer, base: String): FetchOutcome {
+        val url = url(server, base)
         return try {
             val response = client.get(url) { header("User-Agent", "Cashiro/1.0") }
-            if (response.status.value !in 200..299) return null
-            source.parse(json, response.body<String>(), base)
+            if (response.status.value !in 200..299) return FetchOutcome.Failed(RateFailure.Http(response.status.value))
+            val rates = try {
+                parse(server, response.body<String>(), base)
+            } catch (e: Exception) {
+                null
+            }
+            rates?.let { FetchOutcome.Rates(it) } ?: FetchOutcome.Failed(RateFailure.BadResponse)
         } catch (e: Exception) {
             println("Exchange rates not loaded from $url: ${e.message}")
-            null
+            FetchOutcome.Failed(RateFailure.of(e))
         }
     }
 
@@ -278,7 +302,7 @@ data class ExchangeRateResponseWithMetadata(
  * Factory for creating exchange rate providers
  */
 object ExchangeRateProviderFactory {
-    fun createProvider(): ExchangeRateProvider {
-        return FreeExchangeRateProvider()
+    fun createProvider(syncState: RateSyncState): ExchangeRateProvider {
+        return FreeExchangeRateProvider(syncState)
     }
 }

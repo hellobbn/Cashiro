@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.data.currency.RateServerChoice
+import com.ritesh.cashiro.data.currency.RateSyncStatus
+import androidx.compose.material.icons.rounded.Calculate
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalUriHandler
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
@@ -378,7 +381,11 @@ contentDescription = stringResource(R.string.search),
                     },
                     onResetCustomRate = { fromCurrency, toCurrency ->
                         viewModel.resetCustomRate(fromCurrency, toCurrency)
-                    }
+                    },
+                    serverChoice = viewModel.serverChoice.collectAsState().value,
+                    lastSync = viewModel.lastSync.collectAsState().value,
+                    onSelectServer = viewModel::selectServer,
+                    onSyncNow = viewModel::syncNow
                 )
             }
             
@@ -477,16 +484,31 @@ fun ExchangeRatesBottomSheet(
     onDismiss: () -> Unit,
     sheetState: SheetState,
     onSaveCustomRate: (fromCurrency: String, toCurrency: String, rate: Double) -> Unit = { _, _, _ -> },
-    onResetCustomRate: (fromCurrency: String, toCurrency: String) -> Unit = { _, _ -> }
+    onResetCustomRate: (fromCurrency: String, toCurrency: String) -> Unit = { _, _ -> },
+    serverChoice: RateServerChoice = RateServerChoice.AUTO,
+    lastSync: RateSyncStatus? = null,
+    onSelectServer: (RateServerChoice) -> Unit = {},
+    onSyncNow: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var editTarget by remember { mutableStateOf<CurrencyConversion?>(null) }
     var editRateText by remember { mutableStateOf("") }
-    val filteredConversions = uiState.conversions.filter {
-        it.currencyCode.contains(searchQuery.text, ignoreCase = true) ||
-                it.symbol.contains(searchQuery.text, ignoreCase = true)
-    }
+    var showOthers by remember { mutableStateOf(false) }
+    // The calculator's starting pair, or null while it is closed
+    var calculatorPair by remember { mutableStateOf<Pair<String, String>?>(null) }
     val baseCurrencyCode = uiState.selectedCurrency?.code ?: ""
+
+    val groups = remember(uiState.conversions, uiState.accountCurrencies, searchQuery.text) {
+        val query = searchQuery.text
+        groupRates(
+            uiState.conversions.filter {
+                it.currencyCode.contains(query, ignoreCase = true) || it.symbol.contains(query, ignoreCase = true)
+            },
+            uiState.accountCurrencies
+        )
+    }
+    // Crypto and the like stay folded unless asked for or searched for
+    val others = if (showOthers || searchQuery.text.isNotBlank()) groups.other else emptyList()
 
     CashiroModalBottomSheet(
         sheetState = sheetState,
@@ -499,16 +521,36 @@ fun ExchangeRatesBottomSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            Text(
-                text = stringResource(R.string.exchange_rates),
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = stringResource(R.string.exchange_rates),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                IconButton(
+                    onClick = {
+                        val other = (uiState.accountCurrencies - baseCurrencyCode.uppercase()).firstOrNull() ?: "USD"
+                        calculatorPair = other to baseCurrencyCode
+                    },
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    Icon(Icons.Rounded.Calculate, contentDescription = stringResource(R.string.rate_calculator))
+                }
+            }
             Spacer(modifier = Modifier.size(12.dp))
+
+            RateSyncCard(
+                lastUpdatedEpochSeconds = uiState.lastUpdated,
+                lastSync = lastSync,
+                isSyncing = uiState.isSyncing,
+                isOffline = uiState.isOfflineMode,
+                serverChoice = serverChoice,
+                onSelectServer = onSelectServer,
+                onSyncNow = onSyncNow,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
 
             SearchBarBox(
                 searchQuery = searchQuery,
@@ -521,84 +563,102 @@ fun ExchangeRatesBottomSheet(
                         tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                     )
                 },
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            if (uiState.isLoadingConversions) {
-                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.rates_relative_to, baseCurrencyCode) + "\n" +
+                            stringResource(R.string.rate_custom_hint),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 16.dp)
+                    )
                 }
-            } else if (uiState.conversionError != null) {
-                Text(
-                    text = uiState.conversionError,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp)
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                ) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.rates_relative_to, baseCurrencyCode),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                        )
-                    }
-                    itemsIndexed(filteredConversions) { index, conversion ->
-                        ExchangeRateItem(
-                            conversion = conversion,
-                            baseCurrency = uiState.selectedCurrency,
-                            isFirst = index == 0,
-                            isLast = index == filteredConversions.size - 1,
-                            onClick = {
-                                editTarget = conversion
-                                editRateText = conversion.displayRate
-                            }
-                        )
-                    }
-
-                    // ExchangeRate-API's open access terms ask for a link back to them
-                    item {
-                        val uriHandler = LocalUriHandler.current
-                        Text(
-                            text = stringResource(R.string.rates_attribution),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary.copy(0.7f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { uriHandler.openUri("https://www.exchangerate-api.com") }
-                                .padding(top = 12.dp)
-                        )
-                    }
-
-                    if (uiState.lastUpdated > 0) {
-                        item {
-                            val formatter = remember { SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()) }
-                            val dateStr = remember(uiState.lastUpdated) { formatter.format(Date(uiState.lastUpdated * 1000)) }
+                listOf(
+                    R.string.rate_section_accounts to groups.accounts,
+                    R.string.rate_section_other to groups.fiat + others
+                ).forEach { (title, section) ->
+                    if (section.isNotEmpty()) {
+                        item(key = "header:$title") {
                             Text(
-                                text = stringResource(R.string.last_updated, dateStr),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 12.dp)
+                                text = stringResource(title),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp)
+                            )
+                        }
+                        itemsIndexed(section, key = { _, c -> "$title:${c.currencyCode}" }) { index, conversion ->
+                            ExchangeRateItem(
+                                conversion = conversion,
+                                baseCurrency = uiState.selectedCurrency,
+                                isFirst = index == 0,
+                                isLast = index == section.size - 1,
+                                onClick = { calculatorPair = conversion.currencyCode to baseCurrencyCode },
+                                onLongClick = {
+                                    editTarget = conversion
+                                    editRateText = conversion.displayRate
+                                }
                             )
                         }
                     }
                 }
+                if (groups.other.isNotEmpty() && searchQuery.text.isBlank()) {
+                    item(key = "toggle-others") {
+                        TextButton(
+                            onClick = { showOthers = !showOthers },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                if (showOthers) stringResource(R.string.rate_show_less)
+                                else stringResource(R.string.rate_show_more, groups.other.size)
+                            )
+                        }
+                    }
+                }
+
+                // ExchangeRate-API's open access terms ask for a link back to them
+                item {
+                    val uriHandler = LocalUriHandler.current
+                    Text(
+                        text = stringResource(R.string.rates_attribution),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary.copy(0.7f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { uriHandler.openUri("https://www.exchangerate-api.com") }
+                            .padding(vertical = 12.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(12.dp))
         }
+    }
+
+    calculatorPair?.let { (from, to) ->
+        val codes = remember(uiState.conversions, uiState.accountCurrencies, baseCurrencyCode) {
+            val known = uiState.conversions.map { it.currencyCode.uppercase() } + baseCurrencyCode.uppercase()
+            val accounts = uiState.accountCurrencies.filter { it in known }.sorted()
+            accounts + known.filter { it !in accounts && isFiat(it) }.distinct().sorted()
+        }
+        CurrencyCalculatorDialog(
+            baseCode = baseCurrencyCode,
+            conversions = uiState.conversions,
+            currencies = codes,
+            initialFrom = from,
+            initialTo = to,
+            lastUpdatedEpochSeconds = uiState.lastUpdated,
+            onDismiss = { calculatorPair = null }
+        )
     }
 
     if (editTarget != null) {
@@ -742,13 +802,15 @@ fun ExchangeRatesBottomSheet(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ExchangeRateItem(
     conversion: CurrencyConversion,
     baseCurrency: Currency?,
     isFirst: Boolean,
     isLast: Boolean,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null
 ) {
     val baseSymbol = baseCurrency?.symbol ?: ""
 
@@ -791,7 +853,7 @@ fun ExchangeRateItem(
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .clip(
                 RoundedCornerShape(
                     topStart = if (isFirst) 16.dp else 0.dp,

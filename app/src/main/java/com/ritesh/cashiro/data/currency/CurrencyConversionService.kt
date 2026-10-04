@@ -283,7 +283,22 @@ class CurrencyConversionService @Inject constructor(
     /**
      * Fetch all relevant rates from the API and save to the database.
      */
-    suspend fun fetchAndSaveAllRates(baseCurrency: String, targetCurrencies: List<String> = emptyList()) {
+    /**
+     * A sync the user asked for: fetches every rate for [baseCurrency] now, whatever the cached
+     * state, and has lists convert again. Returns whether a server answered; the reasons are in
+     * [RateSyncState.lastSync].
+     */
+    suspend fun syncNow(baseCurrency: String): Boolean {
+        val synced = fetchAndSaveAllRates(baseCurrency)
+        if (synced) {
+            rateCache.clear()
+            attemptedAt.clear()
+        }
+        _rateChangeTrigger.value++
+        return synced
+    }
+
+    suspend fun fetchAndSaveAllRates(baseCurrency: String, targetCurrencies: List<String> = emptyList()): Boolean {
         val response = exchangeRateProvider.fetchAllExchangeRatesWithMetadata(baseCurrency)
 
         if (response != null) {
@@ -333,6 +348,7 @@ class CurrencyConversionService @Inject constructor(
                 }
             }
         }
+        return response != null
     }
 
     suspend fun saveCustomRate(fromCurrency: String, toCurrency: String, rate: BigDecimal) {

@@ -3,6 +3,7 @@ package com.ritesh.cashiro.di
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.data.currency.ExchangeRateProvider
 import com.ritesh.cashiro.data.currency.ExchangeRateProviderFactory
+import com.ritesh.cashiro.data.currency.RateSyncState
 import com.ritesh.cashiro.data.database.dao.ExchangeRateDao
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import dagger.Module
@@ -38,8 +39,8 @@ object ApplicationModule {
      */
     @Provides
     @Singleton
-    fun provideExchangeRateProvider(): ExchangeRateProvider {
-        return ExchangeRateProviderFactory.createProvider()
+    fun provideExchangeRateProvider(syncState: RateSyncState): ExchangeRateProvider {
+        return ExchangeRateProviderFactory.createProvider(syncState)
     }
 
     /**
