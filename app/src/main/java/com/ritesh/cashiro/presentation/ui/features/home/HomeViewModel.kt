@@ -67,6 +67,7 @@ class HomeViewModel @Inject constructor(
     private val subcategoryRepository: SubcategoryRepository,
     private val budgetRepository: BudgetRepository,
     private val lendBorrowRepository: com.ritesh.cashiro.data.repository.LendBorrowRepository,
+    private val transactionLookupsSource: com.ritesh.cashiro.presentation.common.TransactionLookupsSource,
     private val brokerageRepository: BrokerageRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -89,11 +90,8 @@ class HomeViewModel @Inject constructor(
         .map { subcats -> subcats.associateBy { it.name } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    val accountsMap = accountBalanceRepository.getAllLatestBalances()
-        .map { accountList ->
-            accountList.associateBy { "${it.bankName}_${it.accountLast4}" }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+    // Category, account and lend/borrow person lookups for the Recent rows
+    val lookups = transactionLookupsSource.lookups
 
     // Store currency breakdown maps for quick access when switching currencies
     private var currentMonthBreakdownMap: Map<String, TransactionRepository.MonthlyBreakdown> =
@@ -505,26 +503,6 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch {
-            combine(
-                lendBorrowRepository.getAllTransactions(),
-                lendBorrowRepository.getPersons()
-            ) { lbTransactions, persons ->
-                val personMap = persons.associateBy { it.id }
-                lbTransactions
-                    .filter { it.transactionId != null }
-                    .associate { lb ->
-                        val person = personMap[lb.personId]
-                        lb.transactionId!! to PersonInfo(
-                            name = person?.name ?: lb.title,
-                            color = person?.color ?: "#4CAF50",
-                            avatar = person?.avatar
-                        )
-                    }
-            }.collect { mapping ->
-                _uiState.update { it.copy(transactionPersonMapping = mapping) }
-            }
-        }
     }
 
     private fun calculateMonthlyChange() {

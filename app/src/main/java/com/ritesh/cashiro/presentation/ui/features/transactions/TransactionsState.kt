@@ -15,7 +15,6 @@ data class TransactionsUiState(
     // Transactions in the main currency, where a rate is known
     val conversions: Conversions = Conversions(),
     val isLoading: Boolean = true,
-    val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap()
 )
 
 data class FilterParams(

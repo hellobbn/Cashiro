@@ -25,7 +25,6 @@ data class BudgetUiState(
     // Transactions in the main currency, where a rate is known
     val conversions: Conversions = Conversions(),
     val baseCurrency: String = "CNY",
-    val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap(),
     val error: String? = null
 )
 

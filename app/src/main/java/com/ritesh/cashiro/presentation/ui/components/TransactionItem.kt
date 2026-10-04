@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.presentation.common.TransactionDecoration
 import com.ritesh.cashiro.utils.displayTitle
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -104,8 +105,21 @@ fun TransactionItem(
     currentBankNameContext: String? = null,
     linkedLoanPersonName: String? = null,
     linkedLoanPersonColor: String? = null,
-    linkedLoanPersonAvatar: String? = null
+    linkedLoanPersonAvatar: String? = null,
+    // Category, account, person and converted amount looked up for a list row; explicit
+    // arguments above take precedence over it
+    decoration: TransactionDecoration? = null
 ) {
+    val categoryEntity = categoryEntity ?: decoration?.category
+    val subcategoryEntity = subcategoryEntity ?: decoration?.subcategory
+    val accountIconResId = accountIconResId.takeIf { it != 0 } ?: decoration?.account?.iconResId ?: 0
+    val accountIconName = accountIconName ?: decoration?.account?.iconName
+    val accountColorHex = accountColorHex ?: decoration?.account?.color
+    val convertedAmount = convertedAmount ?: decoration?.convertedAmount
+    val rateLoading = rateLoading || decoration?.rateLoading == true
+    val linkedLoanPersonName = linkedLoanPersonName ?: decoration?.person?.name
+    val linkedLoanPersonColor = linkedLoanPersonColor ?: decoration?.person?.color
+    val linkedLoanPersonAvatar = linkedLoanPersonAvatar ?: decoration?.person?.avatar
     val finalMerchantName = merchantName ?: transaction?.displayTitle() ?: ""
     val finalAmount = amount ?: transaction?.amount ?: BigDecimal.ZERO
     val finalType = transactionType ?: transaction?.transactionType ?: TransactionType.EXPENSE

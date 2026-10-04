@@ -34,8 +34,11 @@ class BudgetViewModel @Inject constructor(
     private val accountBalanceDao: AccountBalanceDao,
     private val currencyRepository: CurrencyRepository,
     private val currencyConversionService: CurrencyConversionService,
-    private val lendBorrowRepository: LendBorrowRepository
+    transactionLookupsSource: com.ritesh.cashiro.presentation.common.TransactionLookupsSource
 ) : ViewModel() {
+    // Category, account and lend/borrow person lookups for the transaction rows
+    val lookups = transactionLookupsSource.lookups
+
 
     private val _uiState = MutableStateFlow(BudgetUiState())
     val uiState: StateFlow<BudgetUiState> = _uiState.asStateFlow()
@@ -210,30 +213,13 @@ class BudgetViewModel @Inject constructor(
                 combine(
                     budgetRepository.getTransactionsForBudget(collectionBudget),
                     currencyRepository.effectiveBaseCurrencyCode,
-                    currencyConversionService.rateChangeTrigger,
-                    lendBorrowRepository.getAllTransactions(),
-                    lendBorrowRepository.getPersons()
-                ) { transactions, mainCurrency, _, lbTransactions, persons ->
+                    currencyConversionService.rateChangeTrigger
+                ) { transactions, mainCurrency, _ ->
                     // Rates known now; missing ones arrive through rateChangeTrigger
                     val conversions = currencyConversionService.convert(transactions, mainCurrency)
-
-                    // Create person mapping
-                    val personMap = persons.associateBy { it.id }
-                    val transactionPersonMapping = lbTransactions
-                        .filter { it.transactionId != null }
-                        .associate { lb ->
-                            val person = personMap[lb.personId]
-                            lb.transactionId!! to PersonInfo(
-                                name = person?.name ?: lb.title,
-                                color = person?.color ?: "#4CAF50",
-                                avatar = person?.avatar
-                            )
-                        }
-                    
                     _uiState.update { it.copy(
                         selectedBudgetTransactions = transactions,
-                        conversions = conversions,
-                        transactionPersonMapping = transactionPersonMapping
+                        conversions = conversions
                     ) }
                 }.collectLatest { }
             }

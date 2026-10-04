@@ -22,7 +22,6 @@ data class AccountDetailUiState(
     val hasMultipleCurrencies: Boolean = false,
     // Transactions in the main currency, where a rate is known
     val conversions: Conversions = Conversions(),
-    val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap(),
     val isLoading: Boolean = true
 )
 

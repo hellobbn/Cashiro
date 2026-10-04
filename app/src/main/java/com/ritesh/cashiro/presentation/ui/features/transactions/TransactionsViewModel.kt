@@ -54,7 +54,7 @@ class TransactionsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val currencyRepository: CurrencyRepository,
     private val currencyConversionService: CurrencyConversionService,
-    private val lendBorrowRepository: LendBorrowRepository,
+    transactionLookupsSource: com.ritesh.cashiro.presentation.common.TransactionLookupsSource,
     private val savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -250,6 +250,9 @@ class TransactionsViewModel @Inject constructor(
             initialValue = emptyMap()
         )
 
+    // Category, account and lend/borrow person lookups for the transaction rows
+    val lookups = transactionLookupsSource.lookups
+
     val accountsMap: StateFlow<Map<String, AccountBalanceEntity>> = accountBalanceRepository.getAllLatestBalances()
         .map { accountList ->
             accountList.associateBy { "${it.bankName}_${it.accountLast4}" }
@@ -323,16 +326,12 @@ class TransactionsViewModel @Inject constructor(
                 val baseCurrencyCode = baseCurrency.value
                 val sort = sortOption.value
  
-                 // Get filtered transactions
-                 combine(
-                     getFilteredTransactions(query, period, category, subcategory, amountRange, accounts, filterCurrencies, typeFilter)
-                         .flowOn(Dispatchers.Default)
-                         .onEach { androidx.core.os.trace("TransactionsList.source:transactions") {} },
-                     lendBorrowRepository.getAllTransactions()
-                         .onEach { androidx.core.os.trace("TransactionsList.source:lendBorrow") {} },
-                     lendBorrowRepository.getPersons()
-                         .onEach { androidx.core.os.trace("TransactionsList.source:persons") {} }
-                 ) { transactions, lbTransactions, persons ->
+                 // Get filtered transactions. Categories, accounts and lend/borrow people come
+                 // from the shared lookups the screen reads, so they never republish the list.
+                 getFilteredTransactions(query, period, category, subcategory, amountRange, accounts, filterCurrencies, typeFilter)
+                     .flowOn(Dispatchers.Default)
+                     .onEach { androidx.core.os.trace("TransactionsList.source:transactions") {} }
+                     .map { transactions ->
                      // No longer filtering by selectedCurrency. Show all unless explicitly filtered via filter sheet
                      val currencyFilteredTransactions = transactions
                      
@@ -341,37 +340,23 @@ class TransactionsViewModel @Inject constructor(
                      val conversions = currencyConversionService.convert(currencyFilteredTransactions, baseCurrencyCode)
 
                      withContext(Dispatchers.Default) {
-                         // Create person mapping
-                         val personMap = persons.associateBy { it.id }
-                         val transactionPersonMapping = lbTransactions
-                             .filter { it.transactionId != null }
-                             .associate { lb ->
-                                 val person = personMap[lb.personId]
-                                 lb.transactionId!! to PersonInfo(
-                                     name = person?.name ?: lb.title,
-                                     color = person?.color ?: "#4CAF50",
-                                     avatar = person?.avatar
-                                 )
-                             }
-
                          val sorted = sortTransactions(currencyFilteredTransactions, sort)
                          PreparedTransactionList(
                              sorted, groupTransactionsByDate(sorted), conversions,
-                             transactionPersonMapping, calculateCurrencyGroupedTotals(sorted)
+                             calculateCurrencyGroupedTotals(sorted)
                          )
                      }
                  }.collect { prepared ->
                      emit(prepared)
                  }
             }
-            .onEach { (transactions, groups, conversions, personMapping, totals) ->
+            .onEach { (transactions, groups, conversions, totals) ->
                 // Counted by the Macrobenchmark suite: each publish recomposes the list.
                 androidx.core.os.trace("TransactionsList.publish") {}
                 _uiState.value = _uiState.value.copy(
                     transactions = transactions,
                     groupedTransactions = groups,
                     conversions = conversions,
-                    transactionPersonMapping = personMapping,
                     isLoading = false
                 )
                 // Calculate totals for filtered transactions
@@ -958,6 +943,5 @@ private data class PreparedTransactionList(
     val transactions: List<TransactionEntity>,
     val groups: Map<DateGroup, List<TransactionEntity>>,
     val conversions: Conversions,
-    val persons: Map<Long, PersonInfo>,
     val totals: CurrencyGroupedTotals
 )

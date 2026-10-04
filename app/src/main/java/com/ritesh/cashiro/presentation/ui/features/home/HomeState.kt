@@ -48,6 +48,5 @@ data class HomeUiState(
     // Transactions in the main currency, where a rate is known
     val conversions: Conversions = Conversions(),
     val baseCurrency: String = "CNY",
-    val lendBorrowSummary: com.ritesh.cashiro.domain.model.LendBorrowSummary = com.ritesh.cashiro.domain.model.LendBorrowSummary(),
-    val transactionPersonMapping: Map<Long, PersonInfo> = emptyMap()
+    val lendBorrowSummary: com.ritesh.cashiro.domain.model.LendBorrowSummary = com.ritesh.cashiro.domain.model.LendBorrowSummary()
 )

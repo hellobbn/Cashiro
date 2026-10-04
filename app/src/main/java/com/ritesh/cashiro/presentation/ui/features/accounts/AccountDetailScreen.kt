@@ -94,8 +94,7 @@ fun SharedTransitionScope.AccountDetailScreen(
 ) {
     val uiState by accountDetailViewModel.uiState.collectAsState()
     val selectedDateRange by accountDetailViewModel.selectedDateRange.collectAsState()
-    val categoriesMap by accountDetailViewModel.categoriesMap.collectAsStateWithLifecycle()
-    val subcategoriesMap by accountDetailViewModel.subcategoriesMap.collectAsStateWithLifecycle()
+    val lookups by accountDetailViewModel.lookups.collectAsStateWithLifecycle()
     
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val scrollBehaviorLarge = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -218,10 +217,9 @@ fun SharedTransitionScope.AccountDetailScreen(
                     items = uiState.transactions,
                     key = { _, it -> it.id }
                 ) { index, transaction ->
-                    val categoryEntity = categoriesMap[transaction.category]
-                    val subcategoryEntity = if (categoryEntity != null && transaction.subcategory != null) {
-                        subcategoriesMap[transaction.subcategory]
-                    } else null
+                    val decoration = remember(transaction, lookups, uiState.conversions) {
+                        lookups.decorate(transaction, uiState.conversions)
+                    }
 
                     val position = remember(index, uiState.transactions.size) {
                         ListItemPosition.from(index, uiState.transactions.size)
@@ -230,16 +228,13 @@ fun SharedTransitionScope.AccountDetailScreen(
 
                     TransactionItem(
                         transaction = transaction,
-                        categoryEntity = categoryEntity,
-                        subcategoryEntity = subcategoryEntity,
+                        decoration = decoration,
                         balanceAfter = transaction.balanceAfter,
                         balanceCurrency = uiState.primaryCurrency,
                         accountIconResId = uiState.currentBalance?.iconResId ?: 0,
                         accountIconName = uiState.currentBalance?.iconName,
                         accountColorHex = uiState.currentBalance?.color,
-                        convertedAmount = uiState.conversions.amountOf(transaction),
                         mainCurrency = uiState.baseCurrency,
-                        rateLoading = uiState.conversions.isLoading(transaction),
                         currentAccountContext = uiState.currentBalance?.accountLast4,
                         currentBankNameContext = bankName,
                         onClick = {
@@ -254,9 +249,6 @@ fun SharedTransitionScope.AccountDetailScreen(
                         modifier = Modifier.padding(horizontal = Dimensions.Padding.content),
                         animatedContentScope = animatedContentScope,
                         sharedElementKey = "transaction_${transaction.id}",
-                        linkedLoanPersonName = uiState.transactionPersonMapping[transaction.id]?.name,
-                        linkedLoanPersonColor = uiState.transactionPersonMapping[transaction.id]?.color,
-                        linkedLoanPersonAvatar = uiState.transactionPersonMapping[transaction.id]?.avatar
                     )
                 }
             }

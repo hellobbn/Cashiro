@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
-import com.ritesh.cashiro.data.repository.CategoryRepository
-import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.data.repository.CurrencyRepository
 import com.ritesh.cashiro.data.repository.LendBorrowRepository
@@ -32,11 +30,9 @@ class AccountDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val transactionRepository: TransactionRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
-    private val categoryRepository: CategoryRepository,
-    private val subcategoryRepository: SubcategoryRepository,
     private val currencyRepository: CurrencyRepository,
     private val currencyConversionService: CurrencyConversionService,
-    private val lendBorrowRepository: LendBorrowRepository
+    transactionLookupsSource: com.ritesh.cashiro.presentation.common.TransactionLookupsSource
 ) : ViewModel() {
     
     private val bankName: String = savedStateHandle.get<String>("bankName") ?: ""
@@ -45,13 +41,8 @@ class AccountDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AccountDetailUiState())
     val uiState: StateFlow<AccountDetailUiState> = _uiState.asStateFlow()
 
-    val categoriesMap = categoryRepository.getAllCategories()
-        .map { cats -> cats.associateBy { it.name } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
-
-    val subcategoriesMap = subcategoryRepository.getAllSubcategories()
-        .map { subcats -> subcats.associateBy { it.name } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+    // Category, account and lend/borrow person lookups for the transaction rows
+    val lookups = transactionLookupsSource.lookups
     
     private val _selectedDateRange = MutableStateFlow(DateRange.LAST_30_DAYS)
     val selectedDateRange: StateFlow<DateRange> = _selectedDateRange.asStateFlow()
@@ -78,16 +69,12 @@ class AccountDetailViewModel @Inject constructor(
                 transactionRepository.getTransactionsByAccount(bankName, accountLast4),
                 currencyRepository.effectiveBaseCurrencyCode,
                 accountBalanceRepository.getLatestBalanceFlow(bankName, accountLast4),
-                currencyConversionService.rateChangeTrigger,
-                lendBorrowRepository.getAllTransactions(),
-                lendBorrowRepository.getPersons()
+                currencyConversionService.rateChangeTrigger
             ) { args: Array<Any?> ->
                 val dateRange = args[0] as DateRange
                 val allTransactions = args[1] as List<TransactionEntity>
                 val mainCurrency = args[2] as String
                 val latestBalance = args[3] as AccountBalanceEntity?
-                val lbTransactions = args[5] as List<LendBorrowTransactionItem>
-                val persons = args[6] as List<LendBorrowPerson>
 
                 val (startDate, endDate) = getDateRangeValues(dateRange)
 
@@ -141,20 +128,6 @@ class AccountDetailViewModel @Inject constructor(
                     }
                 }
 
-                // Create person mapping
-                val personMap = persons.associateBy { it.id }
-                val transactionPersonMapping = lbTransactions
-                    .filter { it.transactionId != null }
-                    .associate { lb ->
-                        val person = personMap[lb.personId]
-                        lb.transactionId!! to PersonInfo(
-                            name = person?.name ?: lb.title,
-                            color = person?.color ?: "#4CAF50",
-                            avatar = person?.avatar
-                        )
-                    }
-
-                // Calculate converted amounts for the UI (TransactionItem) based on Main App Currency
                 // Rates known now; missing ones arrive through rateChangeTrigger
                 val conversions = currencyConversionService.convert(filteredTransactions, mainCurrency)
 
@@ -168,7 +141,6 @@ class AccountDetailViewModel @Inject constructor(
                         baseCurrency = mainCurrency,
                         hasMultipleCurrencies = hasMultipleCurrencies,
                         conversions = conversions,
-                        transactionPersonMapping = transactionPersonMapping,
                         isLoading = false
                     )
                 }

@@ -187,7 +187,7 @@ fun SharedTransitionScope.HomeScreen(
     val deletedTransaction by homeViewModel.deletedTransaction.collectAsState()
     val categoriesMap by homeViewModel.categoriesMap.collectAsStateWithLifecycle()
     val subcategoriesMap by homeViewModel.subcategoriesMap.collectAsStateWithLifecycle()
-    val accountsMap by homeViewModel.accountsMap.collectAsStateWithLifecycle()
+    val lookups by homeViewModel.lookups.collectAsStateWithLifecycle()
     val homeWidgets by homeViewModel.homeWidgets.collectAsStateWithLifecycle()
     val overviewViewModel: com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewViewModel = hiltViewModel()
     val overviewItems by overviewViewModel.items.collectAsStateWithLifecycle()
@@ -602,27 +602,17 @@ fun SharedTransitionScope.HomeScreen(
                                                     }
                                                 } else {
                                                     uiState.recentTransactions.forEachIndexed { index, transaction ->
-                                                        val categoryEntity = categoriesMap[transaction.category]
-                                                        val subcategoryEntity =
-                                                            if (categoryEntity != null && transaction.subcategory != null) {
-                                                                subcategoriesMap[transaction.subcategory]
-                                                            } else null
                                                         val position = ListItemPosition.from(
                                                             index,
                                                             uiState.recentTransactions.size
                                                         )
-
-                                                        val accountEntity = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]
+                                                        val decoration = remember(transaction, lookups, uiState.conversions) {
+                                                            lookups.decorate(transaction, uiState.conversions)
+                                                        }
                                                         TransactionItem(
                                                             transaction = transaction,
-                                                            categoryEntity = categoryEntity,
-                                                            subcategoryEntity = subcategoryEntity,
-                                                            accountIconResId = accountEntity?.iconResId ?: 0,
-                                                            accountIconName = accountEntity?.iconName,
-                                                            accountColorHex = accountEntity?.color,
-                                                            convertedAmount = uiState.conversions.amountOf(transaction),
+                                                            decoration = decoration,
                                                             mainCurrency = uiState.baseCurrency,
-                                                            rateLoading = uiState.conversions.isLoading(transaction),
                                                             onClick = {
                                                                 onTransactionClick(
                                                                     transaction.id,
@@ -632,10 +622,7 @@ fun SharedTransitionScope.HomeScreen(
                                                             shape = position.toShape(),
                                                             modifier = Modifier.fillMaxWidth(),
                                                             animatedContentScope = animatedContentScope,
-                                                            sharedElementKey = "transaction_${transaction.id}",
-                                                            linkedLoanPersonName = uiState.transactionPersonMapping[transaction.id]?.name,
-                                                            linkedLoanPersonColor = uiState.transactionPersonMapping[transaction.id]?.color,
-                                                            linkedLoanPersonAvatar = uiState.transactionPersonMapping[transaction.id]?.avatar
+                                                            sharedElementKey = "transaction_${transaction.id}"
                                                         )
                                                     }
                                                 }
