@@ -10,6 +10,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -32,7 +34,15 @@ val LocalWindowLayout = staticCompositionLocalOf { WindowLayout(widthDp = 0) }
 
 @Composable
 fun rememberWindowLayout(): WindowLayout {
-    val widthDp = LocalConfiguration.current.screenWidthDp
+    // The window's own size (split screen, freeform), not the display's
+    val widthPx = LocalWindowInfo.current.containerSize.width
+    val widthDp = if (widthPx > 0) {
+        with(LocalDensity.current) { widthPx.toDp().value.toInt() }
+    } else {
+        // Before the window is measured: the configuration's width, close enough for a frame
+        @Suppress("ConfigurationScreenWidthHeight")
+        LocalConfiguration.current.screenWidthDp
+    }
     return remember(widthDp) { WindowLayout(widthDp) }
 }
 

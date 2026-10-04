@@ -68,7 +68,14 @@ Personal Chinese / cross-border manual accounts:
 - Light / dark / dynamic themes
 - 8dp grid
 - Material 3 type scale
-- NavigationBar on phones, NavigationRail on tablets
+- Adaptive layout (`presentation/ui/adaptive/WindowLayout.kt`, read from the window width):
+  - Below 600 dp: bottom NavigationBar.
+  - From 600 dp: NavigationRail at the start edge on every screen but lock/onboarding.
+    Screens other than the three main tabs are at most 720 dp wide, centered (`ReadableWidth`).
+  - From 720 dp:
+    - Home and Analytics are two columns.
+    - Transactions and the account lists are list-detail (`TransactionDetailPane`,
+      `AccountDetailPane`); system back closes an open pane first.
 - Edge-to-edge via the existing scaffold / TopAppBar pattern
 - Chinese UI should avoid awkward letter-spacing and should use `9月1日` style dates
 
