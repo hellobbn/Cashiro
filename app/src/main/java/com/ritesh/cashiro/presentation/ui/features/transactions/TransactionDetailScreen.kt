@@ -657,7 +657,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                             }
                         }
 
-                        val dropContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         Box {
                             IconButton(
                                 shapes = IconButtonDefaults.shapes(),
@@ -674,30 +673,10 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
+                            // A standard Material 3 menu: opaque tonal container, no blur, no dividers
                             DropdownMenu(
                                 expanded = showMoreMenu,
-                                onDismissRequest = { showMoreMenu = false },
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(24.dp))
-                                    .then(
-                                        if (blurEffects) Modifier.hazeEffect(
-                                            state = hazeState,
-                                            block = fun HazeEffectScope.() {
-                                                inputScale = HazeInputScale.Auto
-                                                style = HazeDefaults.style(
-                                                    backgroundColor = Color.Transparent,
-                                                    tint = HazeTint(dropContainerColor.copy(0.5f)),
-                                                    blurRadius = 36.dp,
-                                                    noiseFactor = -1f,
-                                                )
-                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                            }
-                                        ) else Modifier
-                                    ),
-                                containerColor = dropContainerColor.copy(
-                                    alpha = if (blurEffects) 0.7f else 1f
-                                ),
-                                shape = RoundedCornerShape(24.dp)
+                                onDismissRequest = { showMoreMenu = false }
                             ) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.report_issue)) },
@@ -709,11 +688,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                     },
                                     leadingIcon = { Icon(Icons.Rounded.BugReport, contentDescription = null) }
                                 )
-
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
-                                )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.duplicate_transaction)) },
                                     onClick = {
@@ -721,10 +695,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                         transactionDetailViewModel.duplicateTransaction()
                                     },
                                     leadingIcon = { Icon(Iconax.Copy, contentDescription = null) }
-                                )
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
                                 )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.quick_template_save_from_detail)) },
@@ -734,10 +704,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                     },
                                     leadingIcon = { Icon(Icons.Rounded.Bolt, contentDescription = null) }
                                 )
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
-                                )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.delete_transaction)) },
                                     onClick = {
@@ -745,11 +711,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                         transactionDetailViewModel.showDeleteDialog()
                                     },
                                     leadingIcon = { Icon(Iconax.Bag, contentDescription = null) }
-                                )
-
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
                                 )
                                 DropdownMenuItem(
                                     text = {
