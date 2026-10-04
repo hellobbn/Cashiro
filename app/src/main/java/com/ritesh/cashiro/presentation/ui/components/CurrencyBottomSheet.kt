@@ -95,7 +95,7 @@ fun CurrencyBottomSheet(
                     text = stringResource(R.string.currencies),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .padding(bottom = 16.dp)
@@ -227,7 +227,7 @@ contentDescription = stringResource(R.string.search),
                                 ) {
                                     Text(
                                         text = stringResource(R.string.view_all_currencies),
-                                        fontSize = 12.sp,
+                                        style = MaterialTheme.typography.bodySmall,
                                         modifier = Modifier
                                             .background(
                                                 color = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -332,7 +332,7 @@ contentDescription = stringResource(R.string.search),
                             Text(
                                 text = stringResource(R.string.exchange_rates_notice_title),
                                 textAlign = TextAlign.Center,
-                                fontSize = 18.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.inverseSurface,
                                 modifier = Modifier.fillMaxWidth()
@@ -340,7 +340,7 @@ contentDescription = stringResource(R.string.search),
                             Text(
                                 text = stringResource(R.string.exchange_rates_notice_text),
                                 textAlign = TextAlign.Center,
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.inverseSurface.copy(0.8f),
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -441,7 +441,7 @@ fun CurrencyCard(
             Text(
                 text = currency.code.uppercase(),
                 lineHeight = 12.sp,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = if (isSelected)
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(0.7f)
                 else
@@ -450,7 +450,7 @@ fun CurrencyCard(
             Text(
                 text = currency.symbol,
                 lineHeight = 20.sp,
-                fontSize = 20.sp,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected)
                     MaterialTheme.colorScheme.onPrimaryContainer
@@ -461,7 +461,7 @@ fun CurrencyCard(
             Text(
                 text = currency.localizedName(),
                 lineHeight = 10.sp,
-                fontSize = 10.sp,
+                style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = if (isSelected)
@@ -530,7 +530,7 @@ fun ExchangeRatesBottomSheet(
                     text = stringResource(R.string.exchange_rates),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 IconButton(
@@ -844,7 +844,7 @@ fun AddCustomCurrencyBottomSheet(
                     text = stringResource(R.string.custom_currency),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.fillMaxWidth()
                 )

@@ -1188,7 +1188,7 @@ fun CreateRuleScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.save),
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
                 }

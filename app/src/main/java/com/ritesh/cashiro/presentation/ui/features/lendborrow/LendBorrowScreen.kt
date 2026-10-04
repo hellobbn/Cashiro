@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.lendborrow
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.animation.core.tween
@@ -17,7 +18,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -339,7 +339,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                         label = {
                             Text(
                                 text = stringResource(R.string.search),
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f)
                             )
                         },
@@ -551,7 +551,7 @@ fun SharedTransitionScope.PersonListItemCard(
     sharedElementKey: String? = null,
     shape: CornerBasedShape = listSingleItemShape
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppInDarkTheme
     val colorInt = try {
         android.graphics.Color.parseColor(person.color)
     } catch (e: Exception) {

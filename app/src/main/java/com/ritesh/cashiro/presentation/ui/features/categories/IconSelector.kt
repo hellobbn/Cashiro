@@ -110,7 +110,7 @@ fun IconSelector(
                 ) { labelText ->
                     Text(
                         text = labelText,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         lineHeight = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         fontStyle = FontStyle.Italic,
@@ -181,7 +181,7 @@ private fun IconFlowLayout(
                     Text(
                             text = category.uppercase(),
                             color = themeColors.primary,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                     )

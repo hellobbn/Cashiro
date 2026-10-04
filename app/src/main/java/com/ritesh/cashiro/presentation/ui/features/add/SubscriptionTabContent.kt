@@ -330,14 +330,14 @@ fun SubscriptionTabContent(
                             ) {
                                 Text(
                                     text = yearLabel,
-                                    fontSize = 10.sp,
+                                    
                                     textAlign = TextAlign.Start,
                                     color = themeColors.primary,
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                                 Text(
                                     text = dateLabel,
-                                    fontSize = 14.sp,
+                                    
                                     textAlign = TextAlign.Start,
                                     color = themeColors.onSurface,
                                     style = MaterialTheme.typography.bodyLarge,

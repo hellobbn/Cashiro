@@ -314,14 +314,14 @@ fun TransactionTabContent(
                         ) {
                             Text(
                                 text = yearLabel,
-                                fontSize = 10.sp,
+                                
                                 textAlign = TextAlign.Start,
                                 color = themeColors.primary,
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                             Text(
                                 text = dateLabel,
-                                fontSize = 14.sp,
+                                
                                 textAlign = TextAlign.Start,
                                 color = themeColors.onSurface,
                                 style = MaterialTheme.typography.bodyLarge,
@@ -362,7 +362,7 @@ fun TransactionTabContent(
                                 text = String.format("%02d", hour),
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.bodyLarge,
                                 lineHeight = 16.sp,
                                 modifier = Modifier.padding(5.dp)
                             )
@@ -372,7 +372,7 @@ fun TransactionTabContent(
                             text = ":",
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 16.sp,
+                            style = MaterialTheme.typography.bodyLarge,
                         )
 
                         Box(
@@ -387,7 +387,7 @@ fun TransactionTabContent(
                                 text = String.format("%02d", minute),
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.bodyLarge,
                                 lineHeight = 16.sp,
                                 modifier = Modifier.padding(5.dp)
                             )
@@ -398,7 +398,7 @@ fun TransactionTabContent(
                                 text = amPm,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                         }
                     }

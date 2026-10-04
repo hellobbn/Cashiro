@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.contacts
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Surface
@@ -20,7 +21,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -283,7 +283,7 @@ fun SharedTransitionScope.ContactsScreen(
                         label = {
                             Text(
                                 text = stringResource(R.string.search),
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f)
                             )
                         },
@@ -384,7 +384,7 @@ fun SharedTransitionScope.DisplayProfileImageCard(
     animatedContentScope: AnimatedContentScope? = null,
     sharedElementKey: String? = null,
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppInDarkTheme
     val colorInt = try {
         person.color.toColorInt()
     } catch (e: Exception) {

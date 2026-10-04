@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.theme.transactionTypeColor
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import com.ritesh.cashiro.presentation.ui.components.TooltipIconButton
 import androidx.compose.material3.ripple
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
@@ -47,7 +49,6 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -320,7 +321,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val rootView = LocalView.current
-    val isDarkTheme = uiState.darkThemeConfig ?: isSystemInDarkTheme()
+    val isDarkTheme = uiState.darkThemeConfig ?: isAppInDarkTheme
     val isAmoledMode = uiState.isAmoledMode
 
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -890,7 +891,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                 },
                 onDismiss = { transactionDetailViewModel.hideMatchPreviewSheet() },
                 newCategory = editableTransaction?.category ?: "",
-                isDarkTheme = uiState.darkThemeConfig ?: isSystemInDarkTheme(),
+                isDarkTheme = uiState.darkThemeConfig ?: isAppInDarkTheme,
                 transactionPersonMapping = uiState.transactionPersonMapping
             )
         }
@@ -2072,14 +2073,14 @@ private fun DateTimeField(
                 ) {
                     Text(
                         text = yearLabel,
-                        fontSize = 10.sp,
+                        
                         textAlign = TextAlign.Start,
                         color = themeColors.primary,
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Text(
                         text = dateLabel,
-                        fontSize = 14.sp,
+                        
                         textAlign = TextAlign.Start,
                         color = themeColors.onSurface,
                         style = MaterialTheme.typography.bodyLarge,
@@ -2119,7 +2120,7 @@ private fun DateTimeField(
                         text = String.format("%02d", hour),
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         lineHeight = 16.sp,
                         modifier = Modifier.padding(5.dp)
                     )
@@ -2129,7 +2130,7 @@ private fun DateTimeField(
                     text = ":",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 16.sp,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
 
                 Box(
@@ -2144,7 +2145,7 @@ private fun DateTimeField(
                         text = String.format("%02d", minute),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         lineHeight = 16.sp,
                         modifier = Modifier.padding(5.dp)
                     )
@@ -2155,7 +2156,7 @@ private fun DateTimeField(
                         text = amPm,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
@@ -2364,7 +2365,7 @@ private fun TransactionReceipt(
                                         text = String.format("%02d", hour),
                                         color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
+                                        style = MaterialTheme.typography.bodyLarge,
                                         lineHeight = 16.sp,
                                         modifier = Modifier.padding(5.dp)
                                     )
@@ -2374,7 +2375,7 @@ private fun TransactionReceipt(
                                     text = ":",
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
+                                    style = MaterialTheme.typography.bodyLarge,
                                 )
 
                                 Box(
@@ -2389,7 +2390,7 @@ private fun TransactionReceipt(
                                         text = String.format("%02d", minute),
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 16.sp,
+                                        style = MaterialTheme.typography.bodyLarge,
                                         lineHeight = 16.sp,
                                         modifier = Modifier.padding(5.dp)
                                     )
@@ -2400,7 +2401,7 @@ private fun TransactionReceipt(
                                         text = amPm,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 14.sp,
+                                        style = MaterialTheme.typography.bodyMedium,
                                     )
                                 }
                             }
@@ -2696,16 +2697,7 @@ private fun TransactionReceipt(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
                 
-                val amountColor = when (transaction.transactionType) {
-                    TransactionType.INCOME -> Color(0xFF4CAF50)
-                    TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
-                    TransactionType.CREDIT -> Color(0xFFFF6B35)  // Orange for credit
-                    TransactionType.TRANSFER -> Color(0xFF9C27B0)  // Purple for transfer
-                    TransactionType.INVESTMENT -> Color(0xFF00796B)  // Teal for investment
-                    TransactionType.BALANCE_UPDATE -> Color(0xFF9C27B0)  // Purple for balance update
-                    TransactionType.LENT -> MaterialTheme.colorScheme.error
-                    TransactionType.BORROWED -> Color(0xFF4CAF50)
-                }
+                val amountColor = transactionTypeColor(transaction.transactionType)
                 val sign = when (transaction.transactionType) {
                     TransactionType.INCOME -> "+"
                     TransactionType.EXPENSE -> "-"

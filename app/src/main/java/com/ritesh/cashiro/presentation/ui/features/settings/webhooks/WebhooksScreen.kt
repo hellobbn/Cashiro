@@ -402,7 +402,7 @@ private fun DataTypeChip(label: String, onClick: () -> Unit) {
     ) {
         Text(
             text = label,
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

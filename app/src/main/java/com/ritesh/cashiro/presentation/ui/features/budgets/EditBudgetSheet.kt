@@ -407,7 +407,7 @@ fun EditBudgetSheet(
                                     period.name.lowercase().titlecaseFirst(),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
-                                    fontSize = 12.sp
+                                    style = MaterialTheme.typography.bodySmall
                                 )
                             }
                         )
@@ -508,7 +508,7 @@ fun EditBudgetSheet(
                                 inactiveBorderColor = Color.Transparent,
                                 activeBorderColor = Color.Transparent
                             ),
-                            label = { Text(stringResource(R.string.added), fontSize = 11.sp) }
+                            label = { Text(stringResource(R.string.added), style = MaterialTheme.typography.labelSmall) }
                         )
                         SegmentedButton(
                             selected = budgetState.trackType == BudgetTrackType.ALL_TRANSACTIONS,
@@ -520,7 +520,7 @@ fun EditBudgetSheet(
                                 inactiveBorderColor = Color.Transparent,
                                 activeBorderColor = Color.Transparent
                             ),
-                            label = { Text(stringResource(R.string.all), fontSize = 11.sp) }
+                            label = { Text(stringResource(R.string.all), style = MaterialTheme.typography.labelSmall) }
                         )
                     }
                 }
@@ -558,7 +558,7 @@ fun EditBudgetSheet(
                                 inactiveBorderColor = Color.Transparent,
                                 activeBorderColor = Color.Transparent
                             ),
-                            label = { Text(stringResource(R.string.expense), fontSize = 11.sp) }
+                            label = { Text(stringResource(R.string.expense), style = MaterialTheme.typography.labelSmall) }
                         )
                         SegmentedButton(
                             selected = budgetState.budgetType == BudgetType.SAVINGS,
@@ -570,7 +570,7 @@ fun EditBudgetSheet(
                                 inactiveBorderColor = Color.Transparent,
                                 activeBorderColor = Color.Transparent
                             ),
-                            label = { Text(stringResource(R.string.savings), fontSize = 11.sp) }
+                            label = { Text(stringResource(R.string.savings), style = MaterialTheme.typography.labelSmall) }
                         )
                     }
                 }
@@ -811,7 +811,7 @@ fun EditBudgetSheet(
                 ) {
                     Text(
                         text = if (budgetState.isNewBudget) stringResource(R.string.create_budget) else stringResource(R.string.save_changes),
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
                 }

@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import com.ritesh.cashiro.presentation.common.TransactionDecoration
 import com.ritesh.cashiro.utils.displayTitle
 import androidx.compose.animation.core.tween
@@ -14,7 +15,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material.icons.Icons
@@ -124,7 +124,7 @@ fun TransactionItem(
     val finalAmount = amount ?: transaction?.amount ?: BigDecimal.ZERO
     val finalType = transactionType ?: transaction?.transactionType ?: TransactionType.EXPENSE
     val isRecurring = transaction?.isRecurring ?: false
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppInDarkTheme
     val effectiveSign = remember(transaction, currentAccountContext, currentBankNameContext) {
         if (transaction?.transactionType == TransactionType.TRANSFER && currentAccountContext != null && currentBankNameContext != null) {
             val isSender = transaction.bankName == currentBankNameContext && 
@@ -438,56 +438,56 @@ fun TransactionItem(
                                     Iconax.Card,
                                     contentDescription = stringResource(R.string.type_credit_card),
                                     modifier = Modifier.size(Dimensions.Icon.small),
-                                    tint = if (!isSystemInDarkTheme()) credit_light else credit_dark
+                                    tint = if (!isAppInDarkTheme) credit_light else credit_dark
                                 )
 
                                 TransactionType.TRANSFER -> Icon(
                                     Icons.Rounded.SwapHoriz,
                                     contentDescription = stringResource(R.string.type_transfer),
                                     modifier = Modifier.size(Dimensions.Icon.small),
-                                    tint = if (!isSystemInDarkTheme()) transfer_light else transfer_dark
+                                    tint = if (!isAppInDarkTheme) transfer_light else transfer_dark
                                 )
 
                                 TransactionType.INVESTMENT -> Icon(
                                     Icons.AutoMirrored.Filled.ShowChart,
                                     contentDescription = stringResource(R.string.type_investment),
                                     modifier = Modifier.size(Dimensions.Icon.small),
-                                    tint = if (!isSystemInDarkTheme()) investment_light else investment_dark
+                                    tint = if (!isAppInDarkTheme) investment_light else investment_dark
                                 )
 
                                 TransactionType.INCOME -> Icon(
                                     Icons.AutoMirrored.Filled.TrendingUp,
                                     contentDescription = stringResource(R.string.type_income),
                                     modifier = Modifier.size(Dimensions.Icon.small),
-                                    tint = if (!isSystemInDarkTheme()) income_light else income_dark
+                                    tint = if (!isAppInDarkTheme) income_light else income_dark
                                 )
 
                                 TransactionType.EXPENSE -> Icon(
                                     Icons.AutoMirrored.Filled.TrendingDown,
                                     contentDescription = stringResource(R.string.type_expense),
                                     modifier = Modifier.size(Dimensions.Icon.small),
-                                    tint = if (!isSystemInDarkTheme()) expense_light else expense_dark
+                                    tint = if (!isAppInDarkTheme) expense_light else expense_dark
                                 )
 
                                 TransactionType.BALANCE_UPDATE -> Icon(
                                     Icons.Rounded.SwapHoriz,
                                     contentDescription = stringResource(R.string.type_balance_update),
                                     modifier = Modifier.size(Dimensions.Icon.small),
-                                    tint = if (!isSystemInDarkTheme()) transfer_light else transfer_dark
+                                    tint = if (!isAppInDarkTheme) transfer_light else transfer_dark
                                 )
 
                                 TransactionType.LENT -> Icon(
                                     Icons.AutoMirrored.Filled.TrendingDown,
                                     contentDescription = stringResource(R.string.type_lent),
                                     modifier = Modifier.size(Dimensions.Icon.small),
-                                    tint = if (!isSystemInDarkTheme()) expense_light else expense_dark
+                                    tint = if (!isAppInDarkTheme) expense_light else expense_dark
                                 )
 
                                 TransactionType.BORROWED -> Icon(
                                     Icons.AutoMirrored.Filled.TrendingUp,
                                     contentDescription = stringResource(R.string.type_borrowed),
                                     modifier = Modifier.size(Dimensions.Icon.small),
-                                    tint = if (!isSystemInDarkTheme()) income_light else income_dark
+                                    tint = if (!isAppInDarkTheme) income_light else income_dark
                                 )
                             }
                         }

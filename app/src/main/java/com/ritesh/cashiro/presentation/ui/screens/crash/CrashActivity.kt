@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.screens.crash
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.IconButtonDefaults
 import android.content.Intent
 import android.os.Bundle
@@ -12,7 +13,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

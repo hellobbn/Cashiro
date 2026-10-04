@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.theme.successColor
+import com.ritesh.cashiro.presentation.ui.theme.warningColor
 import androidx.compose.material3.ripple
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
@@ -1080,8 +1082,8 @@ private fun CreditCardItem(
     val utilizationColor =
         when {
             utilization > 70 -> MaterialTheme.colorScheme.error
-            utilization > 30 -> Color(0xFFFF9800) // Orange
-            else -> Color(0xFF4CAF50) // Green
+            utilization > 30 -> warningColor
+            else -> successColor
         }
 
     CompactAccountCard(

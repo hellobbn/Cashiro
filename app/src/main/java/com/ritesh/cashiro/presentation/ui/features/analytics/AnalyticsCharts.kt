@@ -328,14 +328,16 @@ fun CategoryPieChart(
     val total = categories.sumOfDouble { cat: CategoryData -> cat.amount.toDouble() }
     if (total == 0.0) return
 
-    val pieData = remember(categories) {
+    // Categories without a mapped color fall back to the scheme's neutral, not a fixed grey
+    val fallbackColor = MaterialTheme.colorScheme.outline
+    val pieData = remember(categories, fallbackColor) {
         categories.map { category ->
             Pie(
                 label = category.name,
                 data = category.amount.toDouble(),
-                color = CategoryMapping.categories[category.name]?.color ?: Color.Gray,
+                color = CategoryMapping.categories[category.name]?.color ?: fallbackColor,
                 selectedColor = (CategoryMapping.categories[category.name]?.color
-                    ?: Color.Gray).copy(alpha = 0.8f),
+                    ?: fallbackColor).copy(alpha = 0.8f),
                 selected = false,
                 scaleAnimEnterSpec = tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing),
                 colorAnimEnterSpec = tween(500)
@@ -585,7 +587,7 @@ fun SpendingHeatmap(
                         text = label,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        fontSize = 11.sp,
+                        
                         modifier = Modifier.offset(x = xOffset)
                     )
                 }

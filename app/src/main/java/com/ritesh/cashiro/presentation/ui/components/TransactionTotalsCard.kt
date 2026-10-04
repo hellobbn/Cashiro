@@ -1,10 +1,10 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -106,12 +106,12 @@ fun TransactionTotalsCard(
                                     imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                                     contentDescription = stringResource(R.string.income),
                                     modifier = Modifier.size(20.dp),
-                                    tint = if (!isSystemInDarkTheme()) income_light else income_dark
+                                    tint = if (!isAppInDarkTheme) income_light else income_dark
                                 )
                             },
                             label = stringResource(R.string.income),
                             amount = formattedIncome,
-                            color = if (!isSystemInDarkTheme()) income_light else income_dark,
+                            color = if (!isAppInDarkTheme) income_light else income_dark,
                             modifier = Modifier
                                 .alpha(incomeAlpha)
                         )
@@ -153,12 +153,12 @@ fun TransactionTotalsCard(
                                     imageVector = Icons.AutoMirrored.Filled.TrendingDown,
                                     contentDescription = stringResource(R.string.expenses),
                                     modifier = Modifier.size(20.dp),
-                                    tint = if (!isSystemInDarkTheme()) expense_light else expense_dark
+                                    tint = if (!isAppInDarkTheme) expense_light else expense_dark
                                 )
                             },
                             label = stringResource(R.string.expenses),
                             amount = formattedExpenses,
-                            color = if (!isSystemInDarkTheme()) expense_light else expense_dark,
+                            color = if (!isAppInDarkTheme) expense_light else expense_dark,
                             modifier = Modifier
                                 .alpha(expenseAlpha)
                         )
@@ -174,8 +174,8 @@ fun TransactionTotalsCard(
 
                     // Net Balance Column
                     val netColor = when {
-                        netBalance > BigDecimal.ZERO -> if (!isSystemInDarkTheme()) income_light else income_dark
-                        netBalance < BigDecimal.ZERO -> if (!isSystemInDarkTheme()) expense_light else expense_dark
+                        netBalance > BigDecimal.ZERO -> if (!isAppInDarkTheme) income_light else income_dark
+                        netBalance < BigDecimal.ZERO -> if (!isAppInDarkTheme) expense_light else expense_dark
                         else -> MaterialTheme.colorScheme.onSurfaceVariant
                     }
 

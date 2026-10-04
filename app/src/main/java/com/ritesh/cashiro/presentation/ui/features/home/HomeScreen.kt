@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyListScope
 import com.ritesh.cashiro.presentation.ui.adaptive.LocalWindowLayout
@@ -35,7 +36,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -990,9 +990,9 @@ private fun BreakdownRow(
             fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
             color =
                 if (isIncome) {
-                    if (!isSystemInDarkTheme()) income_light else income_dark
+                    if (!isAppInDarkTheme) income_light else income_dark
                 } else {
-                    if (!isSystemInDarkTheme()) expense_light else expense_dark
+                    if (!isAppInDarkTheme) expense_light else expense_dark
                 }
         )
     }

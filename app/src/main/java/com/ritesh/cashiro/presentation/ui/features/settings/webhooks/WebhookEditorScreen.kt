@@ -442,7 +442,7 @@ fun WebhookEditorScreen(
                          ) {
                              Text(
                                  text = stringResource(R.string.save_webhook),
-                                 fontSize = 16.sp,
+                                 style = MaterialTheme.typography.bodyLarge,
                                  fontWeight = FontWeight.Bold
                              )
                          }
@@ -624,7 +624,7 @@ internal fun PillChip(
     ) {
         Text(
             text = label,
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
             color = labelColor
         )

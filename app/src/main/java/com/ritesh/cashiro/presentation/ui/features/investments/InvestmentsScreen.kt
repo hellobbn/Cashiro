@@ -2,12 +2,12 @@
 
 package com.ritesh.cashiro.presentation.ui.features.investments
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearWavyProgressIndicator
 import com.ritesh.cashiro.presentation.ui.components.accountSubtitle
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -583,7 +583,7 @@ private fun AccountTotals(account: BrokerageAccount) {
 
 @Composable
 private fun HoldingRow(holding: Holding, position: ListItemPosition) {
-    val dark = isSystemInDarkTheme()
+    val dark = isAppInDarkTheme
     val pnl = holding.unrealizedPnl?.toBigDecimalOrNull()
     val pnlColor = when {
         pnl == null -> MaterialTheme.colorScheme.onSurfaceVariant

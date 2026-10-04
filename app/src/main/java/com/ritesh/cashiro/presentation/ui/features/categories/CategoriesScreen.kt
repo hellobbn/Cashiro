@@ -309,7 +309,7 @@ fun CategoriesScreen(
                         ) { labelText ->
                             Text(
                                 text = labelText,
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 lineHeight = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 fontStyle = FontStyle.Italic,
