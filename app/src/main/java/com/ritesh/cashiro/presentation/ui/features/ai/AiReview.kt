@@ -55,6 +55,7 @@ import com.ritesh.cashiro.presentation.ui.components.TransactionItem
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import com.ritesh.cashiro.utils.CurrencyFormatter
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -64,7 +65,15 @@ internal fun LedgerChange.preview(index: Int): TransactionEntity? = when (this) 
     is LedgerChange.Add -> draft.toEntity(index)
     is LedgerChange.Update -> after
     is LedgerChange.Delete -> transaction
-    is LedgerChange.CreateAccount -> null
+    is LedgerChange.CreateAccount, is LedgerChange.SetBalance, is LedgerChange.UpdateAccount -> null
+}
+
+/** The account a change creates or adjusts, as it will look after saving. */
+private fun LedgerChange.accountAfter(): AccountBalanceEntity? = when (this) {
+    is LedgerChange.CreateAccount -> account
+    is LedgerChange.SetBalance -> account.copy(balance = balance, creditLimit = creditLimit ?: account.creditLimit)
+    is LedgerChange.UpdateAccount -> after
+    else -> null
 }
 
 /** Decoration for a preview: a transaction on an account proposed in the same review has none saved yet. */
@@ -101,27 +110,16 @@ internal fun LazyListScope.reviewItems(
     mainCurrency: String?,
     onOpen: (Int) -> Unit
 ) {
-    val accounts = review.withIndex().filter { it.value.change is LedgerChange.CreateAccount }
-    if (accounts.isNotEmpty()) {
-        item(key = "header_accounts") {
-            Text(
-                text = stringResource(R.string.ai_section_accounts, accounts.size),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = Spacing.sm)
-            )
-        }
-        accounts.forEachIndexed { position, (index, item) ->
-            item(key = "change_$index") {
-                AccountRow(
-                    account = (item.change as LedgerChange.CreateAccount).account,
-                    shape = ListItemPosition.from(position, accounts.size).toShape(),
-                    onClick = { onOpen(index) },
-                    modifier = Modifier.fillMaxWidth().alpha(if (item.included) 1f else 0.4f)
-                )
-            }
-        }
-    }
+    accountGroup(
+        R.string.ai_section_accounts,
+        review.withIndex().filter { it.value.change is LedgerChange.CreateAccount },
+        onOpen
+    )
+    accountGroup(
+        R.string.ai_section_account_changes,
+        review.withIndex().filter { it.value.change is LedgerChange.SetBalance || it.value.change is LedgerChange.UpdateAccount },
+        onOpen
+    )
     val groups = listOf(
         R.string.ai_section_add to review.withIndex().filter { it.value.change is LedgerChange.Add },
         R.string.ai_section_update to review.withIndex().filter { it.value.change is LedgerChange.Update },
@@ -154,6 +152,75 @@ internal fun LazyListScope.reviewItems(
             }
         }
     }
+}
+
+private fun LazyListScope.accountGroup(
+    titleRes: Int,
+    items: List<IndexedValue<ReviewItem>>,
+    onOpen: (Int) -> Unit
+) {
+    if (items.isEmpty()) return
+    item(key = "header_$titleRes") {
+        Text(
+            text = stringResource(titleRes, items.size),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = Spacing.sm)
+        )
+    }
+    items.forEachIndexed { position, (index, item) ->
+        item(key = "change_$index") {
+            Column(modifier = Modifier.fillMaxWidth().alpha(if (item.included) 1f else 0.4f)) {
+                AccountRow(
+                    account = item.change.accountAfter() ?: return@Column,
+                    shape = ListItemPosition.from(position, items.size).toShape(),
+                    onClick = { onOpen(index) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                accountChangeLine(item)?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.xs)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** What an account change does, in one line: "Balance ¥1,200.00 → ¥980.50". */
+@Composable
+private fun accountChangeLine(item: ReviewItem): String? {
+    val change = item.change
+    val parts = when (change) {
+        is LedgerChange.SetBalance -> listOfNotNull(
+            stringResource(R.string.ai_balance_change,
+                CurrencyFormatter.formatCurrency(change.account.balance, change.account.currency),
+                CurrencyFormatter.formatCurrency(change.balance, change.account.currency)),
+            change.creditLimit?.let {
+                stringResource(R.string.ai_limit_change,
+                    change.account.creditLimit?.let { l -> CurrencyFormatter.formatCurrency(l, change.account.currency) } ?: "—",
+                    CurrencyFormatter.formatCurrency(it, change.account.currency))
+            }
+        )
+        is LedgerChange.UpdateAccount -> listOfNotNull(
+            "${change.before.bankName} → ${change.after.bankName}".takeIf { change.before.bankName != change.after.bankName },
+            stringResource(R.string.ai_kind_changed).takeIf {
+                change.before.isCreditCard != change.after.isCreditCard || change.before.isWallet != change.after.isWallet
+            },
+            change.after.creditLimit?.takeIf { change.after.creditLimit != change.before.creditLimit }?.let {
+                stringResource(R.string.ai_limit_change,
+                    change.before.creditLimit?.let { l -> CurrencyFormatter.formatCurrency(l, change.after.currency) } ?: "—",
+                    CurrencyFormatter.formatCurrency(it, change.after.currency))
+            }
+        )
+        else -> emptyList()
+    }
+    val line = parts.joinToString(" · ")
+    return if (!item.included) listOf(stringResource(R.string.ai_left_out), line).filter { it.isNotEmpty() }.joinToString(" · ")
+    else line.ifEmpty { null }
 }
 
 /** What the row says under the payee when the default (date and category) is not enough. */
@@ -240,6 +307,19 @@ internal fun ReviewDetailSheet(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            } else if (change is LedgerChange.SetBalance || change is LedgerChange.UpdateAccount) {
+                val before = (change as? LedgerChange.SetBalance)?.account ?: (change as LedgerChange.UpdateAccount).before
+                Text(stringResource(R.string.ai_before), style = MaterialTheme.typography.labelLarge)
+                AccountRow(account = before, modifier = Modifier.fillMaxWidth())
+                Text(stringResource(R.string.ai_after), style = MaterialTheme.typography.labelLarge)
+                change.accountAfter()?.let { AccountRow(account = it, modifier = Modifier.fillMaxWidth()) }
+                if (change is LedgerChange.UpdateAccount && change.before.bankName != change.after.bankName) {
+                    Text(
+                        stringResource(R.string.ai_rename_note),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             } else {
                 if (change is LedgerChange.Update) {
                     Text(stringResource(R.string.ai_before), style = MaterialTheme.typography.labelLarge)

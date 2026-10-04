@@ -101,4 +101,9 @@
     <string name="ai_date_time_pattern">M月d日 HH:mm</string>
     <string name="ai_section_accounts">新账户 · %1$d 个</string>
     <string name="ai_new_account_note">会先于记在它上面的交易创建。若不保存这个账户，相关交易会保存为不关联账户。</string>
+    <string name="ai_section_account_changes">账户调整 · %1$d 项</string>
+    <string name="ai_balance_change">余额 %1$s → %2$s</string>
+    <string name="ai_limit_change">额度 %1$s → %2$s</string>
+    <string name="ai_kind_changed">账户类型变更</string>
+    <string name="ai_rename_note">它名下的交易、卡片、模板和预算会一并改到新名称。</string>
 </resources>

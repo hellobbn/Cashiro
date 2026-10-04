@@ -61,6 +61,9 @@ Personal Chinese / cross-border manual accounts:
 - Choosing an institution does not add SMS parsing, login, or holdings sync.
 - A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth.
 - Prefer account UX, currency defaults, and imports over SMS automation.
+- Accounts have no id of their own: everything refers to one by bank name + last 4. Rename through
+  `AccountRenamer`, which moves balances, transactions, cards, templates, budgets, subscriptions and
+  the hidden/main preferences in one transaction.
 
 ## AI bookkeeping
 
@@ -79,13 +82,17 @@ client, no provider SDKs, to keep the app small.
   - `add_transactions`, `update_transactions`, `delete_transactions` and `create_account` only queue
     a `LedgerChange`.
   - `create_account` returns a ref (`N1`…) the same session's transactions can use. Icon, color and
-    currency come from `InstitutionCatalog` when the name matches. Accounts are never deleted or
-    renamed by the model.
+    currency come from `InstitutionCatalog` when the name matches.
+  - `set_balance` calibrates a listed account's balance (and card limit) with a new
+    `BALANCE_CALIBRATION` row, as the app's own balance edit does.
+  - `update_account` renames an account or changes its kind or credit limit; a rename goes through
+    `AccountRenamer`. Currency and last 4 are not changeable, and the model never deletes accounts.
   - Updates touch merchant, category, subcategory and notes only. Amount, date, type or account
     changes are a delete plus an add.
   - `apply` goes through `AddTransactionUseCase` and the repository's delete, so balances stay
     right, and returns what `undo` needs. New accounts are created first; a transaction on a new
-    account the user left out is saved without an account.
+    account the user left out is saved without an account. Balance calibrations and account edits
+    come last, so a rename also carries the transactions just added.
 - `AiLedgerSession` runs the tool loop. The accounts (as refs `A1`, `A2`…) and the categories are
   in the system prompt.
 - `AiAttachmentReader` handles the input files:

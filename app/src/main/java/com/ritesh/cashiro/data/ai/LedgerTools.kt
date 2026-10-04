@@ -6,6 +6,7 @@ import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
+import com.ritesh.cashiro.data.repository.AccountRenamer
 import com.ritesh.cashiro.data.repository.CategoryRepository
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
@@ -53,6 +54,15 @@ data class TransactionDraft(
 sealed interface LedgerChange {
     // A new account; [ref] (N1, N2…) is how the model's transactions refer to it
     data class CreateAccount(val ref: String, val account: AccountBalanceEntity) : LedgerChange
+    // A balance (and, for a card, credit limit) calibration on an existing account
+    data class SetBalance(
+        val ref: String,
+        val account: AccountBalanceEntity,
+        val balance: BigDecimal,
+        val creditLimit: BigDecimal?
+    ) : LedgerChange
+    // New name, kind or credit limit for an existing account; [after] is how it will look
+    data class UpdateAccount(val ref: String, val before: AccountBalanceEntity, val after: AccountBalanceEntity) : LedgerChange
     data class Add(val draft: TransactionDraft) : LedgerChange
     data class Update(val before: TransactionEntity, val after: TransactionEntity) : LedgerChange
     data class Delete(val transaction: TransactionEntity, val reason: String?) : LedgerChange
@@ -61,6 +71,10 @@ sealed interface LedgerChange {
 /** What [LedgerTools.apply] did, enough to take it back. */
 data class AppliedChanges(
     val createdAccounts: List<AccountBalanceEntity>,
+    // Balance rows written for calibrations and account edits
+    val balanceRowIds: List<Long>,
+    // Accounts renamed: (name before, name after, last 4)
+    val renames: List<Triple<String, String, String>>,
     val addedIds: List<Long>,
     val updated: List<TransactionEntity>,
     val deleted: List<TransactionEntity>
@@ -76,7 +90,8 @@ class LedgerTools @Inject constructor(
     private val accountBalanceRepository: AccountBalanceRepository,
     private val categoryRepository: CategoryRepository,
     private val subcategoryRepository: SubcategoryRepository,
-    private val addTransactionUseCase: AddTransactionUseCase
+    private val addTransactionUseCase: AddTransactionUseCase,
+    private val accountRenamer: AccountRenamer
 ) {
     /** The user's accounts and categories, loaded once per session. */
     class Context internal constructor(
@@ -112,7 +127,8 @@ class LedgerTools @Inject constructor(
                 a.isWallet -> ", wallet"
                 else -> ""
             }
-            appendLine("- $ref: ${a.bankName} ${a.accountLast4}, ${a.currency}$kind")
+            val limit = a.creditLimit?.let { ", limit ${it.toPlainString()}" } ?: ""
+            appendLine("- $ref: ${a.bankName} ${a.accountLast4}, ${a.currency}$kind, balance ${a.balance.toPlainString()}$limit")
         }
         appendLine()
         appendLine("Categories (name: subcategories):")
@@ -175,6 +191,30 @@ class LedgerTools @Inject constructor(
             )
         ),
         AiTool(
+            name = SET_BALANCE,
+            description = "Propose correcting a listed account's balance to what the document shows as its " +
+                "current balance (for a credit card, the amount owed). Only when they differ, and only for a " +
+                "balance that is current: a statement's closing balance is not, if later transactions exist.",
+            schema = schema(
+                required = listOf("account", "balance"),
+                "account" to str("Account ref such as A1"),
+                "balance" to num("The correct current balance; for a credit card, the amount owed"),
+                "credit_limit" to num("Credit cards only: the credit limit, if the document states it")
+            )
+        ),
+        AiTool(
+            name = UPDATE_ACCOUNT,
+            description = "Propose renaming a listed account or changing its kind or credit limit. The " +
+                "currency and last 4 digits cannot be changed.",
+            schema = schema(
+                required = listOf("account"),
+                "account" to str("Account ref such as A1"),
+                "name" to str("New name"),
+                "type" to enumOf("BANK", "CREDIT_CARD", "WALLET"),
+                "credit_limit" to num("Credit cards only")
+            )
+        ),
+        AiTool(
             name = UPDATE,
             description = "Propose changes to existing transactions: merchant, category, subcategory or " +
                 "notes. To change an amount, date, type or account, delete the transaction and add a " +
@@ -214,6 +254,8 @@ class LedgerTools @Inject constructor(
                 FIND -> find(call.input, context)
                 ADD -> add(call.input, context, queue)
                 CREATE_ACCOUNT -> createAccount(call.input, context, queue)
+                SET_BALANCE -> setBalance(call.input, context, queue)
+                UPDATE_ACCOUNT -> updateAccount(call.input, context, queue)
                 UPDATE -> update(call.input, context, queue)
                 DELETE -> delete(call.input, queue)
                 else -> return AiToolResult(call.id, "Unknown tool ${call.name}", isError = true)
@@ -347,6 +389,54 @@ class LedgerTools @Inject constructor(
         return "Queued account $ref for the user's review. Use $ref as account for its transactions."
     }
 
+    private fun existingAccount(input: JsonObject, context: Context): Pair<String, AccountBalanceEntity> {
+        val ref = input.string("account") ?: throw IllegalArgumentException("account is required")
+        val account = context.accountRefs[ref]
+            ?: throw IllegalArgumentException(
+                if (ref in context.newAccounts) "$ref is a new account; give its details in create_account instead"
+                else "unknown account $ref"
+            )
+        return ref to account
+    }
+
+    private fun setBalance(input: JsonObject, context: Context, queue: MutableList<LedgerChange>): String {
+        val (ref, account) = existingAccount(input, context)
+        val balance = input.decimal("balance") ?: throw IllegalArgumentException("balance is required")
+        val limit = input.decimal("credit_limit")?.abs()?.takeIf { account.isCreditCard }
+        if (balance.compareTo(account.balance) == 0 && (limit == null || account.creditLimit?.compareTo(limit) == 0)) {
+            return "$ref already has that balance; nothing to change."
+        }
+        queue.removeAll { it is LedgerChange.SetBalance && it.ref == ref }
+        queue += LedgerChange.SetBalance(ref, account, balance, limit)
+        return "Queued balance correction for $ref for the user's review."
+    }
+
+    private fun updateAccount(input: JsonObject, context: Context, queue: MutableList<LedgerChange>): String {
+        val (ref, account) = existingAccount(input, context)
+        val name = input.string("name")?.trim()
+        val type = input.string("type")
+        val institution = name?.let { InstitutionCatalog.find(it) }
+        var after = account
+        if (name != null && name != account.bankName) {
+            if (context.accountRefs.values.any { it.bankName == name && it.accountLast4 == account.accountLast4 }) {
+                throw IllegalArgumentException("another account is already named $name ${account.accountLast4}")
+            }
+            after = after.copy(
+                bankName = name,
+                // Take the institution's look when the new name is a known one
+                iconResId = institution?.iconResId ?: after.iconResId,
+                iconName = institution?.iconName ?: after.iconName,
+                color = institution?.color ?: after.color
+            )
+        }
+        if (type != null) after = after.copy(isCreditCard = type == "CREDIT_CARD", isWallet = type == "WALLET")
+        input.decimal("credit_limit")?.abs()?.let { if (after.isCreditCard) after = after.copy(creditLimit = it) }
+        if (after == account) return "$ref already looks like that; nothing to change."
+        queue.removeAll { it is LedgerChange.UpdateAccount && it.ref == ref }
+        queue += LedgerChange.UpdateAccount(ref, account, after)
+        return "Queued changes to $ref for the user's review."
+    }
+
     private suspend fun update(input: JsonObject, context: Context, queue: MutableList<LedgerChange>): String {
         val items = input["changes"] as? JsonArray ?: throw IllegalArgumentException("changes is required")
         val errors = mutableListOf<String>()
@@ -409,7 +499,7 @@ class LedgerTools @Inject constructor(
         val deleted = mutableListOf<TransactionEntity>()
         changes.forEach { change ->
             when (change) {
-                is LedgerChange.CreateAccount -> Unit
+                is LedgerChange.CreateAccount, is LedgerChange.SetBalance, is LedgerChange.UpdateAccount -> Unit
                 is LedgerChange.Add -> with(change.draft.let { it.copy(account = it.account.kept(), toAccount = it.toAccount.kept()) }) {
                     added += addTransactionUseCase.execute(
                         amount = amount,
@@ -439,11 +529,60 @@ class LedgerTools @Inject constructor(
                 }
             }
         }
-        return AppliedChanges(created, added, updated, deleted)
+        // Account changes last, so a rename also moves the transactions just added to the account
+        val balanceRows = mutableListOf<Long>()
+        val renames = mutableListOf<Triple<String, String, String>>()
+        changes.filterIsInstance<LedgerChange.SetBalance>().forEach { change ->
+            // Latest values for everything else, as the app's own balance calibration does
+            val latest = accountBalanceRepository.getLatestBalance(change.account.bankName, change.account.accountLast4)
+                ?: change.account
+            balanceRows += accountBalanceRepository.insertBalance(
+                latest.copy(
+                    id = 0,
+                    balance = change.balance,
+                    creditLimit = change.creditLimit ?: latest.creditLimit,
+                    timestamp = LocalDateTime.now(),
+                    transactionId = null,
+                    smsSource = null,
+                    sourceType = "BALANCE_CALIBRATION",
+                    createdAt = LocalDateTime.now()
+                )
+            )
+        }
+        changes.filterIsInstance<LedgerChange.UpdateAccount>().forEach { change ->
+            val before = change.before
+            val latest = accountBalanceRepository.getLatestBalance(before.bankName, before.accountLast4) ?: before
+            if (change.after.bankName != before.bankName) {
+                accountRenamer.rename(before.bankName, before.accountLast4, change.after.bankName)
+                renames += Triple(before.bankName, change.after.bankName, before.accountLast4)
+            }
+            // A new latest row carries the new kind, limit and look; the balance stays as it is
+            balanceRows += accountBalanceRepository.insertBalance(
+                latest.copy(
+                    id = 0,
+                    bankName = change.after.bankName,
+                    isCreditCard = change.after.isCreditCard,
+                    isWallet = change.after.isWallet,
+                    creditLimit = change.after.creditLimit,
+                    iconResId = change.after.iconResId,
+                    iconName = change.after.iconName,
+                    color = change.after.color,
+                    timestamp = LocalDateTime.now(),
+                    transactionId = null,
+                    smsSource = null,
+                    sourceType = "MANUAL",
+                    createdAt = LocalDateTime.now()
+                )
+            )
+        }
+        return AppliedChanges(created, balanceRows, renames, added, updated, deleted)
     }
 
     /** Takes back what [apply] did. */
     suspend fun undo(applied: AppliedChanges) {
+        // Reverse order of apply: account changes were made last
+        applied.balanceRowIds.forEach { accountBalanceRepository.deleteBalanceById(it) }
+        applied.renames.asReversed().forEach { (before, after, last4) -> accountRenamer.rename(after, last4, before) }
         applied.addedIds.forEach { transactionRepository.deleteTransactionById(it, hardDelete = true) }
         applied.updated.forEach { transactionRepository.updateTransaction(it) }
         if (applied.deleted.isNotEmpty()) transactionRepository.undoDeleteTransactions(applied.deleted)
@@ -472,6 +611,8 @@ class LedgerTools @Inject constructor(
         const val UPDATE = "update_transactions"
         const val DELETE = "delete_transactions"
         const val CREATE_ACCOUNT = "create_account"
+        const val SET_BALANCE = "set_balance"
+        const val UPDATE_ACCOUNT = "update_account"
         private const val WALLET_LAST4 = "wallet"
         private const val DEFAULT_ACCOUNT_COLOR = "#33B5E5"
         private const val MAX_FOUND = 200

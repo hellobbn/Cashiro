@@ -193,6 +193,10 @@ class AiLedgerSession @Inject constructor(
         - Use only the categories listed below; name merchants as a person would ("星巴克", not the
           acquirer's legal name), keeping the document's language.
 
+        When the document shows an account's current balance (or a card's amount owed or credit limit) and it
+        differs from the balance listed below, propose set_balance. Rename or re-type accounts with
+        update_account only when the user asks.
+
         When you are done, reply with one or two plain sentences in the user's language saying what you
         proposed and anything you could not read or were unsure about.
 

@@ -101,4 +101,9 @@
     <string name="ai_date_time_pattern">MMM d, HH:mm</string>
     <string name="ai_section_accounts">New accounts · %1$d</string>
     <string name="ai_new_account_note">Created before the transactions on it. Left out, those transactions are saved without an account.</string>
+    <string name="ai_section_account_changes">Account changes · %1$d</string>
+    <string name="ai_balance_change">Balance %1$s → %2$s</string>
+    <string name="ai_limit_change">Limit %1$s → %2$s</string>
+    <string name="ai_kind_changed">Account type changed</string>
+    <string name="ai_rename_note">Its transactions, cards, templates and budgets move to the new name.</string>
 </resources>
