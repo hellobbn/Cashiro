@@ -16,7 +16,6 @@ import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
 
 import android.app.Activity
 import android.view.HapticFeedbackConstants
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
@@ -216,6 +215,7 @@ fun SharedTransitionScope.HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     
     var lastBackPressTime by remember { mutableLongStateOf(0L) }
+    val backPressScope = rememberCoroutineScope()
     val context = LocalContext.current
     
     
@@ -225,7 +225,10 @@ fun SharedTransitionScope.HomeScreen(
             (context as? Activity)?.finish()
         } else {
             lastBackPressTime = currentTime
-            Toast.makeText(context, context.getString(R.string.press_back_again_to_close), Toast.LENGTH_SHORT).show()
+            backPressScope.launch {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                snackbarHostState.showSnackbar(context.getString(R.string.press_back_again_to_close), duration = SnackbarDuration.Short)
+            }
         }
     }
     val scope = rememberCoroutineScope()
@@ -311,12 +314,7 @@ fun SharedTransitionScope.HomeScreen(
             SnackbarHost(
                 hostState = snackbarHostState,
                 snackbar = {
-                    Snackbar(
-                        snackbarData = it,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.large,
-                    )
+                    Snackbar(snackbarData = it)
                 }
             )
         }

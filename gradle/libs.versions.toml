@@ -40,7 +40,6 @@ roomVersion = "2.8.4"
 
 workVersion = "2.11.0"
 haze = "1.7.1"
-material3Version = "1.4.0"
 desugarJdkLibs = "2.1.5"
 pdfbox = "2.0.27.0"
 
@@ -108,7 +107,6 @@ opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsv" }
 review = { module = "com.google.android.play:review", version.ref = "review" }
 review-ktx = { module = "com.google.android.play:review-ktx", version.ref = "reviewKtx" }
 
-androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 material3 = { group = "androidx.compose.material3", name = "material3" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }

@@ -282,12 +282,7 @@ fun SharedTransitionScope.PersonDetailScreen(
             SnackbarHost(
                 hostState = snackbarHostState,
                 snackbar = {
-                    Snackbar(
-                        snackbarData = it,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.large
-                    )
+                    Snackbar(snackbarData = it)
                 }
             )
         },
