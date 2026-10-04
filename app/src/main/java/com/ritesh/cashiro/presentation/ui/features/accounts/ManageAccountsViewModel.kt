@@ -10,6 +10,7 @@ import com.ritesh.cashiro.data.database.entity.CardEntity
 import com.ritesh.cashiro.data.database.entity.CardType
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
+import com.ritesh.cashiro.data.repository.AccountRenamer
 import com.ritesh.cashiro.data.repository.CardRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.utils.CurrencyFormatter
@@ -69,7 +70,8 @@ constructor(
     private val cardRepository: CardRepository,
     private val transactionRepository: TransactionRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val brokerageRepository: BrokerageRepository
+    private val brokerageRepository: BrokerageRepository,
+    private val accountRenamer: AccountRenamer
 ) : ViewModel() {
 
     private val sharedPrefs = context.getSharedPreferences("account_prefs", Context.MODE_PRIVATE)
@@ -667,29 +669,15 @@ constructor(
                     ?: latestBalance?.currency
                     ?: resolveDefaultCurrency()
 
-                // Update bank name if changed
+                // A new name moves everything that refers to the account: its transactions,
+                // balances, cards, templates, budgets and the hidden/main preferences
                 if (newBankName != oldBankName) {
-                    accountBalanceRepository.updateAccountBankName(
-                        oldBankName,
-                        accountLast4,
-                        newBankName
-                    )
-
-                    // Update hidden accounts preference if bank name changed
-                    val oldKey = "${oldBankName}_${accountLast4}"
-                    val newKey = "${newBankName}_${accountLast4}"
-                    val hidden = _uiState.value.hiddenAccounts.toMutableSet()
-                    if (hidden.contains(oldKey)) {
-                        hidden.remove(oldKey)
-                        hidden.add(newKey)
-                        sharedPrefs.edit { putStringSet("hidden_accounts", hidden) }
-                        _uiState.update { it.copy(hiddenAccounts = hidden) }
-                    }
-
-                    // Update main account preference if bank name changed
-                    if (_uiState.value.mainAccountKey == oldKey) {
-                        sharedPrefs.edit { putString("main_account", newKey) }
-                        _uiState.update { it.copy(mainAccountKey = newKey) }
+                    accountRenamer.rename(oldBankName, accountLast4, newBankName)
+                    _uiState.update {
+                        it.copy(
+                            hiddenAccounts = sharedPrefs.getStringSet("hidden_accounts", emptySet()).orEmpty(),
+                            mainAccountKey = sharedPrefs.getString("main_account", null)
+                        )
                     }
                 }
 
