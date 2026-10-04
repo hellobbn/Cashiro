@@ -749,6 +749,7 @@ fun CashiroNavHost(
                     val listDetail = LocalWindowLayout.current.widthDp >= LIST_DETAIL_MIN_WIDTH_DP
                     val list: @Composable () -> Unit = {
                         TransactionsScreen(
+                            onExport = { showExportDialog = true },
                             transactionsViewModel = transactionsViewModel,
                             initialCategory = transactions.category,
                             initialMerchant = transactions.merchant,
@@ -945,38 +946,14 @@ fun CashiroNavHost(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(Dimensions.Padding.content)
-                        .padding(
-                            bottom = if (showBottomBar) 84.dp else 10.dp
-                        )
+                        // Clear of the 64 dp ShortNavigationBar when it shows
+                        .padding(bottom = if (showBottomBar) 64.dp else 0.dp)
                         .navigationBarsPadding()
                 ) {
                     Column(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
-                        val smallFabContainerColor =  MaterialTheme.colorScheme.tertiaryContainer
-                        val smallFabContentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                        // Secondary FAB (Export)
-                        if (isTransactionsScreen) {
-                            SmallFloatingActionButton(
-                                onClick = {
-                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    showExportDialog = true
-                                },
-                                containerColor = smallFabContainerColor,
-                                contentColor = smallFabContentColor,
-                            ) {
-                                Icon(
-                                    imageVector = Iconax.ImportArrow01,
-                                    contentDescription = stringResource(R.string.export_transactions),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-
-                        val fabContainerColor =  MaterialTheme.colorScheme.primaryContainer
-                        val fabContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-
                         // Add FAB
                         FloatingActionButton(
                             onClick = {
@@ -999,16 +976,12 @@ fun CashiroNavHost(
                                     )
                                         .skipToLookaheadSize()
                                 ),
-                            // The shape, not a clip: clipping the button cut off its shadow
-                            shape = MaterialTheme.shapes.large,
-                            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 6.dp, pressedElevation = 3.dp),
-                            containerColor = fabContainerColor,
-                            contentColor = fabContentColor,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Add,
-                                contentDescription = stringResource(R.string.add_transaction_subscription_cd),
-                                modifier = Modifier.size(24.dp)
+                                contentDescription = stringResource(R.string.add_transaction_subscription_cd)
                             )
                         }
                     }

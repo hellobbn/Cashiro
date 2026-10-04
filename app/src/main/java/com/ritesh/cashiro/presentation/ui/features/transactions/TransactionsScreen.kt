@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.icons.ImportArrow01
 import androidx.compose.animation.core.tween
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
 
@@ -138,6 +139,8 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun TransactionsScreen(
+    // Export is the list's own action, in the top bar
+    onExport: () -> Unit = {},
     initialCategory: String? = null,
     initialMerchant: String? = null,
     initialPeriod: String? = null,
@@ -367,6 +370,11 @@ fun TransactionsScreen(
                     }
                 },
                 actionContent = {
+                    if (!selectionMode) {
+                        IconButton(onClick = onExport, shapes = IconButtonDefaults.shapes()) {
+                            Icon(Iconax.ImportArrow01, contentDescription = stringResource(R.string.export_transactions))
+                        }
+                    }
                     BlurredAnimatedVisibility(selectionMode) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -383,35 +391,23 @@ fun TransactionsScreen(
                                         transactionsViewModel.selectAllTransactions()
                                     }
                                 },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onBackground
-                                ),
-                                shapes =  IconButtonDefaults.shapes(),
+                                shapes = IconButtonDefaults.shapes(),
                             ) {
                                 Icon(
                                     imageVector = if (allSelected) Icons.Rounded.Deselect else Icons.Rounded.SelectAll,
-                                    contentDescription = if (allSelected) stringResource(R.string.deselect_all) else stringResource(R.string.select_all),
-                                    modifier = Modifier.size(18.dp)
+                                    contentDescription = if (allSelected) stringResource(R.string.deselect_all) else stringResource(R.string.select_all)
                                 )
                             }
                             // Delete button
                             IconButton(
                                 onClick = { showDeleteConfirmation = true },
                                 enabled = selectedTransactionIds.isNotEmpty(),
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = if (selectedTransactionIds.isNotEmpty())
-                                        MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
-                                ),
-                                shapes =  IconButtonDefaults.shapes(),
-                                modifier = Modifier.padding(end = 16.dp)
+                                colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                                shapes = IconButtonDefaults.shapes()
                             ) {
                                 Icon(
                                     imageVector = Iconax.Bag,
-                                    contentDescription = stringResource(R.string.delete_selected),
-                                    modifier = Modifier.size(18.dp)
+                                    contentDescription = stringResource(R.string.delete_selected)
                                 )
                             }
                         }

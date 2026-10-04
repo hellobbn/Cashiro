@@ -46,8 +46,8 @@ fun rememberWindowLayout(): WindowLayout {
     return remember(widthDp) { WindowLayout(widthDp) }
 }
 
-/** Width of the navigation rail, which the content leaves free at the start edge. */
-val NavigationRailWidth: Dp = 80.dp
+/** Width of the collapsed M3E WideNavigationRail, which the content leaves free at the start edge. */
+val NavigationRailWidth: Dp = 96.dp
 
 /** Single-column screens stop growing here: wider lines and rows only get harder to read. */
 val ReadableContentWidth: Dp = 720.dp
