@@ -123,6 +123,11 @@ client, no provider SDKs, to keep the app small.
     - Transactions and the account lists are list-detail (`TransactionDetailPane`,
       `AccountDetailPane`); system back closes an open pane first.
 - Edge-to-edge via the existing scaffold / TopAppBar pattern
+- Material 3 Expressive components through the shared wrappers (table in `docs/design.md` →
+  "Material 3 Expressive conventions"): `CustomTitleTopAppBar` (flexible app bar), `TooltipIconButton`,
+  `GenericTypeSwitcher` (connected button group), `CashiroSwitch` / `PreferenceSwitch`, M3E loading
+  indicators, standard snackbars with Undo. Theme-aware colors come from `isAppInDarkTheme`, not
+  `isSystemInDarkTheme()`.
 - Chinese UI should avoid awkward letter-spacing and should use `9月1日` style dates
 
 ## Code Style Guidelines
