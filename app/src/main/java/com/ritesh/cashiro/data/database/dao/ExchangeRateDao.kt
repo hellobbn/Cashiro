@@ -40,6 +40,10 @@ interface ExchangeRateDao {
     @Query("SELECT * FROM exchange_rates ORDER BY updated_at DESC LIMIT 1")
     suspend fun getLatestRate(): ExchangeRateEntity?
 
+    /** The newest stored rate for the pair, expired or not: better than none while offline. */
+    @Query("SELECT * FROM exchange_rates WHERE from_currency = :fromCurrency AND to_currency = :toCurrency ORDER BY updated_at DESC LIMIT 1")
+    suspend fun getNewestRate(fromCurrency: String, toCurrency: String): ExchangeRateEntity?
+
     // Get all unique currencies that have exchange rates
     @Query("SELECT DISTINCT from_currency FROM exchange_rates WHERE expires_at > :currentTime")
     suspend fun getAvailableCurrencies(currentTime: LocalDateTime = LocalDateTime.now()): List<String>

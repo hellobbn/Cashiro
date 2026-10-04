@@ -38,11 +38,12 @@ class CurrencyConversionService @Inject constructor(
     private val _rateChangeTrigger = MutableStateFlow(0L)
     val rateChangeTrigger: StateFlow<Long> = _rateChangeTrigger.asStateFlow()
 
-    // Pairs ("USD_CNY") being fetched for availableRates, and when a fetch last failed: a
-    // failed pair is not asked for again for RETRY_AFTER_FAILURE_MS, so lists stop retrying
-    // the network on every emission while offline or blocked.
+    // Pairs ("USD_CNY") being fetched for availableRates, and when a pair was last fetched:
+    // it is not asked for again for RETRY_AFTER_MS, whatever the outcome, so lists do not
+    // hit the network on every emission while offline, nor loop on a rate that arrives
+    // already expired.
     private val fetchesInFlight = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
-    private val failedAt = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    private val attemptedAt = java.util.concurrent.ConcurrentHashMap<String, Long>()
 
     /** Rates for a list: what is known now, and which currencies are still being fetched. */
     data class RateLookup(val rates: Map<String, BigDecimal>, val pending: Set<String>)
@@ -68,7 +69,7 @@ class CurrencyConversionService @Inject constructor(
      * Rates from each of [currencies] to [toCurrency] that need no network (memory, custom
      * rates, stored rates). Currencies without one are fetched in the background and listed as
      * [RateLookup.pending] meanwhile; when a fetch succeeds, [rateChangeTrigger] fires so the
-     * list converts again. A currency whose fetch failed recently is neither: it has no rate.
+     * list converts again. A currency fetched recently without a rate is neither: it has none.
      */
     suspend fun availableRates(currencies: Collection<String>, toCurrency: String): RateLookup {
         val rates = mutableMapOf<String, BigDecimal>()
@@ -90,28 +91,30 @@ class CurrencyConversionService @Inject constructor(
     /** Starts a background fetch for the pair unless one is running or failed recently. */
     private fun requestRate(fromCurrency: String, toCurrency: String): Boolean {
         val key = "${fromCurrency.uppercase()}_${toCurrency.uppercase()}"
-        if (recentlyFailed(key)) return false
+        if (recentlyAttempted(key)) return false
         if (!fetchesInFlight.add(key)) return true
         backgroundScope.launch {
             try {
-                if (fetchWithBackoff(fromCurrency, toCurrency) != null) _rateChangeTrigger.value++
+                fetchWithBackoff(fromCurrency, toCurrency)
             } finally {
                 fetchesInFlight.remove(key)
+                // Success or not, lists waiting on this pair convert again: with the new rate,
+                // or showing that none is available instead of loading for good.
+                _rateChangeTrigger.value++
             }
         }
         return true
     }
 
-    private fun recentlyFailed(key: String): Boolean =
-        failedAt[key]?.let { System.currentTimeMillis() - it < RETRY_AFTER_FAILURE_MS } == true
+    private fun recentlyAttempted(key: String): Boolean =
+        attemptedAt[key]?.let { System.currentTimeMillis() - it < RETRY_AFTER_MS } == true
 
-    /** [fetchAndCacheRate], remembering failures so a blocked network is not asked again at once. */
+    /** [fetchAndCacheRate], at most once per pair every [RETRY_AFTER_MS]. */
     private suspend fun fetchWithBackoff(fromCurrency: String, toCurrency: String): BigDecimal? {
         val key = "${fromCurrency.uppercase()}_${toCurrency.uppercase()}"
-        if (recentlyFailed(key)) return null
-        val rate = fetchAndCacheRate(fromCurrency, toCurrency)
-        if (rate == null) failedAt[key] = System.currentTimeMillis() else failedAt.remove(key)
-        return rate
+        if (recentlyAttempted(key)) return null
+        attemptedAt[key] = System.currentTimeMillis()
+        return fetchAndCacheRate(fromCurrency, toCurrency)
     }
 
     /**
@@ -208,6 +211,19 @@ class CurrencyConversionService @Inject constructor(
                 return invertedRate
             } catch (_: ArithmeticException) {
                 // Division by zero or non-terminating decimal — fall through to API
+            }
+        }
+
+        // An expired rate in either direction beats none: use it now and refresh it in the
+        // background (rateChangeTrigger announces the fresh one).
+        if (!forceRefresh) {
+            val stale = exchangeRateDao.getNewestRate(fromCurrency.uppercase(), toCurrency.uppercase())?.rate
+                ?: exchangeRateDao.getNewestRate(toCurrency.uppercase(), fromCurrency.uppercase())?.rate
+                    ?.takeIf { it.signum() > 0 }
+                    ?.let { BigDecimal.ONE.divide(it, MathContext(10)) }
+            if (stale != null) {
+                requestRate(fromCurrency, toCurrency)
+                return stale
             }
         }
 
@@ -475,7 +491,7 @@ class CurrencyConversionService @Inject constructor(
      * Check if cache is still valid (less than 1 hour old)
      */
     private companion object {
-        const val RETRY_AFTER_FAILURE_MS = 5 * 60 * 1000L
+        const val RETRY_AFTER_MS = 5 * 60 * 1000L
     }
 
     private fun isCacheValid(): Boolean {

@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ExchangeRateParsersTest {
@@ -24,12 +25,13 @@ class ExchangeRateParsersTest {
         assertNull(parseOpenErApi(json, """{"result":"error","error-type":"unsupported-code"}""", "XYZ"))
     }
 
-    @Test fun `frankfurter adds the base and updates a day after its date`() {
+    @Test fun `frankfurter adds the base and stays current after a lagging date`() {
         val body = """{"amount":1.0,"base":"USD","date":"2026-10-02","rates":{"CNY":6.7046,"JPY":157.67}}"""
         val parsed = parseFrankfurter(json, body, "USD")!!
         assertEquals(0, BigDecimal.ONE.compareTo(parsed.rates["USD"]))
         assertEquals(0, BigDecimal("157.67").compareTo(parsed.rates["JPY"]))
-        assertEquals(24 * 3600L, parsed.nextUpdateTimeUnix - parsed.lastUpdateTimeUnix)
+        assertTrue(parsed.nextUpdateTimeUnix >= parsed.lastUpdateTimeUnix + 24 * 3600L)
+        assertTrue(parsed.nextUpdateTimeUnix > System.currentTimeMillis() / 1000)
     }
 
     @Test fun `currency-api codes are upper-cased and bad values skipped`() {

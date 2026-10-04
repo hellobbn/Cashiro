@@ -193,6 +193,13 @@ private fun JsonObject.stringValues(): Map<String, String> =
 private fun dayStart(date: String): Long =
     LocalDate.parse(date).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()
 
+/**
+ * When a daily source's rates expire. Their date often lags a day, so a day after it can
+ * already be past; rates fetched now stay current for at least six hours.
+ */
+private fun dailyExpiry(lastUpdateUnix: Long): Long =
+    maxOf(lastUpdateUnix + DAY_SECONDS, System.currentTimeMillis() / 1000 + 6 * 3600)
+
 /** open.er-api.com: `{"result":"success","time_last_update_unix":..,"time_next_update_unix":..,"rates":{..}}` */
 internal fun parseOpenErApi(json: Json, body: String, base: String): ExchangeRateResponseWithMetadata? {
     val root = json.parseToJsonElement(body).jsonObject
@@ -216,7 +223,7 @@ internal fun parseFrankfurter(json: Json, body: String, base: String): ExchangeR
     val last = dayStart(root["date"]?.jsonPrimitive?.content ?: return null)
     return ExchangeRateResponseWithMetadata(
         rates = normalizedRates(base, rates.stringValues()),
-        nextUpdateTimeUnix = last + DAY_SECONDS,
+        nextUpdateTimeUnix = dailyExpiry(last),
         lastUpdateTimeUnix = last,
         provider = PROVIDER_FRANKFURTER,
         baseCurrency = base
@@ -231,7 +238,7 @@ internal fun parseFawaz(json: Json, body: String, base: String): ExchangeRateRes
         ?: (System.currentTimeMillis() / 1000)
     return ExchangeRateResponseWithMetadata(
         rates = normalizedRates(base, rates.stringValues()),
-        nextUpdateTimeUnix = last + DAY_SECONDS,
+        nextUpdateTimeUnix = dailyExpiry(last),
         lastUpdateTimeUnix = last,
         provider = PROVIDER_FAWAZ,
         baseCurrency = base
