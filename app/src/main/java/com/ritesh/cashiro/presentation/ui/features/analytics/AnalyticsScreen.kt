@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.analytics
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.lazy.LazyListScope
+import com.ritesh.cashiro.presentation.ui.adaptive.LocalWindowLayout
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -172,19 +175,9 @@ fun SharedTransitionScope.AnalyticsScreen(
             modifier = Modifier.fillMaxSize()
         ) {
 
-            LazyColumn(
-                state = lazyListState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .hazeSource(state = hazeState)
-                    .background(MaterialTheme.colorScheme.background),
-                contentPadding = PaddingValues(
-                    start = 0.dp,
-                    end = 0.dp,
-                    top = paddingValues.calculateTopPadding() + Dimensions.Padding.content,
-                    bottom = Dimensions.Padding.content + 80.dp
-                ),
-            ) {
+            // Filters, summary and trend; then category breakdown and top merchants. Side by side
+            // on wide windows (an unfolded foldable), one list otherwise.
+            val overviewItems: LazyListScope.() -> Unit = {
                 // Filters (Period and Type)
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -504,6 +497,8 @@ fun SharedTransitionScope.AnalyticsScreen(
                     Spacer(Modifier.height(Spacing.md))
                 }
 
+            }
+            val breakdownItems: LazyListScope.() -> Unit = {
                 // Category Breakdown
                 if (uiState.categoryBreakdown.isNotEmpty()) {
                     item {
@@ -665,8 +660,47 @@ fun SharedTransitionScope.AnalyticsScreen(
                     }
                 }
 
-                item{
-                    Spacer(Modifier.height(200.dp))
+            }
+            val listPadding = PaddingValues(
+                start = 0.dp,
+                end = 0.dp,
+                top = paddingValues.calculateTopPadding() + Dimensions.Padding.content,
+                bottom = Dimensions.Padding.content + 80.dp
+            )
+            val listModifier = Modifier
+                .hazeSource(state = hazeState)
+                .background(MaterialTheme.colorScheme.background)
+            if (LocalWindowLayout.current.widthDp < ANALYTICS_TWO_COLUMN_MIN_WIDTH_DP) {
+                LazyColumn(
+                    state = lazyListState,
+                    modifier = listModifier.fillMaxSize(),
+                    contentPadding = listPadding,
+                ) {
+                    overviewItems()
+                    breakdownItems()
+                    item {
+                        Spacer(Modifier.height(200.dp))
+                    }
+                }
+            } else {
+                val breakdownListState = rememberLazyListState()
+                Row(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = listModifier.weight(1f).fillMaxHeight(),
+                        contentPadding = listPadding,
+                    ) {
+                        overviewItems()
+                        item { Spacer(Modifier.height(120.dp)) }
+                    }
+                    LazyColumn(
+                        state = breakdownListState,
+                        modifier = listModifier.weight(1f).fillMaxHeight(),
+                        contentPadding = listPadding,
+                    ) {
+                        breakdownItems()
+                        item { Spacer(Modifier.height(120.dp)) }
+                    }
                 }
             }
         }
@@ -860,3 +894,6 @@ private fun CurrencyFilterRow(
         }
     }
 }
+
+/** Analytics shows overview and breakdown side by side from this window width. */
+private const val ANALYTICS_TWO_COLUMN_MIN_WIDTH_DP = 720
