@@ -2065,7 +2065,7 @@ private fun DateTimeField(
                 Spacer(Modifier.size(8.dp))
 
                 val dateLabel =
-                    dateTime.format(DateTimeFormatter.ofPattern("dd MMMM"))
+                    dateTime.format(localizedDateFormatter(withYear = false))
                 val yearLabel =
                     dateTime.format(DateTimeFormatter.ofPattern("yyyy"))
                 Column(
@@ -2329,7 +2329,7 @@ private fun TransactionReceipt(
                             )
                             Text(
                                 text = transaction.dateTime.format(
-                                    DateTimeFormatter.ofPattern("d MMM yyyy")
+                                    localizedDateFormatter()
                                 ),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
@@ -2410,7 +2410,7 @@ private fun TransactionReceipt(
 
                     ReceiptInfoRow(
                         label = stringResource(R.string.type),
-                        value = transaction.transactionType.name.lowercase().capitalizeFirst(),
+                        value = stringResource(transaction.transactionType.labelRes),
                         linkedLendBorrow = linkedLendBorrow
                     )
 
@@ -2459,14 +2459,16 @@ private fun TransactionReceipt(
                         ?: availableAccounts.find { it.accountLast4 == fromAccount }
                     val toAccountEntity = toAccount?.let { acc -> availableAccounts.find { it.accountLast4 == acc } }
 
+                    // Name and last four digits, so two cards of one bank can be told apart
                     val fromBankName = if (isTransfer) {
-                        fromAccountEntity?.bankName ?: transaction.bankName ?: maskAccountNumber(fromAccount) ?: stringResource(R.string.source)
+                        withLast4(fromAccountEntity?.bankName ?: transaction.bankName, fromAccount)
+                            ?: stringResource(R.string.source)
                     } else {
-                        transaction.bankName ?: stringResource(R.string.account)
+                        withLast4(transaction.bankName, fromAccount) ?: stringResource(R.string.account)
                     }
 
                     val toBankName = if (isTransfer && toAccount != null) {
-                        toAccountEntity?.bankName ?: maskAccountNumber(toAccount) ?: toAccount
+                        withLast4(toAccountEntity?.bankName, toAccount) ?: toAccount
                     } else null
 
                     ReceiptInfoRow(
@@ -2520,7 +2522,7 @@ private fun TransactionReceipt(
                         ReceiptInfoRow(
                             label = stringResource(R.string.next_billing),
                             value = linkedSubscription.nextPaymentDate.format(
-                                DateTimeFormatter.ofPattern("d MMM yyyy")
+                                localizedDateFormatter()
                             ),
                             icon = {
                                 Icon(
@@ -3474,7 +3476,7 @@ private fun MatchPreviewSheetContent(
                                 supporting = {
                                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                         Text(
-                                            text = txn.dateTime.format(DateTimeFormatter.ofPattern("d MMM yyyy")),
+                                            text = txn.dateTime.format(localizedDateFormatter()),
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                         if (!txn.category.isNullOrBlank()) {
@@ -3608,7 +3610,7 @@ private fun MatchPreviewSheetContent(
                                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Text(
                                         text = txn.dateTime.format(
-                                            DateTimeFormatter.ofPattern("d MMM yyyy")
+                                            localizedDateFormatter()
                                         ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
@@ -3868,5 +3870,31 @@ private fun shareReceiptAsPng(
         context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_receipt)))
     } catch (e: Exception) {
         Log.e("TransactionDetail", "Error sharing receipt", e)
+    }
+}
+
+/** "中国银行 · 1234" / "Bank of China · 1234"; just the name for wallets or when digits are unknown. */
+private fun withLast4(bankName: String?, last4: String?): String? {
+    val digits = last4?.takeIf { it.length in 3..4 && it.all(Char::isDigit) }
+    return when {
+        bankName.isNullOrBlank() -> digits?.let { "•• $it" }
+        digits == null -> bankName
+        else -> "$bankName · $digits"
+    }
+}
+
+/** Dates as the locale writes them: 2026年10月4日 / 4 Oct 2026 (10月4日 / 4 October without the year). */
+@Composable
+private fun localizedDateFormatter(withYear: Boolean = true): DateTimeFormatter {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    return remember(locale, withYear) {
+        val zh = locale.language == "zh"
+        val pattern = when {
+            zh && withYear -> "yyyy年M月d日"
+            zh -> "M月d日"
+            withYear -> "d MMM yyyy"
+            else -> "d MMMM"
+        }
+        DateTimeFormatter.ofPattern(pattern, locale)
     }
 }

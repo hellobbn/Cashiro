@@ -190,8 +190,13 @@ class AiLedgerSession @Inject constructor(
         - Pick the account the document belongs to (card or account number, bank name). When it belongs
           to a card or account that is not listed, propose it with create_account first and use the
           ref that returns; leave account out only when the document does not say whose it is.
-        - Use only the categories listed below; name merchants as a person would ("星巴克", not the
-          acquirer's legal name), keeping the document's language.
+        - Use only the categories listed below.
+        - Name the merchant as the user knows it: the shop or brand shown most prominently ("大八屋顶牛排馆",
+          "星巴克", "中国联通"), not the registered company ("上海博明餐饮管理有限公司…") or the payment
+          processor ("财付通"). Keep the document's language.
+        - Always fill notes so the user can tell later what the money was for: what was bought or the
+          service ("话费代扣", "外卖 2 份"), the platform it went through (美团, 微信支付, 支付宝) and, when
+          shown, the card used (e.g. "AMEX 1008"). The registered company name may go here too.
 
         When the document shows an account's current balance (or a card's amount owed or credit limit) and it
         differs from the balance listed below, propose set_balance. Rename or re-type accounts with
