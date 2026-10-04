@@ -10,6 +10,7 @@ import com.ritesh.cashiro.data.repository.CategoryRepository
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.domain.usecase.AddTransactionUseCase
+import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -50,6 +51,8 @@ data class TransactionDraft(
 
 /** One change the model proposed. Nothing is written until the user approves it. */
 sealed interface LedgerChange {
+    // A new account; [ref] (N1, N2…) is how the model's transactions refer to it
+    data class CreateAccount(val ref: String, val account: AccountBalanceEntity) : LedgerChange
     data class Add(val draft: TransactionDraft) : LedgerChange
     data class Update(val before: TransactionEntity, val after: TransactionEntity) : LedgerChange
     data class Delete(val transaction: TransactionEntity, val reason: String?) : LedgerChange
@@ -57,6 +60,7 @@ sealed interface LedgerChange {
 
 /** What [LedgerTools.apply] did, enough to take it back. */
 data class AppliedChanges(
+    val createdAccounts: List<AccountBalanceEntity>,
     val addedIds: List<Long>,
     val updated: List<TransactionEntity>,
     val deleted: List<TransactionEntity>
@@ -83,6 +87,11 @@ class LedgerTools @Inject constructor(
         // Short stable references the model uses instead of bank names: A1, A2…
         val accountRefs: Map<String, AccountBalanceEntity> =
             accounts.mapIndexed { i, account -> "A${i + 1}" to account }.toMap()
+
+        // Accounts proposed in this session: N1, N2…
+        internal val newAccounts = linkedMapOf<String, AccountBalanceEntity>()
+
+        fun account(ref: String): AccountBalanceEntity? = accountRefs[ref] ?: newAccounts[ref]
 
         fun refOf(bankName: String?, last4: String?): String? =
             accountRefs.entries.firstOrNull { it.value.bankName == bankName && it.value.accountLast4 == last4 }?.key
@@ -151,6 +160,21 @@ class LedgerTools @Inject constructor(
             )
         ),
         AiTool(
+            name = CREATE_ACCOUNT,
+            description = "Propose a new account for the user to review, when a document belongs to a card or " +
+                "account that is not listed. Returns a ref (N1, N2…) to use as account or to_account in " +
+                "add_transactions. Never propose an account that is already listed.",
+            schema = schema(
+                required = listOf("name", "type", "currency"),
+                "name" to str("Bank, card issuer or wallet, as the user would name it, e.g. 招商银行"),
+                "last4" to str("Last 4 digits of the card or account number; leave out for a wallet"),
+                "type" to enumOf("BANK", "CREDIT_CARD", "WALLET"),
+                "currency" to str("ISO code"),
+                "balance" to num("Current balance if the document states it; credit cards: amount owed, else 0"),
+                "credit_limit" to num("Credit cards only, if stated")
+            )
+        ),
+        AiTool(
             name = UPDATE,
             description = "Propose changes to existing transactions: merchant, category, subcategory or " +
                 "notes. To change an amount, date, type or account, delete the transaction and add a " +
@@ -189,6 +213,7 @@ class LedgerTools @Inject constructor(
             val text = when (call.name) {
                 FIND -> find(call.input, context)
                 ADD -> add(call.input, context, queue)
+                CREATE_ACCOUNT -> createAccount(call.input, context, queue)
                 UPDATE -> update(call.input, context, queue)
                 DELETE -> delete(call.input, queue)
                 else -> return AiToolResult(call.id, "Unknown tool ${call.name}", isError = true)
@@ -260,10 +285,10 @@ class LedgerTools @Inject constructor(
         val type = item.string("type")?.let { name -> ALLOWED_TYPES.firstOrNull { it.name == name } }
             ?: throw IllegalArgumentException("type must be EXPENSE, INCOME or TRANSFER")
         val account = item.string("account")?.let {
-            context.accountRefs[it] ?: throw IllegalArgumentException("unknown account $it")
+            context.account(it) ?: throw IllegalArgumentException("unknown account $it")
         }
         val toAccount = item.string("to_account")?.let {
-            context.accountRefs[it] ?: throw IllegalArgumentException("unknown account $it")
+            context.account(it) ?: throw IllegalArgumentException("unknown account $it")
         }
         if (type == TransactionType.TRANSFER && (account == null || toAccount == null)) {
             throw IllegalArgumentException("a transfer needs account and to_account")
@@ -288,6 +313,38 @@ class LedgerTools @Inject constructor(
             notes = item.string("notes")?.trim()?.takeIf { it.isNotEmpty() },
             possibleDuplicate = possibleDuplicate
         )
+    }
+
+    private fun createAccount(input: JsonObject, context: Context, queue: MutableList<LedgerChange>): String {
+        val name = input.string("name")?.trim() ?: throw IllegalArgumentException("name is required")
+        val type = input.string("type") ?: throw IllegalArgumentException("type is required")
+        val isWallet = type == "WALLET"
+        val last4 = if (isWallet) input.string("last4")?.filter(Char::isDigit)?.takeLast(4) ?: WALLET_LAST4
+        else input.string("last4")?.filter(Char::isDigit)?.takeLast(4)?.takeIf { it.length == 4 }
+            ?: throw IllegalArgumentException("last4 must be 4 digits")
+        val institution = InstitutionCatalog.find(name)
+        val bankName = institution?.chineseName?.takeIf { name.any { c -> c.code > 0x2E80 } } ?: name
+        (context.accountRefs + context.newAccounts).entries
+            .firstOrNull { it.value.accountLast4 == last4 && (it.value.bankName == bankName || it.value.bankName == name) }
+            ?.let { return "Already exists as ${it.key}; use that ref." }
+        val ref = "N${context.newAccounts.size + 1}"
+        val account = AccountBalanceEntity(
+            bankName = bankName,
+            accountLast4 = last4,
+            balance = input.decimal("balance")?.abs() ?: BigDecimal.ZERO,
+            creditLimit = input.decimal("credit_limit")?.takeIf { type == "CREDIT_CARD" },
+            timestamp = LocalDateTime.now(),
+            isCreditCard = type == "CREDIT_CARD",
+            isWallet = isWallet,
+            iconResId = institution?.iconResId ?: 0,
+            iconName = institution?.iconName ?: "",
+            sourceType = "MANUAL",
+            currency = input.string("currency")?.uppercase() ?: institution?.currency ?: DEFAULT_CURRENCY,
+            color = institution?.color ?: DEFAULT_ACCOUNT_COLOR
+        )
+        context.newAccounts[ref] = account
+        queue += LedgerChange.CreateAccount(ref, account)
+        return "Queued account $ref for the user's review. Use $ref as account for its transactions."
     }
 
     private suspend fun update(input: JsonObject, context: Context, queue: MutableList<LedgerChange>): String {
@@ -342,12 +399,18 @@ class LedgerTools @Inject constructor(
 
     /** Commits approved changes. */
     suspend fun apply(changes: List<LedgerChange>): AppliedChanges {
+        // Accounts first, so the transactions on them find them
+        val created = changes.filterIsInstance<LedgerChange.CreateAccount>().map { it.account }
+        created.forEach { accountBalanceRepository.insertBalance(it.copy(timestamp = LocalDateTime.now())) }
+        // A new account left out of the save: its transactions are saved without an account
+        fun AccountBalanceEntity?.kept() = this?.takeIf { it.id != 0L || it in created }
         val added = mutableListOf<Long>()
         val updated = mutableListOf<TransactionEntity>()
         val deleted = mutableListOf<TransactionEntity>()
         changes.forEach { change ->
             when (change) {
-                is LedgerChange.Add -> with(change.draft) {
+                is LedgerChange.CreateAccount -> Unit
+                is LedgerChange.Add -> with(change.draft.let { it.copy(account = it.account.kept(), toAccount = it.toAccount.kept()) }) {
                     added += addTransactionUseCase.execute(
                         amount = amount,
                         merchant = merchant,
@@ -376,7 +439,7 @@ class LedgerTools @Inject constructor(
                 }
             }
         }
-        return AppliedChanges(added, updated, deleted)
+        return AppliedChanges(created, added, updated, deleted)
     }
 
     /** Takes back what [apply] did. */
@@ -384,6 +447,7 @@ class LedgerTools @Inject constructor(
         applied.addedIds.forEach { transactionRepository.deleteTransactionById(it, hardDelete = true) }
         applied.updated.forEach { transactionRepository.updateTransaction(it) }
         if (applied.deleted.isNotEmpty()) transactionRepository.undoDeleteTransactions(applied.deleted)
+        applied.createdAccounts.forEach { accountBalanceRepository.deleteAccount(it.bankName, it.accountLast4) }
     }
 
     private fun category(name: String?, subcategory: String?, context: Context): Pair<String, String?> {
@@ -407,6 +471,9 @@ class LedgerTools @Inject constructor(
         const val ADD = "add_transactions"
         const val UPDATE = "update_transactions"
         const val DELETE = "delete_transactions"
+        const val CREATE_ACCOUNT = "create_account"
+        private const val WALLET_LAST4 = "wallet"
+        private const val DEFAULT_ACCOUNT_COLOR = "#33B5E5"
         private const val MAX_FOUND = 200
         private const val DEFAULT_CURRENCY = "CNY"
         private val ALLOWED_TYPES = listOf(TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.TRANSFER)

@@ -290,7 +290,8 @@ private fun AiBottomBar(
                     }
                 }
                 is AiPhase.Saved -> {
-                    val count = phase.applied.addedIds.size + phase.applied.updated.size + phase.applied.deleted.size
+                    val count = phase.applied.createdAccounts.size + phase.applied.addedIds.size +
+                        phase.applied.updated.size + phase.applied.deleted.size
                     Text(
                         text = stringResource(R.string.ai_saved, count),
                         style = MaterialTheme.typography.bodyMedium,

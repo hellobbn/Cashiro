@@ -44,6 +44,7 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.presentation.common.TransactionLookups
 import com.ritesh.cashiro.presentation.ui.components.AccountField
+import com.ritesh.cashiro.presentation.ui.components.AccountRow
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
@@ -59,11 +60,19 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /** A proposed change as the transaction it would leave in the ledger, for display only. */
-internal fun LedgerChange.preview(index: Int): TransactionEntity = when (this) {
+internal fun LedgerChange.preview(index: Int): TransactionEntity? = when (this) {
     is LedgerChange.Add -> draft.toEntity(index)
     is LedgerChange.Update -> after
     is LedgerChange.Delete -> transaction
+    is LedgerChange.CreateAccount -> null
 }
+
+/** Decoration for a preview: a transaction on an account proposed in the same review has none saved yet. */
+private fun TransactionLookups.decorateProposed(change: LedgerChange, preview: TransactionEntity) =
+    decorate(preview).let { d ->
+        val account = (change as? LedgerChange.Add)?.draft?.account
+        if (d.account == null && account != null) d.copy(account = account) else d
+    }
 
 private fun TransactionDraft.toEntity(index: Int) = TransactionEntity(
     // Negative ids never match a saved transaction
@@ -92,6 +101,27 @@ internal fun LazyListScope.reviewItems(
     mainCurrency: String?,
     onOpen: (Int) -> Unit
 ) {
+    val accounts = review.withIndex().filter { it.value.change is LedgerChange.CreateAccount }
+    if (accounts.isNotEmpty()) {
+        item(key = "header_accounts") {
+            Text(
+                text = stringResource(R.string.ai_section_accounts, accounts.size),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = Spacing.sm)
+            )
+        }
+        accounts.forEachIndexed { position, (index, item) ->
+            item(key = "change_$index") {
+                AccountRow(
+                    account = (item.change as LedgerChange.CreateAccount).account,
+                    shape = ListItemPosition.from(position, accounts.size).toShape(),
+                    onClick = { onOpen(index) },
+                    modifier = Modifier.fillMaxWidth().alpha(if (item.included) 1f else 0.4f)
+                )
+            }
+        }
+    }
     val groups = listOf(
         R.string.ai_section_add to review.withIndex().filter { it.value.change is LedgerChange.Add },
         R.string.ai_section_update to review.withIndex().filter { it.value.change is LedgerChange.Update },
@@ -109,10 +139,10 @@ internal fun LazyListScope.reviewItems(
         }
         items.forEachIndexed { position, (index, item) ->
             item(key = "change_$index") {
-                val preview = remember(item.change, index) { item.change.preview(index) }
+                val preview = remember(item.change, index) { item.change.preview(index) } ?: return@item
                 TransactionItem(
                     transaction = preview,
-                    decoration = lookups.decorate(preview),
+                    decoration = lookups.decorateProposed(item.change, preview),
                     mainCurrency = mainCurrency,
                     subtitleOverride = subtitle(item),
                     onClick = { onOpen(index) },
@@ -203,6 +233,13 @@ internal fun ReviewDetailSheet(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+            } else if (change is LedgerChange.CreateAccount) {
+                AccountRow(account = change.account, modifier = Modifier.fillMaxWidth())
+                Text(
+                    stringResource(R.string.ai_new_account_note),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             } else {
                 if (change is LedgerChange.Update) {
                     Text(stringResource(R.string.ai_before), style = MaterialTheme.typography.labelLarge)
@@ -214,10 +251,10 @@ internal fun ReviewDetailSheet(
                     )
                     Text(stringResource(R.string.ai_after), style = MaterialTheme.typography.labelLarge)
                 }
-                val preview = change.preview(index)
+                val preview = change.preview(index) ?: return@Column
                 TransactionItem(
                     transaction = preview,
-                    decoration = lookups.decorate(preview),
+                    decoration = lookups.decorateProposed(change, preview),
                     mainCurrency = mainCurrency,
                     modifier = Modifier.fillMaxWidth()
                 )

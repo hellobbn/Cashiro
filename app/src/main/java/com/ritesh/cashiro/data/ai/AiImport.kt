@@ -187,8 +187,9 @@ class AiLedgerSession @Inject constructor(
         - Leave out balances, subtotals, rejected or pending lines and anything that is not a transaction.
         - Card purchases are EXPENSE on the card's account and refunds are INCOME on it; a payment from
           a bank account to a card is a TRANSFER between them.
-        - Pick the account the document belongs to (card or account number, bank name). Leave account out
-          when none fits.
+        - Pick the account the document belongs to (card or account number, bank name). When it belongs
+          to a card or account that is not listed, propose it with create_account first and use the
+          ref that returns; leave account out only when the document does not say whose it is.
         - Use only the categories listed below; name merchants as a person would ("星巴克", not the
           acquirer's legal name), keeping the document's language.
 

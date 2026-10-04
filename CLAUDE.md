@@ -76,11 +76,16 @@ client, no provider SDKs, to keep the app small.
   call tools are left out, and those that read images are marked.
 - `LedgerTools` is the API a model gets:
   - `find_transactions` answers at once.
-  - `add_transactions`, `update_transactions` and `delete_transactions` only queue a `LedgerChange`.
+  - `add_transactions`, `update_transactions`, `delete_transactions` and `create_account` only queue
+    a `LedgerChange`.
+  - `create_account` returns a ref (`N1`…) the same session's transactions can use. Icon, color and
+    currency come from `InstitutionCatalog` when the name matches. Accounts are never deleted or
+    renamed by the model.
   - Updates touch merchant, category, subcategory and notes only. Amount, date, type or account
     changes are a delete plus an add.
   - `apply` goes through `AddTransactionUseCase` and the repository's delete, so balances stay
-    right, and returns what `undo` needs.
+    right, and returns what `undo` needs. New accounts are created first; a transaction on a new
+    account the user left out is saved without an account.
 - `AiLedgerSession` runs the tool loop. The accounts (as refs `A1`, `A2`…) and the categories are
   in the system prompt.
 - `AiAttachmentReader` handles the input files:
