@@ -3793,10 +3793,13 @@ private fun captureReceiptToBitmap(
         val heightPx = composeView.measuredHeight.coerceAtLeast(1)
         composeView.layout(0, 0, widthPx, heightPx)
 
-        val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        composeView.draw(canvas)
-        return bitmap
+        // Record, then let the GPU render: images (bank logos) load as hardware bitmaps, which a
+        // software Canvas over a plain Bitmap refuses to draw. A Picture accepts them, and
+        // createBitmap renders such a picture with the hardware renderer, then copies it out.
+        val picture = android.graphics.Picture()
+        composeView.draw(picture.beginRecording(widthPx, heightPx))
+        picture.endRecording()
+        return Bitmap.createBitmap(picture, widthPx, heightPx, Bitmap.Config.ARGB_8888)
     } finally {
         decorView.removeView(composeView)
     }
