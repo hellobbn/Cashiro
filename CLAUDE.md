@@ -71,6 +71,8 @@ client, no provider SDKs, to keep the app small.
   Completions (OpenRouter, OpenAI, DeepSeek, Qwen…). Replies are appended verbatim (thinking blocks
   included). Server-side refusal fallbacks are only sent to `api.anthropic.com`.
 - `AiSettings` keeps protocol, address, model and key in encrypted preferences.
+- Once a key is entered, the form lists the provider's models (`AiChat.listModels`). OpenRouter
+  models that cannot call tools are left out, and those that read images are marked.
 - `LedgerTools` is the API a model gets:
   - `find_transactions` answers at once.
   - `add_transactions`, `update_transactions` and `delete_transactions` only queue a `LedgerChange`.

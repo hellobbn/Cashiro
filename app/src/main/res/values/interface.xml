@@ -84,4 +84,8 @@
     <string name="ai_pdf_password">Password</string>
     <string name="ai_unlock">Unlock</string>
     <string name="ai_date_pattern">MMM d</string>
+    <string name="ai_choose_model">Choose a model</string>
+    <string name="ai_search_models">Search models</string>
+    <string name="ai_models_count">%1$d models available</string>
+    <string name="ai_reads_images">Reads images</string>
 </resources>

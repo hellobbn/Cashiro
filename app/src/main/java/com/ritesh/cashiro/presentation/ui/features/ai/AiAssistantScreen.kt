@@ -66,6 +66,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.lazy.items
+import com.ritesh.cashiro.data.ai.AiModel
+import kotlinx.coroutines.delay
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.ai.AiConfig
 import com.ritesh.cashiro.data.ai.AiProtocol
@@ -152,7 +160,9 @@ fun AiAssistantScreen(
             }
             when (val phase = state.phase) {
                 AiPhase.Compose -> {
-                    item(key = "provider") { ProviderCard(state.config, onSave = viewModel::saveConfig) }
+                    item(key = "provider") {
+                        ProviderCard(state.config, state.models, viewModel::loadModels, onSave = viewModel::saveConfig)
+                    }
                     item(key = "files") {
                         FilesSection(
                             names = state.attachments.map { it.name to it.isImage },
@@ -278,7 +288,12 @@ private fun AiBottomBar(
 
 /** The provider in one line once it is set up; the form until then, or when changing it. */
 @Composable
-private fun ProviderCard(config: AiConfig, onSave: (AiConfig) -> Unit) {
+private fun ProviderCard(
+    config: AiConfig,
+    models: ModelListState,
+    onLoadModels: (AiConfig) -> Unit,
+    onSave: (AiConfig) -> Unit
+) {
     var editing by rememberSaveable { mutableStateOf(false) }
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
         Column(modifier = Modifier.padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -303,7 +318,7 @@ private fun ProviderCard(config: AiConfig, onSave: (AiConfig) -> Unit) {
                 }
             }
             if (!config.isConfigured || editing) {
-                ProviderForm(config) {
+                ProviderForm(config, models, onLoadModels) {
                     onSave(it)
                     editing = false
                 }
@@ -316,7 +331,7 @@ private fun ProviderCard(config: AiConfig, onSave: (AiConfig) -> Unit) {
 private enum class AiPreset(val labelRes: Int, val protocol: AiProtocol, val baseUrl: String, val model: String) {
     CLAUDE(R.string.ai_preset_claude, AiProtocol.ANTHROPIC, AiProtocol.ANTHROPIC.defaultBaseUrl, AiProtocol.ANTHROPIC.defaultModel),
     // One key for Claude, Gemini, GPT, DeepSeek, Qwen…; model ids are "vendor/model"
-    OPENROUTER(R.string.ai_preset_openrouter, AiProtocol.OPENAI_COMPATIBLE, "https://openrouter.ai/api/v1", ""),
+    OPENROUTER(R.string.ai_preset_openrouter, AiProtocol.OPENAI_COMPATIBLE, "https://openrouter.ai/api/v1", "anthropic/claude-opus-5.5"),
     CUSTOM(R.string.ai_preset_custom, AiProtocol.OPENAI_COMPATIBLE, "", "");
 
     companion object {
@@ -329,11 +344,24 @@ private enum class AiPreset(val labelRes: Int, val protocol: AiProtocol, val bas
 }
 
 @Composable
-private fun ProviderForm(config: AiConfig, onSave: (AiConfig) -> Unit) {
+private fun ProviderForm(
+    config: AiConfig,
+    models: ModelListState,
+    onLoadModels: (AiConfig) -> Unit,
+    onSave: (AiConfig) -> Unit
+) {
     var preset by rememberSaveable { mutableStateOf(AiPreset.of(config)) }
     var baseUrl by rememberSaveable { mutableStateOf(config.baseUrl) }
     var model by rememberSaveable { mutableStateOf(config.model) }
     var apiKey by rememberSaveable { mutableStateOf(config.apiKey) }
+    var picking by remember { mutableStateOf(false) }
+
+    // Once there is a key, list what it can use; wait for typing to pause first
+    LaunchedEffect(preset, baseUrl, apiKey) {
+        if (apiKey.isBlank() || baseUrl.isBlank()) return@LaunchedEffect
+        delay(600)
+        onLoadModels(AiConfig(preset.protocol, baseUrl.trim().trimEnd('/'), "", apiKey.trim()))
+    }
 
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
         AiPreset.entries.forEachIndexed { index, p ->
@@ -357,18 +385,32 @@ private fun ProviderForm(config: AiConfig, onSave: (AiConfig) -> Unit) {
         modifier = Modifier.fillMaxWidth()
     )
     OutlinedTextField(
-        value = model, onValueChange = { model = it }, singleLine = true,
-        label = { Text(stringResource(R.string.ai_model)) },
-        placeholder = if (preset == AiPreset.OPENROUTER) {
-            { Text("anthropic/claude-opus-5.5") }
-        } else null,
-        modifier = Modifier.fillMaxWidth()
-    )
-    OutlinedTextField(
         value = apiKey, onValueChange = { apiKey = it }, singleLine = true,
         label = { Text(stringResource(R.string.ai_api_key)) },
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        modifier = Modifier.fillMaxWidth()
+    )
+    OutlinedTextField(
+        value = model, onValueChange = { model = it }, singleLine = true,
+        label = { Text(stringResource(R.string.ai_model)) },
+        trailingIcon = {
+            when {
+                models.loading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                models.models.isNotEmpty() -> IconButton(onClick = { picking = true }) {
+                    Icon(Icons.Rounded.ArrowDropDown, contentDescription = stringResource(R.string.ai_choose_model))
+                }
+            }
+        },
+        supportingText = when {
+            models.error != null -> {
+                { Text(models.error, color = MaterialTheme.colorScheme.error) }
+            }
+            models.models.isNotEmpty() -> {
+                { Text(stringResource(R.string.ai_models_count, models.models.size)) }
+            }
+            else -> null
+        },
         modifier = Modifier.fillMaxWidth()
     )
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -376,6 +418,76 @@ private fun ProviderForm(config: AiConfig, onSave: (AiConfig) -> Unit) {
             onClick = { onSave(AiConfig(preset.protocol, baseUrl, model, apiKey)) },
             enabled = baseUrl.isNotBlank() && model.isNotBlank() && apiKey.isNotBlank()
         ) { Text(stringResource(R.string.ai_save)) }
+    }
+
+    if (picking) {
+        ModelPicker(
+            models = models.models,
+            selected = model,
+            onPick = {
+                model = it
+                picking = false
+            },
+            onDismiss = { picking = false }
+        )
+    }
+}
+
+/** The provider's models, searchable by name or id; those that read images are marked. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModelPicker(models: List<AiModel>, selected: String, onPick: (String) -> Unit, onDismiss: () -> Unit) {
+    var query by remember { mutableStateOf("") }
+    val shown = remember(models, query) {
+        val q = query.trim().lowercase()
+        if (q.isEmpty()) models else models.filter { q in it.name.lowercase() || q in it.id.lowercase() }
+    }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+            placeholder = { Text(stringResource(R.string.ai_search_models)) },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.Padding.content)
+        )
+        LazyColumn(contentPadding = PaddingValues(vertical = Spacing.sm)) {
+            items(shown, key = { it.id }) { m ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onPick(m.id) }
+                        .padding(horizontal = Dimensions.Padding.content, vertical = Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            m.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (m.id == selected) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            m.id,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    if (m.vision) {
+                        Icon(
+                            Icons.Rounded.Image,
+                            contentDescription = stringResource(R.string.ai_reads_images),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

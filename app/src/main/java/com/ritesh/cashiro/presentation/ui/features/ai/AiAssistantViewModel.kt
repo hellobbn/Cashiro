@@ -7,7 +7,9 @@ import com.ritesh.cashiro.data.ai.AiAttachment
 import com.ritesh.cashiro.data.ai.AiAttachmentReader
 import com.ritesh.cashiro.data.ai.AiConfig
 import com.ritesh.cashiro.data.ai.AiException
+import com.ritesh.cashiro.data.ai.AiChat
 import com.ritesh.cashiro.data.ai.AiLedgerSession
+import com.ritesh.cashiro.data.ai.AiModel
 import com.ritesh.cashiro.data.ai.AiSettings
 import com.ritesh.cashiro.data.ai.AppliedChanges
 import com.ritesh.cashiro.data.ai.LedgerChange
@@ -36,6 +38,13 @@ class AiShareInbox @Inject constructor() {
     fun take(): List<Uri> = _pending.value.also { _pending.value = emptyList() }
 }
 
+/** The provider's models, loaded once a key is entered. */
+data class ModelListState(
+    val loading: Boolean = false,
+    val models: List<AiModel> = emptyList(),
+    val error: String? = null
+)
+
 data class ReviewItem(val change: LedgerChange, val selected: Boolean)
 
 sealed interface AiPhase {
@@ -54,7 +63,8 @@ data class AiAssistantUiState(
     val summary: String = "",
     val error: String? = null,
     // A PDF that needs its password before it can be read
-    val passwordFor: String? = null
+    val passwordFor: String? = null,
+    val models: ModelListState = ModelListState()
 )
 
 @HiltViewModel
@@ -63,7 +73,8 @@ class AiAssistantViewModel @Inject constructor(
     private val reader: AiAttachmentReader,
     private val session: AiLedgerSession,
     private val tools: LedgerTools,
-    private val inbox: AiShareInbox
+    private val inbox: AiShareInbox,
+    private val chat: AiChat
 ) : ViewModel() {
     private val _state = MutableStateFlow(AiAssistantUiState(config = settings.config.value))
     val state: StateFlow<AiAssistantUiState> = _state.asStateFlow()
@@ -71,6 +82,7 @@ class AiAssistantViewModel @Inject constructor(
     private val passwords = mutableMapOf<String, String>()
     private var lastDefaultRequest = ""
     private var running: Job? = null
+    private var modelsJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -81,6 +93,20 @@ class AiAssistantViewModel @Inject constructor(
     fun saveConfig(config: AiConfig) {
         settings.save(config)
         _state.update { it.copy(config = settings.config.value) }
+    }
+
+    /** Lists the models [config]'s key can use; a newer call replaces one still loading. */
+    fun loadModels(config: AiConfig) {
+        modelsJob?.cancel()
+        modelsJob = viewModelScope.launch {
+            _state.update { it.copy(models = it.models.copy(loading = true, error = null)) }
+            val result = try {
+                ModelListState(models = chat.listModels(config))
+            } catch (e: AiException) {
+                ModelListState(error = e.message)
+            }
+            _state.update { it.copy(models = result) }
+        }
     }
 
     fun addFiles(uris: List<Uri>) {

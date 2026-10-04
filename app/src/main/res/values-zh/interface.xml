@@ -84,4 +84,8 @@
     <string name="ai_pdf_password">密码</string>
     <string name="ai_unlock">解锁</string>
     <string name="ai_date_pattern">M月d日</string>
+    <string name="ai_choose_model">选择模型</string>
+    <string name="ai_search_models">搜索模型</string>
+    <string name="ai_models_count">可用 %1$d 个模型</string>
+    <string name="ai_reads_images">可读图片</string>
 </resources>

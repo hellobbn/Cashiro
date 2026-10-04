@@ -177,6 +177,34 @@ class AiChatTest {
     }
 
     @Test
+    fun `openrouter models keep only tool callers and mark vision`() = runTest {
+        val chat = chat(HttpStatusCode.OK to """{"data":[
+            {"id":"anthropic/claude-opus-5.5","name":"Anthropic: Claude Opus 5.5",
+             "architecture":{"input_modalities":["text","image","file"]},"supported_parameters":["tools","max_tokens"]},
+            {"id":"anthropic/claude-opus-5.5:batch","name":"batch","supported_parameters":["tools"]},
+            {"id":"deepseek/deepseek-chat","name":"DeepSeek Chat",
+             "architecture":{"input_modalities":["text"]},"supported_parameters":["tools"]},
+            {"id":"some/no-tools","name":"No tools","supported_parameters":["max_tokens"]}]}""")
+        val models = chat.listModels(AiConfig(AiProtocol.OPENAI_COMPATIBLE, "https://openrouter.ai/api/v1", "", "k"))
+        assertEquals("https://openrouter.ai/api/v1/models", requests.single().url.toString())
+        assertEquals("Bearer k", requests.single().headers["Authorization"])
+        assertEquals(
+            listOf(AiModel("anthropic/claude-opus-5.5", "Anthropic: Claude Opus 5.5", true),
+                AiModel("deepseek/deepseek-chat", "DeepSeek Chat", false)),
+            models
+        )
+    }
+
+    @Test
+    fun `claude models are listed by display name`() = runTest {
+        val chat = chat(HttpStatusCode.OK to """{"data":[{"id":"claude-opus-5-5","display_name":"Claude Opus 5.5","type":"model"}]}""")
+        val models = chat.listModels(AiConfig(apiKey = "k"))
+        assertEquals("https://api.anthropic.com/v1/models?limit=1000", requests.single().url.toString())
+        assertEquals("k", requests.single().headers["x-api-key"])
+        assertEquals(listOf(AiModel("claude-opus-5-5", "Claude Opus 5.5", true)), models)
+    }
+
+    @Test
     fun `statement dates without a time land at noon`() {
         assertEquals(LocalDateTime.of(2026, 9, 1, 12, 0), LedgerTools.dateTime("2026-09-01"))
         assertEquals(LocalDateTime.of(2026, 9, 1, 8, 5), LedgerTools.dateTime("2026-09-01 08:05"))

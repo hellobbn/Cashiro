@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -43,6 +44,9 @@ sealed interface AiPart {
 data class AiTool(val name: String, val description: String, val schema: JsonObject)
 data class AiToolCall(val id: String, val name: String, val input: JsonObject)
 data class AiToolResult(val callId: String, val content: String, val isError: Boolean = false)
+/** A model the provider offers; [vision] when it reads images. */
+data class AiModel(val id: String, val name: String, val vision: Boolean)
+
 data class AiReply(val text: String, val calls: List<AiToolCall>, val truncated: Boolean)
 
 class AiException(message: String) : Exception(message)
@@ -274,23 +278,62 @@ class AiChat internal constructor(engine: HttpClientEngine) {
         }
     }
 
+    // --- model list ---
+
+    /**
+     * The models [config]'s key can use. OpenRouter describes each model, so only those that can
+     * call tools are kept; other OpenAI-compatible providers list ids only.
+     */
+    suspend fun listModels(config: AiConfig): List<AiModel> {
+        val response = request {
+            when (config.protocol) {
+                AiProtocol.ANTHROPIC -> client.get("${config.baseUrl}/v1/models?limit=1000") {
+                    header("x-api-key", config.apiKey)
+                    header("anthropic-version", "2023-06-01")
+                }
+                AiProtocol.OPENAI_COMPATIBLE -> client.get("${config.baseUrl}/models") {
+                    header("Authorization", "Bearer ${config.apiKey}")
+                }
+            }
+        }
+        val data = response["data"] as? JsonArray ?: return emptyList()
+        return data.mapNotNull { element ->
+            val model = element as? JsonObject ?: return@mapNotNull null
+            val id = model.string("id").takeIf { it.isNotEmpty() && !it.endsWith(":batch") } ?: return@mapNotNull null
+            val parameters = (model["supported_parameters"] as? JsonArray)?.map { (it as? JsonPrimitive)?.contentOrNull }
+            if (parameters != null && "tools" !in parameters) return@mapNotNull null
+            val inputs = ((model["architecture"] as? JsonObject)?.get("input_modalities") as? JsonArray)
+                ?.map { (it as? JsonPrimitive)?.contentOrNull }
+            AiModel(
+                id = id,
+                name = model.string("display_name").ifEmpty { model.string("name") }.ifEmpty { id },
+                // Claude models all read images; elsewhere only a listed modality says so
+                vision = config.protocol == AiProtocol.ANTHROPIC || inputs?.contains("image") == true
+            )
+        }.sortedBy { it.name.lowercase() }
+    }
+
     // --- shared ---
 
     private suspend fun post(
         url: String,
         body: JsonObject,
         headers: io.ktor.client.request.HttpRequestBuilder.() -> Unit
-    ): JsonObject {
+    ): JsonObject = request {
+        client.post(url) {
+            contentType(ContentType.Application.Json)
+            headers()
+            setBody(body.toString())
+        }
+    }
+
+    private suspend fun request(send: suspend () -> io.ktor.client.statement.HttpResponse): JsonObject {
         val response = try {
-            client.post(url) {
-                contentType(ContentType.Application.Json)
-                headers()
-                setBody(body.toString())
-            }
+            send()
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            throw AiException("Could not reach ${runCatching { URI(url).host }.getOrNull() ?: url}: ${e.javaClass.simpleName}")
+            throw AiException("Could not reach the provider: ${e.javaClass.simpleName}")
         }
         val text = response.bodyAsText()
         val parsed = runCatching { json.parseToJsonElement(text).jsonObject }.getOrNull()
