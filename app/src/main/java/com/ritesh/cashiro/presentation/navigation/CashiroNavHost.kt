@@ -1,5 +1,10 @@
 package com.ritesh.cashiro.presentation.navigation
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.ritesh.cashiro.presentation.ui.features.transactions.LIST_DETAIL_MIN_WIDTH_DP
+import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionDetailPane
+import androidx.compose.material3.VerticalDivider
 import com.ritesh.cashiro.presentation.ui.adaptive.ReadableWidth
 import androidx.compose.runtime.CompositionLocalProvider
 import com.ritesh.cashiro.presentation.ui.adaptive.rememberWindowLayout
@@ -724,24 +729,50 @@ fun CashiroNavHost(
                     popExitTransition = MainTabMotion.popExit
                 ) { backStackEntry ->
                     val transactions = backStackEntry.toRoute<Transactions>()
-                    TransactionsScreen(
-                        transactionsViewModel = transactionsViewModel,
-                        initialCategory = transactions.category,
-                        initialMerchant = transactions.merchant,
-                        initialPeriod = transactions.period,
-                        initialCurrency = transactions.currency,
-                        initialType = transactions.type,
-                        focusSearch = transactions.focusSearch,
-                        onNavigateBack = { navController.safePopBackStack() },
-                        onTransactionClick = { transactionId, key ->
-                            navController.safeNavigate(TransactionDetail(transactionId, key))
-                        },
-                        onNavigateToSettings = {
-                            navController.safeNavigate(Settings)
-                        },
-                        animatedContentScope = this@composable,
-                        blurEffects = themeUiState.blurEffects
-                    )
+                    // Wide windows: the list on the left, the tapped transaction on the right
+                    var paneTransactionId by rememberSaveable { mutableStateOf<Long?>(null) }
+                    val listDetail = LocalWindowLayout.current.widthDp >= LIST_DETAIL_MIN_WIDTH_DP
+                    val list: @Composable () -> Unit = {
+                        TransactionsScreen(
+                            transactionsViewModel = transactionsViewModel,
+                            initialCategory = transactions.category,
+                            initialMerchant = transactions.merchant,
+                            initialPeriod = transactions.period,
+                            initialCurrency = transactions.currency,
+                            initialType = transactions.type,
+                            focusSearch = transactions.focusSearch,
+                            onNavigateBack = { navController.safePopBackStack() },
+                            onTransactionClick = { transactionId, key ->
+                                navController.safeNavigate(TransactionDetail(transactionId, key))
+                            },
+                            onNavigateToSettings = {
+                                navController.safeNavigate(Settings)
+                            },
+                            animatedContentScope = this@composable,
+                            blurEffects = themeUiState.blurEffects,
+                            onTransactionSelected = if (listDetail) { id -> paneTransactionId = id } else null
+                        )
+                    }
+                    if (!listDetail) {
+                        list()
+                    } else {
+                        // Back closes the open transaction before leaving the tab
+                        BackHandler(enabled = paneTransactionId != null) { paneTransactionId = null }
+                        Row(modifier = Modifier.fillMaxSize()) {
+                            Box(modifier = Modifier.weight(1f)) { list() }
+                            VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            Box(modifier = Modifier.weight(1f)) {
+                                TransactionDetailPane(
+                                    transactionId = paneTransactionId,
+                                    onClose = { paneTransactionId = null },
+                                    onNavigateToPersonDetail = { personId ->
+                                        navController.safeNavigate(PersonDetail(personId, "person_avatar_$personId"))
+                                    },
+                                    blurEffects = themeUiState.blurEffects
+                                )
+                            }
+                        }
+                    }
                 }
 
                 composable<Budgets>(
