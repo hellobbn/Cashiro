@@ -78,6 +78,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.lazy.items
 import com.ritesh.cashiro.data.ai.AiModel
 import kotlinx.coroutines.delay
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.LoadingIndicator
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.ai.AiConfig
 import com.ritesh.cashiro.data.ai.AiProtocol
@@ -102,7 +108,7 @@ import java.time.format.DateTimeFormatter
  * user's own cloud model, which proposes additions, edits and deletions; nothing is saved until
  * the user ticks what to keep.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AiAssistantScreen(
     onNavigateBack: () -> Unit,
@@ -128,7 +134,20 @@ fun AiAssistantScreen(
         }
     }
 
+    // Saving ends in a snackbar with Undo, as deleting a transaction does elsewhere
+    val snackbarHostState = remember { SnackbarHostState() }
+    val savedPhase = state.phase as? AiPhase.Saved
+    val savedMessage = savedPhase?.let { stringResource(R.string.ai_saved, it.applied.count()) }
+    val undoLabel = stringResource(R.string.ai_undo)
+    LaunchedEffect(savedPhase) {
+        if (savedPhase != null && savedMessage != null) {
+            val result = snackbarHostState.showSnackbar(savedMessage, actionLabel = undoLabel, duration = SnackbarDuration.Long)
+            if (result == SnackbarResult.ActionPerformed) viewModel.undo()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         // Shrink above the keyboard so the field being typed in and the action bar stay visible
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).imePadding(),
         topBar = {
@@ -148,7 +167,6 @@ fun AiAssistantScreen(
                 onCancel = viewModel::cancel,
                 onSave = viewModel::save,
                 onStartOver = viewModel::startOver,
-                onUndo = viewModel::undo,
                 onDone = {
                     viewModel.startOver()
                     onNavigateBack()
@@ -206,7 +224,7 @@ fun AiAssistantScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(Spacing.md)
                     ) {
-                        CircularProgressIndicator()
+                        LoadingIndicator()
                         Text(
                             text = stringResource(R.string.ai_running, phase.proposed),
                             style = MaterialTheme.typography.bodyMedium,
@@ -215,8 +233,13 @@ fun AiAssistantScreen(
                     }
                 }
                 AiPhase.Review, is AiPhase.Saved -> {
-                    if (state.summary.isNotBlank()) {
-                        item(key = "summary") { Text(state.summary, style = MaterialTheme.typography.bodyMedium) }
+                    val saved = state.phase is AiPhase.Saved
+                    // Once saved, the page is a record of what was written, not a proposal
+                    val header = if (saved) savedMessage else state.summary.takeIf { it.isNotBlank() }
+                    header?.let {
+                        item(key = "summary") {
+                            Text(it, style = if (saved) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium)
+                        }
                     }
                     if (state.review.isEmpty()) {
                         item(key = "empty") {
@@ -226,7 +249,12 @@ fun AiAssistantScreen(
                             )
                         }
                     }
-                    reviewItems(state.review, lookups, mainCurrency = null, onOpen = { opened = it })
+                    reviewItems(
+                        review = if (saved) state.review.filter { it.included } else state.review,
+                        lookups = lookups,
+                        mainCurrency = null,
+                        onOpen = if (saved) null else { index -> opened = index }
+                    )
                 }
             }
         }
@@ -259,7 +287,6 @@ private fun AiBottomBar(
     onCancel: () -> Unit,
     onSave: () -> Unit,
     onStartOver: () -> Unit,
-    onUndo: () -> Unit,
     onDone: () -> Unit
 ) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
@@ -289,16 +316,8 @@ private fun AiBottomBar(
                         Text(stringResource(R.string.ai_save_selected, count))
                     }
                 }
-                is AiPhase.Saved -> {
-                    val count = phase.applied.createdAccounts.size + phase.applied.balanceRowIds.size + phase.applied.addedIds.size +
-                        phase.applied.updated.size + phase.applied.deleted.size
-                    Text(
-                        text = stringResource(R.string.ai_saved, count),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
-                    TextButton(onClick = onUndo, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ai_undo)) }
-                    Button(onClick = onDone, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ai_done)) }
+                is AiPhase.Saved -> Button(onClick = onDone, shapes = ButtonDefaults.shapes()) {
+                    Text(stringResource(R.string.ai_done))
                 }
             }
         }
@@ -456,6 +475,7 @@ private fun ProviderForm(
 }
 
 /** The chosen model as a row that opens the picker, with loading and error states. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ModelField(model: String, models: ModelListState, onClick: () -> Unit, onRetry: () -> Unit) {
     val chosen = models.models.firstOrNull { it.id == model }
@@ -507,7 +527,7 @@ private fun ModelField(model: String, models: ModelListState, onClick: () -> Uni
                 }
             }
             when {
-                models.loading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                models.loading -> LoadingIndicator(modifier = Modifier.size(32.dp))
                 models.error != null -> TextButton(onClick = onRetry) { Text(stringResource(R.string.ai_retry)) }
                 else -> Icon(Icons.Rounded.ArrowDropDown, contentDescription = null)
             }
@@ -524,7 +544,7 @@ private fun ModelPicker(models: List<AiModel>, selected: String, onPick: (String
         val q = query.trim().lowercase()
         if (q.isEmpty()) models else models.filter { q in it.name.lowercase() || q in it.id.lowercase() }
     }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    CashiroModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },

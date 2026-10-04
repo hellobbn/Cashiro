@@ -85,14 +85,18 @@ object CurrencyFormatter {
             DecimalFormat(pattern, DecimalFormatSymbols(localeFor(currencyCode)))
         }
 
-    /** Returns null when the platform has no currency data for [currencyCode]. */
-    private fun currencyFormat(currencyCode: String): NumberFormat? =
-        currencyFormats.get()!!.getOrPut(currencyCode) {
+    /**
+     * Returns null when the platform has no currency data for [currencyCode]. A [whole] amount
+     * drops the decimals (¥178); any other shows them all (¥187.10, never ¥187.1).
+     */
+    private fun currencyFormat(currencyCode: String, whole: Boolean): NumberFormat? =
+        currencyFormats.get()!!.getOrPut("$currencyCode|$whole") {
             runCatching {
                 NumberFormat.getCurrencyInstance(localeFor(currencyCode)).apply {
-                    minimumFractionDigits = 0
-                    maximumFractionDigits = 2
                     currency = Currency.getInstance(currencyCode)
+                    val digits = currency!!.defaultFractionDigits.coerceAtLeast(0).coerceAtMost(2)
+                    minimumFractionDigits = if (whole) 0 else digits
+                    maximumFractionDigits = digits
                 }
             }.map { Optional.of(it) }.getOrDefault(Optional.empty())
         }.orElse(null)
@@ -108,7 +112,7 @@ object CurrencyFormatter {
             val customSymbol = CurrencySymbols.getSymbol(currencyCode)
 
             // If currency not supported, use symbol mapping
-            val formatter = currencyFormat(currencyCode)
+            val formatter = currencyFormat(currencyCode, whole = amount.signum() == 0 || amount.stripTrailingZeros().scale() <= 0)
                 ?: return "$customSymbol${formatAmount(amount)}"
 
             val formatted = formatter.format(amount)

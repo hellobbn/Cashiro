@@ -260,3 +260,7 @@ class AiAssistantViewModel @Inject constructor(
         _state.update { it.copy(error = null) }
     }
 }
+
+/** How many changes a save wrote. */
+fun AppliedChanges.count(): Int =
+    createdAccounts.size + balanceRowIds.size + addedIds.size + updated.size + deleted.size
