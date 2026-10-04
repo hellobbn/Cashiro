@@ -91,9 +91,6 @@
     <string name="ai_saved">已儲存 %1$d 項變更</string>
     <string name="ai_undo">復原</string>
     <string name="ai_done">完成</string>
-    <string name="ai_change_add">新增</string>
-    <string name="ai_change_update">修改</string>
-    <string name="ai_change_delete">刪除</string>
     <string name="ai_possible_duplicate">可能已記錄</string>
     <string name="ai_pdf_password_title">%1$s 的密碼</string>
     <string name="ai_pdf_password">密碼</string>
@@ -106,4 +103,15 @@
     <string name="ai_models_loading">正在取得模型…</string>
     <string name="ai_retry">重試</string>
     <string name="ai_use_model_id">使用「%1$s」</string>
+    <string name="ai_section_add">新增 · %1$d 筆</string>
+    <string name="ai_section_update">修改 · %1$d 筆</string>
+    <string name="ai_section_delete">刪除 · %1$d 筆</string>
+    <string name="ai_left_out">不儲存 · 點開可恢復</string>
+    <string name="ai_was">原：%1$s</string>
+    <string name="ai_before">修改前</string>
+    <string name="ai_after">修改後</string>
+    <string name="ai_leave_out">不儲存這筆</string>
+    <string name="ai_put_back">恢復儲存</string>
+    <string name="ai_merchant">商戶</string>
+    <string name="ai_date_time_pattern">M月d日 HH:mm</string>
 </resources>

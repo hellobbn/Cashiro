@@ -15,6 +15,9 @@ import com.ritesh.cashiro.data.ai.AppliedChanges
 import com.ritesh.cashiro.data.ai.LedgerChange
 import com.ritesh.cashiro.data.ai.LedgerTools
 import com.ritesh.cashiro.data.ai.PdfPasswordRequired
+import com.ritesh.cashiro.data.ai.TransactionDraft
+import com.ritesh.cashiro.presentation.common.TransactionLookups
+import com.ritesh.cashiro.presentation.common.TransactionLookupsSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,17 +28,44 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Files shared to Cashiro, waiting for the AI screen to pick them up. */
+/**
+ * The files in the AI request. Shared files are copied in as they arrive, while the sharing
+ * app's permission lasts, and stay until used or removed, so they survive the lock screen and
+ * the screen being closed.
+ */
 @Singleton
-class AiShareInbox @Inject constructor() {
-    private val _pending = MutableStateFlow<List<Uri>>(emptyList())
-    val pending: StateFlow<List<Uri>> = _pending.asStateFlow()
+class AiShareInbox @Inject constructor(private val reader: AiAttachmentReader) {
+    private val _attachments = MutableStateFlow<List<AiAttachment>>(emptyList())
+    val attachments: StateFlow<List<AiAttachment>> = _attachments.asStateFlow()
 
-    fun offer(uris: List<Uri>) {
-        if (uris.isNotEmpty()) _pending.update { it + uris }
+    // Why the last shared file could not be read, for the screen to show
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    /** Copies [uris] in; a file that cannot be read is reported through [error]. */
+    suspend fun add(uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        try {
+            val copied = reader.copy(uris)
+            _attachments.update { it + copied }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _error.value = e.message ?: e.javaClass.simpleName
+        }
     }
 
-    fun take(): List<Uri> = _pending.value.also { _pending.value = emptyList() }
+    fun clearError() {
+        _error.value = null
+    }
+
+    fun remove(attachment: AiAttachment) {
+        _attachments.update { it - attachment }
+    }
+
+    fun clear() {
+        _attachments.value = emptyList()
+    }
 }
 
 /** The provider's models, loaded once a key is entered. */
@@ -45,7 +75,8 @@ data class ModelListState(
     val error: String? = null
 )
 
-data class ReviewItem(val change: LedgerChange, val selected: Boolean)
+/** A proposed change and whether it will be saved; the user can leave one out or edit it. */
+data class ReviewItem(val change: LedgerChange, val included: Boolean)
 
 sealed interface AiPhase {
     data object Compose : AiPhase
@@ -74,10 +105,14 @@ class AiAssistantViewModel @Inject constructor(
     private val session: AiLedgerSession,
     private val tools: LedgerTools,
     private val inbox: AiShareInbox,
-    private val chat: AiChat
+    private val chat: AiChat,
+    lookupsSource: TransactionLookupsSource
 ) : ViewModel() {
     private val _state = MutableStateFlow(AiAssistantUiState(config = settings.config.value))
     val state: StateFlow<AiAssistantUiState> = _state.asStateFlow()
+
+    // Categories and accounts, to show proposed transactions the way the lists do
+    val lookups: StateFlow<TransactionLookups> = lookupsSource.lookups
 
     private val passwords = mutableMapOf<String, String>()
     private var lastDefaultRequest = ""
@@ -86,7 +121,15 @@ class AiAssistantViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            inbox.pending.collect { if (it.isNotEmpty()) addFiles(inbox.take()) }
+            inbox.attachments.collect { files -> _state.update { it.copy(attachments = files) } }
+        }
+        viewModelScope.launch {
+            inbox.error.collect { error ->
+                if (error != null) {
+                    _state.update { it.copy(error = error) }
+                    inbox.clearError()
+                }
+            }
         }
     }
 
@@ -110,22 +153,11 @@ class AiAssistantViewModel @Inject constructor(
     }
 
     fun addFiles(uris: List<Uri>) {
-        viewModelScope.launch {
-            try {
-                val copied = reader.copy(uris)
-                _state.update { s ->
-                    s.copy(attachments = s.attachments + copied, phase = AiPhase.Compose, error = null)
-                }
-            } catch (e: AiException) {
-                _state.update { it.copy(error = e.message) }
-            } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: e.javaClass.simpleName) }
-            }
-        }
+        viewModelScope.launch { inbox.add(uris) }
     }
 
     fun removeAttachment(attachment: AiAttachment) {
-        _state.update { it.copy(attachments = it.attachments - attachment) }
+        inbox.remove(attachment)
     }
 
     fun setRequest(text: String) {
@@ -148,9 +180,9 @@ class AiAssistantViewModel @Inject constructor(
                     it.copy(
                         phase = AiPhase.Review,
                         summary = proposal.summary,
-                        // Likely duplicates start unticked
+                        // Likely duplicates start left out
                         review = proposal.changes.map { change ->
-                            ReviewItem(change, selected = (change as? LedgerChange.Add)?.draft?.possibleDuplicate == null)
+                            ReviewItem(change, included = (change as? LedgerChange.Add)?.draft?.possibleDuplicate == null)
                         }
                     )
                 }
@@ -181,14 +213,23 @@ class AiAssistantViewModel @Inject constructor(
         analyze(lastDefaultRequest)
     }
 
-    fun toggle(index: Int) {
+    fun setIncluded(index: Int, included: Boolean) {
         _state.update { s ->
-            s.copy(review = s.review.mapIndexed { i, item -> if (i == index) item.copy(selected = !item.selected) else item })
+            s.copy(review = s.review.mapIndexed { i, item -> if (i == index) item.copy(included = included) else item })
+        }
+    }
+
+    /** Replaces a proposed addition with the user's corrected version. */
+    fun editDraft(index: Int, draft: TransactionDraft) {
+        _state.update { s ->
+            s.copy(review = s.review.mapIndexed { i, item ->
+                if (i == index && item.change is LedgerChange.Add) item.copy(change = LedgerChange.Add(draft)) else item
+            })
         }
     }
 
     fun save() {
-        val chosen = _state.value.review.filter { it.selected }.map { it.change }
+        val chosen = _state.value.review.filter { it.included }.map { it.change }
         if (chosen.isEmpty()) return
         viewModelScope.launch {
             try {
@@ -208,10 +249,11 @@ class AiAssistantViewModel @Inject constructor(
         }
     }
 
-    /** Back to an empty request, keeping the provider settings. */
+    /** Back to an empty request and no files, keeping the provider settings. */
     fun startOver() {
         passwords.clear()
-        _state.update { AiAssistantUiState(config = it.config) }
+        inbox.clear()
+        _state.update { AiAssistantUiState(config = it.config, attachments = emptyList()) }
     }
 
     fun dismissError() {

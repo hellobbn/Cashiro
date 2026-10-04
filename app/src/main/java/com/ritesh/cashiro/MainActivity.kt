@@ -158,7 +158,8 @@ class MainActivity : AppCompatActivity() {
             Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> {
                 val uris = sharedUris(intent)
                 if (uris.isNotEmpty()) {
-                    aiShareInbox.offer(uris)
+                    // Copy now: the permission to read them ends with this activity
+                    lifecycleScope.launch { aiShareInbox.add(uris) }
                     openAiAssistant = true
                 }
             }

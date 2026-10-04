@@ -109,6 +109,9 @@ fun AiAssistantScreen(
     viewModel: AiAssistantViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val lookups by viewModel.lookups.collectAsStateWithLifecycle()
+    // The proposed change whose details are open
+    var opened by rememberSaveable { mutableStateOf<Int?>(null) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
@@ -146,7 +149,10 @@ fun AiAssistantScreen(
                 onSave = viewModel::save,
                 onStartOver = viewModel::startOver,
                 onUndo = viewModel::undo,
-                onDone = onNavigateBack
+                onDone = {
+                    viewModel.startOver()
+                    onNavigateBack()
+                }
             )
         }
     ) { padding ->
@@ -220,16 +226,23 @@ fun AiAssistantScreen(
                             )
                         }
                     }
-                    itemsIndexed(state.review, key = { index, _ -> "change_$index" }) { index, item ->
-                        ChangeRow(
-                            change = item.change,
-                            selected = item.selected,
-                            enabled = state.phase is AiPhase.Review,
-                            onToggle = { viewModel.toggle(index) }
-                        )
-                    }
+                    reviewItems(state.review, lookups, mainCurrency = null, onOpen = { opened = it })
                 }
             }
+        }
+    }
+
+    opened?.let { index ->
+        state.review.getOrNull(index)?.let { item ->
+            ReviewDetailSheet(
+                item = item,
+                index = index,
+                lookups = lookups,
+                mainCurrency = null,
+                onEdit = { viewModel.editDraft(index, it) },
+                onIncludedChange = { viewModel.setIncluded(index, it) },
+                onDismiss = { opened = null }
+            )
         }
     }
 
@@ -271,7 +284,7 @@ private fun AiBottomBar(
                     TextButton(onClick = onStartOver, shapes = ButtonDefaults.shapes()) {
                         Text(stringResource(R.string.ai_start_over))
                     }
-                    val count = state.review.count { it.selected }
+                    val count = state.review.count { it.included }
                     Button(onClick = onSave, enabled = count > 0, shapes = ButtonDefaults.shapes()) {
                         Text(stringResource(R.string.ai_save_selected, count))
                     }
@@ -611,117 +624,6 @@ private fun FilesSection(names: List<Pair<String, Boolean>>, onAdd: () -> Unit, 
     }
 }
 
-/** One proposed change: what kind, the transaction as it would be, and a box to keep it. */
-@Composable
-private fun ChangeRow(change: LedgerChange, selected: Boolean, enabled: Boolean, onToggle: () -> Unit) {
-    val datePattern = stringResource(R.string.ai_date_pattern)
-    val formatter = remember(datePattern) { DateTimeFormatter.ofPattern(datePattern) }
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onToggle)
-    ) {
-        Row(
-            modifier = Modifier.padding(start = Spacing.xs, end = Spacing.md, top = Spacing.sm, bottom = Spacing.sm),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(checked = selected, onCheckedChange = { onToggle() }, enabled = enabled)
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                when (change) {
-                    is LedgerChange.Add -> with(change.draft) {
-                        Line(
-                            kind = stringResource(R.string.ai_change_add),
-                            title = merchant.ifBlank { category },
-                            amount = signed(amount, type, currency)
-                        )
-                        Detail(listOfNotNull(
-                            dateTime.format(formatter),
-                            listOfNotNull(category, subcategory).joinToString(" · "),
-                            account?.let { "${it.bankName} ${it.accountLast4}" },
-                            toAccount?.let { "→ ${it.bankName} ${it.accountLast4}" },
-                            notes
-                        ).joinToString("  "))
-                        if (possibleDuplicate != null) {
-                            Text(
-                                text = stringResource(R.string.ai_possible_duplicate) + ": " +
-                                    describe(possibleDuplicate, formatter),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                    is LedgerChange.Update -> {
-                        Line(
-                            kind = stringResource(R.string.ai_change_update),
-                            title = change.after.merchantName,
-                            amount = signed(change.after.amount, change.after.transactionType, change.after.currency)
-                        )
-                        val b = change.before
-                        val a = change.after
-                        Detail(listOfNotNull(
-                            a.dateTime.format(formatter),
-                            "${b.merchantName} → ${a.merchantName}".takeIf { b.merchantName != a.merchantName },
-                            "${listOfNotNull(b.category, b.subcategory).joinToString(" · ")} → " +
-                                listOfNotNull(a.category, a.subcategory).joinToString(" · ")
-                                    .takeIf { b.category != a.category || b.subcategory != a.subcategory },
-                            "${b.description.orEmpty()} → ${a.description.orEmpty()}".takeIf { b.description != a.description }
-                        ).joinToString("  "))
-                    }
-                    is LedgerChange.Delete -> {
-                        Line(
-                            kind = stringResource(R.string.ai_change_delete),
-                            title = change.transaction.merchantName,
-                            amount = signed(change.transaction.amount, change.transaction.transactionType, change.transaction.currency),
-                            struck = true
-                        )
-                        Detail(listOfNotNull(
-                            change.transaction.dateTime.format(formatter),
-                            change.transaction.category,
-                            change.reason
-                        ).joinToString("  "))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Line(kind: String, title: String, amount: String, struck: Boolean = false) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        Text(
-            text = kind,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textDecoration = if (struck) TextDecoration.LineThrough else null,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = amount,
-            style = MaterialTheme.typography.bodyLarge,
-            textDecoration = if (struck) TextDecoration.LineThrough else null
-        )
-    }
-}
-
-@Composable
-private fun Detail(text: String) {
-    if (text.isBlank()) return
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis
-    )
-}
-
 @Composable
 private fun ErrorCard(message: String, onDismiss: () -> Unit) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
@@ -759,17 +661,5 @@ private fun PasswordDialog(name: String, onResult: (String?) -> Unit) {
         dismissButton = { DialogDismissButton(stringResource(R.string.ai_cancel), onClick = { onResult(null) }) }
     )
 }
-
-private fun signed(amount: BigDecimal, type: TransactionType, currency: String): String {
-    val sign = when (type) {
-        TransactionType.INCOME -> "+"
-        TransactionType.TRANSFER -> ""
-        else -> "−"
-    }
-    return sign + CurrencyFormatter.formatCurrency(amount, currency)
-}
-
-private fun describe(t: TransactionEntity, formatter: DateTimeFormatter) =
-    "${t.dateTime.format(formatter)} ${t.merchantName}"
 
 private fun host(url: String): String = runCatching { URI(url).host }.getOrNull() ?: url

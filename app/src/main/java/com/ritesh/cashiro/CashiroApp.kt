@@ -96,10 +96,11 @@ fun CashiroApp(
         }
     }
 
-    // Shared files wait in AiShareInbox until the app is unlocked
+    // Shared files wait in AiShareInbox until the lock state is known and the app is unlocked;
+    // opening earlier would be undone when the lock screen clears the back stack
     val locked = appLockUiState.isLocked && appLockUiState.isLockEnabled
-    LaunchedEffect(openAiAssistant, locked) {
-        if (openAiAssistant && !locked) {
+    LaunchedEffect(openAiAssistant, locked, appLockUiState.isLoaded) {
+        if (openAiAssistant && appLockUiState.isLoaded && !locked) {
             navController.navigate(AiAssistant) { launchSingleTop = true }
             onAiAssistantOpened()
         }

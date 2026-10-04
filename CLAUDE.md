@@ -88,9 +88,13 @@ client, no provider SDKs, to keep the app small.
   - PDFs go to Claude as documents and to other providers as their text layer, or as the file
     when they have none. Password-protected PDFs are unlocked locally.
   - Text files are decoded as UTF-8, falling back to GB18030.
-- UI: `AiAssistantScreen`, opened from the ✨ button on Home or Settings → AI bookkeeping. Files shared to Cashiro (`SEND` /
-  `SEND_MULTIPLE` on `MainActivity`) wait in `AiShareInbox` until the app is unlocked.
-  Nothing is written before the user ticks the proposed changes; likely duplicates start unticked.
+- UI: `AiAssistantScreen`, opened from the ✨ button on Home or Settings → AI bookkeeping.
+  - Files shared to Cashiro (`SEND` / `SEND_MULTIPLE` on `MainActivity`) are copied into
+    `AiShareInbox` at once (the read permission ends with the activity). They stay there until
+    used or removed. The screen opens only once the app-lock state is loaded and unlocked.
+  - The review (`AiReview.kt`) shows proposed changes as transaction rows, grouped into new,
+    edits and deletions. A row opens a sheet where a new transaction can be corrected, or any
+    change left out. Likely duplicates start left out; nothing is written before Save.
 
 ## Design Principles
 
