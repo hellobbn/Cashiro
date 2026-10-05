@@ -43,6 +43,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -110,6 +111,7 @@ fun SharedTransitionScope.AccountDetailScreen(
     val hazeState = remember { HazeState() }
     val lazyListState = rememberLazyListState()
     var showCalibration by remember { mutableStateOf(false) }
+    var showEdit by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -138,6 +140,13 @@ fun SharedTransitionScope.AccountDetailScreen(
                 hasBackButton = true,
                 hazeState = hazeState,
                 navigationContent = { NavigationContent { onNavigateBack?.invoke() ?: navController.safePopBackStack() } },
+                actionContent = {
+                    if (uiState.currentBalance != null) {
+                        com.ritesh.cashiro.presentation.ui.components.TooltipIconButton(
+                            Iconax.Edit2, stringResource(R.string.edit_account_title), { showEdit = true }
+                        )
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -167,6 +176,14 @@ fun SharedTransitionScope.AccountDetailScreen(
                             Spacer(Modifier.width(Spacing.sm))
                             Text(stringResource(if (balance.isCreditCard) R.string.update_outstanding_title else R.string.balance_calibration))
                         }
+                    }
+                    if (showEdit) {
+                        AccountEditSheet(
+                            account = balance,
+                            onDismiss = { showEdit = false },
+                            // The page is the account's by name: after a rename it is gone
+                            onRenamed = { onNavigateBack?.invoke() ?: navController.safePopBackStack() }
+                        )
                     }
                     if (showCalibration) {
                         BalanceCalibrationSheet(
@@ -464,5 +481,45 @@ fun DateRange.getLocalizedLabel(): String {
         DateRange.LAST_6_MONTHS -> stringResource(R.string.range_last_6_months)
         DateRange.LAST_YEAR -> stringResource(R.string.range_last_year)
         DateRange.ALL_TIME -> stringResource(R.string.range_all_time)
+    }
+}
+/** The account list's edit sheet, for the account shown on this page. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AccountEditSheet(account: AccountBalanceEntity, onDismiss: () -> Unit, onRenamed: () -> Unit) {
+    val viewModel: ManageAccountsViewModel = hiltViewModel()
+    val accounts by viewModel.uiState.collectAsStateWithLifecycle()
+    val defaultCurrency by viewModel.defaultCurrencyForNewAccounts.collectAsStateWithLifecycle()
+    com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet(
+        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+    ) {
+        EditAccountSheet(
+            account = account,
+            allAccounts = accounts.accounts,
+            defaultCurrency = defaultCurrency,
+            initialCategory = account.category(),
+            onDismiss = onDismiss,
+            onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies ->
+                viewModel.editAccount(
+                    oldBankName = account.bankName,
+                    accountLast4 = account.accountLast4,
+                    newBankName = bankName,
+                    newBalance = balance,
+                    newCreditLimit = limit,
+                    isCreditCard = isCC,
+                    isWallet = isWallet,
+                    newIconResId = iconResId,
+                    newIconName = iconName,
+                    newColorHex = color,
+                    newCurrency = currency,
+                    addedCurrencies = addedCurrencies
+                )
+                onDismiss()
+                if (bankName != account.bankName) onRenamed()
+            }
+        )
     }
 }

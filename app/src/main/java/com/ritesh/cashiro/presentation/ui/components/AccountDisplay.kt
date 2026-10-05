@@ -118,11 +118,54 @@ fun accountBalanceText(account: AccountBalanceEntity): String {
     }
 }
 
-/** Each currency an account holds with its balance, e.g. "HKD 15,000 · USD 890"; null when it holds one. */
+/** Which currencies an account holds, e.g. "含 HKD、USD"; null when it holds one. */
 @Composable
 fun accountCurrenciesText(account: AccountBalanceEntity): String? {
     val holdings = account.accountId?.let { LocalAccountHoldings.current[it] }?.takeIf { it.isMultiCurrency } ?: return null
-    return holdings.pockets.joinToString(" · ") { CurrencyFormatter.formatCurrency(it.balance, it.currency) }
+    return stringResource(
+        R.string.account_holds_currencies,
+        holdings.pockets.joinToString(stringResource(R.string.list_separator)) { it.currency }
+    )
+}
+
+/**
+ * Each currency an account holds with its own balance, one small pill each ("USD $890.00");
+ * nothing when it holds one.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun AccountCurrencyPills(account: AccountBalanceEntity, modifier: Modifier = Modifier) {
+    val holdings = account.accountId?.let { LocalAccountHoldings.current[it] }?.takeIf { it.isMultiCurrency } ?: return
+    androidx.compose.foundation.layout.FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+    ) {
+        holdings.pockets.forEach { pocket ->
+            androidx.compose.material3.Surface(
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.surfaceContainerHighest
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        pocket.currency,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        CurrencyFormatter.formatCurrency(pocket.balance, pocket.currency),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
 }
 
 /**

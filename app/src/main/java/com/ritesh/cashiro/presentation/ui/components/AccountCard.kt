@@ -289,14 +289,7 @@ text = {
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                accountCurrenciesText(account)?.let { currencies ->
-                    Text(
-                        text = currencies,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
+                AccountCurrencyPills(account, Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
 
                 // Bottom Section (Bank Info)
                 Column {
