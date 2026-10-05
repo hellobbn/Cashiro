@@ -203,4 +203,7 @@
     <string name="overview_connect_short">Connect</string>
     <string name="account_holds_currencies">%1$s</string>
     <string name="list_separator">", "</string>
+    <string name="default_account_note">Default</string>
+    <string name="default_account_title">Default account for new entries</string>
+    <string name="default_account_hint">Preselected when you add a transaction</string>
 </resources>

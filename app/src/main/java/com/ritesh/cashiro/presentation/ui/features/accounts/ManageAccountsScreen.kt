@@ -100,7 +100,6 @@ import com.ritesh.cashiro.data.database.entity.CardEntity
 import com.ritesh.cashiro.data.database.entity.CardType
 import com.ritesh.cashiro.presentation.ui.components.AccountCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
-import com.ritesh.cashiro.presentation.ui.components.DeleteAccountDialog
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.icons.Bag
@@ -133,21 +132,7 @@ fun ManageAccountsScreen(
     category: AccountCategory? = null,
 ) {
     val uiState by manageAccountsViewModel.uiState.collectAsStateWithLifecycle()
-    val defaultCurrency by manageAccountsViewModel.defaultCurrencyForNewAccounts.collectAsStateWithLifecycle()
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    var selectedAccount by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var selectedAccountEntity by remember {
-        mutableStateOf<AccountBalanceEntity?>(null)
-    }
-    var showHistoryDialog by remember { mutableStateOf(false) }
-    var historyAccount by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
-    var accountToDelete by remember { mutableStateOf<AccountBalanceEntity?>(null) }
     var showHiddenAccounts by rememberSaveable { mutableStateOf(false) }
-    var showEditSheet by remember { mutableStateOf(false) }
-    var accountToEdit by remember {
-        mutableStateOf<AccountBalanceEntity?>(null)
-    }
 
     var walletsExpanded by rememberSaveable { mutableStateOf(false) }
     var banksExpanded by rememberSaveable { mutableStateOf(false) }
@@ -186,19 +171,6 @@ fun ManageAccountsScreen(
     val showFloatingLabel by remember {
         derivedStateOf { lazyListState.firstVisibleItemIndex == 0 }
     }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    // Merge Flow States
-    var showMergeSelection by remember { mutableStateOf(false) }
-    var showMergeBalanceOption by remember { mutableStateOf(false) }
-    var showMergeConfirmation by remember { mutableStateOf(false) }
-    var showMergeManualInput by remember { mutableStateOf(false) }
-    var accountForMerge by remember { mutableStateOf<AccountBalanceEntity?>(null) }
-
-    var selectedMergeAccounts by remember {
-        mutableStateOf<List<AccountBalanceEntity>>(emptyList())
-    }
-    var mergeNewBalance by remember { mutableStateOf<BigDecimal?>(null) }
     var selectedCardForLink by remember { mutableStateOf<CardEntity?>(null) }
 
     // Show snackbar messages
@@ -313,49 +285,10 @@ fun ManageAccountsScreen(
                             AccountItem(
                                 account = account,
                                 linkedCards = emptyList(),
-                                isHidden = false,
                                 isMain = uiState.mainAccountKey == "${account.bankName}_${account.accountLast4}",
-                                onSetAsMain = {
-                                    manageAccountsViewModel.setAsMainAccount(
-                                        account.bankName,
-                                        account.accountLast4
-                                    )
-                                },
-                                onToggleVisibility = {
-                                    manageAccountsViewModel.toggleAccountVisibility(
-                                        account.bankName,
-                                        account.accountLast4
-                                    )
-                                },
-                                onUpdateBalance = {
-                                    selectedAccount = account.bankName to account.accountLast4
-                                    selectedAccountEntity = account
-                                    showUpdateDialog = true
-                                },
-                                onViewHistory = {
-                                    historyAccount = account.bankName to account.accountLast4
-                                    manageAccountsViewModel.loadBalanceHistory(
-                                        account.bankName,
-                                        account.accountLast4
-                                    )
-                                    showHistoryDialog = true
-                                },
-                                onUnlinkCard = {},
-                                onDeleteAccount = {
-                                    accountToDelete = account
-                                    showDeleteConfirmDialog = true
-                                },
-                                onEditAccount = {
-                                    accountToEdit = account
-                                    showEditSheet = true
-                                },
                                 onAccountClick = {
                                     onNavigateToAccountDetail(account.bankName, account.accountLast4)
                                 },
-                                onMergeAccount = {
-                                    accountForMerge = account
-                                    showMergeSelection = true
-                                }
                             )
                         }
                     }
@@ -372,51 +305,11 @@ fun ManageAccountsScreen(
                                 account = account,
                                 linkedCards = uiState.linkedCards[account.accountLast4]
                                     ?: emptyList(),
-                                isHidden = false,
+                                onUnlinkCard = { cardId -> manageAccountsViewModel.unlinkCard(cardId) },
                                 isMain = uiState.mainAccountKey == "${account.bankName}_${account.accountLast4}",
-                                onSetAsMain = {
-                                    manageAccountsViewModel.setAsMainAccount(
-                                        account.bankName,
-                                        account.accountLast4
-                                    )
-                                },
-                                onToggleVisibility = {
-                                    manageAccountsViewModel.toggleAccountVisibility(
-                                        account.bankName,
-                                        account.accountLast4
-                                    )
-                                },
-                                onUpdateBalance = {
-                                    selectedAccount = account.bankName to account.accountLast4
-                                    selectedAccountEntity = account
-                                    showUpdateDialog = true
-                                },
-                                onViewHistory = {
-                                    historyAccount = account.bankName to account.accountLast4
-                                    manageAccountsViewModel.loadBalanceHistory(
-                                        account.bankName,
-                                        account.accountLast4
-                                    )
-                                    showHistoryDialog = true
-                                },
-                                onUnlinkCard = { cardId ->
-                                    manageAccountsViewModel.unlinkCard(cardId)
-                                },
-                                onDeleteAccount = {
-                                    accountToDelete = account
-                                    showDeleteConfirmDialog = true
-                                },
-                                onEditAccount = {
-                                    accountToEdit = account
-                                    showEditSheet = true
-                                },
                                 onAccountClick = {
                                     onNavigateToAccountDetail(account.bankName, account.accountLast4)
                                 },
-                                onMergeAccount = {
-                                    accountForMerge = account
-                                    showMergeSelection = true
-                                }
                             )
                         }
                     }
@@ -431,48 +324,10 @@ fun ManageAccountsScreen(
                         items(visibleCreditCards, key = { it.listKey() }, contentType = { "credit_account" }) { card ->
                             CreditCardItem(
                                 card = card,
-                                isHidden = false,
                                 isMain = uiState.mainAccountKey == "${card.bankName}_${card.accountLast4}",
-                                onSetAsMain = {
-                                    manageAccountsViewModel.setAsMainAccount(
-                                        card.bankName,
-                                        card.accountLast4
-                                    )
-                                },
-                                onToggleVisibility = {
-                                    manageAccountsViewModel.toggleAccountVisibility(
-                                        card.bankName,
-                                        card.accountLast4
-                                    )
-                                },
-                                onUpdateBalance = {
-                                    selectedAccount = card.bankName to card.accountLast4
-                                    selectedAccountEntity = card
-                                    showUpdateDialog = true
-                                },
-                                onViewHistory = {
-                                    historyAccount = card.bankName to card.accountLast4
-                                    manageAccountsViewModel.loadBalanceHistory(
-                                        card.bankName,
-                                        card.accountLast4
-                                    )
-                                    showHistoryDialog = true
-                                },
-                                onDeleteAccount = {
-                                    accountToDelete = card
-                                    showDeleteConfirmDialog = true
-                                },
-                                onEditAccount = {
-                                    accountToEdit = card
-                                    showEditSheet = true
-                                },
                                 onAccountClick = {
                                     onNavigateToAccountDetail(card.bankName, card.accountLast4)
                                 },
-                                onMergeAccount = {
-                                    accountForMerge = card
-                                    showMergeSelection = true
-                                }
                             )
                         }
                     }
@@ -492,49 +347,10 @@ fun ManageAccountsScreen(
                                 AccountItem(
                                     account = account,
                                     linkedCards = emptyList(),
-                                    isHidden = false,
                                     isMain = uiState.mainAccountKey == "${account.bankName}_${account.accountLast4}",
-                                    onSetAsMain = {
-                                        manageAccountsViewModel.setAsMainAccount(
-                                            account.bankName,
-                                            account.accountLast4
-                                        )
-                                    },
-                                    onToggleVisibility = {
-                                        manageAccountsViewModel.toggleAccountVisibility(
-                                            account.bankName,
-                                            account.accountLast4
-                                        )
-                                    },
-                                    onUpdateBalance = {
-                                        selectedAccount = account.bankName to account.accountLast4
-                                        selectedAccountEntity = account
-                                        showUpdateDialog = true
-                                    },
-                                    onViewHistory = {
-                                        historyAccount = account.bankName to account.accountLast4
-                                        manageAccountsViewModel.loadBalanceHistory(
-                                            account.bankName,
-                                            account.accountLast4
-                                        )
-                                        showHistoryDialog = true
-                                    },
-                                    onUnlinkCard = {},
-                                    onDeleteAccount = {
-                                        accountToDelete = account
-                                        showDeleteConfirmDialog = true
-                                    },
-                                    onEditAccount = {
-                                        accountToEdit = account
-                                        showEditSheet = true
-                                    },
                                     onAccountClick = {
                                         onNavigateToAccountDetail(account.bankName, account.accountLast4)
                                     },
-                                    onMergeAccount = {
-                                        accountForMerge = account
-                                        showMergeSelection = true
-                                    }
                                 )
                             }
                             if (showBrokerageLinks) {
@@ -630,102 +446,21 @@ fun ManageAccountsScreen(
                                     account = account,
                                     linkedCards = uiState.linkedCards[
                                         account.accountLast4] ?: emptyList(),
-                                    isHidden = true,
+                                    onUnlinkCard = { cardId -> manageAccountsViewModel.unlinkCard(cardId) },
                                     isMain = uiState.mainAccountKey == "${account.bankName}_${account.accountLast4}",
-                                    onSetAsMain = {
-                                        manageAccountsViewModel.setAsMainAccount(
-                                            account.bankName,
-                                            account.accountLast4
-                                        )
-                                    },
-                                    onToggleVisibility = {
-                                        manageAccountsViewModel.toggleAccountVisibility(
-                                            account.bankName,
-                                            account.accountLast4
-                                        )
-                                    },
-                                    onUpdateBalance = {
-                                        selectedAccount =
-                                            account.bankName to account.accountLast4
-                                        selectedAccountEntity = account
-                                        showUpdateDialog = true
-                                    },
-                                    onViewHistory = {
-                                        historyAccount =
-                                            account.bankName to account.accountLast4
-                                        manageAccountsViewModel.loadBalanceHistory(
-                                            account.bankName,
-                                            account.accountLast4
-                                        )
-                                        showHistoryDialog = true
-                                    },
-                                    onUnlinkCard = { cardId ->
-                                        manageAccountsViewModel.unlinkCard(cardId)
-                                    },
-                                    onDeleteAccount = {
-                                        accountToDelete =
-                                            account
-                                        showDeleteConfirmDialog = true
-                                    },
-                                    onEditAccount = {
-                                        accountToEdit = account
-                                        showEditSheet = true
-                                    },
                                     onAccountClick = {
                                         onNavigateToAccountDetail(account.bankName, account.accountLast4)
                                     },
-                                    onMergeAccount = {
-                                        accountForMerge = account
-                                        showMergeSelection = true
-                                    }
                                 )
                             }
                             // Hidden Credit Cards
                             items(hiddenCreditCards, key = { it.listKey() }, contentType = { "credit_account" }) { card ->
                                 CreditCardItem(
                                     card = card,
-                                    isHidden = true,
                                     isMain = uiState.mainAccountKey == "${card.bankName}_${card.accountLast4}",
-                                    onSetAsMain = {
-                                        manageAccountsViewModel.setAsMainAccount(
-                                            card.bankName,
-                                            card.accountLast4
-                                        )
-                                    },
-                                    onToggleVisibility = {
-                                        manageAccountsViewModel.toggleAccountVisibility(
-                                            card.bankName,
-                                            card.accountLast4
-                                        )
-                                    },
-                                    onUpdateBalance = {
-                                        selectedAccount = card.bankName to card.accountLast4
-                                        selectedAccountEntity = card
-                                        showUpdateDialog = true
-                                    },
-                                    onViewHistory = {
-                                        historyAccount = card.bankName to card.accountLast4
-                                        manageAccountsViewModel.loadBalanceHistory(
-                                            card.bankName,
-                                            card.accountLast4
-                                        )
-                                        showHistoryDialog = true
-                                    },
-                                    onDeleteAccount = {
-                                        accountToDelete = card
-                                        showDeleteConfirmDialog = true
-                                    },
-                                    onEditAccount = {
-                                        accountToEdit = card
-                                        showEditSheet = true
-                                    },
                                     onAccountClick = {
                                         onNavigateToAccountDetail(card.bankName, card.accountLast4)
                                     },
-                                    onMergeAccount = {
-                                        accountForMerge = card
-                                        showMergeSelection = true
-                                    }
                                 )
                             }
                         }
@@ -733,61 +468,6 @@ fun ManageAccountsScreen(
                     item { Spacer(modifier = Modifier.height(100.dp)) }
                 }
             }
-        }
-    }
-
-    // Update Balance Sheet
-    if (showUpdateDialog && selectedAccount != null && selectedAccountEntity != null) {
-        val calibrated = selectedAccountEntity!!
-        val (bank, last4) = selectedAccount!!
-        BalanceCalibrationSheet(
-            account = calibrated,
-            onDismiss = {
-                showUpdateDialog = false
-                selectedAccount = null
-                selectedAccountEntity = null
-            },
-            onSave = { newBalance, currency ->
-                if (calibrated.isCreditCard) {
-                    manageAccountsViewModel.updateCreditCard(bank, last4, newBalance, calibrated.creditLimit ?: BigDecimal.ZERO, currency)
-                } else {
-                    manageAccountsViewModel.updateAccountBalance(bank, last4, newBalance, currency)
-                }
-            }
-        )
-    }
-
-    // Balance History Sheet
-    if (showHistoryDialog && historyAccount != null) {
-        CashiroModalBottomSheet(
-            onDismissRequest = {
-                showHistoryDialog = false
-                historyAccount = null
-                manageAccountsViewModel.clearBalanceHistory()
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            HistorySheet(
-                bankName = historyAccount!!.first,
-                accountLast4 = historyAccount!!.second,
-                balanceHistory = uiState.balanceHistory,
-                onDeleteBalance = { id ->
-                    manageAccountsViewModel.deleteBalanceRecord(
-                        id,
-                        historyAccount!!.first,
-                        historyAccount!!.second
-                    )
-                },
-                onUpdateBalance = { id, newBalance ->
-                    manageAccountsViewModel.updateBalanceRecord(
-                        id,
-                        newBalance,
-                        historyAccount!!.first,
-                        historyAccount!!.second
-                    )
-                }
-            )
         }
     }
 
@@ -816,180 +496,6 @@ fun ManageAccountsScreen(
         )
     }
 
-    if (showDeleteConfirmDialog && accountToDelete != null) {
-        DeleteAccountDialog(
-            bankName = accountToDelete!!.bankName,
-            accountLast4 = accountToDelete!!.accountLast4,
-            accountIcon = accountToDelete!!.iconResId,
-            accountColor = accountToDelete!!.color,
-            isCreditCard = accountToDelete!!.isCreditCard,
-            isWallet = accountToDelete!!.isWallet,
-            onDismiss = {
-                showDeleteConfirmDialog = false
-                accountToDelete = null
-            },
-            onDelete = {
-                manageAccountsViewModel.deleteAccount(
-                    accountToDelete!!.bankName,
-                    accountToDelete!!.accountLast4
-                )
-                showDeleteConfirmDialog = false
-                accountToDelete = null
-            },
-            hazeState = hazeState,
-            blurEffects = blurEffects
-        )
-    }
-
-    // Edit Account Sheet
-    if (showEditSheet && accountToEdit != null) {
-        CashiroModalBottomSheet(
-            sheetState = sheetState,
-            onDismissRequest = {
-                showEditSheet = false
-                accountToEdit = null
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            EditAccountSheet(
-                account = accountToEdit!!,
-                allAccounts = uiState.accounts,
-                defaultCurrency = defaultCurrency,
-                initialCategory = category,
-                onDismiss = {
-                    showEditSheet = false
-                    accountToEdit = null
-                },
-                onDelete = {
-                    accountToDelete = accountToEdit
-                    showEditSheet = false
-                    accountToEdit = null
-                    showDeleteConfirmDialog = true
-                },
-                onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies ->
-                    manageAccountsViewModel.editAccount(
-                        oldBankName = accountToEdit!!.bankName,
-                        accountLast4 = accountToEdit!!.accountLast4,
-                        newBankName = bankName,
-                        newBalance = balance,
-                        newCreditLimit = limit,
-                        isCreditCard = isCC,
-                        isWallet = isWallet,
-                        newIconResId = iconResId,
-                        newIconName = iconName,
-                        newColorHex = color,
-                        newCurrency = currency,
-                        addedCurrencies = addedCurrencies
-                    )
-                    showEditSheet = false
-                    accountToEdit = null
-                }
-            )
-        }
-    }
-
-    // Merge Account Dialogs
-    if (showMergeSelection && accountForMerge != null) {
-        MergeAccountSelectionDialog(
-            currentAccount = accountForMerge!!,
-            allAccounts = uiState.accounts,
-            onDismiss = {
-                showMergeSelection = false
-                accountForMerge = null
-                selectedMergeAccounts = emptyList()
-            },
-            onNext = { accounts ->
-                selectedMergeAccounts = accounts
-                showMergeSelection = false
-                showMergeBalanceOption = true
-            }
-        )
-    }
-
-    if (showMergeBalanceOption && accountForMerge != null && selectedMergeAccounts.isNotEmpty()) {
-        MergeBalanceOptionDialog(
-            currentAccount = accountForMerge!!,
-            selectedAccounts = selectedMergeAccounts,
-            onDismiss = {
-                showMergeBalanceOption = false
-                accountForMerge = null
-                selectedMergeAccounts = emptyList()
-            },
-            onOptionSelected = { option ->
-                when (option) {
-                    BalanceMergeOption.SUM -> {
-                        val sumBalance = selectedMergeAccounts.sumOfBigDecimal { acc: AccountBalanceEntity -> acc.balance } + accountForMerge!!.balance
-                        mergeNewBalance = sumBalance
-                        showMergeBalanceOption = false
-                        showMergeConfirmation = true
-                    }
-                    BalanceMergeOption.MANUAL -> {
-                        showMergeBalanceOption = false
-                        showMergeManualInput = true
-                    }
-                    BalanceMergeOption.NONE -> {
-                        mergeNewBalance = accountForMerge!!.balance
-                        showMergeBalanceOption = false
-                        showMergeConfirmation = true
-                    }
-                }
-            }
-        )
-    }
-
-    if (showMergeManualInput && accountForMerge != null && selectedMergeAccounts.isNotEmpty()) {
-        CashiroModalBottomSheet(
-            onDismissRequest = {
-                showMergeManualInput = false
-                accountForMerge = null
-                selectedMergeAccounts = emptyList()
-            },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            NumberPad(
-                initialValue = accountForMerge!!.balance.toPlainString(),
-                title = stringResource(R.string.enter_merged_balance),
-                bankName = accountForMerge!!.bankName,
-                accountLast4 = accountForMerge!!.accountLast4,
-                doneButtonLabel = stringResource(R.string.confirm_balance),
-                onDone = { newValue ->
-                    newValue.toBigDecimalOrNull()?.let { newBalance ->
-                        mergeNewBalance = newBalance
-                        showMergeManualInput = false
-                        showMergeConfirmation = true
-                    }
-                }
-            )
-        }
-    }
-
-    if (showMergeConfirmation && accountForMerge != null && selectedMergeAccounts.isNotEmpty() && mergeNewBalance != null) {
-        MergeConfirmationDialog(
-            onDismiss = {
-                showMergeConfirmation = false
-                accountForMerge = null
-                selectedMergeAccounts = emptyList()
-                mergeNewBalance = null
-            },
-            onConfirm = {
-                manageAccountsViewModel.mergeAccounts(
-                    targetAccount = accountForMerge!!,
-                    sourceAccounts = selectedMergeAccounts,
-                    newBalance = mergeNewBalance!!
-                )
-                showMergeConfirmation = false
-                accountForMerge = null
-                selectedMergeAccounts = emptyList()
-                mergeNewBalance = null
-            },
-            hazeState = hazeState,
-            blurEffects = blurEffects
-        )
-    }
-
     if (selectedCardForLink != null) {
         val card = selectedCardForLink!!
         // Same institution, so "BofA (Checking)" is offered for a card from "BofA".
@@ -1015,16 +521,8 @@ fun ManageAccountsScreen(
 @Composable
 private fun CreditCardItem(
     card: AccountBalanceEntity,
-    isHidden: Boolean,
-    onToggleVisibility: () -> Unit,
-    onUpdateBalance: () -> Unit,
-    onViewHistory: () -> Unit,
-    onDeleteAccount: () -> Unit,
     isMain: Boolean = false,
-    onSetAsMain: () -> Unit = {},
-    onEditAccount: () -> Unit = {},
-    onAccountClick: () -> Unit = {},
-    onMergeAccount: () -> Unit = {}
+    onAccountClick: () -> Unit = {}
 ) {
     val available = (card.creditLimit ?: BigDecimal.ZERO) - card.balance
     val utilization =
@@ -1043,16 +541,8 @@ private fun CreditCardItem(
 
     CompactAccountCard(
         account = card,
-        isHidden = isHidden,
-        onUpdateBalance = onUpdateBalance,
-        onEditAccount = onEditAccount,
-        onViewHistory = onViewHistory,
-        onToggleVisibility = onToggleVisibility,
-        onDeleteAccount = onDeleteAccount,
         isMain = isMain,
-        onSetAsMain = onSetAsMain,
-        onClick = onAccountClick,
-        onMergeAccount = onMergeAccount
+        onClick = onAccountClick
     ) {
         // Credit Card
         Column(
@@ -1153,31 +643,15 @@ private fun BrokerageConnectionRow(
 private fun AccountItem(
     account: AccountBalanceEntity,
     linkedCards: List<CardEntity> = emptyList(),
-    isHidden: Boolean,
-    onToggleVisibility: () -> Unit,
-    onUpdateBalance: () -> Unit,
-    onViewHistory: () -> Unit,
     isMain: Boolean = false,
-    onSetAsMain: () -> Unit = {},
     onUnlinkCard: (cardId: Long) -> Unit = {},
-    onDeleteAccount: () -> Unit = {},
-    onEditAccount: () -> Unit = {},
-    onAccountClick: () -> Unit = {},
-    onMergeAccount: () -> Unit = {}
+    onAccountClick: () -> Unit = {}
 ) {
     Column {
         CompactAccountCard(
             account = account,
-            isHidden = isHidden,
-            onUpdateBalance = onUpdateBalance,
-            onEditAccount = onEditAccount,
-            onViewHistory = onViewHistory,
-            onToggleVisibility = onToggleVisibility,
-            onDeleteAccount = onDeleteAccount,
             isMain = isMain,
-            onSetAsMain = onSetAsMain,
-            onClick = onAccountClick,
-            onMergeAccount = onMergeAccount
+            onClick = onAccountClick
         ) {
 
             // Linked Cards Section

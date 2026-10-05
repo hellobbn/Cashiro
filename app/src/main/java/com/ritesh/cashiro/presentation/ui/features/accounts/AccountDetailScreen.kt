@@ -84,6 +84,7 @@ import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.icons.Edit2
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import com.ritesh.cashiro.presentation.ui.icons.ReceiptItem
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
@@ -112,6 +113,10 @@ fun SharedTransitionScope.AccountDetailScreen(
     val lazyListState = rememberLazyListState()
     var showCalibration by remember { mutableStateOf(false) }
     var showEdit by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
+    // Edits, history, delete and the default account go through the account list's model
+    val manageViewModel: ManageAccountsViewModel = hiltViewModel()
+    val manageState by manageViewModel.uiState.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -166,23 +171,64 @@ fun SharedTransitionScope.AccountDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
                         AccountCard(account = balance, showMoreOptions = false)
-                        // Set the balance to what the bank shows, as in the account list
-                        FilledTonalButton(
-                            onClick = { showCalibration = true },
-                            shapes = ButtonDefaults.shapes(),
-                            modifier = Modifier.fillMaxWidth()
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                            // Set the balance to what the bank shows
+                            FilledTonalButton(
+                                onClick = { showCalibration = true },
+                                shapes = ButtonDefaults.shapes(),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(if (balance.isCreditCard) R.string.update_outstanding_title else R.string.balance_calibration), maxLines = 1)
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    manageViewModel.loadBalanceHistory(balance.bankName, balance.accountLast4)
+                                    showHistory = true
+                                },
+                                shapes = ButtonDefaults.shapes(),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(R.string.history), maxLines = 1)
+                            }
+                        }
+                        // Preselected when adding a transaction
+                        val isDefault = manageState.mainAccountKey == "${balance.bankName}_${balance.accountLast4}"
+                        com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch(
+                            title = stringResource(R.string.default_account_title),
+                            subtitle = stringResource(R.string.default_account_hint),
+                            checked = isDefault,
+                            onCheckedChange = { on ->
+                                if (on) manageViewModel.setAsMainAccount(balance.bankName, balance.accountLast4)
+                                else manageViewModel.clearMainAccount()
+                            },
+                            isSingle = true
+                        )
+                    }
+                    if (showHistory) {
+                        com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet(
+                            onDismissRequest = {
+                                showHistory = false
+                                manageViewModel.clearBalanceHistory()
+                            },
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
                         ) {
-                            Icon(Iconax.Edit2, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(Spacing.sm))
-                            Text(stringResource(if (balance.isCreditCard) R.string.update_outstanding_title else R.string.balance_calibration))
+                            HistorySheet(
+                                bankName = balance.bankName,
+                                accountLast4 = balance.accountLast4,
+                                balanceHistory = manageState.balanceHistory,
+                                onDeleteBalance = { id -> manageViewModel.deleteBalanceRecord(id, balance.bankName, balance.accountLast4) },
+                                onUpdateBalance = { id, value -> manageViewModel.updateBalanceRecord(id, value, balance.bankName, balance.accountLast4) }
+                            )
                         }
                     }
                     if (showEdit) {
                         AccountEditSheet(
                             account = balance,
+                            viewModel = manageViewModel,
                             onDismiss = { showEdit = false },
-                            // The page is the account's by name: after a rename it is gone
-                            onRenamed = { onNavigateBack?.invoke() ?: navController.safePopBackStack() }
+                            // The page is the account's by name: after a rename or delete it is gone
+                            onGone = { onNavigateBack?.invoke() ?: navController.safePopBackStack() }
                         )
                     }
                     if (showCalibration) {
@@ -486,8 +532,12 @@ fun DateRange.getLocalizedLabel(): String {
 /** The account list's edit sheet, for the account shown on this page. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AccountEditSheet(account: AccountBalanceEntity, onDismiss: () -> Unit, onRenamed: () -> Unit) {
-    val viewModel: ManageAccountsViewModel = hiltViewModel()
+private fun AccountEditSheet(
+    account: AccountBalanceEntity,
+    viewModel: ManageAccountsViewModel,
+    onDismiss: () -> Unit,
+    onGone: () -> Unit
+) {
     val accounts by viewModel.uiState.collectAsStateWithLifecycle()
     val defaultCurrency by viewModel.defaultCurrencyForNewAccounts.collectAsStateWithLifecycle()
     com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet(
@@ -502,6 +552,11 @@ private fun AccountEditSheet(account: AccountBalanceEntity, onDismiss: () -> Uni
             defaultCurrency = defaultCurrency,
             initialCategory = account.category(),
             onDismiss = onDismiss,
+            onDelete = {
+                viewModel.deleteAccount(account.bankName, account.accountLast4)
+                onDismiss()
+                onGone()
+            },
             onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies ->
                 viewModel.editAccount(
                     oldBankName = account.bankName,
@@ -518,7 +573,7 @@ private fun AccountEditSheet(account: AccountBalanceEntity, onDismiss: () -> Uni
                     addedCurrencies = addedCurrencies
                 )
                 onDismiss()
-                if (bankName != account.bankName) onRenamed()
+                if (bankName != account.bankName) onGone()
             }
         )
     }

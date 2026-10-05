@@ -209,4 +209,7 @@
     <string name="overview_connect_short">去連接</string>
     <string name="account_holds_currencies">含 %1$s</string>
     <string name="list_separator">"、"</string>
+    <string name="default_account_note">預設</string>
+    <string name="default_account_title">預設記帳帳戶</string>
+    <string name="default_account_hint">記一筆時預設選中這個帳戶</string>
 </resources>

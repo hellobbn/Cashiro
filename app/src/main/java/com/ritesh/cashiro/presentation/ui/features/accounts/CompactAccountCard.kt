@@ -22,19 +22,11 @@ import com.ritesh.cashiro.presentation.ui.components.AccountRowContent
 @Composable
 internal fun CompactAccountCard(
     account: AccountBalanceEntity,
-    isHidden: Boolean,
     isMain: Boolean,
     onClick: () -> Unit,
-    onUpdateBalance: () -> Unit,
-    onEditAccount: () -> Unit,
-    onViewHistory: () -> Unit,
-    onToggleVisibility: () -> Unit,
-    onDeleteAccount: () -> Unit,
-    onSetAsMain: () -> Unit,
-    onMergeAccount: () -> Unit,
     content: @Composable () -> Unit = {}
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
+    // Everything else about an account (balance, details, history, delete) is on its page
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -43,27 +35,10 @@ internal fun CompactAccountCard(
         elevation = CardDefaults.cardElevation(defaultElevation = AccountSurfaceElevation)
     ) {
         Row(
-            modifier = Modifier.heightIn(min = 72.dp).padding(start = 16.dp, top = 12.dp, bottom = 12.dp),
+            modifier = Modifier.heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AccountRowContent(account, note = if (isMain) stringResource(R.string.main) else null)
-            Box {
-                IconButton(onClick = { menuExpanded = true }, shapes = IconButtonDefaults.shapes()) { Icon(Icons.Rounded.MoreHoriz, contentDescription = stringResource(R.string.more_options)) }
-                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                    val actions = listOf(
-                        R.string.update_balance to onUpdateBalance,
-                        R.string.edit_details to onEditAccount,
-                        R.string.history to onViewHistory,
-                        R.string.merge_account to onMergeAccount,
-                        (if (isHidden) R.string.show else R.string.hide) to onToggleVisibility
-                    )
-                    actions.forEach { (label, action) ->
-                        DropdownMenuItem(text = { Text(stringResource(label)) }, onClick = { menuExpanded = false; action() })
-                    }
-                    if (!isMain) DropdownMenuItem(text = { Text(stringResource(R.string.set_as_main)) }, onClick = { menuExpanded = false; onSetAsMain() })
-                    DropdownMenuItem(text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }, onClick = { menuExpanded = false; onDeleteAccount() })
-                }
-            }
+            AccountRowContent(account, note = if (isMain) stringResource(R.string.default_account_note) else null)
         }
         content()
     }

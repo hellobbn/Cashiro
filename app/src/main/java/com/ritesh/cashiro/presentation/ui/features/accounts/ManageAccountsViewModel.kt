@@ -185,6 +185,12 @@ constructor(
         _uiState.update { it.copy(mainAccountKey = main) }
     }
 
+    /** No account is preselected for new entries any more. */
+    fun clearMainAccount() {
+        sharedPrefs.edit { remove("main_account") }
+        _uiState.update { it.copy(mainAccountKey = null) }
+    }
+
     fun setAsMainAccount(bankName: String, accountLast4: String) {
         val key = "${bankName}_${accountLast4}"
         sharedPrefs.edit { putString("main_account", key) }
