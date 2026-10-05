@@ -2,6 +2,8 @@ package com.ritesh.cashiro.data.database.dao
 
 import androidx.room.*
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity
+import com.ritesh.cashiro.data.database.entity.AccountEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
@@ -16,16 +18,77 @@ const val SOURCE_BALANCE_CALIBRATION = "BALANCE_CALIBRATION"
 /** Balance immediately before the oldest known transaction of an account; moves with older back-dated entries. */
 const val SOURCE_OPENING_BALANCE = "OPENING_BALANCE"
 
+/**
+ * Whether balance row `ab` is the receiving side of transfer `t`: the target account (and, for a
+ * transfer between two currencies of one account, the target currency). Transfers saved before
+ * accounts had ids fall back to "not the sending account".
+ */
+/** Columns of [AccountBalanceEntity] for an account: its balance row joined with the account's own details. */
+private const val ACCOUNT_ROW = "SELECT ab.id, a.icon_res_id, a.icon_name, a.name AS bank_name, a.last4 AS account_last4, " +
+    "ab.balance, ab.timestamp, ab.transaction_id, a.credit_limit, a.is_credit_card, ab.sms_source, ab.source_type, " +
+    "ab.created_at, ab.currency, a.is_wallet, a.color, a.is_sample, a.id AS account_id " +
+    "FROM accounts a JOIN account_balances ab ON ab.account_id = a.id AND ab.currency = a.main_currency"
+
+private const val RECEIVING_SIDE = "((t.to_account_id IS NOT NULL AND ab.account_id = t.to_account_id " +
+    "AND (t.to_account_id != COALESCE(t.account_id, -1) OR ab.currency = t.to_currency)) " +
+    "OR (t.to_account_id IS NULL AND NOT (t.bank_name = ab.bank_name AND t.account_number = ab.account_last4)))"
+
 @Dao
 abstract class AccountBalanceDao {
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insertBalance(balance: AccountBalanceEntity): Long
+    abstract suspend fun insertBalanceRow(balance: AccountBalanceEntity): Long
+
+    @Query("SELECT * FROM accounts WHERE name = :name AND last4 = :last4")
+    abstract suspend fun accountFor(name: String, last4: String): AccountEntity?
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    abstract suspend fun insertAccountRow(account: AccountEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun insertCurrencyRow(currency: AccountCurrencyEntity)
+
+    @Update
+    abstract suspend fun updateAccountRow(account: AccountEntity)
+
+    @Query("SELECT currency FROM account_currencies WHERE account_id = :accountId")
+    abstract suspend fun currenciesOf(accountId: Long): List<String>
+
+    /**
+     * Writes a balance row into its account's currency, creating the account (looking like the
+     * row) or the currency when the row is the first of either. Every writer goes through here,
+     * so no balance exists without its account.
+     */
+    @Transaction
+    open suspend fun insertBalance(balance: AccountBalanceEntity): Long {
+        val account = accountFor(balance.bankName, balance.accountLast4) ?: AccountEntity(
+            name = balance.bankName,
+            last4 = balance.accountLast4,
+            mainCurrency = balance.currency,
+            isCreditCard = balance.isCreditCard,
+            isWallet = balance.isWallet,
+            creditLimit = balance.creditLimit,
+            iconResId = balance.iconResId,
+            iconName = balance.iconName,
+            color = balance.color,
+            isSample = balance.isSample,
+            createdAt = balance.createdAt
+        ).let { it.copy(id = insertAccountRow(it)) }
+        insertCurrencyRow(AccountCurrencyEntity(account.id, balance.currency, createdAt = balance.createdAt))
+        return insertBalanceRow(balance.copy(accountId = account.id))
+    }
+
+    /** The currency a transaction in [currency] lands in: that one if the account holds it, else its main one. */
+    open suspend fun pocketCurrency(bankName: String, accountLast4: String, currency: String): String {
+        val account = accountFor(bankName, accountLast4) ?: return currency
+        return if (currency in currenciesOf(account.id)) currency else account.mainCurrency
+    }
     
+    /** An account as one row: the latest balance of its main currency, with the account's own name and look. */
     @Query("""
-        SELECT * FROM account_balances 
-        WHERE bank_name = :bankName AND account_last4 = :accountLast4
-        ORDER BY timestamp DESC
+        $ACCOUNT_ROW
+        WHERE a.name = :bankName AND a.last4 = :accountLast4
+        ORDER BY ab.timestamp DESC, ab.id DESC
         LIMIT 1
     """)
     abstract suspend fun getLatestBalance(bankName: String, accountLast4: String): AccountBalanceEntity?
@@ -40,7 +103,7 @@ abstract class AccountBalanceDao {
 
     @Query("""
         SELECT * FROM account_balances
-        WHERE bank_name = :bankName AND account_last4 = :accountLast4
+        WHERE bank_name = :bankName AND account_last4 = :accountLast4 AND currency = :currency
         AND timestamp <= :timestamp
         ORDER BY timestamp DESC, id DESC
         LIMIT 1
@@ -48,6 +111,7 @@ abstract class AccountBalanceDao {
     abstract suspend fun getLatestBalanceOnOrBefore(
         bankName: String,
         accountLast4: String,
+        currency: String,
         timestamp: LocalDateTime
     ): AccountBalanceEntity?
 
@@ -59,24 +123,23 @@ abstract class AccountBalanceDao {
             ab.is_credit_card AS isCreditCard,
             ab.transaction_id AS transactionId,
             -- The receiving side of a transfer moves by what arrived, in its own currency
-            CASE WHEN t.transaction_type = 'TRANSFER'
-                AND NOT (t.bank_name = ab.bank_name AND t.account_number = ab.account_last4)
+            CASE WHEN t.transaction_type = 'TRANSFER' AND $RECEIVING_SIDE
                 THEN COALESCE(t.to_amount, t.amount) ELSE t.amount END AS transactionAmount,
             CASE WHEN t.transaction_type = 'TRANSFER' THEN
-                CASE WHEN t.bank_name = ab.bank_name AND t.account_number = ab.account_last4
-                    THEN 'EXPENSE' ELSE 'INCOME' END
+                CASE WHEN $RECEIVING_SIDE THEN 'INCOME' ELSE 'EXPENSE' END
                 ELSE t.transaction_type END AS transactionType,
             t.balance_after AS transactionBalanceAfter,
             t.is_deleted AS isDeleted
         FROM account_balances ab
         LEFT JOIN transactions t ON t.id = ab.transaction_id
-        WHERE ab.bank_name = :bankName AND ab.account_last4 = :accountLast4
+        WHERE ab.bank_name = :bankName AND ab.account_last4 = :accountLast4 AND ab.currency = :currency
         AND ab.timestamp > :timestamp
         ORDER BY ab.timestamp ASC, ab.id ASC
     """)
     abstract suspend fun getBalancesAfterWithTransactions(
         bankName: String,
         accountLast4: String,
+        currency: String,
         timestamp: LocalDateTime
     ): List<AccountBalanceTransactionInfo>
 
@@ -112,11 +175,11 @@ abstract class AccountBalanceDao {
             if (entry.sourceType == SOURCE_TRANSACTION_SMS_BALANCE ||
                 entry.sourceType == SOURCE_SMS_BALANCE || entry.sourceType == SOURCE_BALANCE_CALIBRATION) continue
             val previous = getBalanceHistoryForAccount(entry.bankName, entry.accountLast4)
-                .filter { it.timestamp < entry.timestamp }
+                .filter { it.currency == entry.currency && it.timestamp < entry.timestamp }
                 .maxWithOrNull(compareBy({ it.timestamp }, { it.id }))
                 ?: insertOpeningBalanceBefore(entry)
                 ?: continue
-            recalculateBalancesAfter(entry.bankName, entry.accountLast4, previous.timestamp, previous.balance)
+            recalculateBalancesAfter(entry.bankName, entry.accountLast4, previous.timestamp, previous.balance, entry.currency)
         }
         // The ledger rows are still needed above to know each entry's amount and type.
         toHardDelete.forEach { hardDeleteLedgerTransaction(it) }
@@ -129,7 +192,7 @@ abstract class AccountBalanceDao {
      */
     private suspend fun insertOpeningBalanceBefore(entry: AccountBalanceEntity): AccountBalanceEntity? {
         val openingTimestamp = entry.timestamp.minusNanos(1_000_000)
-        val info = getBalancesAfterWithTransactions(entry.bankName, entry.accountLast4, openingTimestamp)
+        val info = getBalancesAfterWithTransactions(entry.bankName, entry.accountLast4, entry.currency, openingTimestamp)
             .firstOrNull { it.id == entry.id } ?: return null
         val amount = info.transactionAmount ?: return null
         val transactionType = info.transactionType?.let { runCatching { TransactionType.valueOf(it) }.getOrNull() }
@@ -175,18 +238,19 @@ abstract class AccountBalanceDao {
         currency: String
     ): Long {
         val latest = getLatestBalance(bankName, accountLast4)
-        val previous = getLatestBalanceOnOrBefore(bankName, accountLast4, timestamp)
+        // The currency of the account the transaction lands in
+        val pocket = pocketCurrency(bankName, accountLast4, currency)
+        val previous = getLatestBalanceOnOrBefore(bankName, accountLast4, pocket, timestamp)
 
         // Fix for manually-created accounts: when the account was set up today (MANUAL entry),
         // backdated transactions have no prior entry. Fall back to the earliest MANUAL balance
         // so the calculation is based on the user's initial balance, not zero.
         val previousForBalance = previous ?: run {
-            val earliest = getEarliestBalance(bankName, accountLast4)
+            val earliest = getEarliestBalance(bankName, accountLast4, pocket)
             if (earliest?.sourceType == SOURCE_MANUAL || earliest?.sourceType == SOURCE_OPENING_BALANCE) earliest else null
         }
 
-        // An account keeps its own currency whatever the transaction was in
-        val accountCurrency = previousForBalance?.currency ?: latest?.currency ?: currency
+        val accountCurrency = pocket
 
         if (previous == null && explicitBalance == null) {
             insertBalance(AccountBalanceEntity(
@@ -236,27 +300,31 @@ abstract class AccountBalanceDao {
             )
         )
 
-        recalculateBalancesAfter(bankName, accountLast4, timestamp, newBalance)
+        recalculateBalancesAfter(bankName, accountLast4, timestamp, newBalance, pocket)
         return balanceId
     }
 
+    /** Recalculates one currency of an account after [timestamp]; null [currency] means its main one. */
     open suspend fun recalculateBalancesAfter(
         bankName: String,
         accountLast4: String,
         timestamp: LocalDateTime,
-        startingBalance: BigDecimal
+        startingBalance: BigDecimal,
+        currency: String? = null
     ) {
-        recalculateBalancesAfterInternal(bankName, accountLast4, timestamp, startingBalance)
+        val pocket = currency ?: accountFor(bankName, accountLast4)?.mainCurrency ?: return
+        recalculateBalancesAfterInternal(bankName, accountLast4, pocket, timestamp, startingBalance)
     }
 
     private suspend fun recalculateBalancesAfterInternal(
         bankName: String,
         accountLast4: String,
+        currency: String,
         timestamp: LocalDateTime,
         startingBalance: BigDecimal
     ) {
         var runningBalance = startingBalance
-        for (row in getBalancesAfterWithTransactions(bankName, accountLast4, timestamp)) {
+        for (row in getBalancesAfterWithTransactions(bankName, accountLast4, currency, timestamp)) {
             val sourceType = row.sourceType
 
             // MANUAL entries (user-created account setup) are NOT hard stops.
@@ -331,42 +399,20 @@ abstract class AccountBalanceDao {
     abstract suspend fun getBalanceById(id: Long): AccountBalanceEntity?
     
     @Query("""
-        SELECT * FROM account_balances 
-        WHERE bank_name = :bankName AND account_last4 = :accountLast4
-        ORDER BY timestamp DESC
+        $ACCOUNT_ROW
+        WHERE a.name = :bankName AND a.last4 = :accountLast4
+        ORDER BY ab.timestamp DESC, ab.id DESC
         LIMIT 1
     """)
     abstract fun getLatestBalanceFlow(bankName: String, accountLast4: String): Flow<AccountBalanceEntity?>
     
+    /** Every account as one row (see [getLatestBalance]). */
     @Query("""
-        SELECT DISTINCT 
-            ab1.id,
-            ab1.bank_name,
-            ab1.account_last4,
-            ab1.balance,
-            ab1.timestamp,
-            ab1.transaction_id,
-            ab1.created_at,
-            ab1.credit_limit,
-            ab1.is_credit_card,
-            ab1.sms_source,
-            ab1.source_type,
-            ab1.currency,
-            ab1.icon_res_id,
-            ab1.icon_name,
-            ab1.is_wallet,
-            ab1.color,
-            ab1.is_sample
-        FROM account_balances ab1
-        INNER JOIN (
-            SELECT bank_name, account_last4, MAX(timestamp) as max_timestamp
-            FROM account_balances
-            GROUP BY bank_name, account_last4
-        ) ab2 
-        ON ab1.bank_name = ab2.bank_name 
-        AND ab1.account_last4 = ab2.account_last4 
-        AND ab1.timestamp = ab2.max_timestamp
-        ORDER BY ab1.balance DESC
+        $ACCOUNT_ROW
+        WHERE ab.id = (SELECT l.id FROM account_balances l
+            WHERE l.account_id = a.id AND l.currency = a.main_currency
+            ORDER BY l.timestamp DESC, l.id DESC LIMIT 1)
+        ORDER BY ab.balance DESC
     """)
     abstract fun getAllLatestBalances(): Flow<List<AccountBalanceEntity>>
     
@@ -374,10 +420,28 @@ abstract class AccountBalanceDao {
     abstract fun getAllBalances(): Flow<List<AccountBalanceEntity>>
     
     @Query("DELETE FROM account_balances")
-    abstract suspend fun deleteAllBalances()
-    
+    abstract suspend fun deleteAllBalanceRows()
+
+    @Query("DELETE FROM accounts")
+    abstract suspend fun deleteAllAccountRows()
+
+    @Transaction
+    open suspend fun deleteAllBalances() {
+        deleteAllBalanceRows()
+        deleteAllAccountRows()
+    }
+
     @Query("DELETE FROM account_balances WHERE is_sample = 1")
-    abstract suspend fun deleteSampleBalances()
+    abstract suspend fun deleteSampleBalanceRows()
+
+    @Query("DELETE FROM accounts WHERE is_sample = 1")
+    abstract suspend fun deleteSampleAccountRows()
+
+    @Transaction
+    open suspend fun deleteSampleBalances() {
+        deleteSampleBalanceRows()
+        deleteSampleAccountRows()
+    }
     
     @Query("""
         SELECT DISTINCT 
@@ -472,10 +536,29 @@ abstract class AccountBalanceDao {
     abstract suspend fun getBalanceCountForAccount(bankName: String, accountLast4: String): Int
  
     @Query("DELETE FROM account_balances WHERE bank_name = :bankName AND account_last4 = :accountLast4")
-    abstract suspend fun deleteAccount(bankName: String, accountLast4: String): Int
- 
+    abstract suspend fun deleteBalanceRowsOf(bankName: String, accountLast4: String): Int
+
+    @Query("DELETE FROM accounts WHERE name = :bankName AND last4 = :accountLast4")
+    abstract suspend fun deleteAccountRow(bankName: String, accountLast4: String)
+
+    /** Removes an account with its currencies and their history. */
+    @Transaction
+    open suspend fun deleteAccount(bankName: String, accountLast4: String): Int {
+        deleteAccountRow(bankName, accountLast4)
+        return deleteBalanceRowsOf(bankName, accountLast4)
+    }
+
     @Query("UPDATE account_balances SET bank_name = :newBankName WHERE bank_name = :oldBankName AND account_last4 = :accountLast4")
-    abstract suspend fun updateAccountBankName(oldBankName: String, accountLast4: String, newBankName: String): Int
+    abstract suspend fun renameBalanceRows(oldBankName: String, accountLast4: String, newBankName: String): Int
+
+    @Query("UPDATE accounts SET name = :newBankName WHERE name = :oldBankName AND last4 = :accountLast4")
+    abstract suspend fun renameAccountRow(oldBankName: String, accountLast4: String, newBankName: String)
+
+    @Transaction
+    open suspend fun updateAccountBankName(oldBankName: String, accountLast4: String, newBankName: String): Int {
+        renameAccountRow(oldBankName, accountLast4, newBankName)
+        return renameBalanceRows(oldBankName, accountLast4, newBankName)
+    }
  
     @Query("SELECT * FROM account_balances WHERE transaction_id = :transactionId LIMIT 1")
     abstract suspend fun getBalanceByTransactionId(transactionId: Long): AccountBalanceEntity?
@@ -493,11 +576,11 @@ abstract class AccountBalanceDao {
      *  exists for a backdated transaction (e.g. for manually-created accounts). */
     @Query("""
         SELECT * FROM account_balances
-        WHERE bank_name = :bankName AND account_last4 = :accountLast4
+        WHERE bank_name = :bankName AND account_last4 = :accountLast4 AND currency = :currency
         ORDER BY timestamp ASC, id ASC
         LIMIT 1
     """)
-    abstract suspend fun getEarliestBalance(bankName: String, accountLast4: String): AccountBalanceEntity?
+    abstract suspend fun getEarliestBalance(bankName: String, accountLast4: String, currency: String): AccountBalanceEntity?
 }
 
 

@@ -2,6 +2,7 @@ package com.ritesh.cashiro.data.ai
 
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.data.database.entity.AccountEntity
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
@@ -80,7 +81,9 @@ data class AppliedChanges(
     val renames: List<Triple<String, String, String>>,
     val addedIds: List<Long>,
     val updated: List<TransactionEntity>,
-    val deleted: List<TransactionEntity>
+    val deleted: List<TransactionEntity>,
+    // Accounts' details before their kind, limit or look changed
+    val accountsBefore: List<AccountEntity> = emptyList()
 )
 
 /**
@@ -555,6 +558,7 @@ class LedgerTools @Inject constructor(
         // Account changes last, so a rename also moves the transactions just added to the account
         val balanceRows = mutableListOf<Long>()
         val renames = mutableListOf<Triple<String, String, String>>()
+        val accountsBefore = mutableListOf<AccountEntity>()
         changes.filterIsInstance<LedgerChange.SetBalance>().forEach { change ->
             // Latest values for everything else, as the app's own balance calibration does
             val latest = accountBalanceRepository.getLatestBalance(change.account.bankName, change.account.accountLast4)
@@ -571,40 +575,38 @@ class LedgerTools @Inject constructor(
                     createdAt = LocalDateTime.now()
                 )
             )
+            change.creditLimit?.let { limit ->
+                accountBalanceRepository.updateAccount(change.account.bankName, change.account.accountLast4) {
+                    it.copy(creditLimit = limit)
+                }?.let { accountsBefore += it }
+            }
         }
         changes.filterIsInstance<LedgerChange.UpdateAccount>().forEach { change ->
             val before = change.before
-            val latest = accountBalanceRepository.getLatestBalance(before.bankName, before.accountLast4) ?: before
             if (change.after.bankName != before.bankName) {
                 accountRenamer.rename(before.bankName, before.accountLast4, change.after.bankName)
                 renames += Triple(before.bankName, change.after.bankName, before.accountLast4)
             }
-            // A new latest row carries the new kind, limit and look; the balance stays as it is
-            balanceRows += accountBalanceRepository.insertBalance(
-                latest.copy(
-                    id = 0,
-                    bankName = change.after.bankName,
+            // The account takes the new kind, limit and look; its balance stays as it is
+            accountBalanceRepository.updateAccount(change.after.bankName, before.accountLast4) {
+                it.copy(
                     isCreditCard = change.after.isCreditCard,
                     isWallet = change.after.isWallet,
                     creditLimit = change.after.creditLimit,
                     iconResId = change.after.iconResId,
                     iconName = change.after.iconName,
-                    color = change.after.color,
-                    timestamp = LocalDateTime.now(),
-                    transactionId = null,
-                    smsSource = null,
-                    sourceType = "MANUAL",
-                    createdAt = LocalDateTime.now()
+                    color = change.after.color
                 )
-            )
+            }?.let { accountsBefore += it }
         }
-        return AppliedChanges(created, balanceRows, renames, added, updated, deleted)
+        return AppliedChanges(created, balanceRows, renames, added, updated, deleted, accountsBefore)
     }
 
     /** Takes back what [apply] did. */
     suspend fun undo(applied: AppliedChanges) {
         // Reverse order of apply: account changes were made last
         applied.balanceRowIds.forEach { accountBalanceRepository.deleteBalanceById(it) }
+        applied.accountsBefore.asReversed().forEach { accountBalanceRepository.restoreAccount(it) }
         applied.renames.asReversed().forEach { (before, after, last4) -> accountRenamer.rename(after, last4, before) }
         applied.addedIds.forEach { transactionRepository.deleteTransactionById(it, hardDelete = true) }
         applied.updated.forEach { transactionRepository.updateTransaction(it) }

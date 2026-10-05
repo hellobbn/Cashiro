@@ -39,6 +39,8 @@ constructor(
             targetAccountLast4: String? = null,
             // What reached the target account of a transfer in its own currency, if that differs
             targetAmount: BigDecimal? = null,
+            // The target account's currency the transfer lands in; null: the one matching, else its main one
+            targetCurrency: String? = null,
             billingCycle: String? = null,
             createSubscription: Boolean = true,
             attachments: String = ""
@@ -46,6 +48,14 @@ constructor(
         // Generate a unique hash for manual transactions
         val transactionHash =
                 generateManualTransactionHash(amount = amount, merchant = merchant, date = date)
+
+        val account = if (bankName != null && accountLast4 != null) accountBalanceRepository.account(bankName, accountLast4) else null
+        val target = if (type == TransactionType.TRANSFER && targetAccountBankName != null && targetAccountLast4 != null) {
+            accountBalanceRepository.account(targetAccountBankName, targetAccountLast4)
+        } else null
+        val toCurrency = target?.let {
+            accountBalanceRepository.pocketCurrency(it.name, it.last4, targetCurrency ?: currency)
+        }
 
         // Create the transaction entity
         val transaction =
@@ -64,6 +74,9 @@ constructor(
                         fromAccount = accountLast4,
                         toAccount = targetAccountLast4,
                         toAmount = targetAmount?.takeIf { type == TransactionType.TRANSFER && it.compareTo(amount) != 0 },
+                        accountId = account?.id,
+                        toAccountId = target?.id,
+                        toCurrency = toCurrency,
                         balanceAfter = null,
                         transactionHash = transactionHash,
                         isRecurring = isRecurring,
@@ -107,7 +120,7 @@ constructor(
                             creditLimit = null,
                             isCreditCard = false,
                             smsSource = null,
-                            currency = currency
+                            currency = toCurrency ?: currency
                         )
                     }
                 }

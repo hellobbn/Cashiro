@@ -83,7 +83,8 @@ object DatabaseModule {
                     CashiroDatabase.MIGRATION_62_63,
                     CashiroDatabase.MIGRATION_63_64,
                     CashiroDatabase.MIGRATION_64_65,
-                    CashiroDatabase.MIGRATION_65_66
+                    CashiroDatabase.MIGRATION_65_66,
+                    CashiroDatabase.MIGRATION_66_67
                 )
 
                 // Enable auto-migrations
@@ -110,6 +111,11 @@ object DatabaseModule {
     fun provideTransactionDao(database: CashiroDatabase): TransactionDao {
         return database.transactionDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideAccountDao(database: CashiroDatabase): com.ritesh.cashiro.data.database.dao.AccountDao =
+        database.accountDao()
 
     /**
      * Provides the SubscriptionDao from the database.

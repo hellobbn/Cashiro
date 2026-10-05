@@ -42,6 +42,11 @@ data class TransactionEntity(
         // Transfers between accounts in different currencies: what reached the target account,
         // in its currency. Null when both sides moved the same amount.
         @ColumnInfo(name = "to_amount") val toAmount: BigDecimal? = null,
+        // The accounts (accounts.id) a transaction moves money out of and, for a transfer, into.
+        // A transfer's target side is in [toCurrency] (null: the transaction's own currency).
+        @ColumnInfo(name = "account_id") val accountId: Long? = null,
+        @ColumnInfo(name = "to_account_id") val toAccountId: Long? = null,
+        @ColumnInfo(name = "to_currency") val toCurrency: String? = null,
         @ColumnInfo(name = "reference") val reference: String? = null,
         @ColumnInfo(name = "billing_cycle") val billingCycle: String? = null,
         @ColumnInfo(name = "attachments", defaultValue = "") val attachments: String = "",

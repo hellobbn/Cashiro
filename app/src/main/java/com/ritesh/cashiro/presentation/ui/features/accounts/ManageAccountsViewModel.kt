@@ -208,6 +208,7 @@ constructor(
                             sourceType = "MAIN_ACCOUNT_SYNC"
                         )
                     )
+                    accountBalanceRepository.updateAccount("Cash", "wallet") { it.copy(mainCurrency = account.currency) }
                 }
             }
             delay(3000)
@@ -432,6 +433,9 @@ constructor(
                     color = latestBalance?.color ?: "#E91E63"
                 )
             )
+            accountBalanceRepository.updateAccount(bankName, accountLast4) {
+                it.copy(isCreditCard = true, isWallet = false, creditLimit = newLimit)
+            }
         }
     }
 
@@ -698,6 +702,18 @@ constructor(
                         color = newColorHex
                     )
                 )
+                // The account's own details: what every screen shows
+                accountBalanceRepository.updateAccount(newBankName, accountLast4) {
+                    it.copy(
+                        mainCurrency = effectiveCurrency,
+                        isCreditCard = isCreditCard,
+                        isWallet = isWallet,
+                        creditLimit = newCreditLimit,
+                        iconResId = newIconResId,
+                        iconName = newIconName,
+                        color = newColorHex
+                    )
+                }
 
                 _uiState.update { it.copy(successMessage = "Account updated successfully") }
 
