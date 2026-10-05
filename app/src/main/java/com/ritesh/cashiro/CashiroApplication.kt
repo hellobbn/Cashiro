@@ -77,6 +77,8 @@ class CashiroApplication : Application(), Configuration.Provider {
         // Install crash handler first — must be before any other initialization
         com.ritesh.cashiro.utils.CrashHandler.install(this)
         registerActivityLifecycleCallbacks(AppLockLifecycleObserver())
+        // Hiding accounts was removed: bring back any hidden before
+        getSharedPreferences("account_prefs", MODE_PRIVATE).edit().remove("hidden_accounts").apply()
         applicationScope.launch {
             try {
                 webhookSyncScheduler.applyScheduling()

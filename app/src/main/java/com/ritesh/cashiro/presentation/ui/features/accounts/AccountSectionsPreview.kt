@@ -43,7 +43,7 @@ internal fun AccountSectionsPreview() {
                         AccountSectionSummary(group, expanded = expanded, onToggle = toggle)
                     }
                     items(group.visibleAccounts(expanded), key = { it.listKey() }) { account ->
-                        CompactAccountCard(account, false, false, {}, {}, {}, {}, {}, {}, {}, {})
+                        CompactAccountCard(account, false, {})
                     }
                     if (group.showFooterToggle(expanded)) item {
                         AccountSectionToggle(group, expanded, toggle)
