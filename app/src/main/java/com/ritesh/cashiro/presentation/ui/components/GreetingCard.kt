@@ -27,10 +27,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
-import java.time.LocalTime
 
 /**
- * Home's header: the avatar (opens Settings), the greeting over the user's name, and AI
+ * Home's header: the avatar (opens Settings), today's date over the user's name, and AI
  * bookkeeping as the one action.
  */
 @Composable
@@ -51,7 +50,7 @@ fun GreetingCard(
     ) {
         Box(
             modifier = Modifier
-                .size(44.dp)
+                .size(40.dp)
                 .clip(CircleShape)
                 .background(profileBackgroundColor)
                 .clickable(onClick = onProfileClick),
@@ -66,27 +65,26 @@ fun GreetingCard(
             )
         }
 
+        // Today's date first: the context for whatever gets recorded
         Column(modifier = Modifier.weight(1f)) {
-            val greetingRes = remember {
-                when (LocalTime.now().hour) {
-                    in 5..11 -> R.string.greeting_morning
-                    in 12..16 -> R.string.greeting_afternoon
-                    in 17..21 -> R.string.greeting_evening
-                    else -> R.string.greeting_night
-                }
+            val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+            val date = remember(locale) {
+                java.time.LocalDate.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern(if (locale.language == "zh") "M月d日 EEE" else "EEE, MMM d", locale)
+                )
             }
             Text(
-                text = stringResource(greetingRes),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = date,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1
             )
             Text(
                 text = userName,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 

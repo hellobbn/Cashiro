@@ -382,18 +382,30 @@ fun SharedTransitionScope.HomeScreen(
                                 item(key = "net_worth") {
                                     NetworthSummaryCards(
                                         uiState = uiState,
-                                        // What the credit cards owe, from the same overview as the rows below
-                                        liabilities = overviewItems
-                                            .firstOrNull { it.category == com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.CREDIT_CARDS }
-                                            ?.takeIf { it.status == com.ritesh.cashiro.presentation.ui.features.accounts.OverviewStatus.READY }
-                                            ?.amount,
-                                        onCurrencySelected = {
-                                            homeViewModel.selectCurrency(it)
-                                        },
-                                        onMonthClick = homeViewModel::showBreakdownDialog,
+                                        onCurrencySelected = { homeViewModel.selectCurrency(it) },
                                         onNetWorthClick = { navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.ManageAccounts) },
                                         breakdownShown = showAccountBreakdown,
                                         onToggleBreakdown = { showAccountBreakdown = !showAccountBreakdown }
+                                    )
+                                }
+                                // The account categories, only when asked for
+                                if (showAccountBreakdown) {
+                                    item(key = "account_overview") {
+                                        AccountCategoryList(
+                                            overviewItems, openCategory,
+                                            Modifier.padding(horizontal = Dimensions.Padding.content).animateItem()
+                                        )
+                                    }
+                                }
+                                item(key = "this_month") {
+                                    MonthCard(
+                                        income = uiState.currentMonthIncome,
+                                        expenses = uiState.currentMonthExpenses,
+                                        lastIncome = uiState.lastMonthIncome,
+                                        lastExpenses = uiState.lastMonthExpenses,
+                                        currency = uiState.selectedCurrency,
+                                        onClick = homeViewModel::showBreakdownDialog,
+                                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                                     )
                                 }
                             }
@@ -449,13 +461,8 @@ fun SharedTransitionScope.HomeScreen(
                                     }
                                 }
                             }
-                            // Rarely needed: shown from the net worth card's 分类 button
-                            HomeWidget.ACCOUNT_CAROUSEL -> if (showAccountBreakdown) {
-                                item(key = "account_overview") {
-                                    com.ritesh.cashiro.presentation.ui.features.accounts.CompactAccountOverview(
-                                        overviewItems, openCategory, Modifier.padding(horizontal = Dimensions.Padding.content))
-                                }
-                            }
+                            // Shown under the net worth, from its 分类 button
+                            HomeWidget.ACCOUNT_CAROUSEL -> Unit
                             HomeWidget.UPCOMING_SUBSCRIPTIONS -> {
                                 if (uiState.upcomingSubscriptions.isNotEmpty()) {
                                     item(key = "upcoming_subscriptions") {
@@ -509,6 +516,9 @@ fun SharedTransitionScope.HomeScreen(
                                     RecentTransactionsCard(
                                         transactions = uiState.recentTransactions,
                                         decorate = { lookups.decorate(it, uiState.conversions) },
+                                        targetName = { tx ->
+                                            tx.toAccountId?.let { id -> lookups.accounts.values.firstOrNull { it.accountId == id }?.bankName }
+                                        },
                                         mainCurrency = uiState.baseCurrency,
                                         isLoading = uiState.isLoading,
                                         onTransactionClick = { onTransactionClick(it.id, "transaction_${it.id}") },
@@ -850,12 +860,10 @@ private fun UpcomingSubscriptionsCard(
 @Composable
 private fun NetworthSummaryCards(
     uiState: HomeUiState,
-    liabilities: java.math.BigDecimal?,
-    onCurrencySelected: (String) -> Unit = {},
-    onMonthClick: () -> Unit = {},
-    onNetWorthClick: () -> Unit = {},
-    breakdownShown: Boolean = false,
-    onToggleBreakdown: () -> Unit = {},
+    onCurrencySelected: (String) -> Unit,
+    onNetWorthClick: () -> Unit,
+    breakdownShown: Boolean,
+    onToggleBreakdown: () -> Unit,
 ) {
     var showCurrencySheet by remember { mutableStateOf(false) }
 
@@ -871,29 +879,13 @@ private fun NetworthSummaryCards(
         )
     }
 
-    val context = LocalContext.current
-    val trendLabel = remember(uiState.balanceHistory) {
-        if (uiState.balanceHistory.size < 2) ""
-        else {
-            val start = uiState.balanceHistory.first().timestamp.toLocalDate()
-            val end = uiState.balanceHistory.last().timestamp.toLocalDate()
-            context.getString(R.string.last_days_format, ChronoUnit.DAYS.between(start, end))
-        }
-    }
-
-    HomeSummaryCard(
+    NetWorthSection(
         netWorth = uiState.totalBalance,
         currency = uiState.selectedCurrency,
-        liabilities = liabilities,
-        monthExpenses = uiState.currentMonthExpenses,
-        monthIncome = uiState.currentMonthIncome,
-        lastMonthExpenses = uiState.lastMonthExpenses,
-        balanceHistory = uiState.balanceHistory,
-        trendLabel = trendLabel,
+        history = uiState.balanceHistory,
         canChangeCurrency = uiState.availableCurrencies.size > 1,
         onCurrencyClick = { showCurrencySheet = true },
-        onMonthClick = onMonthClick,
-        onNetWorthClick = onNetWorthClick,
+        onOpenAccounts = onNetWorthClick,
         breakdownShown = breakdownShown,
         onToggleBreakdown = onToggleBreakdown,
         modifier = Modifier.padding(horizontal = Dimensions.Padding.content)

@@ -37,3 +37,26 @@ val successColor: Color
 val warningColor: Color
     @Composable @ReadOnlyComposable
     get() = if (isAppInDarkTheme) warning_dark else warning_light
+
+/**
+ * Money in and out as tonal roles (tone 40 on light, 80 on dark, with containers), for figures
+ * that compare the two. Spending is not `error`: spending money is not a mistake.
+ */
+data class MoneyColors(
+    val income: Color,
+    val incomeContainer: Color,
+    val onIncomeContainer: Color,
+    val expense: Color,
+    val expenseContainer: Color,
+    val onExpenseContainer: Color
+)
+
+val moneyColors: MoneyColors
+    @Composable @ReadOnlyComposable
+    get() = if (isAppInDarkTheme) MoneyColors(
+        income = Color(0xFF97D5A6), incomeContainer = Color(0xFF13512E), onIncomeContainer = Color(0xFFB2F1C0),
+        expense = Color(0xFFFFB4A9), expenseContainer = Color(0xFF842520), onExpenseContainer = Color(0xFFFFDAD5)
+    ) else MoneyColors(
+        income = Color(0xFF2E6A44), incomeContainer = Color(0xFFB2F1C0), onIncomeContainer = Color(0xFF00210E),
+        expense = Color(0xFFA43C33), expenseContainer = Color(0xFFFFDAD5), onExpenseContainer = Color(0xFF410001)
+    )
