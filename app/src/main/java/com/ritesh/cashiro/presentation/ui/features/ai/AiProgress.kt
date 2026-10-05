@@ -1,6 +1,20 @@
 package com.ritesh.cashiro.presentation.ui.features.ai
 
 import android.os.SystemClock
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.Upload
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontFamily
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,11 +27,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.FormatQuote
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Card
@@ -134,12 +146,41 @@ private fun StatusCard(phase: AiPhase.Running, model: String) {
 private fun Step(step: AiStep, active: Boolean) {
     val dates = localizedDateFormatter(withYear = false)
     when (step) {
-        is AiStep.Asking -> StepRow(
-            icon = Icons.Rounded.CheckCircle,
-            active = active,
-            title = stringResource(if (active) R.string.ai_step_asking else R.string.ai_step_answered, step.turn)
+        is AiStep.Sent -> StepRow(
+            icon = Icons.Rounded.Upload,
+            title = stringResource(R.string.ai_step_sent),
+            detail = stringResource(R.string.ai_step_sent_detail, step.system.length, step.message.length),
+            raw = listOf(
+                stringResource(R.string.ai_raw_system) to step.system,
+                stringResource(R.string.ai_raw_message) to step.message
+            )
         )
-        is AiStep.Note -> StepRow(icon = Icons.Rounded.FormatQuote, title = step.text, quote = true)
+        // Once answered, the reply's own row stands for the round
+        is AiStep.Asking -> if (active) {
+            StepRow(icon = Icons.Rounded.AutoAwesome, active = true, title = stringResource(R.string.ai_step_asking, step.turn))
+        }
+        is AiStep.Replied -> {
+            val usage = if (step.inputTokens != null || step.outputTokens != null) {
+                stringResource(
+                    R.string.ai_step_tokens,
+                    step.inputTokens?.let { "%,d".format(it) } ?: "—",
+                    step.outputTokens?.let { "%,d".format(it) } ?: "—"
+                )
+            } else null
+            val calls = step.calls.takeIf { it.isNotEmpty() }?.let { calls ->
+                stringResource(R.string.ai_step_calls, calls.joinToString(", ") { it.name })
+            }
+            StepRow(
+                icon = Icons.Rounded.AutoAwesome,
+                title = stringResource(R.string.ai_step_replied, step.turn, "%.1f".format(step.millis / 1000.0)),
+                detail = listOfNotNull(usage, calls).joinToString(" · ").ifEmpty { null },
+                quote = step.text.ifEmpty { null },
+                raw = listOfNotNull(
+                    step.thinking.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.ai_raw_thinking) to it },
+                    step.text.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.ai_raw_reply) to it }
+                ) + step.calls.map { call -> "→ ${call.name}" to pretty(call.input.toString()) }
+            )
+        }
         is AiStep.Searched -> {
             fun day(text: String?) = text?.let { runCatching { LocalDate.parse(it.take(10)).format(dates) }.getOrDefault(it) }
             val range = listOfNotNull(day(step.from), day(step.to)).distinct().joinToString("–")
@@ -150,7 +191,8 @@ private fun Step(step: AiStep, active: Boolean) {
                     range.ifEmpty { null },
                     step.text?.let { "“$it”" }
                 ).joinToString(" · "),
-                detail = step.found?.let { pluralStringResource(R.plurals.ai_step_found, it, it) }
+                detail = step.found?.let { pluralStringResource(R.plurals.ai_step_found, it, it) },
+                raw = rawCall(step.input.toString(), step.result)
             )
         }
         is AiStep.Proposed -> ProposedStep(step)
@@ -158,11 +200,27 @@ private fun Step(step: AiStep, active: Boolean) {
 }
 
 @Composable
+private fun rawCall(input: String, result: String) = listOf(
+    stringResource(R.string.ai_raw_input) to pretty(input),
+    stringResource(R.string.ai_raw_result) to pretty(result)
+)
+
+private val prettyJson = Json { prettyPrint = true }
+
+/** JSON indented for reading; anything else as it is. */
+private fun pretty(text: String): String =
+    runCatching { prettyJson.encodeToString(JsonElement.serializer(), prettyJson.parseToJsonElement(text)) }.getOrDefault(text)
+
+@Composable
 private fun ProposedStep(step: AiStep.Proposed) {
     val changes = step.changes
     val rejected = if (step.rejected) stringResource(R.string.ai_step_rejected) else null
     if (changes.isEmpty()) {
-        StepRow(icon = Icons.Rounded.WarningAmber, title = rejected ?: stringResource(R.string.ai_step_nothing, step.tool))
+        StepRow(
+            icon = Icons.Rounded.WarningAmber,
+            title = rejected ?: stringResource(R.string.ai_step_nothing, step.tool),
+            raw = rawCall(step.input.toString(), step.result)
+        )
         return
     }
     val dates = localizedDateFormatter(withYear = false)
@@ -175,7 +233,7 @@ private fun ProposedStep(step: AiStep.Proposed) {
             pluralStringResource(R.plurals.ai_step_deleted, changes.size, changes.size)
         else -> Icons.Rounded.AccountBalance to stringResource(R.string.ai_step_accounts)
     }
-    StepRow(icon = icon, title = title, detail = rejected) {
+    StepRow(icon = icon, title = title, detail = rejected, raw = rawCall(step.input.toString(), step.result)) {
         changes.take(SHOWN_PER_STEP).forEach { change ->
             when (change) {
                 is LedgerChange.Add -> TransactionLine(
@@ -247,7 +305,13 @@ private fun DetailText(text: String) {
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/** One line of the timeline: an icon (a spinner while [active]), a title and what it found. */
+/** Raw text shown in a step's details before the rest is cut off. */
+private const val RAW_LIMIT = 8_000
+
+/**
+ * One line of the timeline: an icon (a spinner while [active]), a title, what it found and
+ * [quote], the model's own words. A row with [raw] sections opens on tap to show them in full.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun StepRow(
@@ -255,11 +319,18 @@ private fun StepRow(
     title: String,
     active: Boolean = false,
     detail: String? = null,
-    quote: Boolean = false,
+    quote: String? = null,
+    raw: List<Pair<String, String>> = emptyList(),
     content: @Composable () -> Unit = {}
 ) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val expandable = raw.isNotEmpty()
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.sm),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .then(if (expandable) Modifier.clickable(onClickLabel = stringResource(R.string.ai_step_details)) { expanded = !expanded } else Modifier)
+            .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
         horizontalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
         Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
@@ -275,16 +346,50 @@ private fun StepRow(
             }
         }
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontStyle = if (quote) FontStyle.Italic else null,
-                color = if (quote) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                maxLines = if (quote) 4 else Int.MAX_VALUE,
-                overflow = TextOverflow.Ellipsis
-            )
+            Text(title, style = MaterialTheme.typography.bodyMedium)
             detail?.let { DetailText(it) }
+            if (quote != null && !expanded) {
+                Text(
+                    quote,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
             content()
+            AnimatedVisibility(visible = expanded) {
+                SelectionContainer {
+                    Column(
+                        modifier = Modifier
+                            .padding(top = Spacing.xs)
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow, MaterialTheme.shapes.small)
+                            .padding(Spacing.sm),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    ) {
+                        raw.forEach { (label, text) ->
+                            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                if (text.length > RAW_LIMIT) {
+                                    text.take(RAW_LIMIT) + "\n" + stringResource(R.string.ai_raw_truncated, text.length - RAW_LIMIT)
+                                } else text,
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        if (expandable) {
+            Icon(
+                imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }

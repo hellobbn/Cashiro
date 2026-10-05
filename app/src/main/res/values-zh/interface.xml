@@ -107,10 +107,9 @@
     <string name="ai_rename_note">它名下的交易、卡片、模板和预算会一并改到新名称。</string>
     <string name="cd_navigate_back">返回</string>
     <string name="ai_progress_turn">第 %1$d 轮</string>
-    <string name="ai_progress_hint">每一轮模型会先阅读，再查找或提出记录。你确认之前不会保存任何内容。</string>
+    <string name="ai_progress_hint">点任一步可查看实际发送和收到的内容。你确认之前不会保存任何内容。</string>
     <string name="ai_step_no_files">没有文件，按你的要求处理</string>
     <string name="ai_step_asking">第 %1$d 轮：等待模型回复…</string>
-    <string name="ai_step_answered">第 %1$d 轮：模型已回复</string>
     <string name="ai_step_searched">查找已记录的交易</string>
     <string name="ai_step_rejected">部分条目无效，已让模型修正</string>
     <string name="ai_step_nothing">模型调用了 %1$s，但没有提出内容</string>
@@ -143,4 +142,17 @@
     <plurals name="ai_step_deleted">
         <item quantity="other">提出删除 %d 笔交易</item>
     </plurals>
+    <string name="ai_step_sent">已发送请求</string>
+    <string name="ai_step_sent_detail">指令 %1$d 字 · 你的消息 %2$d 字</string>
+    <string name="ai_step_replied">第 %1$d 轮：模型用时 %2$s 秒回复</string>
+    <string name="ai_step_tokens">输入 %1$s token · 输出 %2$s</string>
+    <string name="ai_step_calls">调用 %1$s</string>
+    <string name="ai_step_details">显示详情</string>
+    <string name="ai_raw_system">指令（system prompt）</string>
+    <string name="ai_raw_message">你的消息</string>
+    <string name="ai_raw_thinking">思考</string>
+    <string name="ai_raw_reply">回复</string>
+    <string name="ai_raw_input">输入</string>
+    <string name="ai_raw_result">结果</string>
+    <string name="ai_raw_truncated">… 还有 %1$d 字</string>
 </resources>

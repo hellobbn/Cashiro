@@ -142,8 +142,9 @@ class LedgerTools @Inject constructor(
         AiTool(
             name = FIND,
             description = "Find the user's existing transactions between two dates (inclusive), optionally " +
-                "matching text in merchant or notes, or an exact amount. Use it before adding, to skip " +
-                "transactions that are already recorded, and to find the ids of transactions to change.",
+                "matching text in merchant or notes, or an exact amount. Use it to find the ids of " +
+                "transactions to change or delete, or to answer questions about them. Not needed to avoid " +
+                "duplicates: the app checks every proposed transaction against the ledger itself.",
             schema = schema(
                 required = listOf("from_date", "to_date"),
                 "from_date" to str("yyyy-MM-dd"),
@@ -178,8 +179,9 @@ class LedgerTools @Inject constructor(
         AiTool(
             name = CREATE_ACCOUNT,
             description = "Propose a new account for the user to review, when a document belongs to a card or " +
-                "account that is not listed. Returns a ref (N1, N2…) to use as account or to_account in " +
-                "add_transactions. Never propose an account that is already listed.",
+                "account that is not listed. Its ref is N1 for the first one you propose, N2 for the next and " +
+                "so on; use it as account or to_account in add_transactions, in the same reply if you like. " +
+                "Never propose an account that is already listed.",
             schema = schema(
                 required = listOf("name", "type", "currency"),
                 "name" to str("Bank, card issuer or wallet, as the user would name it, e.g. 招商银行"),
@@ -241,6 +243,16 @@ class LedgerTools @Inject constructor(
                 "ids" to arrayOf(int("Transaction id")),
                 "reason" to str("Why, shown to the user")
             )
+        ),
+        AiTool(
+            name = FINISH,
+            description = "End the session. Call it in the same reply as your last proposals, with a summary " +
+                "for the user. If any call in that reply is rejected, you get another turn to fix it.",
+            schema = schema(
+                required = listOf("summary"),
+                "summary" to str("One or two plain sentences in the user's language: what you proposed, and " +
+                    "anything you could not read or were unsure about")
+            )
         )
     )
 
@@ -258,6 +270,7 @@ class LedgerTools @Inject constructor(
                 UPDATE_ACCOUNT -> updateAccount(call.input, context, queue)
                 UPDATE -> update(call.input, context, queue)
                 DELETE -> delete(call.input, queue)
+                FINISH -> "Finished."
                 else -> return AiToolResult(call.id, "Unknown tool ${call.name}", isError = true)
             }
             AiToolResult(call.id, text)
@@ -613,6 +626,7 @@ class LedgerTools @Inject constructor(
         const val CREATE_ACCOUNT = "create_account"
         const val SET_BALANCE = "set_balance"
         const val UPDATE_ACCOUNT = "update_account"
+        const val FINISH = "finish"
         private const val WALLET_LAST4 = "wallet"
         private const val DEFAULT_ACCOUNT_COLOR = "#33B5E5"
         private const val MAX_FOUND = 200

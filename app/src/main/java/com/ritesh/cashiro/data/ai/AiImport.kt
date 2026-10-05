@@ -7,6 +7,7 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.util.Base64
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
@@ -151,16 +152,38 @@ internal fun decodeText(bytes: ByteArray): String = try {
     String(bytes, Charset.forName("GB18030"))
 }.removePrefix("\uFEFF")
 
-/** What a session has done so far, shown while it runs. */
+/** What a session has done so far, shown while it runs. Raw texts are kept for the detail view. */
 sealed interface AiStep {
-    /** The request went to the model; [turn] counts from 1. Finished once a later step follows. */
+    /** The opening request: the instructions and the user's message, files shown as placeholders. */
+    data class Sent(val system: String, val message: String) : AiStep
+    /** The request went to the model; [turn] counts from 1. Finished once its [Replied] follows. */
     data class Asking(val turn: Int) : AiStep
-    /** What the model wrote alongside its tool calls. */
-    data class Note(val text: String) : AiStep
+    data class Replied(
+        val turn: Int,
+        val millis: Long,
+        val text: String,
+        val thinking: String,
+        val calls: List<AiToolCall>,
+        val inputTokens: Int?,
+        val outputTokens: Int?
+    ) : AiStep
     /** The model looked up recorded transactions; [found] is null when the lookup failed. */
-    data class Searched(val from: String?, val to: String?, val text: String?, val found: Int?) : AiStep
+    data class Searched(
+        val from: String?,
+        val to: String?,
+        val text: String?,
+        val found: Int?,
+        val input: JsonObject,
+        val result: String
+    ) : AiStep
     /** A write tool queued [changes]; [rejected] when it refused some of its input. */
-    data class Proposed(val tool: String, val changes: List<LedgerChange>, val rejected: Boolean) : AiStep
+    data class Proposed(
+        val tool: String,
+        val changes: List<LedgerChange>,
+        val rejected: Boolean,
+        val input: JsonObject,
+        val result: String
+    ) : AiStep
 }
 
 /** The result of one AI session: the proposed changes and the model's closing note. */
@@ -180,20 +203,39 @@ class AiLedgerSession @Inject constructor(
         val ask = request.trim().ifEmpty { DEFAULT_REQUEST }
         chat.addUser(conversation, parts + AiPart.Text(ask))
 
+        onStep(AiStep.Sent(conversation.system, describe(parts, ask)))
+
         val queue = mutableListOf<LedgerChange>()
         repeat(MAX_TURNS) { turn ->
             onStep(AiStep.Asking(turn + 1))
+            val started = SystemClock.elapsedRealtime()
             val reply = chat.send(conversation)
+            onStep(
+                AiStep.Replied(
+                    turn + 1, SystemClock.elapsedRealtime() - started, reply.text.trim(), reply.thinking.trim(),
+                    reply.calls, reply.inputTokens, reply.outputTokens
+                )
+            )
             if (reply.calls.isEmpty()) {
                 if (reply.truncated) throw AiException("The answer was cut off. Try fewer pages at a time.")
                 return AiProposal(queue.toList(), reply.text.trim())
             }
-            reply.text.trim().takeIf { it.isNotEmpty() }?.let { onStep(AiStep.Note(it)) }
-            val results = reply.calls.map { call ->
+            val finish = reply.calls.firstOrNull { it.name == LedgerTools.FINISH }
+            val results = reply.calls.filter { it.name != LedgerTools.FINISH }.map { call ->
                 val queuedBefore = queue.size
-                tools.run(call, context, queue).also { result -> onStep(step(call, result, queue.subList(queuedBefore, queue.size).toList())) }
+                tools.run(call, context, queue).also { result ->
+                    onStep(step(call, result, queue.subList(queuedBefore, queue.size).toList()))
+                }
             }
-            chat.addToolResults(conversation, results)
+            val failed = results.any { it.isError || "Rejected:" in it.content }
+            // Proposals and the summary came in one reply: no need to ask again
+            if (finish != null && !failed) {
+                return AiProposal(queue.toList(), finish.input.text("summary") ?: reply.text.trim())
+            }
+            val finishResult = finish?.let {
+                AiToolResult(it.id, "Not finished: fix the rejected calls above, then call finish again.", isError = true)
+            }
+            chat.addToolResults(conversation, results + listOfNotNull(finishResult))
         }
         return AiProposal(queue.toList(), "")
     }
@@ -202,10 +244,25 @@ class AiLedgerSession @Inject constructor(
         if (call.name == LedgerTools.FIND) {
             val found = if (result.isError) null
             else runCatching { Json.parseToJsonElement(result.content).jsonObject["count"]?.jsonPrimitive?.intOrNull }.getOrNull()
-            AiStep.Searched(call.input.text("from_date"), call.input.text("to_date"), call.input.text("text"), found)
+            AiStep.Searched(
+                call.input.text("from_date"), call.input.text("to_date"), call.input.text("text"), found,
+                call.input, result.content
+            )
         } else {
-            AiStep.Proposed(call.name, queued, rejected = result.isError || "Rejected:" in result.content)
+            AiStep.Proposed(call.name, queued, result.isError || "Rejected:" in result.content, call.input, result.content)
         }
+
+    /** The user's message as text, each file a placeholder: the detail view shows no base64. */
+    private fun describe(parts: List<AiPart>, request: String): String {
+        var images = 0
+        return (parts.map { part ->
+            when (part) {
+                is AiPart.Text -> part.text
+                is AiPart.Image -> "[image ${++images}]"
+                is AiPart.Pdf -> "[PDF ${part.name}, ${part.text.length} characters of text]"
+            }
+        } + request).joinToString("\n\n")
+    }
 
     private fun JsonObject.text(key: String) = (this[key] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }
 
@@ -216,8 +273,8 @@ class AiLedgerSession @Inject constructor(
         before anything is saved, so propose everything that applies rather than asking for confirmation.
 
         When reading a statement or screenshot:
-        - Add each real transaction once. Before adding, call find_transactions for the covered dates and
-          leave out what is already recorded (same amount, about the same date and payee).
+        - Add each real transaction once. You need not look up what is already recorded: the app compares
+          each proposal with the ledger and flags likely duplicates for the user.
         - Leave out balances, subtotals, rejected or pending lines and anything that is not a transaction.
         - Card purchases are EXPENSE on the card's account and refunds are INCOME on it; a payment from
           a bank account to a card is a TRANSFER between them.
@@ -236,8 +293,9 @@ class AiLedgerSession @Inject constructor(
         differs from the balance listed below, propose set_balance. Rename or re-type accounts with
         update_account only when the user asks.
 
-        When you are done, reply with one or two plain sentences in the user's language saying what you
-        proposed and anything you could not read or were unsure about.
+        Work in as few replies as you can: put every tool call into one reply unless one needs another's
+        result, and call finish in that same reply with your summary. Use find_transactions only to find
+        transactions to change or delete, or to answer a question about them.
 
         $ledger
     """.trimIndent()

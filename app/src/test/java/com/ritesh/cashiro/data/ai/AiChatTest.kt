@@ -103,6 +103,30 @@ class AiChatTest {
     }
 
     @Test
+    fun `thinking and token usage are read from both protocols`() = runTest {
+        val claude = """{"stop_reason":"end_turn","usage":{"input_tokens":10,"cache_read_input_tokens":90,"output_tokens":7},
+            "content":[{"type":"thinking","thinking":"look at the dates","signature":"s"},{"type":"text","text":"done"}]}"""
+        val openAi = """{"usage":{"prompt_tokens":120,"completion_tokens":30},
+            "choices":[{"finish_reason":"stop","message":{"role":"assistant","content":"ok","reasoning_content":"hmm"}}]}"""
+        val chat = chat(HttpStatusCode.OK to claude, HttpStatusCode.OK to openAi)
+
+        val first = AiConversation(AiConfig(apiKey = "k"), "s", emptyList())
+        chat.addUser(first, listOf(AiPart.Text("hi")))
+        val reply = chat.send(first)
+        assertEquals("look at the dates", reply.thinking)
+        assertEquals("done", reply.text)
+        assertEquals(100, reply.inputTokens)
+        assertEquals(7, reply.outputTokens)
+
+        val second = AiConversation(AiConfig(AiProtocol.OPENAI_COMPATIBLE, "https://api.deepseek.com", "deepseek-chat", "k"), "s", emptyList())
+        chat.addUser(second, listOf(AiPart.Text("hi")))
+        val other = chat.send(second)
+        assertEquals("hmm", other.thinking)
+        assertEquals(120, other.inputTokens)
+        assertEquals(30, other.outputTokens)
+    }
+
+    @Test
     fun `refusal and truncation are reported`() = runTest {
         val chat = chat(
             HttpStatusCode.OK to """{"stop_reason":"refusal","content":[]}""",
