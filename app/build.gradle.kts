@@ -204,6 +204,8 @@ android {
         jniLibs { useLegacyPackaging = true }
         resources {
             excludes += setOf("META-INF/LICENSE*", "META-INF/NOTICE*", "META-INF/*.kotlin_module")
+            // Lookup tables for BouncyCastle's post-quantum ciphers (4 MB), which pdfbox never uses
+            excludes += "org/bouncycastle/pqc/**/*.properties"
         }
     }
     dependenciesInfo {

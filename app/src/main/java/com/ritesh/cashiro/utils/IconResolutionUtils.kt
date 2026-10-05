@@ -55,6 +55,9 @@ object IconResolutionUtils {
             if (resId != 0) return resId
         }
 
+        // Brand logos that were removed: saved categories and accounts still name them
+        if (name.startsWith("ic_brand_")) return retiredBrandIcon(name)
+
         // Fallback for common icons if getIdentifier fails or resource was renamed
         return when (name) {
             "type_finance_money_bag" -> R.drawable.type_finance_money_bag
@@ -94,5 +97,20 @@ object IconResolutionUtils {
             "type_travel_transport_taxi" -> R.drawable.type_travel_transport_taxi
             else -> 0
         }
+    }
+
+    /** A generic icon in place of a brand logo that is no longer bundled (the Indian brands). */
+    private fun retiredBrandIcon(name: String): Int = when (name.removePrefix("ic_brand_")) {
+        "swiggy", "zomato" -> R.drawable.type_food_takeout
+        "rapido", "ola", "ola_electric", "blu_smart", "yulu", "bounce", "vogo" -> R.drawable.type_travel_transport_taxi
+        "zepto", "blinkit", "bigbasket", "grofers", "dmart", "jiomart", "dunzo" -> R.drawable.type_groceries_basket
+        "oyo", "makemytrip", "goibibo", "cleartrip", "yatra", "ixigo" -> R.drawable.type_event_and_place_hotel
+        "jiocinema", "jiohotstar", "zee5", "sony_liv", "voot", "eros_now", "mx_player", "bookmyshow", "pvr", "inox" ->
+            R.drawable.type_tool_electronic_clapper_board
+        "simpl", "slice", "lazypay", "onecard", "cred" -> R.drawable.type_finance_credit_card
+        "paytm", "phonepe", "bhim", "mobikwik", "freecharge", "amazon_pay", "cashfree", "juspay" -> R.drawable.type_finance_money_bag
+        "airtel", "jio", "bsnl", "mtnl", "vodafone_idea" -> R.drawable.type_tool_electronic_mobile_phone
+        else -> if ("bank" in name || name.endsWith("_sbi") || name.endsWith("_lic")) R.drawable.type_finance_bank
+        else R.drawable.type_shopping_shopping_bags
     }
 }
