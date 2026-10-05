@@ -197,4 +197,5 @@
     <string name="default_account_note">默认</string>
     <string name="default_account_title">默认记账账户</string>
     <string name="default_account_hint">记一笔时默认选中这个账户</string>
+    <string name="home_by_category">分类</string>
 </resources>

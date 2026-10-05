@@ -240,6 +240,7 @@ fun SharedTransitionScope.HomeScreen(
     val scope = rememberCoroutineScope()
 
     var showEditWidgetsSheet by remember { mutableStateOf(false) }
+    var showAccountBreakdown by rememberSaveable { mutableStateOf(false) }
 
     // Haptic feedback
     val view = LocalView.current
@@ -389,7 +390,10 @@ fun SharedTransitionScope.HomeScreen(
                                         onCurrencySelected = {
                                             homeViewModel.selectCurrency(it)
                                         },
-                                        onMonthClick = homeViewModel::showBreakdownDialog
+                                        onMonthClick = homeViewModel::showBreakdownDialog,
+                                        onNetWorthClick = { navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.ManageAccounts) },
+                                        breakdownShown = showAccountBreakdown,
+                                        onToggleBreakdown = { showAccountBreakdown = !showAccountBreakdown }
                                     )
                                 }
                             }
@@ -445,7 +449,8 @@ fun SharedTransitionScope.HomeScreen(
                                     }
                                 }
                             }
-                            HomeWidget.ACCOUNT_CAROUSEL -> {
+                            // Rarely needed: shown from the net worth card's 分类 button
+                            HomeWidget.ACCOUNT_CAROUSEL -> if (showAccountBreakdown) {
                                 item(key = "account_overview") {
                                     com.ritesh.cashiro.presentation.ui.features.accounts.CompactAccountOverview(
                                         overviewItems, openCategory, Modifier.padding(horizontal = Dimensions.Padding.content))
@@ -848,6 +853,9 @@ private fun NetworthSummaryCards(
     liabilities: java.math.BigDecimal?,
     onCurrencySelected: (String) -> Unit = {},
     onMonthClick: () -> Unit = {},
+    onNetWorthClick: () -> Unit = {},
+    breakdownShown: Boolean = false,
+    onToggleBreakdown: () -> Unit = {},
 ) {
     var showCurrencySheet by remember { mutableStateOf(false) }
 
@@ -885,6 +893,9 @@ private fun NetworthSummaryCards(
         canChangeCurrency = uiState.availableCurrencies.size > 1,
         onCurrencyClick = { showCurrencySheet = true },
         onMonthClick = onMonthClick,
+        onNetWorthClick = onNetWorthClick,
+        breakdownShown = breakdownShown,
+        onToggleBreakdown = onToggleBreakdown,
         modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
     )
 }
