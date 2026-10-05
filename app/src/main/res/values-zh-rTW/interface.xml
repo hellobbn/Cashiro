@@ -172,4 +172,8 @@
     <string name="ai_raw_truncated">… 還有 %1$d 字</string>
     <string name="backup_brokerage_credentials">券商連線（含 Flex token）</string>
     <string name="backup_brokerage_credentials_warning">此檔案不加密：拿到檔案的人可以用其中的 token 讀取你的券商報表。</string>
+    <string name="ai_run_log">處理過程</string>
+    <plurals name="ai_run_rounds">
+        <item quantity="other">%d 輪</item>
+    </plurals>
 </resources>

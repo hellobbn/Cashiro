@@ -91,7 +91,9 @@ sealed interface AiPhase {
         val files: Int,
         val images: Int? = null,
         val steps: List<AiStep> = emptyList(),
-        val startedAt: Long = SystemClock.elapsedRealtime()
+        val startedAt: Long = SystemClock.elapsedRealtime(),
+        // Set once the run is over, when it is kept for the review
+        val finishedAt: Long? = null
     ) : AiPhase {
         val proposed get() = steps.sumOf { (it as? AiStep.Proposed)?.changes?.size ?: 0 }
     }
@@ -109,7 +111,9 @@ data class AiAssistantUiState(
     val error: String? = null,
     // A PDF that needs its password before it can be read
     val passwordFor: String? = null,
-    val models: ModelListState = ModelListState()
+    val models: ModelListState = ModelListState(),
+    // The steps of the run that produced the review, kept so they can be read afterwards
+    val lastRun: AiPhase.Running? = null
 )
 
 @HiltViewModel
@@ -197,6 +201,7 @@ class AiAssistantViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         phase = AiPhase.Review,
+                        lastRun = (it.phase as? AiPhase.Running)?.copy(finishedAt = SystemClock.elapsedRealtime()),
                         summary = proposal.summary,
                         // Likely duplicates start left out
                         review = proposal.changes.map { change ->

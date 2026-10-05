@@ -165,4 +165,9 @@
     <string name="ai_raw_truncated">… %1$d more characters</string>
     <string name="backup_brokerage_credentials">Brokerage connections (with Flex tokens)</string>
     <string name="backup_brokerage_credentials_warning">This file is not encrypted: anyone who gets it can read your brokerage statements with these tokens.</string>
+    <string name="ai_run_log">How it was done</string>
+    <plurals name="ai_run_rounds">
+        <item quantity="one">%d round</item>
+        <item quantity="other">%d rounds</item>
+    </plurals>
 </resources>

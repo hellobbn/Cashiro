@@ -122,6 +122,8 @@ fun AiAssistantScreen(
     val lookups by viewModel.lookups.collectAsStateWithLifecycle()
     // The proposed change whose details are open
     var opened by rememberSaveable { mutableStateOf<Int?>(null) }
+    // Whether the finished run's steps are shown under the review
+    var runLogOpen by rememberSaveable { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
@@ -255,6 +257,9 @@ fun AiAssistantScreen(
                         mainCurrency = null,
                         onOpen = if (saved) null else { index -> opened = index }
                     )
+                    state.lastRun?.let { run ->
+                        aiRunLog(run, expanded = runLogOpen, onToggle = { runLogOpen = !runLogOpen })
+                    }
                 }
             }
         }

@@ -75,12 +75,58 @@ private const val SHOWN_PER_STEP = 4
  */
 fun LazyListScope.aiProgress(phase: AiPhase.Running, model: String) {
     item(key = "progress-status") { StatusCard(phase, model) }
-    item(key = "progress-files") {
+    timeline(phase, keyPrefix = "progress", live = true)
+}
+
+/**
+ * A finished run, kept on the review: one row with its totals that opens to the same timeline,
+ * every step of which still opens to its raw text.
+ */
+fun LazyListScope.aiRunLog(run: AiPhase.Running, expanded: Boolean, onToggle: () -> Unit) {
+    item(key = "run-log") {
+        val replies = run.steps.filterIsInstance<AiStep.Replied>()
+        val seconds = (((run.finishedAt ?: run.startedAt) - run.startedAt) / 1000).coerceAtLeast(0)
+        val input = replies.mapNotNull { it.inputTokens }.takeIf { it.isNotEmpty() }?.sum()
+        val output = replies.mapNotNull { it.outputTokens }.takeIf { it.isNotEmpty() }?.sum()
+        val totals = listOfNotNull(
+            pluralStringResource(R.plurals.ai_run_rounds, replies.size, replies.size),
+            "%d:%02d".format(seconds / 60, seconds % 60),
+            if (input != null || output != null) {
+                stringResource(R.string.ai_step_tokens, input?.let { "%,d".format(it) } ?: "—", output?.let { "%,d".format(it) } ?: "—")
+            } else null
+        ).joinToString(" · ")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .clickable(onClickLabel = stringResource(R.string.ai_step_details), onClick = onToggle)
+                .padding(Spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Rounded.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.ai_run_log), style = MaterialTheme.typography.titleSmall)
+                DetailText(totals)
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+    if (expanded) timeline(run, keyPrefix = "run-log", live = false)
+}
+
+/** The files read and each step after; while [live], the last one is in progress. */
+private fun LazyListScope.timeline(phase: AiPhase.Running, keyPrefix: String, live: Boolean) {
+    item(key = "$keyPrefix-files") {
         val images = phase.images
-        val done = images != null
         StepRow(
             icon = Icons.Rounded.Description,
-            active = !done,
+            active = live && images == null,
             title = when {
                 phase.files == 0 -> stringResource(R.string.ai_step_no_files)
                 images == null -> pluralStringResource(R.plurals.ai_step_reading_files, phase.files, phase.files)
@@ -90,8 +136,8 @@ fun LazyListScope.aiProgress(phase: AiPhase.Running, model: String) {
             }
         )
     }
-    itemsIndexed(phase.steps, key = { index, _ -> "progress-$index" }) { index, step ->
-        Step(step, active = index == phase.steps.lastIndex)
+    itemsIndexed(phase.steps, key = { index, _ -> "$keyPrefix-$index" }) { index, step ->
+        Step(step, active = live && index == phase.steps.lastIndex)
     }
 }
 

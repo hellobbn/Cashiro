@@ -98,7 +98,8 @@ client, no provider SDKs, to keep the app small.
   `finish` call in the same reply as its proposals, so a plain import is one round trip; a reply
   with a rejected call gets another turn. Each request, reply (thinking, text, tool calls, tokens,
   time), lookup and proposal is an `AiStep`; `AiProgress.kt` shows them as a timeline whose rows
-  open to the raw text.
+  open to the raw text. The run is kept with the review (and after saving) under a collapsed
+  "How it was done" row with its rounds, time and tokens.
 - `AiAttachmentReader` handles the input files:
   - Tall screenshots are cut into tiles.
   - PDFs go to Claude as documents and to other providers as their text layer, or as the file
