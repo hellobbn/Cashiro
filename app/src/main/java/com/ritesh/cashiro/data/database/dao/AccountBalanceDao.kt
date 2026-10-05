@@ -426,6 +426,19 @@ abstract class AccountBalanceDao {
     abstract fun getAllBalances(): Flow<List<AccountBalanceEntity>>
 
     /** The latest balance of every currency of every account. */
+    @Query("DELETE FROM account_balances WHERE account_id = :accountId AND currency = :currency")
+    abstract suspend fun deleteCurrencyRows(accountId: Long, currency: String)
+
+    @Query("DELETE FROM account_currencies WHERE account_id = :accountId AND currency = :currency")
+    abstract suspend fun deleteCurrencyRow(accountId: Long, currency: String)
+
+    /** Takes back a currency just added to an account (undo); the app never removes one otherwise. */
+    @Transaction
+    open suspend fun removeCurrency(accountId: Long, currency: String) {
+        deleteCurrencyRows(accountId, currency)
+        deleteCurrencyRow(accountId, currency)
+    }
+
     @Query(POCKET_BALANCES)
     abstract fun observePocketBalances(): Flow<List<PocketBalance>>
 

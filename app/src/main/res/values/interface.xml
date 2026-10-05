@@ -104,6 +104,7 @@
     <string name="ai_balance_change">Balance %1$s → %2$s</string>
     <string name="ai_limit_change">Limit %1$s → %2$s</string>
     <string name="ai_kind_changed">Account type changed</string>
+    <string name="ai_currencies_added">Adds %1$s</string>
     <string name="ai_rename_note">Its transactions, cards, templates and budgets move to the new name.</string>
     <string name="cd_navigate_back">Back</string>
     <string name="ai_progress_turn">round %1$d</string>
