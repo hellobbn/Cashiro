@@ -5,6 +5,7 @@ import android.os.Build
 import com.google.gson.GsonBuilder
 import com.ritesh.cashiro.BuildConfig
 import android.net.Uri
+import com.ritesh.cashiro.data.brokerage.BrokerageRepository
 import com.ritesh.cashiro.data.database.CashiroDatabase
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.repository.WebhookRepository
@@ -30,7 +31,8 @@ class BackupExporter @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: CashiroDatabase,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val webhookRepository: WebhookRepository
+    private val webhookRepository: WebhookRepository,
+    private val brokerageRepository: BrokerageRepository
 ) {
     
     private val gson = GsonBuilder()
@@ -125,6 +127,15 @@ class BackupExporter @Inject constructor(
                             }
                             zipOut.closeEntry()
                         }
+                    }
+                }
+
+                // Brokerage connections live in their own encrypted store, not the database
+                if (config.includeBrokerageCredentials) {
+                    brokerageRepository.exportWithCredentials()?.let { connections ->
+                        zipOut.putNextEntry(ZipEntry(BROKERAGE_ENTRY))
+                        zipOut.write(connections.toByteArray())
+                        zipOut.closeEntry()
                     }
                 }
 
@@ -348,5 +359,9 @@ class BackupExporter @Inject constructor(
             // Log or ignore image copy failure to avoid failing entire backup
             e.printStackTrace()
         }
+    }
+
+    companion object {
+        const val BROKERAGE_ENTRY = "brokerage.json"
     }
 }

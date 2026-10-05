@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /** Public state deliberately omits credentials. Provider/account IDs are scoped per connection. */
 data class BrokerConnection(
@@ -19,6 +21,8 @@ data class BrokerConnection(
     val accounts: List<BrokerageAccount>,
     val syncedAt: Long
 )
+
+private val backupJson = Json { ignoreUnknownKeys = true }
 
 @Singleton
 class BrokerageRepository internal constructor(
@@ -75,6 +79,43 @@ class BrokerageRepository internal constructor(
         mutex.withLock {
             loadLocked()
             persist(saved!!.filterNot { it.id == id })
+        }
+    }
+
+    /**
+     * Every connection with its credentials, for a backup the user chose to include them in.
+     * Null when there are none.
+     */
+    suspend fun exportWithCredentials(): String? = withContext(Dispatchers.IO) {
+        mutex.withLock {
+            loadLocked()
+            saved!!.takeIf { it.isNotEmpty() }?.let { backupJson.encodeToString(it) }
+        }
+    }
+
+    /**
+     * Adds the connections from a backup. One whose provider already has the same credentials or
+     * any of the same accounts here is skipped, as connecting it again would be. Returns how many
+     * were added.
+     */
+    suspend fun restore(exported: String): Int = withContext(Dispatchers.IO) {
+        mutex.withLock {
+            loadLocked()
+            val incoming = backupJson.decodeFromString<List<SavedBrokerConnection>>(exported)
+            val added = mutableListOf<SavedBrokerConnection>()
+            incoming.filter { it.providerId in providers }.forEach { connection ->
+                val present = saved!! + added
+                val duplicate = present.any { old ->
+                    old.providerId == connection.providerId && (old.credentials.fields == connection.credentials.fields ||
+                        old.accounts.any { a -> connection.accounts.any { it.accountId == a.accountId } })
+                }
+                if (!duplicate) added += SavedBrokerConnection(
+                    UUID.randomUUID().toString(), connection.providerId, connection.label,
+                    connection.credentials, connection.accounts, connection.syncedAt
+                )
+            }
+            if (added.isNotEmpty()) persist(saved!! + added)
+            added.size
         }
     }
 

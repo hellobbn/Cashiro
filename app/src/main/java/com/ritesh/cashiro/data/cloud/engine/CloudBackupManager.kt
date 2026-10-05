@@ -71,26 +71,27 @@ class CloudBackupManager @Inject constructor(
 
         try {
             progressListener?.invoke(5)
-            val exportResult = backupExporter.exportBackup(config)
+            val passphrase = if (cloudCredentialStore.isE2eEncryptionEnabled()) {
+                cloudCredentialStore.getE2ePassphrase().takeIf { it.isNotBlank() }
+            } else null
+            // Brokerage tokens only travel inside an end-to-end encrypted file
+            val exportResult = backupExporter.exportBackup(config.copy(includeBrokerageCredentials = passphrase != null))
             if (exportResult !is ExportResult.Success) {
                 val errorMsg = if (exportResult is ExportResult.Error) exportResult.message else "Backup export failed"
                 return@withContext Result.failure(Exception(errorMsg))
             }
 
             var fileToUpload = exportResult.file
-            val isEncrypted = cloudCredentialStore.isE2eEncryptionEnabled()
-            if (isEncrypted) {
-                val passphrase = cloudCredentialStore.getE2ePassphrase()
-                if (passphrase.isNotBlank()) {
-                    val encryptedFile = File(context.cacheDir, "${fileToUpload.nameWithoutExtension}.enc")
-                    val encResult = encryptionEngine.encryptFile(fileToUpload, encryptedFile, passphrase)
-                    if (encResult.isSuccess && encResult.getOrNull() != null) {
-                        // Clean up plaintext zip
-                        fileToUpload.delete()
-                        fileToUpload = encResult.getOrNull()!!
-                    } else {
-                        return@withContext Result.failure(Exception("Failed to encrypt backup file before upload."))
-                    }
+            if (passphrase != null) {
+                val encryptedFile = File(context.cacheDir, "${fileToUpload.nameWithoutExtension}.enc")
+                val encResult = encryptionEngine.encryptFile(fileToUpload, encryptedFile, passphrase)
+                if (encResult.isSuccess && encResult.getOrNull() != null) {
+                    // Clean up plaintext zip
+                    fileToUpload.delete()
+                    fileToUpload = encResult.getOrNull()!!
+                } else {
+                    fileToUpload.delete()
+                    return@withContext Result.failure(Exception("Failed to encrypt backup file before upload."))
                 }
             }
 

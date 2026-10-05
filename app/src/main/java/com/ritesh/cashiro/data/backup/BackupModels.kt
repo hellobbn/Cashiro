@@ -372,7 +372,9 @@ data class BackupConfiguration(
     val includeTransactionalData: Boolean = true,
     val includeProfileData: Boolean = true,
     val includeBudgets: Boolean = true,
-    val includeAppPreferences: Boolean = true
+    val includeAppPreferences: Boolean = true,
+    // Brokerage connections with their tokens; off unless the user asks or the file is encrypted
+    val includeBrokerageCredentials: Boolean = false
 )
 
 /**

@@ -98,4 +98,22 @@ class BrokerageRepositoryTest {
         try { repo.connect("unknown", "Personal", credentials); fail() }
         catch (e: BrokerageException) { assertEquals(BrokerageError.UNSUPPORTED_PROVIDER, e.error) }
     }
+
+    @Test fun backupRestoresConnectionsAndSkipsOnesAlreadyPresent() = runTest {
+        repo.connect("fake", "Personal", credentials)
+        val exported = repo.exportWithCredentials()!!
+
+        val fresh = BrokerageRepository(MemoryStore(), setOf(provider)) { 3000L }
+        assertEquals(1, fresh.restore(exported))
+        assertEquals("Personal", fresh.connections.value.single().label)
+        assertEquals(repo.connections.value.single().accounts, fresh.connections.value.single().accounts)
+        // Restoring the same backup again adds nothing, and the provider is never called
+        assertEquals(0, fresh.restore(exported))
+        assertEquals(0, repo.restore(exported))
+        assertEquals(1, provider.calls)
+    }
+
+    @Test fun noBackupWithoutConnections() = runTest {
+        assertNull(repo.exportWithCredentials())
+    }
 }
