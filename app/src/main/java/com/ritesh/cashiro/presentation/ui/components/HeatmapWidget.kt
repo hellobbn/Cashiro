@@ -180,7 +180,7 @@ fun HeatmapWidget(
                         text = label,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        fontSize = 11.sp,
+                        
                         modifier = Modifier.offset(x = xOffset)
                     )
                 }

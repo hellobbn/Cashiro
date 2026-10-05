@@ -44,8 +44,12 @@ Cash Report 可选：没有该节时仍能显示持仓，但不会显示现金�
 - Flex 协议使用 URL 查询参数传递 Token：此专用客户端不启用 HTTP 日志，不保留原始网络异常，不跟随重定向，也不采用服务端返回的 URL。
 - 不上传现有记账数据；IBKR 仍会看到连接来源 IP 并按自身政策处理 API 访问。
 - 连接、凭据、账户和持仓全部用 AES-GCM 加密，随机 nonce，密钥保存在 Android Keystore。
-  原子写入 `noBackupFilesDir/brokerage-v1.enc`，不进入系统迁移/备份或 Cashiro 现有导出/云备份。
-- 加密失效时直接报错，不回退到明文。重新安装或设备迁移后须重新连接。
+  原子写入 `noBackupFilesDir/brokerage-v1.enc`，不进入系统迁移/备份。
+- Cashiro 备份默认不含券商数据。导出备份时勾选“券商连接（含 Flex token）”，或云备份设置了端到端
+  加密密码时，连接、凭据、账户和持仓才写进备份 zip 的 `brokerage.json`（本地导出的文件不加密，界面
+  会提示）。导入时只新增连接：同一券商下凭据相同或账户 ID 重叠的跳过；恢复失败不影响记账数据导入。
+  设备间同步（sync）从不包含券商数据。
+- 加密失效时直接报错，不回退到明文。未从备份恢复时，重新安装或设备迁移后须重新连接。
 - Token 表单使用密码输入，禁止该对话框截图；Token 不进入 SavedStateHandle、rememberSaveable、导航参数或 UI 列表状态。
 - 报表请求串行并间隔 7 秒，遵守每秒 1 次、每分钟 10 次限制；报表未就绪最多轮询 6 次。
   网络请求有超时，响应最大 5 MiB。XML 拒绝 DTD / ENTITY 声明与外部实体。

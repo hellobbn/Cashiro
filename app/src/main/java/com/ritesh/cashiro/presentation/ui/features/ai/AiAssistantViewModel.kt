@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.ai
 
 import android.net.Uri
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.ai.AiAttachment
@@ -10,6 +11,8 @@ import com.ritesh.cashiro.data.ai.AiException
 import com.ritesh.cashiro.data.ai.AiChat
 import com.ritesh.cashiro.data.ai.AiLedgerSession
 import com.ritesh.cashiro.data.ai.AiModel
+import com.ritesh.cashiro.data.ai.AiPart
+import com.ritesh.cashiro.data.ai.AiStep
 import com.ritesh.cashiro.data.ai.AiSettings
 import com.ritesh.cashiro.data.ai.AppliedChanges
 import com.ritesh.cashiro.data.ai.LedgerChange
@@ -80,7 +83,20 @@ data class ReviewItem(val change: LedgerChange, val included: Boolean)
 
 sealed interface AiPhase {
     data object Compose : AiPhase
-    data class Running(val proposed: Int) : AiPhase
+    /**
+     * The model is at work. [images] is how many images the files became (long screenshots are cut
+     * into tiles), null while they are still being read.
+     */
+    data class Running(
+        val files: Int,
+        val images: Int? = null,
+        val steps: List<AiStep> = emptyList(),
+        val startedAt: Long = SystemClock.elapsedRealtime(),
+        // Set once the run is over, when it is kept for the review
+        val finishedAt: Long? = null
+    ) : AiPhase {
+        val proposed get() = steps.sumOf { (it as? AiStep.Proposed)?.changes?.size ?: 0 }
+    }
     data object Review : AiPhase
     data class Saved(val applied: AppliedChanges) : AiPhase
 }
@@ -95,7 +111,9 @@ data class AiAssistantUiState(
     val error: String? = null,
     // A PDF that needs its password before it can be read
     val passwordFor: String? = null,
-    val models: ModelListState = ModelListState()
+    val models: ModelListState = ModelListState(),
+    // The steps of the run that produced the review, kept so they can be read afterwards
+    val lastRun: AiPhase.Running? = null
 )
 
 @HiltViewModel
@@ -170,15 +188,20 @@ class AiAssistantViewModel @Inject constructor(
         val s = _state.value
         if (running?.isActive == true || (s.attachments.isEmpty() && s.request.isBlank())) return
         running = viewModelScope.launch {
-            _state.update { it.copy(phase = AiPhase.Running(0), error = null, passwordFor = null) }
+            val started = AiPhase.Running(files = s.attachments.size)
+            _state.update { it.copy(phase = started, error = null, passwordFor = null) }
+            fun progress(change: (AiPhase.Running) -> AiPhase.Running) =
+                _state.update { state -> (state.phase as? AiPhase.Running)?.let { state.copy(phase = change(it)) } ?: state }
             try {
                 val parts = reader.parts(s.attachments, passwords)
-                val proposal = session.run(parts, s.request.ifBlank { defaultRequest }) { proposed ->
-                    _state.update { it.copy(phase = AiPhase.Running(proposed)) }
+                progress { it.copy(images = parts.count { part -> part is AiPart.Image }) }
+                val proposal = session.run(parts, s.request.ifBlank { defaultRequest }) { step ->
+                    progress { it.copy(steps = it.steps + step) }
                 }
                 _state.update {
                     it.copy(
                         phase = AiPhase.Review,
+                        lastRun = (it.phase as? AiPhase.Running)?.copy(finishedAt = SystemClock.elapsedRealtime()),
                         summary = proposal.summary,
                         // Likely duplicates start left out
                         review = proposal.changes.map { change ->
@@ -260,3 +283,7 @@ class AiAssistantViewModel @Inject constructor(
         _state.update { it.copy(error = null) }
     }
 }
+
+/** How many changes a save wrote. */
+fun AppliedChanges.count(): Int =
+    createdAccounts.size + balanceRowIds.size + addedIds.size + updated.size + deleted.size

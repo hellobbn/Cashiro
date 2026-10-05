@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
 import com.ritesh.cashiro.presentation.ui.components.mainAccountKey
@@ -523,7 +525,7 @@ fun TransactionsFilterBottomSheet(
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp),
-                        shape = MaterialTheme.shapes.extraExtraLarge
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Text(
                             text = stringResource(R.string.apply),
@@ -534,6 +536,7 @@ fun TransactionsFilterBottomSheet(
 
                     // Reset button
                     IconButton(
+                        shapes = IconButtonDefaults.shapes(),
                         onClick = { viewModel.resetFilters() },
                         modifier = Modifier
                             .size(56.dp)

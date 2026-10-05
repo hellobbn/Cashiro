@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,11 +54,7 @@ fun DialogConfirmButton(
         modifier = modifier
     ) {
         if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
-                strokeWidth = 2.dp,
-                color = LocalContentColor.current
-            )
+            LoadingIndicator(modifier = Modifier.size(24.dp), color = LocalContentColor.current)
         } else {
             Text(text)
         }

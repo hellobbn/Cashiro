@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.animation.animateContentSize
@@ -58,7 +60,7 @@ fun CategoryItem(
                             contentColor = MaterialTheme.colorScheme.onSurface.copy(0.7f),
                             containerColor = MaterialTheme.colorScheme.surface
                         ),
-                        shape = MaterialTheme.shapes.largeIncreased
+                        shapes = IconButtonDefaults.shapes()
                     ) {
                         Icon(
                             Icons.Rounded.AddCircle,

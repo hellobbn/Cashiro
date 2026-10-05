@@ -12,9 +12,21 @@ class BrandLookupPerformanceRegressionTest {
         assertEquals(R.drawable.ic_brand_google, BrandIcons.getIconResource("Google"))
     }
 
-    @Test fun credExceptionDoesNotMatchCredit() {
-        assertEquals(R.drawable.ic_brand_cred, BrandIcons.getIconResource("CRED payment"))
-        assertNotEquals(R.drawable.ic_brand_cred, BrandIcons.getIconResource("Credit payment"))
+    @Test fun shortKeysOnlyMatchWholeWords() {
+        assertEquals(R.drawable.ic_brand_x, BrandIcons.getIconResource("X Premium"))
+        assertNull(BrandIcons.getIconResource("Exxon fuel"))
+        assertEquals(R.drawable.ic_brand_qq, BrandIcons.getIconResource("QQ会员"))
+        assertNull(BrandIcons.getIconResource("Aqqa"))
+    }
+
+    @Test fun chineseNamesFindTheirBrand() {
+        assertEquals(R.drawable.ic_brand_alipay, BrandIcons.getIconResource("支付宝-余额宝转入"))
+        assertEquals(R.drawable.ic_brand_meituan, BrandIcons.getIconResource("美团外卖"))
+        assertEquals(R.drawable.ic_brand_starbucks, BrandIcons.getIconResource("星巴克（南京西路店）"))
+        assertEquals(R.drawable.ic_brand_netease_cloud_music, BrandIcons.getIconResource("网易云音乐会员"))
+        assertEquals(R.drawable.ic_brand_china_unicom, BrandIcons.getIconResource("中国联通话费充值"))
+        assertEquals(R.drawable.ic_brand_amap, BrandIcons.getIconResource("高德打车"))
+        assertEquals(R.drawable.ic_brand_waldorf_astoria, BrandIcons.getIconResource("Waldorf Astoria Shanghai"))
     }
 
     @Test fun emptyAndUnknownNamesRetainFallback() {

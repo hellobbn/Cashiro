@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -328,6 +330,7 @@ fun DeleteCategoryDialog(
                 ) {
                     Text(stringResource(R.string.delete_category_title))
                     IconButton(
+                        shapes = IconButtonDefaults.shapes(),
                         onClick = onDismiss,
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
@@ -353,6 +356,7 @@ fun DeleteCategoryDialog(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Button(
+                        shapes = ButtonDefaults.shapes(),
                         onClick = onMoveOthers,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -363,6 +367,7 @@ fun DeleteCategoryDialog(
                         Text(stringResource(R.string.move_to_different_category))
                     }
                     Button(
+                        shapes = ButtonDefaults.shapes(),
                         onClick = onMoveDefault,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,

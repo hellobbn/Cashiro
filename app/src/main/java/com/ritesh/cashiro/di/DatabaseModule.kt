@@ -598,8 +598,8 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
             SubcategoryData("Tea & Coffee", R.drawable.type_beverages_tea, "#B75300"),
             SubcategoryData("Fast Food", R.drawable.type_food_hamburger, "#FF5722"),
             SubcategoryData("Snacks", R.drawable.type_snack_cookie, "#993414"),
-            SubcategoryData("Swiggy", R.drawable.ic_brand_swiggy, "#FF5722"),
-            SubcategoryData("Zomato", R.drawable.ic_brand_zomato, "#FF0041"),
+            SubcategoryData("Swiggy", R.drawable.type_food_takeout, "#FF5722"),
+            SubcategoryData("Zomato", R.drawable.type_food_takeout, "#FF0041"),
             SubcategoryData("Sweets", R.drawable.type_sweet_cupcake, "#9C27B0"),
             SubcategoryData("Liquor", R.drawable.type_beverages_beer, "#FF9800"),
             SubcategoryData("Beverages", R.drawable.type_beverages_bubble_tea, "#995B00"),
@@ -618,7 +618,7 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
         // Transport subcategories
         val transportSubcategories = listOf(
             SubcategoryData("Uber", R.drawable.ic_brand_uber, "#423D3A"),
-            SubcategoryData("Rapido", R.drawable.ic_brand_rapido, "#423D3A"),
+            SubcategoryData("Rapido", R.drawable.type_travel_transport_motorcycle, "#423D3A"),
             SubcategoryData("Auto", R.drawable.type_travel_transport_auto_rickshaw, "#B75300"),
             SubcategoryData("Cab", R.drawable.type_travel_transport_taxi, "#FF5722"),
             SubcategoryData("Train", R.drawable.type_travel_transport_high_speed_train, "#993414"),
@@ -680,7 +680,7 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
             SubcategoryData("Eggs", R.drawable.type_groceries_egg, "#993414"),
             SubcategoryData("Bakery", R.drawable.type_groceries_baguette_bread, "#FF5722"),
             SubcategoryData("Dairy", R.drawable.type_groceries_glass_of_milk, "#FF0041"),
-            SubcategoryData("Zepto", R.drawable.ic_brand_zepto, "#9C27B0"),
+            SubcategoryData("Zepto", R.drawable.type_groceries_basket, "#9C27B0"),
         )
         groceriesSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -748,7 +748,7 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
             SubcategoryData("Visa fees", R.drawable.type_travel_transport_ticket, "#993414"),
             SubcategoryData("Hostel", R.drawable.type_finance_classical_building, "#FF5722"),
             SubcategoryData("Airbnb", R.drawable.ic_brand_airbnb, "#FF0041"),
-            SubcategoryData("Oyo", R.drawable.ic_brand_oyo, "#9C27B0"),
+            SubcategoryData("Oyo", R.drawable.type_event_and_place_hotel, "#9C27B0"),
         )
         travelSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -872,12 +872,12 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
             SubcategoryData("Apple Tv", R.drawable.ic_brand_apple_tv, "#FF9800"),
             SubcategoryData("Apple Music", R.drawable.ic_brand_apple_music, "#FF9800"),
             SubcategoryData("Bumble", R.drawable.ic_brand_bumble, "#995B00"),
-            SubcategoryData("JioCinema", R.drawable.ic_brand_jiocinema, "#FF5722"),
+            SubcategoryData("JioCinema", R.drawable.type_tool_electronic_clapper_board, "#FF5722"),
             SubcategoryData("Google Play", R.drawable.ic_brand_google_play, "#FF5722"),
             SubcategoryData("Xbox", R.drawable.ic_brand_xbox, "#66483D"),
             SubcategoryData("PlayStation", R.drawable.ic_brand_playstation, "#66483D"),
             SubcategoryData("Disney Plus", R.drawable.ic_brand_disney_plus, "#66483D"),
-            SubcategoryData("Zee5", R.drawable.ic_brand_zee5, "#66483D"),
+            SubcategoryData("Zee5", R.drawable.type_tool_electronic_clapper_board, "#66483D"),
             SubcategoryData("ChatGPT", R.drawable.ic_brand_chatgpt, "#66483D"),
             SubcategoryData("Claude", R.drawable.ic_brand_claude, "#66483D"),
             SubcategoryData("Grok", R.drawable.ic_brand_grok, "#66483D"),
@@ -908,9 +908,9 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
         // creditBill subcategories
         val creditBillSubcategories = listOf(
             SubcategoryData("Credit Card", R.drawable.type_finance_credit_card, "#423D3A"),
-            SubcategoryData("Simpl", R.drawable.ic_brand_simpl, "#423D3A"),
-            SubcategoryData("Slice", R.drawable.ic_brand_slice, "#B75300"),
-            SubcategoryData("lazypay", R.drawable.ic_brand_lazypay, "#FF5722"),
+            SubcategoryData("Simpl", R.drawable.type_finance_credit_card, "#423D3A"),
+            SubcategoryData("Slice", R.drawable.type_finance_credit_card, "#B75300"),
+            SubcategoryData("lazypay", R.drawable.type_finance_credit_card, "#FF5722"),
             SubcategoryData("Amazon Pay", R.drawable.ic_brand_amazon, "#993414"),
         )
         creditBillSubcategories.forEach { subcategory ->
@@ -989,9 +989,9 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
         // topUp subcategories
         val topUpSubcategories = listOf(
             SubcategoryData("UPI Lite", R.drawable.type_finance_bank, "#423D3A"),
-            SubcategoryData("Paytm", R.drawable.ic_brand_paytm, "#423D3A"),
+            SubcategoryData("Paytm", R.drawable.type_finance_money_bag, "#423D3A"),
             SubcategoryData("Amazon", R.drawable.ic_brand_amazon, "#B75300"),
-            SubcategoryData("PhonePe", R.drawable.ic_brand_phonepe, "#FF5722"),
+            SubcategoryData("PhonePe", R.drawable.type_finance_money_bag, "#FF5722"),
             SubcategoryData("Google pay", R.drawable.ic_brand_google_pay, "#993414"),
         )
         topUpSubcategories.forEach { subcategory ->

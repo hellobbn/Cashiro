@@ -3,13 +3,6 @@ package com.ritesh.cashiro.presentation.ui.components
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -39,19 +32,9 @@ fun PreferenceSwitch(
             leading = {
                 leadingIcon()
             },
-            trailing = {
-                Switch(
-                    checked = checked,
-                    onCheckedChange = onCheckedChange,
-                    thumbContent = {
-                        Icon(
-                            if (checked) Icons.Outlined.Check else Icons.Outlined.Close,
-                            "Thumb",
-                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                        )
-                    },
-                )
-            },
+            trailing = { CashiroSwitch(checked = checked, onCheckedChange = null) },
+            toggled = checked,
+            onToggle = onCheckedChange,
             shape = when {
                 isSingle -> ListItemPosition.Single.toShape()
                 isFirst -> ListItemPosition.Top.toShape()

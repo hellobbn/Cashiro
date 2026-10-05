@@ -59,8 +59,13 @@ Personal Chinese / cross-border manual accounts:
 - New installs default to CNY. Existing saved currencies are not overwritten.
 - Institution picker covers CN / HK / SG / US banks and brokers as **name and icon presets only**.
 - Choosing an institution does not add SMS parsing, login, or holdings sync.
-- A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth.
+- A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; device sync never does.
 - Prefer account UX, currency defaults, and imports over SMS automation.
+- Merchant icons: a transaction shows the icon the user picked for its merchant name
+  (`MerchantIconStore`, files in `filesDir/merchant_icons`, carried in backups), else a bundled
+  brand logo (`BrandIcons`), else its subcategory or category icon. The picker opens from the icon on
+  the transaction detail and searches Apple's App Store (`AppStoreIconSearch`, country `cn`) only
+  when the user does; nothing is fetched automatically.
 - Accounts have no id of their own: everything refers to one by bank name + last 4. Rename through
   `AccountRenamer`, which moves balances, transactions, cards, templates, budgets, subscriptions and
   the hidden/main preferences in one transaction.
@@ -94,7 +99,12 @@ client, no provider SDKs, to keep the app small.
     account the user left out is saved without an account. Balance calibrations and account edits
     come last, so a rename also carries the transactions just added.
 - `AiLedgerSession` runs the tool loop. The accounts (as refs `A1`, `A2`…) and the categories are
-  in the system prompt.
+  in the system prompt. The model need not look up duplicates (drafts flag them) and ends with a
+  `finish` call in the same reply as its proposals, so a plain import is one round trip; a reply
+  with a rejected call gets another turn. Each request, reply (thinking, text, tool calls, tokens,
+  time), lookup and proposal is an `AiStep`; `AiProgress.kt` shows them as a timeline whose rows
+  open to the raw text. The run is kept with the review (and after saving) under a collapsed
+  "How it was done" row with its rounds, time and tokens.
 - `AiAttachmentReader` handles the input files:
   - Tall screenshots are cut into tiles.
   - PDFs go to Claude as documents and to other providers as their text layer, or as the file
@@ -123,6 +133,11 @@ client, no provider SDKs, to keep the app small.
     - Transactions and the account lists are list-detail (`TransactionDetailPane`,
       `AccountDetailPane`); system back closes an open pane first.
 - Edge-to-edge via the existing scaffold / TopAppBar pattern
+- Material 3 Expressive components through the shared wrappers (table in `docs/design.md` →
+  "Material 3 Expressive conventions"): `CustomTitleTopAppBar` (flexible app bar), `TooltipIconButton`,
+  `GenericTypeSwitcher` (connected button group), `CashiroSwitch` / `PreferenceSwitch`, M3E loading
+  indicators, standard snackbars with Undo. Theme-aware colors come from `isAppInDarkTheme`, not
+  `isSystemInDarkTheme()`.
 - Chinese UI should avoid awkward letter-spacing and should use `9月1日` style dates
 
 ## Code Style Guidelines

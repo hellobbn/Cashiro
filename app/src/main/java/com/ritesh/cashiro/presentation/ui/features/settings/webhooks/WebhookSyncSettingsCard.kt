@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.webhooks
 
+import androidx.compose.material3.IconButtonDefaults
+import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
@@ -254,6 +258,7 @@ private fun ScheduledDetail(
 
         Spacer(modifier = Modifier.height(Spacing.xs))
         Button(
+            shapes = ButtonDefaults.shapes(),
             onClick = { pickerOpen = true },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
@@ -315,7 +320,7 @@ private fun ScheduledTimeRow(
             }
         )
         Box(modifier = Modifier.weight(1f))
-        Switch(
+        CashiroSwitch(
             checked = time.enabled,
             onCheckedChange = onToggle,
             modifier = Modifier.semantics {
@@ -323,6 +328,7 @@ private fun ScheduledTimeRow(
             }
         )
         IconButton(
+            shapes = IconButtonDefaults.shapes(),
             onClick = onDelete,
             modifier = Modifier.semantics {
                 contentDescription = removeScheduleStr
@@ -353,12 +359,12 @@ private fun TimePickerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = { onConfirm(state.hour, state.minute) }) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = { onConfirm(state.hour, state.minute) }) {
                 Text(stringResource(R.string.ok))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
                 Text(stringResource(R.string.cancel))
             }
         },

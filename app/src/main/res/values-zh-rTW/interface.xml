@@ -83,7 +83,6 @@
     <string name="ai_default_request">記錄這些檔案裡的交易。</string>
     <string name="ai_privacy_note">檔案和請求會傳送到 %1$s；你確認之前不會儲存任何內容。</string>
     <string name="ai_analyze">開始分析</string>
-    <string name="ai_running">正在讀取… 已提出 %1$d 筆</string>
     <string name="ai_cancel">取消</string>
     <string name="ai_review_empty">沒有需要修改的內容。</string>
     <string name="ai_save_selected">儲存 %1$d 項</string>
@@ -121,4 +120,66 @@
     <string name="ai_limit_change">額度 %1$s → %2$s</string>
     <string name="ai_kind_changed">帳戶類型變更</string>
     <string name="ai_rename_note">它名下的交易、卡片、範本和預算會一併改到新名稱。</string>
+    <string name="cd_navigate_back">返回</string>
+    <string name="ai_progress_turn">第 %1$d 輪</string>
+    <string name="ai_progress_hint">點任一步可查看實際傳送和收到的內容。你確認之前不會儲存任何內容。</string>
+    <string name="ai_step_no_files">沒有檔案，依你的要求處理</string>
+    <string name="ai_step_asking">第 %1$d 輪：等待模型回覆…</string>
+    <string name="ai_step_searched">查找已記錄的交易</string>
+    <string name="ai_step_rejected">部分項目無效，已讓模型修正</string>
+    <string name="ai_step_nothing">模型呼叫了 %1$s，但沒有提出內容</string>
+    <string name="ai_step_accounts">帳戶調整</string>
+    <string name="ai_step_new_account">新帳戶：%1$s</string>
+    <string name="ai_step_balance">%1$s 餘額校準為 %2$s</string>
+    <string name="ai_step_account_edit">修改帳戶：%1$s → %2$s</string>
+    <string name="ai_step_more">還有 %1$d 筆</string>
+    <plurals name="ai_progress_proposed">
+        <item quantity="other">已提出 %d 項變更</item>
+    </plurals>
+    <plurals name="ai_step_reading_files">
+        <item quantity="other">正在讀取 %d 個檔案…</item>
+    </plurals>
+    <plurals name="ai_step_read_files">
+        <item quantity="other">已讀取 %d 個檔案</item>
+    </plurals>
+    <plurals name="ai_step_images">
+        <item quantity="other">%d 張圖片</item>
+    </plurals>
+    <plurals name="ai_step_found">
+        <item quantity="other">找到 %d 筆</item>
+    </plurals>
+    <plurals name="ai_step_added">
+        <item quantity="other">提出 %d 筆新交易</item>
+    </plurals>
+    <plurals name="ai_step_updated">
+        <item quantity="other">提出修改 %d 筆交易</item>
+    </plurals>
+    <plurals name="ai_step_deleted">
+        <item quantity="other">提出刪除 %d 筆交易</item>
+    </plurals>
+    <string name="ai_step_sent">已傳送請求</string>
+    <string name="ai_step_sent_detail">指令 %1$d 字 · 你的訊息 %2$d 字</string>
+    <string name="ai_step_replied">第 %1$d 輪：模型用時 %2$s 秒回覆</string>
+    <string name="ai_step_tokens">輸入 %1$s token · 輸出 %2$s</string>
+    <string name="ai_step_calls">呼叫 %1$s</string>
+    <string name="ai_step_details">顯示詳情</string>
+    <string name="ai_raw_system">指令（system prompt）</string>
+    <string name="ai_raw_message">你的訊息</string>
+    <string name="ai_raw_thinking">思考</string>
+    <string name="ai_raw_reply">回覆</string>
+    <string name="ai_raw_input">輸入</string>
+    <string name="ai_raw_result">結果</string>
+    <string name="ai_raw_truncated">… 還有 %1$d 字</string>
+    <string name="backup_brokerage_credentials">券商連線（含 Flex token）</string>
+    <string name="backup_brokerage_credentials_warning">此檔案不加密：拿到檔案的人可以用其中的 token 讀取你的券商報表。</string>
+    <string name="ai_run_log">處理過程</string>
+    <plurals name="ai_run_rounds">
+        <item quantity="other">%d 輪</item>
+    </plurals>
+    <string name="merchant_icon_title">商戶圖示</string>
+    <string name="merchant_icon_search_hint">搜尋 App Store</string>
+    <string name="merchant_icon_privacy">搜尋時會把上面的文字傳送到 Apple App Store。選中的圖示儲存在本機，所有「%1$s」的交易都會使用它。</string>
+    <string name="merchant_icon_none">沒有找到 App</string>
+    <string name="merchant_icon_error">搜尋失敗：%1$s</string>
+    <string name="merchant_icon_reset">恢復預設圖示</string>
 </resources>

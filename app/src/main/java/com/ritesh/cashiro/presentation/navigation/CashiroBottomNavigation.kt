@@ -1,18 +1,19 @@
 package com.ritesh.cashiro.presentation.navigation
 
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRail
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
+import androidx.compose.material3.WideNavigationRail
+import androidx.compose.material3.WideNavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,7 +25,11 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.toRoute
 
-/** Standard Material 3 [NavigationBar]: default colours, indicator and labels always shown. */
+/**
+ * Material 3 Expressive [ShortNavigationBar]: default colours, a pill indicator behind the icon
+ * and labels always shown.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CashiroBottomNavigation(
     modifier: Modifier = Modifier,
@@ -41,25 +46,20 @@ fun CashiroBottomNavigation(
         exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
         modifier = modifier
     ) {
-        NavigationBar {
+        ShortNavigationBar {
             navigationItems.forEach { item ->
                 val selected = currentDestination?.hierarchy?.any {
                     it.route?.contains(item.destinationType.qualifiedName ?: "") == true
                 } == true
-                NavigationBarItem(
+                ShortNavigationBarItem(
                     selected = selected,
                     onClick = {
                         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                         navController.selectMainTab(item)
                     },
-                    icon = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = stringResource(item.titleRes)
-                        )
-                    },
-                    label = { Text(text = stringResource(item.titleRes), maxLines = 1) },
-                    alwaysShowLabel = true
+                    // The label names the item; the icon would only repeat it
+                    icon = { Icon(imageVector = item.icon, contentDescription = null) },
+                    label = { Text(text = stringResource(item.titleRes), maxLines = 1) }
                 )
             }
         }
@@ -67,9 +67,11 @@ fun CashiroBottomNavigation(
 }
 
 /**
- * The same destinations as a Material 3 [NavigationRail] at the start edge, for wide windows
- * (an unfolded foldable, a tablet), where a bottom bar would stretch across the screen.
+ * The same destinations as a Material 3 Expressive [WideNavigationRail] (collapsed) at the
+ * start edge, for wide windows (an unfolded foldable, a tablet), where a bottom bar would
+ * stretch across the screen.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CashiroNavigationRail(
     modifier: Modifier = Modifier,
@@ -80,24 +82,25 @@ fun CashiroNavigationRail(
     val navigationItems = listOf(BottomNavItem.Home, BottomNavItem.Analytics, BottomNavItem.Transactions)
     val view = LocalView.current
     AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut(), modifier = modifier) {
-        NavigationRail(modifier = Modifier.fillMaxHeight()) {
-            Spacer(Modifier.weight(1f))
+        WideNavigationRail(
+            modifier = Modifier.fillMaxHeight(),
+            arrangement = Arrangement.Center
+        ) {
             navigationItems.forEach { item ->
                 val selected = currentDestination?.hierarchy?.any {
                     it.route?.contains(item.destinationType.qualifiedName ?: "") == true
                 } == true
-                NavigationRailItem(
+                WideNavigationRailItem(
                     selected = selected,
                     onClick = {
                         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                         navController.selectMainTab(item)
                     },
-                    icon = { Icon(imageVector = item.icon, contentDescription = stringResource(item.titleRes)) },
+                    icon = { Icon(imageVector = item.icon, contentDescription = null) },
                     label = { Text(text = stringResource(item.titleRes), maxLines = 1) },
-                    alwaysShowLabel = true
+                    railExpanded = false
                 )
             }
-            Spacer(Modifier.weight(1f))
         }
     }
 }

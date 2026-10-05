@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import androidx.compose.material3.ripple
 import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -595,7 +598,7 @@ fun EditAccountSheet(
                         .fillMaxWidth()
                         .clickable(
                             interactionSource = currencyInteractionSource,
-                            indication = null
+                            indication = ripple()
                         ) {
                             showCurrencySheet = true
                         },
@@ -691,7 +694,7 @@ fun EditAccountSheet(
                                     )
                                 )
                             ),
-                            shape = MaterialTheme.shapes.extraExtraLarge
+                            shapes = ButtonDefaults.shapes()
                         ) {
                             Icon(
                                 imageVector = Iconax.Bag,
@@ -720,7 +723,7 @@ fun EditAccountSheet(
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp),
-                        shape = MaterialTheme.shapes.extraExtraLarge
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Text(
                             text = if (isSaving) stringResource(R.string.saving_account) else if (account == null) stringResource(R.string.add_account_title) else stringResource(R.string.save_changes),

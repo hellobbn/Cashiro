@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.analytics
 
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyListScope
 import com.ritesh.cashiro.presentation.ui.adaptive.LocalWindowLayout
@@ -505,7 +508,7 @@ fun SharedTransitionScope.AnalyticsScreen(
                         SectionHeader(
                             title = stringResource(R.string.top_categories),
                             action = {
-                                IconButton(onClick = {
+                                IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                                     selectedBreakdownType = if (selectedBreakdownType == BreakdownType.PIE) {
                                         BreakdownType.LIST
                                     } else {

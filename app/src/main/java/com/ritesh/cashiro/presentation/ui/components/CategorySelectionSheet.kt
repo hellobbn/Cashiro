@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.animation.AnimatedContent
@@ -109,7 +111,7 @@ fun CategorySelectionSheet(
                      ) { labelText ->
                          Text(
                              text = labelText,
-                             fontSize = 14.sp,
+                             style = MaterialTheme.typography.bodyMedium,
                              lineHeight = 14.sp,
                              fontWeight = FontWeight.SemiBold,
                              fontStyle = FontStyle.Italic,
@@ -122,7 +124,7 @@ fun CategorySelectionSheet(
                 leadingIcon = {},
                 trailingIcon = if (searchQuery.text.isNotEmpty()) {
                     {
-                        IconButton(onClick = { searchQuery = TextFieldValue("") }) {
+                        IconButton(shapes = IconButtonDefaults.shapes(), onClick = { searchQuery = TextFieldValue("") }) {
                             Icon(Iconax.CloseCircle, contentDescription = "Clear search")
                         }
                     }

@@ -1,5 +1,12 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import androidx.compose.material3.ripple
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
+import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material.icons.rounded.Bolt
 
 import androidx.compose.material3.Switch
@@ -280,7 +287,7 @@ fun TransactionTabContent(
                         .padding(8.dp)
                         .clickable(
                             onClick = { showDatePicker = true },
-                            indication = null,
+                            indication = ripple(),
                             interactionSource = remember { MutableInteractionSource() }
                         ),
                     contentAlignment = Alignment.Center
@@ -307,14 +314,14 @@ fun TransactionTabContent(
                         ) {
                             Text(
                                 text = yearLabel,
-                                fontSize = 10.sp,
+                                
                                 textAlign = TextAlign.Start,
                                 color = themeColors.primary,
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                             Text(
                                 text = dateLabel,
-                                fontSize = 14.sp,
+                                
                                 textAlign = TextAlign.Start,
                                 color = themeColors.onSurface,
                                 style = MaterialTheme.typography.bodyLarge,
@@ -355,7 +362,7 @@ fun TransactionTabContent(
                                 text = String.format("%02d", hour),
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.bodyLarge,
                                 lineHeight = 16.sp,
                                 modifier = Modifier.padding(5.dp)
                             )
@@ -365,7 +372,7 @@ fun TransactionTabContent(
                             text = ":",
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 16.sp,
+                            style = MaterialTheme.typography.bodyLarge,
                         )
 
                         Box(
@@ -380,7 +387,7 @@ fun TransactionTabContent(
                                 text = String.format("%02d", minute),
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.bodyLarge,
                                 lineHeight = 16.sp,
                                 modifier = Modifier.padding(5.dp)
                             )
@@ -391,7 +398,7 @@ fun TransactionTabContent(
                                 text = amPm,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                         }
                     }
@@ -703,7 +710,7 @@ fun TransactionTabContent(
                             Modifier.fillMaxWidth()
                                 .clickable(
                                     interactionSource = categoryInteractionSource,
-                                    indication = null
+                                    indication = ripple()
                                 ) {
                                     showCategoryMenu = true
                                 },
@@ -780,7 +787,7 @@ fun TransactionTabContent(
                             Modifier.fillMaxWidth()
                                 .clickable(
                                     interactionSource = categoryInteractionSource,
-                                    indication = null
+                                    indication = ripple()
                                 ) {
                                     showCategoryMenu = true
                                 },
@@ -1125,6 +1132,11 @@ fun TransactionTabContent(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
                             .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .toggleable(
+                                value = uiState.saveAsQuickTemplate,
+                                role = Role.Switch,
+                                onValueChange = viewModel::updateSaveAsQuickTemplate
+                            )
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1136,10 +1148,7 @@ fun TransactionTabContent(
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.weight(1f)
                         )
-                        Switch(
-                            checked = uiState.saveAsQuickTemplate,
-                            onCheckedChange = viewModel::updateSaveAsQuickTemplate
-                        )
+                        CashiroSwitch(checked = uiState.saveAsQuickTemplate, onCheckedChange = null)
                     }
                 }
 
@@ -1234,7 +1243,7 @@ fun TransactionTabContent(
                 enabled = uiState.isValid && !uiState.isLoading,
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    LoadingIndicator(modifier = Modifier.size(24.dp))
                 } else {
                     Icon(Icons.Default.Done, contentDescription = null)
                     Spacer(Modifier.width(Spacing.sm))
@@ -1251,13 +1260,13 @@ fun TransactionTabContent(
             text = { Text(stringResource(R.string.balance_overdraft_message,
                 uiState.currency, projected.toPlainString())) },
             confirmButton = {
-                TextButton(onClick = { viewModel.saveTransaction(allowOverdraft = true, onSuccess = onSave) },
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = { viewModel.saveTransaction(allowOverdraft = true, onSuccess = onSave) },
                     enabled = !uiState.isLoading) {
                     Text(stringResource(R.string.balance_overdraft_continue))
                 }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::dismissOverdraftWarning) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = viewModel::dismissOverdraftWarning) {
                     Text(stringResource(R.string.cancel))
                 }
             }

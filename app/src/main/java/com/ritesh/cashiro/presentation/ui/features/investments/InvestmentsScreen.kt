@@ -1,8 +1,13 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.investments
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearWavyProgressIndicator
 import com.ritesh.cashiro.presentation.ui.components.accountSubtitle
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -281,6 +286,7 @@ internal fun InvestmentsContent(
                 actionContent = {
                     if (connections.isNotEmpty()) {
                         IconButton(
+                            shapes = IconButtonDefaults.shapes(),
                             onClick = onRefreshAll,
                             enabled = !busy,
                             modifier = Modifier.testTag("refresh_holdings")
@@ -577,7 +583,7 @@ private fun AccountTotals(account: BrokerageAccount) {
 
 @Composable
 private fun HoldingRow(holding: Holding, position: ListItemPosition) {
-    val dark = isSystemInDarkTheme()
+    val dark = isAppInDarkTheme
     val pnl = holding.unrealizedPnl?.toBigDecimalOrNull()
     val pnlColor = when {
         pnl == null -> MaterialTheme.colorScheme.onSurfaceVariant
@@ -668,7 +674,7 @@ internal fun IbkrConnectDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                TextButton(onClick = {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = {
                     uriHandler.openUri(
                         "https://www.interactivebrokers.com/docs/web-api/flex-web-service/client-portal-configuration"
                     )
@@ -707,14 +713,14 @@ internal fun IbkrConnectDialog(
                 )
                 if (error != null) InvestmentError(error)
                 if (busy) {
-                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                    LinearWavyProgressIndicator(Modifier.fillMaxWidth())
                     Text(stringResource(R.string.investments_syncing))
                 }
                 Button(
                     onClick = { onConnect(label, token, query) },
                     enabled = !busy && token.matches(Regex("[0-9]{6,128}")) && query.matches(Regex("[0-9]{1,32}")),
                     modifier = Modifier.fillMaxWidth().testTag("save_broker"),
-                    shape = MaterialTheme.shapes.large
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Text(stringResource(R.string.investments_connect_sync))
                 }

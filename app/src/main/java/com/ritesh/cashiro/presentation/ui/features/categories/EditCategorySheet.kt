@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.categories
 
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
@@ -203,7 +205,7 @@ fun EditCategorySheet(
                                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer
                             ),
-                            shape = MaterialTheme.shapes.largeIncreased,
+                            shapes = IconButtonDefaults.shapes(),
                             modifier = Modifier.clip(CircleShape)
                         ) {
                             Icon(
@@ -355,7 +357,7 @@ fun EditCategorySheet(
                                 )
                             )
                         ),
-                        shape = MaterialTheme.shapes.extraExtraLarge
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Icon(
                             imageVector = Iconax.Bag,
@@ -371,7 +373,7 @@ fun EditCategorySheet(
                     modifier = Modifier
                         .weight(1f)
                         .height(56.dp),
-                    shape = MaterialTheme.shapes.extraExtraLarge
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Text(
                         text = if (category == null) stringResource(R.string.create_category) else stringResource(R.string.update_category),
@@ -383,6 +385,7 @@ fun EditCategorySheet(
                 // Reset button (only for system categories)
                 if (category?.isSystem == true && onReset != null) {
                     IconButton(
+                        shapes = IconButtonDefaults.shapes(),
                         onClick = {
                             name = category.defaultName ?: category.name
                             description = category.defaultDescription ?: ""

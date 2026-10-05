@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.applock
 
 import androidx.activity.compose.BackHandler
@@ -139,6 +141,7 @@ fun AppLockScreen(
                     BiometricCapability.Available -> {
                         // Unlock button
                         Button(
+                            shapes = ButtonDefaults.shapes(),
                             onClick = {
                                 if (context is FragmentActivity) {
                                     appLockViewModel.clearAuthError()

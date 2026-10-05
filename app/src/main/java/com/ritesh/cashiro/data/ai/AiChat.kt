@@ -47,7 +47,18 @@ data class AiToolResult(val callId: String, val content: String, val isError: Bo
 /** A model the provider offers; [vision] when it reads images. */
 data class AiModel(val id: String, val name: String, val vision: Boolean)
 
-data class AiReply(val text: String, val calls: List<AiToolCall>, val truncated: Boolean)
+/**
+ * One answer from the model. [thinking] is its visible reasoning when the provider returns it;
+ * the token counts are null when the provider does not report usage.
+ */
+data class AiReply(
+    val text: String,
+    val calls: List<AiToolCall>,
+    val truncated: Boolean,
+    val thinking: String = "",
+    val inputTokens: Int? = null,
+    val outputTokens: Int? = null
+)
 
 class AiException(message: String) : Exception(message)
 
@@ -156,7 +167,13 @@ class AiChat internal constructor(engine: HttpClientEngine) {
             calls = blocks.filter { it.type == "tool_use" }.map {
                 AiToolCall(it.string("id"), it.string("name"), it["input"]?.jsonObject ?: JsonObject(emptyMap()))
             },
-            truncated = stop == "max_tokens"
+            truncated = stop == "max_tokens",
+            thinking = blocks.filter { it.type == "thinking" }.joinToString("\n") { it.string("thinking") },
+            // Cached input is billed apart from input_tokens; together they are what the model read
+            inputTokens = response.usage("input_tokens")?.let {
+                it + (response.usage("cache_read_input_tokens") ?: 0) + (response.usage("cache_creation_input_tokens") ?: 0)
+            },
+            outputTokens = response.usage("output_tokens")
         )
     }
 
@@ -239,7 +256,11 @@ class AiChat internal constructor(engine: HttpClientEngine) {
         return AiReply(
             text = (message["content"] as? JsonPrimitive)?.contentOrNull.orEmpty(),
             calls = calls,
-            truncated = choice["finish_reason"]?.jsonPrimitive?.contentOrNull == "length"
+            truncated = choice["finish_reason"]?.jsonPrimitive?.contentOrNull == "length",
+            // DeepSeek and Qwen call it reasoning_content, OpenRouter reasoning
+            thinking = message.string("reasoning_content").ifEmpty { message.string("reasoning") },
+            inputTokens = response.usage("prompt_tokens"),
+            outputTokens = response.usage("completion_tokens")
         )
     }
 
@@ -348,6 +369,8 @@ class AiChat internal constructor(engine: HttpClientEngine) {
     }
 
     private val JsonObject.type get() = string("type")
+    private fun JsonObject.usage(key: String): Int? =
+        ((this["usage"] as? JsonObject)?.get(key) as? JsonPrimitive)?.contentOrNull?.toIntOrNull()
     private fun JsonObject.string(key: String): String =
         (this[key] as? JsonPrimitive)?.contentOrNull.orEmpty()
 

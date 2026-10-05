@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyListScope
 import com.ritesh.cashiro.presentation.ui.adaptive.LocalWindowLayout
@@ -13,7 +16,6 @@ import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
 
 import android.app.Activity
 import android.view.HapticFeedbackConstants
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
@@ -33,7 +35,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -214,6 +215,7 @@ fun SharedTransitionScope.HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     
     var lastBackPressTime by remember { mutableLongStateOf(0L) }
+    val backPressScope = rememberCoroutineScope()
     val context = LocalContext.current
     
     
@@ -223,7 +225,10 @@ fun SharedTransitionScope.HomeScreen(
             (context as? Activity)?.finish()
         } else {
             lastBackPressTime = currentTime
-            Toast.makeText(context, context.getString(R.string.press_back_again_to_close), Toast.LENGTH_SHORT).show()
+            backPressScope.launch {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                snackbarHostState.showSnackbar(context.getString(R.string.press_back_again_to_close), duration = SnackbarDuration.Short)
+            }
         }
     }
     val scope = rememberCoroutineScope()
@@ -309,12 +314,7 @@ fun SharedTransitionScope.HomeScreen(
             SnackbarHost(
                 hostState = snackbarHostState,
                 snackbar = {
-                    Snackbar(
-                        snackbarData = it,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.large,
-                    )
+                    Snackbar(snackbarData = it)
                 }
             )
         }
@@ -531,6 +531,7 @@ fun SharedTransitionScope.HomeScreen(
                                                         ) {
                                                             // Search button
                                                             TextButton(
+                                                                shapes = ButtonDefaults.shapes(),
                                                                 onClick = onNavigateToTransactionsWithSearch,
                                                                 modifier = Modifier.then(
                                                                     if (animatedContentScope != null) {
@@ -636,6 +637,7 @@ fun SharedTransitionScope.HomeScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             TextButton(
+                                                shapes = ButtonDefaults.shapes(),
                                                 onClick = onNavigateToTransactions,
                                                 modifier = Modifier
                                                     .then(
@@ -986,9 +988,9 @@ private fun BreakdownRow(
             fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
             color =
                 if (isIncome) {
-                    if (!isSystemInDarkTheme()) income_light else income_dark
+                    if (!isAppInDarkTheme) income_light else income_dark
                 } else {
-                    if (!isSystemInDarkTheme()) expense_light else expense_dark
+                    if (!isAppInDarkTheme) expense_light else expense_dark
                 }
         )
     }

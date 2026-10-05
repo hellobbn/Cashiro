@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.appearance
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ripple
 import android.os.Build
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -11,7 +13,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -153,7 +154,7 @@ fun AppearanceScreen(
                                 .clickable(
                                     onClick = {themeViewModel.updateDarkTheme(null)},
                                     interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
+                                    indication = ripple()
                                 ),
                             contentAlignment = Alignment.Center
                         ){
@@ -207,7 +208,7 @@ fun AppearanceScreen(
                                 .clickable(
                                     onClick = {themeViewModel.updateDarkTheme(false)},
                                     interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
+                                    indication = ripple()
                                 ),
                             contentAlignment = Alignment.Center
                         ){
@@ -260,7 +261,7 @@ fun AppearanceScreen(
                                 .clickable(
                                     onClick = {themeViewModel.updateDarkTheme(true)},
                                     interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
+                                    indication = ripple()
                                 ),
                             contentAlignment = Alignment.Center
                         ){
@@ -841,7 +842,7 @@ fun ColorSchemeBox(
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .clickable(
                 onClick = onClick,
-                indication = null,
+                indication = ripple(),
                 interactionSource = remember { MutableInteractionSource() }
             )
     ){
@@ -905,7 +906,7 @@ fun AppLogoOption(
         modifier = Modifier
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = null,
+                indication = ripple(),
                 onClick = onClick
             )
             .padding(vertical = Spacing.sm)

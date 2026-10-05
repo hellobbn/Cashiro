@@ -108,7 +108,8 @@ internal fun LazyListScope.reviewItems(
     review: List<ReviewItem>,
     lookups: TransactionLookups,
     mainCurrency: String?,
-    onOpen: (Int) -> Unit
+    // Null once saved: the rows are then a read-only record
+    onOpen: ((Int) -> Unit)?
 ) {
     accountGroup(
         R.string.ai_section_accounts,
@@ -143,7 +144,7 @@ internal fun LazyListScope.reviewItems(
                     decoration = lookups.decorateProposed(item.change, preview),
                     mainCurrency = mainCurrency,
                     subtitleOverride = subtitle(item),
-                    onClick = { onOpen(index) },
+                    onClick = { onOpen?.invoke(index) },
                     shape = ListItemPosition.from(position, items.size).toShape(),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -157,7 +158,7 @@ internal fun LazyListScope.reviewItems(
 private fun LazyListScope.accountGroup(
     titleRes: Int,
     items: List<IndexedValue<ReviewItem>>,
-    onOpen: (Int) -> Unit
+    onOpen: ((Int) -> Unit)?
 ) {
     if (items.isEmpty()) return
     item(key = "header_$titleRes") {
@@ -170,22 +171,14 @@ private fun LazyListScope.accountGroup(
     }
     items.forEachIndexed { position, (index, item) ->
         item(key = "change_$index") {
-            Column(modifier = Modifier.fillMaxWidth().alpha(if (item.included) 1f else 0.4f)) {
-                AccountRow(
-                    account = item.change.accountAfter() ?: return@Column,
-                    shape = ListItemPosition.from(position, items.size).toShape(),
-                    onClick = { onOpen(index) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                accountChangeLine(item)?.let {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.xs)
-                    )
-                }
-            }
+            val account = item.change.accountAfter() ?: return@item
+            AccountRow(
+                account = account,
+                shape = ListItemPosition.from(position, items.size).toShape(),
+                onClick = onOpen?.let { open -> { open(index) } },
+                note = accountChangeLine(item),
+                modifier = Modifier.fillMaxWidth().alpha(if (item.included) 1f else 0.4f)
+            )
         }
     }
 }

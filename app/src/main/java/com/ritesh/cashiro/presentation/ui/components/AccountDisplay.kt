@@ -129,7 +129,7 @@ fun RowScope.AccountRowContent(account: AccountBalanceEntity, showBalance: Boole
             text = listOfNotNull(accountSubtitle(account), note).joinToString(" · "),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
+            maxLines = if (note != null) 2 else 1,
             overflow = TextOverflow.Ellipsis
         )
     }
@@ -166,6 +166,8 @@ fun AccountRow(
     shape: Shape = RoundedCornerShape(20.dp),
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
     onClick: (() -> Unit)? = null,
+    // Supporting text after the account kind, e.g. what a change does to it
+    note: String? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null
 ) {
     val color = if (selected) MaterialTheme.colorScheme.secondaryContainer else containerColor
@@ -176,7 +178,7 @@ fun AccountRow(
                 .padding(horizontal = Spacing.md, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AccountRowContent(account, showBalance)
+            AccountRowContent(account, showBalance, note)
             when {
                 trailing != null -> {
                     Spacer(Modifier.width(Spacing.sm))

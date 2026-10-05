@@ -5,6 +5,9 @@ import android.os.Build
 import com.google.gson.GsonBuilder
 import com.ritesh.cashiro.BuildConfig
 import android.net.Uri
+import com.ritesh.cashiro.data.brokerage.BrokerageRepository
+import com.ritesh.cashiro.data.icons.MerchantIconStore
+import org.json.JSONObject
 import com.ritesh.cashiro.data.database.CashiroDatabase
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.repository.WebhookRepository
@@ -30,7 +33,9 @@ class BackupExporter @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: CashiroDatabase,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val webhookRepository: WebhookRepository
+    private val webhookRepository: WebhookRepository,
+    private val brokerageRepository: BrokerageRepository,
+    private val merchantIconStore: MerchantIconStore
 ) {
     
     private val gson = GsonBuilder()
@@ -123,6 +128,31 @@ class BackupExporter @Inject constructor(
                             avatarFile.inputStream().use { input ->
                                 input.copyTo(zipOut)
                             }
+                            zipOut.closeEntry()
+                        }
+                    }
+                }
+
+                // Brokerage connections live in their own encrypted store, not the database
+                if (config.includeBrokerageCredentials) {
+                    brokerageRepository.exportWithCredentials()?.let { connections ->
+                        zipOut.putNextEntry(ZipEntry(BROKERAGE_ENTRY))
+                        zipOut.write(connections.toByteArray())
+                        zipOut.closeEntry()
+                    }
+                }
+
+                // Icons the user picked for merchants, with the index that names their merchants
+                val iconIndex = merchantIconStore.index()
+                if (iconIndex.isNotEmpty()) {
+                    zipOut.putNextEntry(ZipEntry(MERCHANT_ICON_INDEX))
+                    zipOut.write(JSONObject(iconIndex).toString().toByteArray())
+                    zipOut.closeEntry()
+                    iconIndex.values.forEach { name ->
+                        val icon = File(merchantIconStore.directory, name)
+                        if (icon.isFile) {
+                            zipOut.putNextEntry(ZipEntry("${MerchantIconStore.DIRECTORY}/$name"))
+                            icon.inputStream().use { it.copyTo(zipOut) }
                             zipOut.closeEntry()
                         }
                     }
@@ -348,5 +378,10 @@ class BackupExporter @Inject constructor(
             // Log or ignore image copy failure to avoid failing entire backup
             e.printStackTrace()
         }
+    }
+
+    companion object {
+        const val BROKERAGE_ENTRY = "brokerage.json"
+        const val MERCHANT_ICON_INDEX = "${MerchantIconStore.DIRECTORY}/index.json"
     }
 }

@@ -1,5 +1,10 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.lendborrow
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -13,7 +18,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -195,10 +199,6 @@ fun SharedTransitionScope.LendBorrowScreen(
                                     if (allSelected) viewModel.clearSelection()
                                     else viewModel.selectAllPersons()
                                 },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onBackground
-                                ),
                                 shapes = IconButtonDefaults.shapes()
                             ) {
                                 Icon(
@@ -211,10 +211,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                                 onClick = { showDeleteConfirmation = true },
                                 enabled = uiState.selectedPersonIds.isNotEmpty(),
                                 colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = if (uiState.selectedPersonIds.isNotEmpty())
-                                        MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                                    contentColor = MaterialTheme.colorScheme.error
                                 ),
                                 shapes = IconButtonDefaults.shapes(),
                                 modifier = Modifier.padding(end = 16.dp)
@@ -235,12 +232,7 @@ fun SharedTransitionScope.LendBorrowScreen(
             SnackbarHost(
                 hostState = snackbarHostState,
                 snackbar = {
-                    Snackbar(
-                        snackbarData = it,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.large
-                    )
+                    Snackbar(snackbarData = it)
                 }
             )
         },
@@ -283,7 +275,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
         } else {
             LazyColumn(
@@ -342,7 +334,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                         label = {
                             Text(
                                 text = stringResource(R.string.search),
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f)
                             )
                         },
@@ -356,7 +348,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                         trailingIcon = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (searchInput.text.isNotEmpty()) {
-                                    IconButton(onClick = {
+                                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                                         searchInput = TextFieldValue("")
                                         viewModel.onSearchQueryChanged("")
                                     }) {
@@ -367,7 +359,7 @@ fun SharedTransitionScope.LendBorrowScreen(
                                     }
                                 }
                                 Box {
-                                    IconButton(onClick = { showCategoryMenu = true }) {
+                                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = { showCategoryMenu = true }) {
                                         Icon(
                                             imageVector = Icons.Default.MoreHoriz,
                                             contentDescription = stringResource(R.string.category_filter),
@@ -554,7 +546,7 @@ fun SharedTransitionScope.PersonListItemCard(
     sharedElementKey: String? = null,
     shape: CornerBasedShape = listSingleItemShape
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppInDarkTheme
     val colorInt = try {
         android.graphics.Color.parseColor(person.color)
     } catch (e: Exception) {

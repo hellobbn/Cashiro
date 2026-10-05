@@ -1,5 +1,11 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.contacts
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -15,7 +21,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -183,10 +188,6 @@ fun SharedTransitionScope.ContactsScreen(
                                         viewModel.selectAllPersons()
                                     }
                                 },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onBackground
-                                ),
                                 shapes = IconButtonDefaults.shapes(),
                             ) {
                                 Icon(
@@ -199,10 +200,7 @@ fun SharedTransitionScope.ContactsScreen(
                                 onClick = { showDeleteConfirmation = true },
                                 enabled = selectedPersonIds.isNotEmpty(),
                                 colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = if (selectedPersonIds.isNotEmpty())
-                                        MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                                    contentColor = MaterialTheme.colorScheme.error
                                 ),
                                 shapes = IconButtonDefaults.shapes(),
                                 modifier = Modifier.padding(end = 16.dp)
@@ -257,7 +255,7 @@ fun SharedTransitionScope.ContactsScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
         } else {
             LazyVerticalGrid(
@@ -285,7 +283,7 @@ fun SharedTransitionScope.ContactsScreen(
                         label = {
                             Text(
                                 text = stringResource(R.string.search),
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f)
                             )
                         },
@@ -298,7 +296,7 @@ fun SharedTransitionScope.ContactsScreen(
                         },
                         trailingIcon = {
                             if (searchInput.text.isNotEmpty()) {
-                                IconButton(onClick = {
+                                IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                                     searchInput = TextFieldValue("")
                                     viewModel.onSearchQueryChanged("")
                                 }) {
@@ -386,7 +384,7 @@ fun SharedTransitionScope.DisplayProfileImageCard(
     animatedContentScope: AnimatedContentScope? = null,
     sharedElementKey: String? = null,
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = isAppInDarkTheme
     val colorInt = try {
         person.color.toColorInt()
     } catch (e: Exception) {
@@ -469,14 +467,13 @@ fun SharedTransitionScope.DisplayProfileImageCard(
                             .align(Alignment.TopStart)
                             .padding(12.dp)
                     ) {
-                        CashiroCheckbox(
-                            checked = isSelected,
-                            onCheckedChange = { onSelectionToggle() },
-                            modifier = Modifier.size(40.dp),
-                            checkedColor = MaterialTheme.colorScheme.primary,
-                            uncheckedColor = Color.White.copy(alpha = 0.85f),
-                            checkmarkColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                        // Over the contact's photo: a surface disc keeps the box readable
+                        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                            CashiroCheckbox(
+                                checked = isSelected,
+                                onCheckedChange = { onSelectionToggle() }
+                            )
+                        }
                     }
                 }
             }

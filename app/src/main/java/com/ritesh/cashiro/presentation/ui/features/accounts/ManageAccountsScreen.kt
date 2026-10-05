@@ -1,5 +1,10 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.theme.successColor
+import com.ritesh.cashiro.presentation.ui.theme.warningColor
+import androidx.compose.material3.ripple
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -243,16 +248,7 @@ fun ManageAccountsScreen(
             SnackbarHost(
                 hostState = snackbarHostState,
                 snackbar = {
-                    Snackbar(
-                        snackbarData = it,
-                        contentColor =
-                            MaterialTheme.colorScheme
-                                .onSecondaryContainer,
-                        containerColor =
-                            MaterialTheme.colorScheme
-                                .secondaryContainer,
-                        shape = MaterialTheme.shapes.large
-                    )
+                    Snackbar(snackbarData = it)
                 }
             )
         }
@@ -584,7 +580,7 @@ fun ManageAccountsScreen(
                                     .fillMaxWidth()
                                     .clickable(
                                         onClick = { showHiddenAccounts = !showHiddenAccounts },
-                                        indication = null,
+                                        indication = ripple(),
                                         interactionSource = remember { MutableInteractionSource() }
                                     ),
                                 colors = CardDefaults.cardColors(
@@ -1077,8 +1073,8 @@ private fun CreditCardItem(
     val utilizationColor =
         when {
             utilization > 70 -> MaterialTheme.colorScheme.error
-            utilization > 30 -> Color(0xFFFF9800) // Orange
-            else -> Color(0xFF4CAF50) // Green
+            utilization > 30 -> warningColor
+            else -> successColor
         }
 
     CompactAccountCard(
@@ -1181,7 +1177,7 @@ private fun BrokerageConnectionRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            TextButton(onClick = onDisconnect) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDisconnect) {
                 Text(stringResource(R.string.investments_disconnect))
             }
         }
@@ -1313,7 +1309,7 @@ private fun OrphanedCardItem(
     Card(
         modifier = Modifier.fillMaxWidth().clickable(
             onClick = { expandedSource = !expandedSource },
-            indication = null,
+            indication = ripple(),
             interactionSource = remember { MutableInteractionSource() }
         ),
         colors = CardDefaults.cardColors(

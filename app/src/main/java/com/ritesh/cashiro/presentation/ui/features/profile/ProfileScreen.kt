@@ -134,10 +134,6 @@ fun SharedTransitionScope.ProfileScreen(
                 actionContent = {
                     IconButton(
                         onClick = { profileViewModel.toggleEditSheet() },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            contentColor = MaterialTheme.colorScheme.onBackground
-                        ),
                         shapes =  IconButtonDefaults.shapes(),
                         modifier = Modifier.padding(end = 16.dp)
                     ) {

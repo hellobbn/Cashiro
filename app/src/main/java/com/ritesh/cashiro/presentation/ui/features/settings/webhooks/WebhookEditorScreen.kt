@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.webhooks
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -158,7 +162,7 @@ fun WebhookEditorScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
             return@Scaffold
         }
@@ -300,6 +304,7 @@ fun WebhookEditorScreen(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Button(
+                        shapes = ButtonDefaults.shapes(),
                         onClick = { headers.add(WebhookHeader("", "")) },
                         contentPadding = PaddingValues(horizontal = 12.dp),
                         modifier = Modifier.height(32.dp),
@@ -340,6 +345,7 @@ fun WebhookEditorScreen(
                                 )
                                 Spacer(modifier = Modifier.weight(1f))
                                 IconButton(
+                                    shapes = IconButtonDefaults.shapes(),
                                     onClick = { headers.removeAt(index) },
                                     modifier = Modifier.size(24.dp)
                                 ) {
@@ -436,13 +442,14 @@ fun WebhookEditorScreen(
                          ) {
                              Text(
                                  text = stringResource(R.string.save_webhook),
-                                 fontSize = 16.sp,
+                                 style = MaterialTheme.typography.bodyLarge,
                                  fontWeight = FontWeight.Bold
                              )
                          }
                          // Delete button (only for existing budgets)
                          if (profileId != null) {
                              OutlinedButton(
+                                 shapes = ButtonDefaults.shapes(),
                                  onClick = { showDeleteDialog = true },
                                  modifier = Modifier.height(56.dp),
                                  colors = ButtonDefaults.outlinedButtonColors(
@@ -478,6 +485,7 @@ fun WebhookEditorScreen(
                     },
                     confirmButton = {
                         TextButton(
+                            shapes = ButtonDefaults.shapes(),
                             onClick = {
                                 showDeleteDialog = false
                                 viewModel.deleteProfile(profileId)
@@ -491,7 +499,7 @@ fun WebhookEditorScreen(
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDeleteDialog = false }) {
+                        TextButton(shapes = ButtonDefaults.shapes(), onClick = { showDeleteDialog = false }) {
                             Text(stringResource(R.string.cancel))
                         }
                     }
@@ -616,7 +624,7 @@ internal fun PillChip(
     ) {
         Text(
             text = label,
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
             color = labelColor
         )

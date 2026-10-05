@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.foundation.layout.*
@@ -71,6 +73,7 @@ fun CustomBillingCycleCard(
 
                 if (endDate != null) {
                     IconButton(
+                        shapes = IconButtonDefaults.shapes(),
                         onClick = onClearEndDate,
                         modifier = Modifier.size(32.dp)
                     ) {

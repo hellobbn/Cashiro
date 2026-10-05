@@ -325,13 +325,13 @@ fun AddEditLendBorrowTransactionSheet(
                             Column(verticalArrangement = Arrangement.Center) {
                                 Text(
                                     text = yearLabel,
-                                    fontSize = 10.sp,
+                                    
                                     color = themeColors.primary,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(
                                     text = dateLabel,
-                                    fontSize = 14.sp,
+                                    
                                     color = themeColors.onSurface,
                                     style = MaterialTheme.typography.bodyLarge,
                                     maxLines = 1,
@@ -373,7 +373,7 @@ fun AddEditLendBorrowTransactionSheet(
                                     text = String.format("%02d", hour),
                                     color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
+                                    style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.padding(5.dp)
                                 )
                             }
@@ -381,7 +381,7 @@ fun AddEditLendBorrowTransactionSheet(
                                 text = ":",
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp
+                                style = MaterialTheme.typography.bodyLarge
                             )
                             Box(
                                 modifier = Modifier.padding(5.dp).background(
@@ -393,7 +393,7 @@ fun AddEditLendBorrowTransactionSheet(
                                     text = String.format("%02d", minute),
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
+                                    style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.padding(5.dp)
                                 )
                             }
@@ -402,7 +402,7 @@ fun AddEditLendBorrowTransactionSheet(
                                     text = amPm,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 14.sp
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }

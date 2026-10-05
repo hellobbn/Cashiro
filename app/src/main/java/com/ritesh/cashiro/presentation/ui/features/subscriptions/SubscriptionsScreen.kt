@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.subscriptions
 
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -13,7 +17,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -661,7 +664,7 @@ private fun SwipeableSubscriptionItem(
                                 text = subscription.formatAmount(),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (!isSystemInDarkTheme()) expense_light else expense_dark
+                                color = if (!isAppInDarkTheme) expense_light else expense_dark
                             )
 
                             if (convertedAmount != null && targetCurrency != null && subscription.currency != targetCurrency) {
@@ -872,6 +875,7 @@ private fun PaymentStatusBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 OutlinedButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f).height(56.dp)
                 ) {
@@ -879,6 +883,7 @@ private fun PaymentStatusBottomSheet(
                 }
                 
                 Button(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = onMarkAsPaid,
                     modifier = Modifier.weight(1f).height(56.dp)
                 ) {
@@ -890,6 +895,7 @@ private fun PaymentStatusBottomSheet(
                 Spacer(modifier = Modifier.height(Spacing.lg))
 
                 TextButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = { showSmsBody = !showSmsBody }
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

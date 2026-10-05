@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,12 +24,12 @@ fun GitHubUpdateDialog(
             Text(stringResource(R.string.update_available_body, release.title))
         },
         confirmButton = {
-            TextButton(onClick = { onDownload(release) }) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = { onDownload(release) }) {
                 Text(stringResource(R.string.update_download))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
                 Text(stringResource(R.string.update_later))
             }
         }

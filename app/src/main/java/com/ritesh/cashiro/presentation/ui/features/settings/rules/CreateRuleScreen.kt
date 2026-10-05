@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.rules
 
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -381,6 +384,7 @@ fun CreateRuleScreen(
                             // Add condition button
                             if (conditions.size < 5) {
                                 Button(
+                                    shapes = ButtonDefaults.shapes(),
                                     onClick = {
                                         conditions = conditions + RuleCondition(TransactionField.AMOUNT, ConditionOperator.LESS_THAN, "")
                                         fieldDropdownsExpanded = fieldDropdownsExpanded + false
@@ -423,6 +427,7 @@ fun CreateRuleScreen(
                                         
                                         if (conditions.size > 1) {
                                             IconButton(
+                                                shapes = IconButtonDefaults.shapes(),
                                                 onClick = {
                                                     conditions = conditions.toMutableList().apply { removeAt(index) }
                                                     fieldDropdownsExpanded = fieldDropdownsExpanded.toMutableList().apply { removeAt(index) }
@@ -1183,7 +1188,7 @@ fun CreateRuleScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.save),
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
                 }

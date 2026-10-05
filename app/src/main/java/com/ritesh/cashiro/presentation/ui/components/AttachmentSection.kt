@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.ripple
+import androidx.compose.material3.ButtonDefaults
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -149,7 +153,7 @@ fun AttachmentSection(
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                         ),
-                        shape = MaterialTheme.shapes.largeIncreased
+                        shapes = IconButtonDefaults.shapes()
                     ) {
                         Icon(
                             Icons.Rounded.Add,
@@ -233,7 +237,7 @@ private fun AttachmentPreviewItem(
             .clickable(
                 enabled = true,
                 onClick = onClick,
-                indication = null,
+                indication = ripple(),
                 interactionSource = remember { MutableInteractionSource() }
             ),
         shape = RoundedCornerShape(Dimensions.Radius.md),

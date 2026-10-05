@@ -461,11 +461,34 @@ fun ComponentPreview() {
 - ❌ Create inconsistent layouts
 - ❌ Override system preferences without user consent
 
-## Material 3 Components Usage
+## Material 3 Expressive conventions
+
+The theme is `MaterialExpressiveTheme` with `MotionScheme.expressive()`. Use the shared components below rather than
+re-styling Material ones per screen.
+
+| Need | Use | Notes |
+|---|---|---|
+| Secondary screen top bar | `CustomTitleTopAppBar` | `LargeFlexibleTopAppBar` (two scroll behaviors) or `TopAppBar` (one); tonal surface → surfaceContainer on scroll, no blur |
+| Back / icon-only actions | `NavigationContent`, `TooltipIconButton` | Standard icon buttons with a plain tooltip; never wrap them in a second clickable |
+| Main navigation | `ShortNavigationBar` / collapsed `WideNavigationRail` | Rail from 600 dp; content inset `NavigationRailWidth` (96 dp) |
+| One choice of a few | `GenericTypeSwitcher` | M3E connected button group (ToggleButtons, radio semantics); `SingleChoiceSegmentedButtonRow` with `icon = {}` in forms |
+| On/off setting | `PreferenceSwitch`, `CashiroSwitch` | Thumb icon; a row that is one setting toggles as a whole (`ListItem(toggled, onToggle)` / `toggleable`) |
+| Checkbox | `CashiroCheckbox` | Material 3 `Checkbox` |
+| Search field | `SearchBarBox` | Pill on surfaceContainerHigh, onSurfaceVariant placeholder |
+| Buttons | Material buttons with `shapes = ButtonDefaults.shapes()` / `IconButtonDefaults.shapes()` | Shape morph on press; no hardcoded button shapes |
+| Loading | `LoadingIndicator`, `LinearWavyProgressIndicator` (`Loading.kt`) | Plain indicators only for meters (budget use, category share) |
+| Result + undo | Standard `Snackbar` with an action | No restyled snackbars, no persistent undo bars, no Toasts |
+| One FAB per screen | Add FAB in `CashiroNavHost` | Screen-specific actions (export) go in the top bar |
+| Amount colors | `transactionTypeColor()`, `successColor`, `warningColor` | Theme-aware via `isAppInDarkTheme`, never `isSystemInDarkTheme()` (the app theme can differ from the system's) |
+| Text | `MaterialTheme.typography` roles | No `fontSize = N.sp` on `Text` |
+
+Screen transitions and shared-element bounds keep short `tween`s (`MotionDurations`) on purpose: springs keep both
+screens composed longer, which the Transactions tab benchmark measures.
+
 
 ### Navigation Components
 ```kotlin
-// For phones (compact)
+// For phones (compact); the app uses the M3E ShortNavigationBar (see conventions above)
 NavigationBar {
     destinations.forEach { destination ->
         NavigationBarItem(

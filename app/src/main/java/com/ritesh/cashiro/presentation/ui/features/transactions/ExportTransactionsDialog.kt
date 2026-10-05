@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.Surface
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
@@ -196,7 +199,7 @@ fun ExportTransactionsDialog(
                     }
                     
                     is ExportState.Exporting -> {
-                        LinearProgressIndicator(
+                        LinearWavyProgressIndicator(
                             progress = { state.progress },
                             modifier = Modifier.fillMaxWidth(),
                         )

@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.profile
 
 import android.net.Uri
@@ -150,12 +152,7 @@ fun EditProfileSheet(
                     Button(
                         onClick = { profileImageLauncher.launch("image/*") },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 4.dp,
-                            bottomEnd = 4.dp,
-                            bottomStart = 16.dp
-                        ),
+                        shapes = ButtonDefaults.shapes(),
                         colors = ButtonDefaults.filledTonalButtonColors()
                     ) {
                         Icon(Iconax.GalleryExport, contentDescription = null)
@@ -166,12 +163,7 @@ fun EditProfileSheet(
                     Button(
                         onClick = { onProfileImageChange(null) },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(
-                            topStart = 4.dp,
-                            topEnd = 16.dp,
-                            bottomEnd = 16.dp,
-                            bottomStart = 4.dp
-                        ),
+                        shapes = ButtonDefaults.shapes(),
                         colors = ButtonDefaults.filledTonalButtonColors()
                     ) {
                         Icon(Iconax.CloseCircle, contentDescription = null)

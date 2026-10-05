@@ -303,8 +303,7 @@ private fun SummaryItem(label: String, value: String) {
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp
+            fontWeight = FontWeight.Bold
         )
     }
 }

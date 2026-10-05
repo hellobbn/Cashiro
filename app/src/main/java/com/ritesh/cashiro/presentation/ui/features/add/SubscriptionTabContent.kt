@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import androidx.compose.material3.ripple
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
@@ -302,7 +303,7 @@ fun SubscriptionTabContent(
                             .padding(8.dp)
                             .clickable(
                                 onClick = { showDatePicker = true },
-                                indication = null,
+                                indication = ripple(),
                                 interactionSource = remember { MutableInteractionSource() }
                             ),
                         contentAlignment = Alignment.Center
@@ -329,14 +330,14 @@ fun SubscriptionTabContent(
                             ) {
                                 Text(
                                     text = yearLabel,
-                                    fontSize = 10.sp,
+                                    
                                     textAlign = TextAlign.Start,
                                     color = themeColors.primary,
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                                 Text(
                                     text = dateLabel,
-                                    fontSize = 14.sp,
+                                    
                                     textAlign = TextAlign.Start,
                                     color = themeColors.onSurface,
                                     style = MaterialTheme.typography.bodyLarge,
@@ -392,7 +393,7 @@ fun SubscriptionTabContent(
                         Modifier.fillMaxWidth()
                             .clickable(
                                 interactionSource = categoryInteractionSource,
-                                indication = null
+                                indication = ripple()
                             ) {
                                 showCategoryMenu = true
                             },

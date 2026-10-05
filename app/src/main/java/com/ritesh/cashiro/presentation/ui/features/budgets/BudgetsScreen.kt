@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -413,7 +416,7 @@ private fun EmptyBudgetsContent(
         
         Spacer(modifier = Modifier.height(Spacing.lg))
         
-        Button(onClick = onCreateBudget) {
+        Button(shapes = ButtonDefaults.shapes(), onClick = onCreateBudget) {
             Icon(Icons.Rounded.Add, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.create_budget))

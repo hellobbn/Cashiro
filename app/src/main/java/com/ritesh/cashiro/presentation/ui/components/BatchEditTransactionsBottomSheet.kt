@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import androidx.compose.foundation.background
@@ -207,7 +209,7 @@ fun BatchEditTransactionsBottomSheet(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            TextButton(onClick = { showDatePicker = true }) {
+                            TextButton(shapes = ButtonDefaults.shapes(), onClick = { showDatePicker = true }) {
                                 Text(stringResource(R.string.batch_edit_pick_date))
                             }
                         }
@@ -243,7 +245,7 @@ fun BatchEditTransactionsBottomSheet(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            TextButton(onClick = { showTimePicker = true }) {
+                            TextButton(shapes = ButtonDefaults.shapes(), onClick = { showTimePicker = true }) {
                                 Text(stringResource(R.string.batch_edit_pick_time))
                             }
                         }
@@ -288,7 +290,7 @@ fun BatchEditTransactionsBottomSheet(
                                     )
                                 }
                             }
-                            TextButton(onClick = { showCategorySheet = true }) {
+                            TextButton(shapes = ButtonDefaults.shapes(), onClick = { showCategorySheet = true }) {
                                 Text(stringResource(R.string.batch_edit_choose))
                             }
                         }
@@ -325,7 +327,7 @@ fun BatchEditTransactionsBottomSheet(
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (selectedAmount != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            TextButton(onClick = { showNumberPad = true }) {
+                            TextButton(shapes = ButtonDefaults.shapes(), onClick = { showNumberPad = true }) {
                                 Text(stringResource(R.string.batch_edit_set_amount))
                             }
                         }
@@ -395,7 +397,7 @@ fun BatchEditTransactionsBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
-                    shape = RoundedCornerShape(18.dp),
+                    shapes = ButtonDefaults.shapes(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -534,14 +536,7 @@ private fun BatchEditOptionCard(
                         color = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
-                Switch(
-                    checked = checked,
-                    onCheckedChange = onCheckedChange,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary
-                    )
-                )
+                CashiroSwitch(checked = checked, onCheckedChange = onCheckedChange)
             }
 
             if (checked) {

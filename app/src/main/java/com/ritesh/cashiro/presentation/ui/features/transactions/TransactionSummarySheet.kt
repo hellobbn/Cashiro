@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
 import com.ritesh.cashiro.utils.displayTitle
@@ -57,8 +59,8 @@ internal fun TransactionSummarySheet(
                 SummaryField(stringResource(R.string.description_label), it)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
-                FilledTonalButton(onClick = onOpenDetails) { Text(stringResource(R.string.transaction_details)) }
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text(stringResource(R.string.close)) }
+                FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = onOpenDetails) { Text(stringResource(R.string.transaction_details)) }
             }
         }
     }

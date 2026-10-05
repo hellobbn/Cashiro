@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import androidx.compose.material3.ripple
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -288,7 +289,7 @@ private fun ExpandableBalanceChart(
         modifier = modifier
             .fillMaxWidth()
             .clickable(
-                indication = null,
+                indication = ripple(),
                 interactionSource = remember { MutableInteractionSource() }
             ){ isExpanded = !isExpanded }
     ) {

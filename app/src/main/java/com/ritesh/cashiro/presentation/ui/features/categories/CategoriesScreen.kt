@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.categories
 
+import com.ritesh.cashiro.presentation.ui.components.TooltipIconButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -254,12 +258,7 @@ fun CategoriesScreen(
             SnackbarHost(
                 hostState = snackbarHostState,
                 snackbar = {
-                    Snackbar(
-                        snackbarData = it,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.large,
-                    )
+                    Snackbar(snackbarData = it)
                 }
             )
         },
@@ -305,7 +304,7 @@ fun CategoriesScreen(
                         ) { labelText ->
                             Text(
                                 text = labelText,
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 lineHeight = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 fontStyle = FontStyle.Italic,
@@ -318,7 +317,7 @@ fun CategoriesScreen(
                     leadingIcon = { },
                     trailingIcon = if (searchInput.text.isNotEmpty()) {
                         {
-                            IconButton(onClick = {
+                            IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                                 searchInput = TextFieldValue("")
                                 categoriesViewModel.updateSearchQuery("")
                             }) {
@@ -624,33 +623,11 @@ private fun SwipeableCategoryItem(
 
 
 
+/** The top bar's back button: a standard icon button, as Material 3 places navigation icons. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NavigationContent(onNavigateBack: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .animateContentSize()
-            .padding(start = 16.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onNavigateBack,
-                ),
-    ) {
-        IconButton(
-            onClick = onNavigateBack,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onBackground
-            ),
-            shapes =  IconButtonDefaults.shapes()
-        ) {
-            Icon(
-                    imageVector = Iconax.ArrowLeft02,
-                    contentDescription = "Back Button",
-            )
-        }
-    }
+    TooltipIconButton(icon = Iconax.ArrowLeft02, label = stringResource(R.string.cd_navigate_back), onClick = onNavigateBack)
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -661,29 +638,9 @@ fun ActionContent(
     onDismissMenu: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .padding(end = 8.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onActionClick
-            )
-    ) {
-        IconButton(
-            onClick = onActionClick,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onBackground
-            ),
-            shapes =  IconButtonDefaults.shapes()
-        ) {
-            Icon(
-                    imageVector = Icons.Rounded.MoreHoriz,
-                    contentDescription = "More options",
-                    modifier = Modifier.size(18.dp)
-            )
-        }
+    // The overflow button anchors its menu; a standard icon button, one touch target
+    Box {
+        TooltipIconButton(icon = Icons.Rounded.MoreHoriz, label = stringResource(R.string.more_options), onClick = onActionClick)
 
         DropdownMenu(
             expanded = showMenu,

@@ -1,5 +1,11 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.presentation.ui.theme.transactionTypeColor
+import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
+import com.ritesh.cashiro.presentation.ui.components.TooltipIconButton
+import androidx.compose.material3.ripple
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -43,7 +49,6 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -316,7 +321,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val rootView = LocalView.current
-    val isDarkTheme = uiState.darkThemeConfig ?: isSystemInDarkTheme()
+    val isDarkTheme = uiState.darkThemeConfig ?: isAppInDarkTheme
     val isAmoledMode = uiState.isAmoledMode
 
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -483,16 +488,13 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                 .padding(end = 16.dp)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
+                                    indication = ripple(),
                                     onClick ={ transactionDetailViewModel.enterEditMode() },
                                 ),
                         ) {
                             IconButton(
+                                shapes = IconButtonDefaults.shapes(),
                                 onClick = { transactionDetailViewModel.enterEditMode() },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onBackground
-                                )
                             ) {
                                 Icon(
                                     imageVector = Iconax.Edit2,
@@ -655,9 +657,9 @@ fun SharedTransitionScope.TransactionDetailScreen(
                             }
                         }
 
-                        val dropContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         Box {
                             IconButton(
+                                shapes = IconButtonDefaults.shapes(),
                                 onClick = { showMoreMenu = true },
                                 colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -671,30 +673,10 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
+                            // A standard Material 3 menu: opaque tonal container, no blur, no dividers
                             DropdownMenu(
                                 expanded = showMoreMenu,
-                                onDismissRequest = { showMoreMenu = false },
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(24.dp))
-                                    .then(
-                                        if (blurEffects) Modifier.hazeEffect(
-                                            state = hazeState,
-                                            block = fun HazeEffectScope.() {
-                                                inputScale = HazeInputScale.Auto
-                                                style = HazeDefaults.style(
-                                                    backgroundColor = Color.Transparent,
-                                                    tint = HazeTint(dropContainerColor.copy(0.5f)),
-                                                    blurRadius = 36.dp,
-                                                    noiseFactor = -1f,
-                                                )
-                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                            }
-                                        ) else Modifier
-                                    ),
-                                containerColor = dropContainerColor.copy(
-                                    alpha = if (blurEffects) 0.7f else 1f
-                                ),
-                                shape = RoundedCornerShape(24.dp)
+                                onDismissRequest = { showMoreMenu = false }
                             ) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.report_issue)) },
@@ -706,11 +688,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                     },
                                     leadingIcon = { Icon(Icons.Rounded.BugReport, contentDescription = null) }
                                 )
-
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
-                                )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.duplicate_transaction)) },
                                     onClick = {
@@ -718,10 +695,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                         transactionDetailViewModel.duplicateTransaction()
                                     },
                                     leadingIcon = { Icon(Iconax.Copy, contentDescription = null) }
-                                )
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
                                 )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.quick_template_save_from_detail)) },
@@ -731,10 +704,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                     },
                                     leadingIcon = { Icon(Icons.Rounded.Bolt, contentDescription = null) }
                                 )
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
-                                )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.delete_transaction)) },
                                     onClick = {
@@ -742,11 +711,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                         transactionDetailViewModel.showDeleteDialog()
                                     },
                                     leadingIcon = { Icon(Iconax.Bag, contentDescription = null) }
-                                )
-
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface.copy(0.6f)
                                 )
                                 DropdownMenuItem(
                                     text = {
@@ -888,7 +852,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                 },
                 onDismiss = { transactionDetailViewModel.hideMatchPreviewSheet() },
                 newCategory = editableTransaction?.category ?: "",
-                isDarkTheme = uiState.darkThemeConfig ?: isSystemInDarkTheme(),
+                isDarkTheme = uiState.darkThemeConfig ?: isAppInDarkTheme,
                 transactionPersonMapping = uiState.transactionPersonMapping
             )
         }
@@ -955,35 +919,17 @@ fun SharedTransitionScope.TransactionDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TransactionNavigationContent(
     isEditMode: Boolean,
     onBackClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .animateContentSize()
-            .padding(start = 16.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onBackClick,
-            ),
-    ) {
-        IconButton(
-            onClick = onBackClick,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onBackground
-            )
-        ) {
-            Icon(
-                imageVector = if (isEditMode) Icons.Rounded.Close else Iconax.ArrowLeft02,
-                contentDescription = if (isEditMode) stringResource(R.string.cancel) else null,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
+    TooltipIconButton(
+        icon = if (isEditMode) Icons.Rounded.Close else Iconax.ArrowLeft02,
+        label = stringResource(if (isEditMode) R.string.cancel else R.string.cd_navigate_back),
+        onClick = onBackClick
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -1699,7 +1645,7 @@ private fun EditableExtractedInfoCard(
                             .fillMaxWidth()
                             .clickable(
                                 onClick = {viewModel.toggleUpdateExistingTransactions()},
-                                indication = null,
+                                indication = ripple(),
                                 interactionSource = remember { MutableInteractionSource() }
                             )
                             .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
@@ -1910,7 +1856,7 @@ private fun CategoryDropdown(
                 .fillMaxWidth()
                 .clickable(
                     interactionSource = categoryInteractionSource,
-                    indication = null
+                    indication = ripple()
                 ) {
                     onClick()
                 },
@@ -2061,7 +2007,7 @@ private fun DateTimeField(
                 .padding(4.dp)
                 .clickable(
                     onClick = { showDatePicker = true },
-                    indication = null,
+                    indication = ripple(),
                     interactionSource = remember { MutableInteractionSource() }
                 ),
             contentAlignment = Alignment.Center
@@ -2080,7 +2026,7 @@ private fun DateTimeField(
                 Spacer(Modifier.size(8.dp))
 
                 val dateLabel =
-                    dateTime.format(DateTimeFormatter.ofPattern("dd MMMM"))
+                    dateTime.format(localizedDateFormatter(withYear = false))
                 val yearLabel =
                     dateTime.format(DateTimeFormatter.ofPattern("yyyy"))
                 Column(
@@ -2088,14 +2034,14 @@ private fun DateTimeField(
                 ) {
                     Text(
                         text = yearLabel,
-                        fontSize = 10.sp,
+                        
                         textAlign = TextAlign.Start,
                         color = themeColors.primary,
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Text(
                         text = dateLabel,
-                        fontSize = 14.sp,
+                        
                         textAlign = TextAlign.Start,
                         color = themeColors.onSurface,
                         style = MaterialTheme.typography.bodyLarge,
@@ -2135,7 +2081,7 @@ private fun DateTimeField(
                         text = String.format("%02d", hour),
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         lineHeight = 16.sp,
                         modifier = Modifier.padding(5.dp)
                     )
@@ -2145,7 +2091,7 @@ private fun DateTimeField(
                     text = ":",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 16.sp,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
 
                 Box(
@@ -2160,7 +2106,7 @@ private fun DateTimeField(
                         text = String.format("%02d", minute),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         lineHeight = 16.sp,
                         modifier = Modifier.padding(5.dp)
                     )
@@ -2171,7 +2117,7 @@ private fun DateTimeField(
                         text = amPm,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
@@ -2247,6 +2193,8 @@ private fun TransactionReceipt(
     linkedLoanPersonAvatar: String? = null,
     isCapture: Boolean = false
 ) {
+    // The icon picker for this merchant, opened from the merchant badge
+    var showIconSheet by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     var cutoutOffsetPx by remember { mutableFloatStateOf(with(density) { 420.dp.toPx() }) }
     val cutoutRadius = 10.dp
@@ -2313,8 +2261,12 @@ private fun TransactionReceipt(
                         personName = linkedLoanPersonName,
                         personColor = linkedLoanPersonColor,
                         personAvatar = linkedLoanPersonAvatar,
-                        isCapture = isCapture
+                        isCapture = isCapture,
+                        onIconClick = if (isCapture) null else { { showIconSheet = true } }
                     )
+                    if (showIconSheet) {
+                        MerchantIconSheet(merchantName = transaction.merchantName, onDismiss = { showIconSheet = false })
+                    }
                     DashedLine(
                         modifier = Modifier.weight(1f),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
@@ -2344,7 +2296,7 @@ private fun TransactionReceipt(
                             )
                             Text(
                                 text = transaction.dateTime.format(
-                                    DateTimeFormatter.ofPattern("d MMM yyyy")
+                                    localizedDateFormatter()
                                 ),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
@@ -2380,7 +2332,7 @@ private fun TransactionReceipt(
                                         text = String.format("%02d", hour),
                                         color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
+                                        style = MaterialTheme.typography.bodyLarge,
                                         lineHeight = 16.sp,
                                         modifier = Modifier.padding(5.dp)
                                     )
@@ -2390,7 +2342,7 @@ private fun TransactionReceipt(
                                     text = ":",
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
+                                    style = MaterialTheme.typography.bodyLarge,
                                 )
 
                                 Box(
@@ -2405,7 +2357,7 @@ private fun TransactionReceipt(
                                         text = String.format("%02d", minute),
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 16.sp,
+                                        style = MaterialTheme.typography.bodyLarge,
                                         lineHeight = 16.sp,
                                         modifier = Modifier.padding(5.dp)
                                     )
@@ -2416,7 +2368,7 @@ private fun TransactionReceipt(
                                         text = amPm,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 14.sp,
+                                        style = MaterialTheme.typography.bodyMedium,
                                     )
                                 }
                             }
@@ -2425,7 +2377,7 @@ private fun TransactionReceipt(
 
                     ReceiptInfoRow(
                         label = stringResource(R.string.type),
-                        value = transaction.transactionType.name.lowercase().capitalizeFirst(),
+                        value = stringResource(transaction.transactionType.labelRes),
                         linkedLendBorrow = linkedLendBorrow
                     )
 
@@ -2474,14 +2426,16 @@ private fun TransactionReceipt(
                         ?: availableAccounts.find { it.accountLast4 == fromAccount }
                     val toAccountEntity = toAccount?.let { acc -> availableAccounts.find { it.accountLast4 == acc } }
 
+                    // Name and last four digits, so two cards of one bank can be told apart
                     val fromBankName = if (isTransfer) {
-                        fromAccountEntity?.bankName ?: transaction.bankName ?: maskAccountNumber(fromAccount) ?: stringResource(R.string.source)
+                        withLast4(fromAccountEntity?.bankName ?: transaction.bankName, fromAccount)
+                            ?: stringResource(R.string.source)
                     } else {
-                        transaction.bankName ?: stringResource(R.string.account)
+                        withLast4(transaction.bankName, fromAccount) ?: stringResource(R.string.account)
                     }
 
                     val toBankName = if (isTransfer && toAccount != null) {
-                        toAccountEntity?.bankName ?: maskAccountNumber(toAccount) ?: toAccount
+                        withLast4(toAccountEntity?.bankName, toAccount) ?: toAccount
                     } else null
 
                     ReceiptInfoRow(
@@ -2535,7 +2489,7 @@ private fun TransactionReceipt(
                         ReceiptInfoRow(
                             label = stringResource(R.string.next_billing),
                             value = linkedSubscription.nextPaymentDate.format(
-                                DateTimeFormatter.ofPattern("d MMM yyyy")
+                                localizedDateFormatter()
                             ),
                             icon = {
                                 Icon(
@@ -2563,7 +2517,7 @@ private fun TransactionReceipt(
                             )
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
+                                indication = ripple(),
                                 onClick = { isDescriptionExpanded = !isDescriptionExpanded }
                             ),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -2633,7 +2587,7 @@ private fun TransactionReceipt(
                             .padding(top = Spacing.md)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
+                                indication = ripple(),
                                 onClick = { isSMSExpanded = !isSMSExpanded }
                             ),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -2712,16 +2666,7 @@ private fun TransactionReceipt(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
                 
-                val amountColor = when (transaction.transactionType) {
-                    TransactionType.INCOME -> Color(0xFF4CAF50)
-                    TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
-                    TransactionType.CREDIT -> Color(0xFFFF6B35)  // Orange for credit
-                    TransactionType.TRANSFER -> Color(0xFF9C27B0)  // Purple for transfer
-                    TransactionType.INVESTMENT -> Color(0xFF00796B)  // Teal for investment
-                    TransactionType.BALANCE_UPDATE -> Color(0xFF9C27B0)  // Purple for balance update
-                    TransactionType.LENT -> MaterialTheme.colorScheme.error
-                    TransactionType.BORROWED -> Color(0xFF4CAF50)
-                }
+                val amountColor = transactionTypeColor(transaction.transactionType)
                 val sign = when (transaction.transactionType) {
                     TransactionType.INCOME -> "+"
                     TransactionType.EXPENSE -> "-"
@@ -2825,7 +2770,8 @@ private fun ReceiptBadge(
     personName: String? = null,
     personColor: String? = null,
     personAvatar: String? = null,
-    isCapture: Boolean = false
+    isCapture: Boolean = false,
+    onIconClick: (() -> Unit)? = null
 ) {
     Surface(
         shape = RoundedCornerShape(24.dp),
@@ -2905,7 +2851,13 @@ private fun ReceiptBadge(
                     category = category,
                     subcategory = subcategory,
                     accountIconName = null, // Not an account icon in this context
-                    modifier = brandIconModifier
+                    modifier = brandIconModifier.then(
+                        if (onIconClick != null) {
+                            Modifier
+                                .clip(CircleShape)
+                                .clickable(onClickLabel = stringResource(R.string.merchant_icon_title), onClick = onIconClick)
+                        } else Modifier
+                    )
                 )
                 Text(
                     text = merchantName,
@@ -3387,10 +3339,6 @@ private fun MatchPreviewSheetContent(
                     onClick = {
                         if (allSelected) onDeselectAll() else onSelectAll()
                     },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        contentColor = MaterialTheme.colorScheme.onBackground
-                    ),
                     shapes = IconButtonDefaults.shapes(),
                 ) {
                     Icon(
@@ -3428,7 +3376,7 @@ private fun MatchPreviewSheetContent(
                 },
                 trailingIcon = {
                     BlurredAnimatedVisibility(searchTextFieldValue.text.isNotEmpty()) {
-                        IconButton(onClick = {
+                        IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                             searchTextFieldValue = TextFieldValue("")
                             onSearchQueryChange("")
                         }) {
@@ -3502,7 +3450,7 @@ private fun MatchPreviewSheetContent(
                                 supporting = {
                                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                         Text(
-                                            text = txn.dateTime.format(DateTimeFormatter.ofPattern("d MMM yyyy")),
+                                            text = txn.dateTime.format(localizedDateFormatter()),
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                         if (!txn.category.isNullOrBlank()) {
@@ -3636,7 +3584,7 @@ private fun MatchPreviewSheetContent(
                                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Text(
                                         text = txn.dateTime.format(
-                                            DateTimeFormatter.ofPattern("d MMM yyyy")
+                                            localizedDateFormatter()
                                         ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
@@ -3858,10 +3806,13 @@ private fun captureReceiptToBitmap(
         val heightPx = composeView.measuredHeight.coerceAtLeast(1)
         composeView.layout(0, 0, widthPx, heightPx)
 
-        val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        composeView.draw(canvas)
-        return bitmap
+        // Record, then let the GPU render: images (bank logos) load as hardware bitmaps, which a
+        // software Canvas over a plain Bitmap refuses to draw. A Picture accepts them, and
+        // createBitmap renders such a picture with the hardware renderer, then copies it out.
+        val picture = android.graphics.Picture()
+        composeView.draw(picture.beginRecording(widthPx, heightPx))
+        picture.endRecording()
+        return Bitmap.createBitmap(picture, widthPx, heightPx, Bitmap.Config.ARGB_8888)
     } finally {
         decorView.removeView(composeView)
     }
@@ -3896,5 +3847,31 @@ private fun shareReceiptAsPng(
         context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_receipt)))
     } catch (e: Exception) {
         Log.e("TransactionDetail", "Error sharing receipt", e)
+    }
+}
+
+/** "中国银行 · 1234" / "Bank of China · 1234"; just the name for wallets or when digits are unknown. */
+internal fun withLast4(bankName: String?, last4: String?): String? {
+    val digits = last4?.takeIf { it.length in 3..4 && it.all(Char::isDigit) }
+    return when {
+        bankName.isNullOrBlank() -> digits?.let { "•• $it" }
+        digits == null -> bankName
+        else -> "$bankName · $digits"
+    }
+}
+
+/** Dates as the locale writes them: 2026年10月4日 / 4 Oct 2026 (10月4日 / 4 October without the year). */
+@Composable
+internal fun localizedDateFormatter(withYear: Boolean = true): DateTimeFormatter {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    return remember(locale, withYear) {
+        val zh = locale.language == "zh"
+        val pattern = when {
+            zh && withYear -> "yyyy年M月d日"
+            zh -> "M月d日"
+            withYear -> "d MMM yyyy"
+            else -> "d MMMM"
+        }
+        DateTimeFormatter.ofPattern(pattern, locale)
     }
 }

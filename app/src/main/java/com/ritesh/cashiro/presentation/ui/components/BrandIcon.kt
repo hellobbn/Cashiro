@@ -11,7 +11,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.ContentScale
+import com.ritesh.cashiro.data.icons.MerchantIconEntryPoint
+import com.ritesh.cashiro.data.icons.MerchantIconStore
+import dagger.hilt.android.EntryPointAccessors
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +51,24 @@ fun BrandIcon(
     accountColorHex: String? = null
 ) {
     val context = LocalContext.current
+    // An icon the user picked for this merchant comes before everything else
+    val iconStore = remember(context) {
+        runCatching {
+            EntryPointAccessors.fromApplication(context.applicationContext, MerchantIconEntryPoint::class.java)
+                .merchantIconStore()
+        }.getOrNull()
+    }
+    val customIcons = iconStore?.icons?.collectAsState()?.value
+    val customIcon = customIcons?.get(MerchantIconStore.key(merchantName))
+    if (customIcon != null) {
+        AsyncImage(
+            model = customIcon,
+            contentDescription = merchantName,
+            contentScale = ContentScale.Crop,
+            modifier = modifier.size(size).clip(CircleShape)
+        )
+        return
+    }
     val iconResource = remember(merchantName, categoryEntity, subcategoryEntity, category, subcategory, accountIconResId, accountIconName) {
         IconProvider.getIconForTransaction(
             context = context,

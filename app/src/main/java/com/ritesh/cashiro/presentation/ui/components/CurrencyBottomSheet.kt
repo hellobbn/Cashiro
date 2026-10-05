@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
 
 import com.ritesh.cashiro.data.currency.RateServerChoice
@@ -93,7 +95,7 @@ fun CurrencyBottomSheet(
                     text = stringResource(R.string.currencies),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .padding(bottom = 16.dp)
@@ -119,7 +121,7 @@ contentDescription = stringResource(R.string.search),
                         },
                         trailingIcon = {
                             if (searchQuery.text.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = TextFieldValue("") }) {
+                                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { searchQuery = TextFieldValue("") }) {
                                     Icon(
                                         imageVector = Iconax.CloseCircle,
                                         contentDescription = stringResource(R.string.clear),
@@ -127,7 +129,7 @@ contentDescription = stringResource(R.string.search),
                                     )
                                 }
                             } else {
-                                IconButton(onClick = { showExchangeRateInfo = true }) {
+                                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { showExchangeRateInfo = true }) {
                                     Icon(
                                         imageVector = Iconax.Information,
                                         contentDescription = "Info",
@@ -225,7 +227,7 @@ contentDescription = stringResource(R.string.search),
                                 ) {
                                     Text(
                                         text = stringResource(R.string.view_all_currencies),
-                                        fontSize = 12.sp,
+                                        style = MaterialTheme.typography.bodySmall,
                                         modifier = Modifier
                                             .background(
                                                 color = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -263,7 +265,7 @@ contentDescription = stringResource(R.string.search),
                     onClick = { showAddCustomCurrencySheet = true },
                     modifier = Modifier
                         .height(56.dp),
-                    shape = MaterialTheme.shapes.extraExtraLarge
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
@@ -330,7 +332,7 @@ contentDescription = stringResource(R.string.search),
                             Text(
                                 text = stringResource(R.string.exchange_rates_notice_title),
                                 textAlign = TextAlign.Center,
-                                fontSize = 18.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.inverseSurface,
                                 modifier = Modifier.fillMaxWidth()
@@ -338,12 +340,13 @@ contentDescription = stringResource(R.string.search),
                             Text(
                                 text = stringResource(R.string.exchange_rates_notice_text),
                                 textAlign = TextAlign.Center,
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.inverseSurface.copy(0.8f),
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Button(
+                                    shapes = ButtonDefaults.shapes(),
                                     onClick = { showExchangeRateInfo = false },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -353,6 +356,7 @@ contentDescription = stringResource(R.string.search),
                                     Text(text = stringResource(R.string.ok))
                                 }
                                 Button(
+                                    shapes = ButtonDefaults.shapes(),
                                     onClick = {
                                         showExchangeRateSheet = true
                                         showExchangeRateInfo = false
@@ -437,7 +441,7 @@ fun CurrencyCard(
             Text(
                 text = currency.code.uppercase(),
                 lineHeight = 12.sp,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = if (isSelected)
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(0.7f)
                 else
@@ -446,7 +450,7 @@ fun CurrencyCard(
             Text(
                 text = currency.symbol,
                 lineHeight = 20.sp,
-                fontSize = 20.sp,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected)
                     MaterialTheme.colorScheme.onPrimaryContainer
@@ -457,7 +461,7 @@ fun CurrencyCard(
             Text(
                 text = currency.localizedName(),
                 lineHeight = 10.sp,
-                fontSize = 10.sp,
+                style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = if (isSelected)
@@ -526,10 +530,11 @@ fun ExchangeRatesBottomSheet(
                     text = stringResource(R.string.exchange_rates),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 IconButton(
+                    shapes = IconButtonDefaults.shapes(),
                     onClick = {
                         val other = (uiState.accountCurrencies - baseCurrencyCode.uppercase()).firstOrNull() ?: "USD"
                         calculatorPair = other to baseCurrencyCode
@@ -614,6 +619,7 @@ fun ExchangeRatesBottomSheet(
                 if (groups.other.isNotEmpty() && searchQuery.text.isBlank()) {
                     item(key = "toggle-others") {
                         TextButton(
+                            shapes = ButtonDefaults.shapes(),
                             onClick = { showOthers = !showOthers },
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -838,7 +844,7 @@ fun AddCustomCurrencyBottomSheet(
                     text = stringResource(R.string.custom_currency),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -979,7 +985,7 @@ fun AddCustomCurrencyBottomSheet(
                     },
                     modifier = Modifier
                         .height(56.dp),
-                    shape = MaterialTheme.shapes.extraExtraLarge
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Text(
                         text = stringResource(R.string.save_currency),

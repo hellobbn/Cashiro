@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.ai
 
+import androidx.compose.material3.IconButtonDefaults
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -78,6 +82,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.lazy.items
 import com.ritesh.cashiro.data.ai.AiModel
 import kotlinx.coroutines.delay
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.LoadingIndicator
+import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.ai.AiConfig
 import com.ritesh.cashiro.data.ai.AiProtocol
@@ -102,7 +112,7 @@ import java.time.format.DateTimeFormatter
  * user's own cloud model, which proposes additions, edits and deletions; nothing is saved until
  * the user ticks what to keep.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AiAssistantScreen(
     onNavigateBack: () -> Unit,
@@ -112,9 +122,19 @@ fun AiAssistantScreen(
     val lookups by viewModel.lookups.collectAsStateWithLifecycle()
     // The proposed change whose details are open
     var opened by rememberSaveable { mutableStateOf<Int?>(null) }
+    // Whether the finished run's steps are shown under the review
+    var runLogOpen by rememberSaveable { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
+    val listState = rememberLazyListState()
+    // Follow the run as steps come in
+    val runningSteps = (state.phase as? AiPhase.Running)?.steps?.size
+    LaunchedEffect(runningSteps) {
+        if (runningSteps != null && listState.layoutInfo.totalItemsCount > 0) {
+            listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
+        }
+    }
     val defaultRequest = stringResource(R.string.ai_default_request)
     val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         viewModel.addFiles(uris)
@@ -128,7 +148,20 @@ fun AiAssistantScreen(
         }
     }
 
+    // Saving ends in a snackbar with Undo, as deleting a transaction does elsewhere
+    val snackbarHostState = remember { SnackbarHostState() }
+    val savedPhase = state.phase as? AiPhase.Saved
+    val savedMessage = savedPhase?.let { stringResource(R.string.ai_saved, it.applied.count()) }
+    val undoLabel = stringResource(R.string.ai_undo)
+    LaunchedEffect(savedPhase) {
+        if (savedPhase != null && savedMessage != null) {
+            val result = snackbarHostState.showSnackbar(savedMessage, actionLabel = undoLabel, duration = SnackbarDuration.Long)
+            if (result == SnackbarResult.ActionPerformed) viewModel.undo()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         // Shrink above the keyboard so the field being typed in and the action bar stay visible
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).imePadding(),
         topBar = {
@@ -148,7 +181,6 @@ fun AiAssistantScreen(
                 onCancel = viewModel::cancel,
                 onSave = viewModel::save,
                 onStartOver = viewModel::startOver,
-                onUndo = viewModel::undo,
                 onDone = {
                     viewModel.startOver()
                     onNavigateBack()
@@ -157,6 +189,7 @@ fun AiAssistantScreen(
         }
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize().hazeSource(hazeState),
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
@@ -200,23 +233,15 @@ fun AiAssistantScreen(
                         }
                     }
                 }
-                is AiPhase.Running -> item(key = "running") {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Spacing.md)
-                    ) {
-                        CircularProgressIndicator()
-                        Text(
-                            text = stringResource(R.string.ai_running, phase.proposed),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                is AiPhase.Running -> aiProgress(phase, state.config.model)
                 AiPhase.Review, is AiPhase.Saved -> {
-                    if (state.summary.isNotBlank()) {
-                        item(key = "summary") { Text(state.summary, style = MaterialTheme.typography.bodyMedium) }
+                    val saved = state.phase is AiPhase.Saved
+                    // Once saved, the page is a record of what was written, not a proposal
+                    val header = if (saved) savedMessage else state.summary.takeIf { it.isNotBlank() }
+                    header?.let {
+                        item(key = "summary") {
+                            Text(it, style = if (saved) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium)
+                        }
                     }
                     if (state.review.isEmpty()) {
                         item(key = "empty") {
@@ -226,7 +251,15 @@ fun AiAssistantScreen(
                             )
                         }
                     }
-                    reviewItems(state.review, lookups, mainCurrency = null, onOpen = { opened = it })
+                    reviewItems(
+                        review = if (saved) state.review.filter { it.included } else state.review,
+                        lookups = lookups,
+                        mainCurrency = null,
+                        onOpen = if (saved) null else { index -> opened = index }
+                    )
+                    state.lastRun?.let { run ->
+                        aiRunLog(run, expanded = runLogOpen, onToggle = { runLogOpen = !runLogOpen })
+                    }
                 }
             }
         }
@@ -259,7 +292,6 @@ private fun AiBottomBar(
     onCancel: () -> Unit,
     onSave: () -> Unit,
     onStartOver: () -> Unit,
-    onUndo: () -> Unit,
     onDone: () -> Unit
 ) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
@@ -289,16 +321,8 @@ private fun AiBottomBar(
                         Text(stringResource(R.string.ai_save_selected, count))
                     }
                 }
-                is AiPhase.Saved -> {
-                    val count = phase.applied.createdAccounts.size + phase.applied.balanceRowIds.size + phase.applied.addedIds.size +
-                        phase.applied.updated.size + phase.applied.deleted.size
-                    Text(
-                        text = stringResource(R.string.ai_saved, count),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
-                    TextButton(onClick = onUndo, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ai_undo)) }
-                    Button(onClick = onDone, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ai_done)) }
+                is AiPhase.Saved -> Button(onClick = onDone, shapes = ButtonDefaults.shapes()) {
+                    Text(stringResource(R.string.ai_done))
                 }
             }
         }
@@ -333,7 +357,7 @@ private fun ProviderCard(
                     )
                 }
                 if (config.isConfigured && !editing) {
-                    TextButton(onClick = { editing = true }) { Text(stringResource(R.string.ai_edit)) }
+                    TextButton(shapes = ButtonDefaults.shapes(), onClick = { editing = true }) { Text(stringResource(R.string.ai_edit)) }
                 }
             }
             if (!config.isConfigured || editing) {
@@ -437,6 +461,7 @@ private fun ProviderForm(
     }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Button(
+            shapes = ButtonDefaults.shapes(),
             onClick = { onSave(AiConfig(preset.protocol, baseUrl, model, apiKey)) },
             enabled = ready && model.isNotBlank()
         ) { Text(stringResource(R.string.ai_save)) }
@@ -456,6 +481,7 @@ private fun ProviderForm(
 }
 
 /** The chosen model as a row that opens the picker, with loading and error states. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ModelField(model: String, models: ModelListState, onClick: () -> Unit, onRetry: () -> Unit) {
     val chosen = models.models.firstOrNull { it.id == model }
@@ -507,8 +533,8 @@ private fun ModelField(model: String, models: ModelListState, onClick: () -> Uni
                 }
             }
             when {
-                models.loading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                models.error != null -> TextButton(onClick = onRetry) { Text(stringResource(R.string.ai_retry)) }
+                models.loading -> LoadingIndicator(modifier = Modifier.size(32.dp))
+                models.error != null -> TextButton(shapes = ButtonDefaults.shapes(), onClick = onRetry) { Text(stringResource(R.string.ai_retry)) }
                 else -> Icon(Icons.Rounded.ArrowDropDown, contentDescription = null)
             }
         }
@@ -524,7 +550,7 @@ private fun ModelPicker(models: List<AiModel>, selected: String, onPick: (String
         val q = query.trim().lowercase()
         if (q.isEmpty()) models else models.filter { q in it.name.lowercase() || q in it.id.lowercase() }
     }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    CashiroModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -598,7 +624,7 @@ private fun FilesSection(names: List<Pair<String, Boolean>>, onAdd: () -> Unit, 
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f)
             )
-            TextButton(onClick = onAdd) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onAdd) {
                 Icon(Icons.Rounded.AttachFile, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(Spacing.xs))
                 Text(stringResource(R.string.ai_add_files))
@@ -637,7 +663,7 @@ private fun ErrorCard(message: String, onDismiss: () -> Unit) {
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.weight(1f).padding(vertical = Spacing.md)
             )
-            IconButton(onClick = onDismiss) { Icon(Icons.Rounded.Close, contentDescription = null) }
+            IconButton(shapes = IconButtonDefaults.shapes(), onClick = onDismiss) { Icon(Icons.Rounded.Close, contentDescription = null) }
         }
     }
 }

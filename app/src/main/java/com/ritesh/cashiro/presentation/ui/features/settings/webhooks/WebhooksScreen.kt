@@ -1,5 +1,11 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.webhooks
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
+import com.ritesh.cashiro.presentation.ui.components.CashiroSwitch
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -202,10 +208,7 @@ fun WebhooksScreen(
                 },
                 trailing = {
                     if (uiState.isSyncing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
+                        LoadingIndicator(modifier = Modifier.size(24.dp))
                     } else {
                         Icon(
                             Icons.Rounded.ChevronRight,
@@ -399,7 +402,7 @@ private fun DataTypeChip(label: String, onClick: () -> Unit) {
     ) {
         Text(
             text = label,
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -464,7 +467,7 @@ private fun WebhookProfileCard(
             }
 
             Box {
-                IconButton(onClick = { showMenu = true }) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { showMenu = true }) {
                     Icon(
                         Icons.Rounded.MoreVert,
                         contentDescription = stringResource(R.string.more_options_desc),
@@ -507,10 +510,7 @@ private fun WebhookProfileCard(
                 }
             }
 
-            Switch(
-                checked = profile.enabled,
-                onCheckedChange = onToggle
-            )
+            CashiroSwitch(checked = profile.enabled, onCheckedChange = onToggle)
         }
 
         if (profile.dataTypes.isNotEmpty()) {

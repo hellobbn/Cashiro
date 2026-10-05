@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.material3.ripple
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
@@ -118,7 +119,7 @@ fun SharedTransitionScope.BudgetCard(
             .then(sharedModifier)
             .clickable(
                 onClick = onClick,
-                indication = null,
+                indication = ripple(),
                 interactionSource = remember { MutableInteractionSource() }
             )
     ) {

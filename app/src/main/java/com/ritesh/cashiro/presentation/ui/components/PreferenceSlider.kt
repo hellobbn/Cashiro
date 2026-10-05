@@ -1,4 +1,7 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.components
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -105,6 +108,7 @@ fun PreferenceSlider(
 
                 BlurredAnimatedVisibility(showReset && state.value != resetValue) {
                     IconButton(
+                        shapes = IconButtonDefaults.shapes(),
                         onClick = { state.value = resetValue },
                         modifier = Modifier.weight(1f).padding(start = 8.dp).background(
                             color = MaterialTheme.colorScheme.primary.copy(0.2f),

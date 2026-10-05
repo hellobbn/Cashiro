@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
 import com.ritesh.cashiro.presentation.ui.components.CashiroModalBottomSheet
@@ -36,7 +38,7 @@ import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 fun InstitutionPickerButton(onSelected: (Institution, String) -> Unit) {
     var visible by rememberSaveable { mutableStateOf(false) }
     val language = LocalConfiguration.current.locales[0].language
-    OutlinedButton(onClick = { visible = true }, modifier = Modifier.fillMaxWidth()) {
+    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { visible = true }, modifier = Modifier.fillMaxWidth()) {
         Icon(Icons.Rounded.AccountBalance, contentDescription = null, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(8.dp))
         Text(stringResource(R.string.institution_choose))

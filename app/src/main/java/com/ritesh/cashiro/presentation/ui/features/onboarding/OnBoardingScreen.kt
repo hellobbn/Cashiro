@@ -1,5 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.onboarding
 
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import android.Manifest
 import android.net.Uri
 import android.os.Build
@@ -113,7 +117,7 @@ fun OnBoardingScreen(
             onDismissRequest = onBoardingViewModel::clearError,
             title = { Text(stringResource(R.string.onboarding_try_again)) },
             text = { Text(message) },
-            confirmButton = { TextButton(onClick = onBoardingViewModel::clearError) { Text(stringResource(R.string.ok)) } }
+            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = onBoardingViewModel::clearError) { Text(stringResource(R.string.ok)) } }
         )
     }
     if (state.isLoading) {
@@ -146,7 +150,7 @@ private fun OnboardingScaffold(
         topBar = {
             Column(Modifier.statusBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.onboarding_step_count, state.step.ordinal + 1, OnboardingStep.entries.size), style = MaterialTheme.typography.labelLarge)
-                LinearProgressIndicator(progress = { (state.step.ordinal + 1f) / OnboardingStep.entries.size }, modifier = Modifier.fillMaxWidth())
+                LinearWavyProgressIndicator(progress = { (state.step.ordinal + 1f) / OnboardingStep.entries.size }, modifier = Modifier.fillMaxWidth())
             }
         },
         bottomBar = {
@@ -211,7 +215,7 @@ private fun NotificationStep(onSkip: () -> Unit) {
         Icon(Icons.Rounded.Notifications, contentDescription = null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.primary)
         Text(stringResource(R.string.stay_informed), style = MaterialTheme.typography.headlineLarge)
         Text(stringResource(R.string.onboarding_notifications_body), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-        TextButton(onClick = onSkip, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.onboarding_not_now)) }
+        TextButton(shapes = ButtonDefaults.shapes(), onClick = onSkip, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.onboarding_not_now)) }
     }
 }
 
@@ -325,7 +329,7 @@ fun ManualAccountEntryStep(
 
         Spacer(modifier = Modifier.height(Spacing.xl))
 
-        FilledTonalButton(onClick = onImportBackup, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = onImportBackup, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Icon(Icons.Rounded.Restore, contentDescription = null)
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.onboarding_import_backup))

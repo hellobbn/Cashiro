@@ -1,5 +1,10 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.settings.cloudbackup
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
 import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -496,6 +501,7 @@ fun BackupSyncScreen(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Button(
+                                                shapes = ButtonDefaults.shapes(),
                                                 onClick = {
                                                     viewModel.testConnection(
                                                         CloudProviderType.WEBDAV
@@ -510,6 +516,7 @@ fun BackupSyncScreen(
                                                 Text(stringResource(R.string.test_connection))
                                             }
                                             Button(
+                                                shapes = ButtonDefaults.shapes(),
                                                 onClick = {
                                                     viewModel.updateWebDavConfig(
                                                         webDavUrl,
@@ -569,6 +576,7 @@ fun BackupSyncScreen(
                                                 horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                                             ) {
                                                 Button(
+                                                    shapes = ButtonDefaults.shapes(),
                                                     onClick = {
                                                         gDriveSignInClient.signOut()
                                                         viewModel.onGoogleDriveSignOut()
@@ -578,6 +586,7 @@ fun BackupSyncScreen(
                                                     Text(stringResource(R.string.sign_out))
                                                 }
                                                 Button(
+                                                    shapes = ButtonDefaults.shapes(),
                                                     onClick = {
                                                         viewModel.testConnection(
                                                             CloudProviderType.GOOGLE_DRIVE
@@ -601,6 +610,7 @@ fun BackupSyncScreen(
                                             )
                                             Spacer(modifier = Modifier.size(Spacing.sm))
                                             Button(
+                                                shapes = ButtonDefaults.shapes(),
                                                 onClick = {
                                                     gDriveSignInLauncher.launch(gDriveSignInClient.signInIntent)
                                                 },
@@ -780,6 +790,7 @@ fun BackupSyncScreen(
                                     horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                                 ) {
                                     Button(
+                                        shapes = ButtonDefaults.shapes(),
                                         onClick = { viewModel.performManualBackup() },
                                         modifier = Modifier.weight(1f),
                                         enabled = uiState.syncStatus is SyncStatus.Idle
@@ -793,6 +804,7 @@ fun BackupSyncScreen(
                                         Text(stringResource(R.string.create_backup))
                                     }
                                     Button(
+                                        shapes = ButtonDefaults.shapes(),
                                         onClick = { viewModel.performManualSync() },
                                         modifier = Modifier.weight(1f),
                                         colors = ButtonDefaults.buttonColors(
@@ -823,7 +835,7 @@ fun BackupSyncScreen(
                                             .padding(Spacing.lg),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        CircularProgressIndicator()
+                                        LoadingIndicator()
                                     }
                                 } else if (uiState.remoteSnapshots.isEmpty()) {
                                     Surface(
@@ -1183,12 +1195,12 @@ fun OperationProgressCard(message: String, progress: Int? = null) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             if (progress != null) {
-                LinearProgressIndicator(
+                LinearWavyProgressIndicator(
                     progress = { progress / 100f },
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -1252,10 +1264,10 @@ fun SnapshotListItem(
         supporting = { Text(stringResource(R.string.snapshot_subtitle_format, timeStr, sizeMb)) },
         trailing = {
             Row {
-                IconButton(onClick = onRestore) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = onRestore) {
                     Icon(Icons.Default.Restore, contentDescription = stringResource(R.string.restore_snapshot), tint = MaterialTheme.colorScheme.primary)
                 }
-                IconButton(onClick = onDelete) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = onDelete) {
                     Icon(Iconax.Bag, contentDescription = stringResource(R.string.delete_snapshot), tint = MaterialTheme.colorScheme.error)
                 }
             }
@@ -1278,6 +1290,7 @@ fun ExportOptionsDialog(
     var includeProfile by remember { mutableStateOf(true) }
     var includeBudgets by remember { mutableStateOf(true) }
     var includePreferences by remember { mutableStateOf(true) }
+    var includeBrokerage by remember { mutableStateOf(false) }
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     
     AlertDialog(
@@ -1296,6 +1309,14 @@ fun ExportOptionsDialog(
                 ExportCheckbox(stringResource(R.string.profile_data), includeProfile) { includeProfile = it }
                 ExportCheckbox(stringResource(R.string.budgets), includeBudgets) { includeBudgets = it }
                 ExportCheckbox(stringResource(R.string.app_preferences), includePreferences) { includePreferences = it }
+                ExportCheckbox(stringResource(R.string.backup_brokerage_credentials), includeBrokerage) { includeBrokerage = it }
+                if (includeBrokerage) {
+                    Text(
+                        stringResource(R.string.backup_brokerage_credentials_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         },
         confirmButton = {
@@ -1307,7 +1328,8 @@ fun ExportOptionsDialog(
                             includeTransactionalData = includeTransactional,
                             includeProfileData = includeProfile,
                             includeBudgets = includeBudgets,
-                            includeAppPreferences = includePreferences
+                            includeAppPreferences = includePreferences,
+                            includeBrokerageCredentials = includeBrokerage
                         )
                     )
                 }
