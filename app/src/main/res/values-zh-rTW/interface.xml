@@ -193,4 +193,18 @@
     <string name="account_add_currency_confirm">新增</string>
     <string name="account_add_named_currency">新增 %1$s</string>
     <string name="transfer_target_lacks_currency">%1$s 沒有 %2$s：可以為它新增 %2$s，或轉入它已有的幣種並填寫到帳金額。</string>
+    <string name="home_ai_button">AI 記帳</string>
+    <string name="home_trend">趨勢</string>
+    <string name="home_assets">資產</string>
+    <string name="home_liabilities">信用卡欠款</string>
+    <string name="home_month_expenses">本月支出</string>
+    <string name="home_month_income">本月收入</string>
+    <string name="home_vs_last_month_more">比上月多 %1$s</string>
+    <string name="home_vs_last_month_less">比上月少 %1$s</string>
+    <string name="home_vs_last_month_same">與上月持平</string>
+    <string name="home_recent">最近交易</string>
+    <string name="home_customize">自訂首頁</string>
+    <string name="overview_owed">待還 %1$s</string>
+    <string name="overview_overpaid">溢繳 %1$s</string>
+    <string name="overview_connect_short">去連接</string>
 </resources>

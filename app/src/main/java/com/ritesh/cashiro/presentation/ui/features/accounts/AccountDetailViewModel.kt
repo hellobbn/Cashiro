@@ -47,24 +47,11 @@ class AccountDetailViewModel @Inject constructor(
     private val _selectedDateRange = MutableStateFlow(DateRange.LAST_30_DAYS)
     val selectedDateRange: StateFlow<DateRange> = _selectedDateRange.asStateFlow()
 
-    // The account's currencies (main first) and the one being looked at; null: the main one
-    private val pickedCurrency = MutableStateFlow<String?>(null)
-    private val currencies: Flow<List<String>> = combine(
-        accountBalanceRepository.getLatestBalanceFlow(bankName, accountLast4),
-        accountBalanceRepository.observePocketBalances()
-    ) { account, pockets ->
-        val own = pockets.filter { it.accountId == account?.accountId }.map { it.currency }
-        listOfNotNull(account?.currency) + own.filter { it != account?.currency }
-    }
-    private val shownCurrency: Flow<String?> = combine(currencies, pickedCurrency) { all, picked ->
-        // Only an account holding several currencies is narrowed to one
-        if (all.size > 1) picked?.takeIf { it in all } ?: all.first() else null
+    /** Sets one currency of the account to [balance] (a card's amount owed), as the account list does. */
+    fun calibrate(balance: BigDecimal, currency: String) {
+        viewModelScope.launch { accountBalanceRepository.calibrate(bankName, accountLast4, balance, currency) }
     }
 
-    fun selectCurrency(currency: String) {
-        pickedCurrency.value = currency
-    }
-    
     init {
         loadAccountData()
         observeTransactions()
@@ -87,23 +74,14 @@ class AccountDetailViewModel @Inject constructor(
                 transactionRepository.getTransactionsByAccount(bankName, accountLast4),
                 currencyRepository.effectiveBaseCurrencyCode,
                 accountBalanceRepository.getLatestBalanceFlow(bankName, accountLast4),
-                currencyConversionService.rateChangeTrigger,
-                currencies,
-                shownCurrency
+                currencyConversionService.rateChangeTrigger
             ) { args: Array<Any?> ->
                 val dateRange = args[0] as DateRange
                 val mainCurrency = args[2] as String
                 val latestBalance = args[3] as AccountBalanceEntity?
-                val accountCurrencies = args[5] as List<String>
-                val shown = args[6] as String?
-                // One currency of a multi-currency account: what moved in or out of it
-                val allTransactions = (args[1] as List<TransactionEntity>).filter { tx ->
-                    if (shown == null) return@filter true
-                    val receives = tx.transactionType == TransactionType.TRANSFER &&
-                        (tx.toAccountId?.let { it == latestBalance?.accountId } ?: (tx.toAccount == accountLast4)) &&
-                        !(tx.toAccountId == tx.accountId && tx.currency == shown)
-                    if (receives) (tx.toCurrency ?: tx.currency) == shown else tx.currency == shown
-                }
+                // Every currency the account holds, in one list
+                @Suppress("UNCHECKED_CAST")
+                val allTransactions = args[1] as List<TransactionEntity>
 
                 val (startDate, endDate) = getDateRangeValues(dateRange)
 
@@ -125,35 +103,31 @@ class AccountDetailViewModel @Inject constructor(
                     currencyConversionService.refreshExchangeRatesForAccount(accountCurrencies)
                 }
 
-                // Calculate total income and expenses converted to the effective base currency
+                // Income and spending in the app's main currency. A transfer counts by the side
+                // this account is on, in that side's currency; one between two of its own
+                // currencies is neither.
                 var totalIncome = BigDecimal.ZERO
                 var totalExpenses = BigDecimal.ZERO
+                val accountId = latestBalance?.accountId
+                suspend fun inMain(amount: BigDecimal, currency: String) =
+                    if (currency == mainCurrency) amount
+                    else currencyConversionService.convertAmount(amount, currency, mainCurrency)
 
-                filteredTransactions.forEach { transaction ->
-                    val convertedAmount = if (transaction.currency != mainCurrency) {
-                        currencyConversionService.convertAmount(
-                            amount = transaction.amount,
-                            fromCurrency = transaction.currency,
-                            toCurrency = mainCurrency
-                        ) ?: transaction.amount
-                    } else {
-                        transaction.amount
-                    }
-
-                    if (transaction.transactionType == TransactionType.INCOME || transaction.transactionType == TransactionType.BORROWED) {
-                        totalIncome += convertedAmount
-                    } else if (transaction.transactionType == TransactionType.TRANSFER) {
-                        val isSender = transaction.bankName == bankName && 
-                            (transaction.accountNumber == accountLast4 || transaction.fromAccount == accountLast4)
-                        val isReceiver = !isSender && transaction.toAccount == accountLast4
-
-                        if (isReceiver) {
-                            totalIncome += convertedAmount
-                        } else if (isSender) {
-                            totalExpenses += convertedAmount
+                filteredTransactions.forEach { tx ->
+                    when (tx.transactionType) {
+                        TransactionType.INCOME, TransactionType.BORROWED -> totalIncome += inMain(tx.amount, tx.currency)
+                        TransactionType.TRANSFER -> {
+                            val sends = tx.accountId?.let { it == accountId }
+                                ?: (tx.bankName == bankName && (tx.accountNumber == accountLast4 || tx.fromAccount == accountLast4))
+                            val receives = tx.toAccountId?.let { it == accountId } ?: (!sends && tx.toAccount == accountLast4)
+                            when {
+                                sends && receives -> Unit
+                                receives -> totalIncome += inMain(tx.toAmount ?: tx.amount, tx.toCurrency ?: tx.currency)
+                                sends -> totalExpenses += inMain(tx.amount, tx.currency)
+                            }
                         }
-                    } else {
-                        totalExpenses += convertedAmount
+                        TransactionType.BALANCE_UPDATE -> Unit
+                        else -> totalExpenses += inMain(tx.amount, tx.currency)
                     }
                 }
 
@@ -170,8 +144,6 @@ class AccountDetailViewModel @Inject constructor(
                         baseCurrency = mainCurrency,
                         hasMultipleCurrencies = hasMultipleCurrencies,
                         conversions = conversions,
-                        currencies = accountCurrencies,
-                        selectedCurrency = shown,
                         isLoading = false
                     )
                 }
@@ -190,14 +162,14 @@ class AccountDetailViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            combine(selectedDateRange, shownCurrency) { range, shown -> range to shown }.flatMapLatest { (dateRange, shown) ->
+            selectedDateRange.flatMapLatest { dateRange ->
                 val (startDate, endDate) = getDateRangeValues(dateRange)
                 accountBalanceRepository.getBalanceHistory(
                     bankName, 
                     accountLast4,
                     startDate,
                     endDate
-                ).map { rows -> if (shown == null) rows else rows.filter { it.currency == shown } }
+                )
             }.collect { balanceHistory ->
                 _uiState.update { state ->
                     state.copy(balanceHistory = balanceHistory)
@@ -208,8 +180,8 @@ class AccountDetailViewModel @Inject constructor(
     
     private fun observeBalanceChartData() {
         viewModelScope.launch {
-            combine(selectedDateRange, currencyConversionService.rateChangeTrigger, shownCurrency) { dateRange, _, shown -> dateRange to shown }
-                .flatMapLatest { (dateRange, shown) ->
+            combine(selectedDateRange, currencyConversionService.rateChangeTrigger) { dateRange, _ -> dateRange }
+                .flatMapLatest { dateRange ->
                 val (startDate, endDate) = getDateRangeValues(dateRange)
 
                 val chartStartDate = when (dateRange) {
@@ -226,22 +198,24 @@ class AccountDetailViewModel @Inject constructor(
                     accountLast4,
                     chartStartDate,
                     endDate
-                ).map { rows -> if (shown == null) rows else rows.filter { it.currency == shown } }
+                )
             }.collect { balanceHistory ->
                 val effectiveCurrency = currencyRepository.effectiveBaseCurrencyCode.first()
 
-                val chartData = balanceHistory.map { entity ->
-                    val convertedBalance = if (entity.currency != effectiveCurrency) {
-                        currencyConversionService.convertAmount(
-                            entity.balance,
-                            entity.currency,
-                            effectiveCurrency
-                        ) ?: entity.balance
-                    } else entity.balance
-
+                // The account's total over time: each currency at its latest balance by then,
+                // in the main currency at today's rates
+                val rates = balanceHistory.map { it.currency }.distinct().associateWith { currency ->
+                    if (currency == effectiveCurrency) BigDecimal.ONE
+                    else currencyConversionService.getExchangeRate(currency, effectiveCurrency) ?: BigDecimal.ONE
+                }
+                val latest = linkedMapOf<String, BigDecimal>()
+                val chartData = balanceHistory.sortedWith(compareBy({ it.timestamp }, { it.id })).map { entity ->
+                    latest[entity.currency] = entity.balance
                     BalancePoint(
                         timestamp = entity.timestamp,
-                        balance = convertedBalance,
+                        balance = latest.entries.fold(BigDecimal.ZERO) { sum, (currency, balance) ->
+                            sum + balance.multiply(rates.getValue(currency))
+                        },
                         currency = effectiveCurrency
                     )
                 }

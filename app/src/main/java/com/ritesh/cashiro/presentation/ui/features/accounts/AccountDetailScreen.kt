@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
 import com.ritesh.cashiro.presentation.ui.components.GenericTypeSwitcher
@@ -79,6 +81,9 @@ import com.ritesh.cashiro.presentation.ui.components.TransactionTotalsCard
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ButtonDefaults
 import com.ritesh.cashiro.presentation.ui.icons.ReceiptItem
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
@@ -104,6 +109,7 @@ fun SharedTransitionScope.AccountDetailScreen(
     val scrollBehaviorLarge = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val hazeState = remember { HazeState() }
     val lazyListState = rememberLazyListState()
+    var showCalibration by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -146,30 +152,33 @@ fun SharedTransitionScope.AccountDetailScreen(
             // Account Card
             item {
                 uiState.currentBalance?.let { balance ->
-                    AccountCard(
-                        account = balance,
-                        showMoreOptions = false,
-                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
-                    )
+                    Column(
+                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    ) {
+                        AccountCard(account = balance, showMoreOptions = false)
+                        // Set the balance to what the bank shows, as in the account list
+                        FilledTonalButton(
+                            onClick = { showCalibration = true },
+                            shapes = ButtonDefaults.shapes(),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Iconax.Edit2, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(Spacing.sm))
+                            Text(stringResource(if (balance.isCreditCard) R.string.update_outstanding_title else R.string.balance_calibration))
+                        }
+                    }
+                    if (showCalibration) {
+                        BalanceCalibrationSheet(
+                            account = balance,
+                            onDismiss = { showCalibration = false },
+                            onSave = accountDetailViewModel::calibrate
+                        )
+                    }
                 }
             }
             item{
                 Spacer(Modifier.height(Spacing.md))
-            }
-
-            // An account holding several currencies: history and transactions one currency at a time
-            if (uiState.currencies.size > 1) {
-                item {
-                    GenericTypeSwitcher(
-                        selectedIndex = uiState.currencies.indexOf(uiState.selectedCurrency).coerceAtLeast(0),
-                        onIndexChange = { accountDetailViewModel.selectCurrency(uiState.currencies[it]) },
-                        options = uiState.currencies,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.Padding.content)
-                    )
-                }
-                item {
-                    Spacer(Modifier.height(Spacing.md))
-                }
             }
 
             // Date Range Filter

@@ -83,6 +83,21 @@ class AccountBalanceRepository @Inject constructor(
         return accountBalanceDao.insertBalance(balanceWithIconName)
     }
     
+    /**
+     * Sets one currency of an account to [balance] (a card's amount owed) with a new
+     * BALANCE_CALIBRATION row, keeping the account's look and limit.
+     */
+    suspend fun calibrate(bankName: String, accountLast4: String, balance: BigDecimal, currency: String): Long? {
+        val latest = getLatestBalance(bankName, accountLast4) ?: return null
+        val now = LocalDateTime.now()
+        return insertBalance(
+            latest.copy(
+                id = 0, balance = balance, currency = currency, timestamp = now, transactionId = null,
+                smsSource = null, sourceType = "BALANCE_CALIBRATION", createdAt = now
+            )
+        )
+    }
+
     suspend fun getLatestBalance(bankName: String, accountLast4: String): AccountBalanceEntity? {
         return accountBalanceDao.getLatestBalance(bankName, accountLast4)
     }

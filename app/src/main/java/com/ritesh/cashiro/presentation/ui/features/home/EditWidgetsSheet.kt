@@ -3,6 +3,7 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
 
 import androidx.compose.foundation.layout.height
@@ -60,7 +61,9 @@ fun EditWidgetsSheet(
     widgets: List<HomeWidgetUiModel>,
     onToggleVisibility: (HomeWidget, Boolean) -> Unit,
     onReorder: (List<HomeWidget>) -> Unit,
-    onResetLayout: () -> Unit = {}
+    onResetLayout: () -> Unit = {},
+    showBannerImage: Boolean = false,
+    onToggleBannerImage: () -> Unit = {}
 ) {
     // Filter out Networth Summary
     var reorderableWidgets by remember { mutableStateOf(widgets.filter { it.widget != HomeWidget.NETWORTH_SUMMARY }) }
@@ -144,6 +147,15 @@ fun EditWidgetsSheet(
             }
 
             Spacer(Modifier.height(Spacing.md))
+            Box(Modifier.padding(horizontal = 16.dp)) {
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_banner_image),
+                    checked = showBannerImage,
+                    onCheckedChange = { onToggleBannerImage() },
+                    isSingle = true
+                )
+            }
+            Spacer(Modifier.height(Spacing.sm))
             TextButton(
                 shapes = ButtonDefaults.shapes(),
                 onClick = onResetLayout,

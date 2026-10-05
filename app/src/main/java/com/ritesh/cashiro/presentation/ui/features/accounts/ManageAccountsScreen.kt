@@ -738,64 +738,23 @@ fun ManageAccountsScreen(
 
     // Update Balance Sheet
     if (showUpdateDialog && selectedAccount != null && selectedAccountEntity != null) {
-        CashiroModalBottomSheet(
-            onDismissRequest = {
+        val calibrated = selectedAccountEntity!!
+        val (bank, last4) = selectedAccount!!
+        BalanceCalibrationSheet(
+            account = calibrated,
+            onDismiss = {
                 showUpdateDialog = false
                 selectedAccount = null
                 selectedAccountEntity = null
             },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            // An account holding several currencies is calibrated one currency at a time
-            val calibrated = selectedAccountEntity!!
-            val pockets = calibrated.accountId?.let { com.ritesh.cashiro.data.repository.LocalAccountHoldings.current[it] }?.pockets.orEmpty()
-            var calibrationCurrency by remember(calibrated.id) { mutableStateOf(calibrated.currency) }
-            val currentValue = pockets.firstOrNull { it.currency == calibrationCurrency }?.balance ?: calibrated.balance
-            Column {
-                if (pockets.size > 1) {
-                    com.ritesh.cashiro.presentation.ui.components.AccountCurrencyChoice(
-                        currencies = listOf(calibrated.currency) + pockets.map { it.currency }.filter { it != calibrated.currency },
-                        selected = calibrationCurrency,
-                        onSelect = { calibrationCurrency = it },
-                        modifier = Modifier.padding(horizontal = Spacing.md)
-                    )
-                }
-                key(calibrationCurrency) {
-                    NumberPad(
-                        initialValue = currentValue.toPlainString(),
-                        title = stringResource(if (calibrated.isCreditCard) R.string.update_outstanding_title else R.string.balance_calibration),
-                        bankName = selectedAccount!!.first,
-                        accountLast4 = selectedAccount!!.second,
-                        doneButtonLabel = stringResource(if (calibrated.isCreditCard) R.string.update_outstanding_title else R.string.balance_calibration),
-                        onDone = { newValue ->
-                            newValue.toBigDecimalOrNull()?.let { newBalance ->
-                                if (calibrated.isCreditCard) {
-                                    manageAccountsViewModel.updateCreditCard(
-                                        selectedAccount!!.first,
-                                        selectedAccount!!.second,
-                                        newBalance,
-                                        calibrated.creditLimit ?: BigDecimal.ZERO,
-                                        calibrationCurrency
-                                    )
-                                } else {
-                                    manageAccountsViewModel.updateAccountBalance(
-                                        selectedAccount!!.first,
-                                        selectedAccount!!.second,
-                                        newBalance,
-                                        calibrationCurrency
-                                    )
-                                }
-                            }
-                            showUpdateDialog = false
-                            selectedAccount = null
-                            selectedAccountEntity = null
-                        }
-                    )
+            onSave = { newBalance, currency ->
+                if (calibrated.isCreditCard) {
+                    manageAccountsViewModel.updateCreditCard(bank, last4, newBalance, calibrated.creditLimit ?: BigDecimal.ZERO, currency)
+                } else {
+                    manageAccountsViewModel.updateAccountBalance(bank, last4, newBalance, currency)
                 }
             }
-        }
+        )
     }
 
     // Balance History Sheet

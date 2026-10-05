@@ -2,20 +2,16 @@
 
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.ButtonDefaults
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.rounded.NotificationsNone
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,22 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.temporal.ChronoUnit
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
-import com.ritesh.cashiro.presentation.ui.icons.Edit2
-import com.ritesh.cashiro.presentation.ui.icons.Iconax
-import com.ritesh.cashiro.presentation.ui.icons.Notification
-import com.ritesh.cashiro.presentation.ui.icons.NotificationOutline
+import java.time.LocalTime
 
+/**
+ * Home's header: the avatar (opens Settings), the greeting over the user's name, and AI
+ * bookkeeping as the one action.
+ */
 @Composable
 fun GreetingCard(
     modifier: Modifier = Modifier,
@@ -48,28 +40,24 @@ fun GreetingCard(
     profileImageUri: Uri?,
     profileBackgroundColor: Color,
     onProfileClick: () -> Unit = {},
-    onNotificationClick: () -> Unit = {},
     onAiClick: (() -> Unit)? = null,
-    onMoreClick: () -> Unit = {},
-    onUpdatesClick: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Profile Image
         Box(
             modifier = Modifier
-                .size(56.dp)
+                .size(44.dp)
                 .clip(CircleShape)
                 .background(profileBackgroundColor)
                 .clickable(onClick = onProfileClick),
             contentAlignment = Alignment.Center
         ) {
             // Resolve the bitmap at the avatar's constraints off the UI thread.
-            // Use the shared Coil cache for both the default and user-selected image.
             AsyncImage(
                 model = profileImageUri ?: R.drawable.avatar_1,
                 contentDescription = stringResource(R.string.profile_desc),
@@ -78,109 +66,40 @@ fun GreetingCard(
             )
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // User Info
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = userName,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            
+        Column(modifier = Modifier.weight(1f)) {
             val greetingRes = remember {
-                val hour = LocalTime.now().hour
-                when (hour) {
+                when (LocalTime.now().hour) {
                     in 5..11 -> R.string.greeting_morning
                     in 12..16 -> R.string.greeting_afternoon
                     in 17..21 -> R.string.greeting_evening
                     else -> R.string.greeting_night
                 }
             }
-
-            val locale = java.util.Locale.getDefault()
-            val monthStatus = remember(locale) {
-                val now = LocalDate.now()
-                val lastDay = now.withDayOfMonth(now.lengthOfMonth())
-                val daysLeft = ChronoUnit.DAYS.between(now, lastDay)
-                val monthName = now.month.getDisplayName(java.time.format.TextStyle.FULL, locale)
-                
-                when {
-                    daysLeft == 0L -> R.string.month_status_last_day to listOf(monthName)
-                    daysLeft <= 7 -> R.plurals.month_status_days_left_format to listOf(daysLeft.toInt(), monthName)
-                    else -> null
-                }
-            }
-
-            val subtitleText = when {
-                monthStatus != null -> {
-                    val (resId, args) = monthStatus
-                    if (resId == R.string.month_status_last_day) {
-                        stringResource(resId, *args.toTypedArray())
-                    } else {
-                        pluralStringResource(resId, args[0] as Int, *args.toTypedArray())
-                    }
-                }
-                else -> stringResource(greetingRes)
-            }
-
             Text(
-                text = subtitleText,
-                style = MaterialTheme.typography.bodyLarge,
+                text = stringResource(greetingRes),
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            /* Priority Logic:
-             1. If unread updates > 0 and (it's not the last day of month OR 50% chance)
-             2. If monthStatus is available
-             3. Greeting
-             */
-
-            /*
-            * Planning to add a OTA update sheet and changelog
-            * therefore commenting out
-            */
-//            val showUpdates = unreadUpdatesCount > 0 && (monthStatus == null || Math.random() > 0.5)
-//
-//            if (showUpdates) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier.clickable(onClick = onUpdatesClick)
-//                ) {
-//                    Text(
-//                        text = "$unreadUpdatesCount+ unread updates",
-//                        style = MaterialTheme.typography.bodyLarge,
-//                        color = Color(0xFF4285F4)
-//                    )
-//                    Spacer(modifier = Modifier.width(4.dp))
-//                    Icon(
-//                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-//                        contentDescription = null,
-//                        tint = Color(0xFF4285F4),
-//                        modifier = Modifier.size(16.dp)
-//                    )
-//                }
-//            } else {
-//                Text(
-//                    text = monthStatus ?: greeting,
-//                    style = MaterialTheme.typography.bodyLarge,
-//                    color = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
-//            }
+            Text(
+                text = userName,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
         }
 
-        // Material icon buttons provide an accessible 48dp touch target and ripple.
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (onAiClick != null) {
-                TooltipIconButton(Icons.Rounded.AutoAwesome, stringResource(R.string.ai_assistant_title), onAiClick)
+        if (onAiClick != null) {
+            FilledTonalButton(
+                onClick = onAiClick,
+                shapes = ButtonDefaults.shapes(),
+                contentPadding = PaddingValues(start = 12.dp, end = 16.dp)
+            ) {
+                Icon(Icons.Rounded.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.home_ai_button), maxLines = 1)
             }
-            TooltipIconButton(Iconax.NotificationOutline, stringResource(R.string.notification), onNotificationClick)
-            TooltipIconButton(Icons.Rounded.MoreHoriz, stringResource(R.string.more_options), onMoreClick)
         }
     }
 }
