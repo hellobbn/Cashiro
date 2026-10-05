@@ -27,6 +27,7 @@ import com.ritesh.cashiro.data.brokerage.BrokerageRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.domain.usecase.excludingHidden
 import com.ritesh.cashiro.domain.usecase.netWorthIn
+import com.ritesh.cashiro.domain.usecase.owedAcrossCurrencies
 import com.ritesh.cashiro.presentation.ui.features.accounts.investmentSnapshotsOrEmpty
 import com.ritesh.cashiro.domain.model.PersonInfo
 import com.ritesh.cashiro.presentation.ui.components.BalancePoint
@@ -232,12 +233,15 @@ class HomeViewModel @Inject constructor(
                 val totalBalanceInSelectedCurrency = balances.netWorthIn(
                     selectedCurrency,
                     currencyConversionService,
-                    investmentSnapshots = connections.investmentSnapshotsOrEmpty()
+                    investmentSnapshots = connections.investmentSnapshotsOrEmpty(),
+                    pockets = accountBalanceRepository.pocketBalances()
                 )
 
                 var totalAvailableCreditInSelectedCurrency = BigDecimal.ZERO
+                val cardPockets = accountBalanceRepository.pocketBalances()
                 for (card in creditCards) {
-                    val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) - card.balance
+                    val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) -
+                        card.owedAcrossCurrencies(cardPockets, currencyConversionService)
                     val amt = if (card.currency == selectedCurrency) {
                         availableInCardCurrency
                     } else {
@@ -554,7 +558,8 @@ class HomeViewModel @Inject constructor(
                     totalBalance = visibleBalances.netWorthIn(
                         selectedCurrency,
                         currencyConversionService,
-                        investmentSnapshots = brokerageRepository.connections.value.investmentSnapshotsOrEmpty()
+                        investmentSnapshots = brokerageRepository.connections.value.investmentSnapshotsOrEmpty(),
+                        pockets = accountBalanceRepository.pocketBalances()
                     ),
                     totalAvailableCredit = creditCards.sumOfBigDecimal { card: AccountBalanceEntity ->
                         // Available = Credit Limit - Outstanding Balance
@@ -603,11 +608,14 @@ class HomeViewModel @Inject constructor(
             val totalBalanceInSelectedCurrency = balances.netWorthIn(
                 selectedCurrency,
                 currencyConversionService,
-                investmentSnapshots = brokerageRepository.connections.value.investmentSnapshotsOrEmpty()
+                investmentSnapshots = brokerageRepository.connections.value.investmentSnapshotsOrEmpty(),
+                pockets = accountBalanceRepository.pocketBalances()
             )
             var totalAvailableCreditInSelectedCurrency = BigDecimal.ZERO
+            val cardPockets = accountBalanceRepository.pocketBalances()
             for (card in creditCards) {
-                val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) - card.balance
+                val availableInCardCurrency = (card.creditLimit ?: BigDecimal.ZERO) -
+                    card.owedAcrossCurrencies(cardPockets, currencyConversionService)
                 val amt = if (card.currency == selectedCurrency) availableInCardCurrency
                 else currencyConversionService.convertAmount(availableInCardCurrency, card.currency, selectedCurrency)
                 totalAvailableCreditInSelectedCurrency = totalAvailableCreditInSelectedCurrency.add(amt)

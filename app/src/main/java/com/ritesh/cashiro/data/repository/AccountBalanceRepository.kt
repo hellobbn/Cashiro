@@ -42,6 +42,13 @@ class AccountBalanceRepository @Inject constructor(
         return (previous?.balance ?: BigDecimal.ZERO) - amount
     }
 
+    fun observePocketBalances(): Flow<List<com.ritesh.cashiro.data.database.dao.PocketBalance>> =
+        accountBalanceDao.observePocketBalances()
+
+    /** The latest balance of every currency of every account. */
+    suspend fun pocketBalances(): List<com.ritesh.cashiro.data.database.dao.PocketBalance> =
+        accountBalanceDao.getPocketBalances()
+
     suspend fun account(bankName: String, accountLast4: String): AccountEntity? =
         accountBalanceDao.accountFor(bankName, accountLast4)
 

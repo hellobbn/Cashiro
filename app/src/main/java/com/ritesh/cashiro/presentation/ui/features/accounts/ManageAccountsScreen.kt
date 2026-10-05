@@ -157,8 +157,9 @@ fun ManageAccountsScreen(
     val categoryAccounts = remember(uiState.accounts, category) {
         uiState.accounts.filter { category == null || it.category() == category }
     }
-    val sections = remember(categoryAccounts, uiState.hiddenAccounts, uiState.mainAccountKey) {
-        buildAccountSections(categoryAccounts, uiState.hiddenAccounts, uiState.mainAccountKey)
+    val holdings = com.ritesh.cashiro.data.repository.LocalAccountHoldings.current
+    val sections = remember(categoryAccounts, uiState.hiddenAccounts, uiState.mainAccountKey, holdings) {
+        buildAccountSections(categoryAccounts, uiState.hiddenAccounts, uiState.mainAccountKey, holdings)
     }
     val walletSection = sections.visible[0]
     val bankSection = sections.visible[1]

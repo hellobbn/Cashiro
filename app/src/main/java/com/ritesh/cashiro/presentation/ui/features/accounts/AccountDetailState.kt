@@ -22,6 +22,9 @@ data class AccountDetailUiState(
     val hasMultipleCurrencies: Boolean = false,
     // Transactions in the main currency, where a rate is known
     val conversions: Conversions = Conversions(),
+    // An account holding several currencies is shown one currency at a time
+    val currencies: List<String> = emptyList(),
+    val selectedCurrency: String? = null,
     val isLoading: Boolean = true
 )
 

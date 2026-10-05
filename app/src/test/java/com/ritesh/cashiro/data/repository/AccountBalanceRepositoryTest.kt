@@ -649,6 +649,8 @@ class AccountBalanceRepositoryTest {
         override suspend fun insertAccountRow(account: com.ritesh.cashiro.data.database.entity.AccountEntity): Long = 0
         override suspend fun insertCurrencyRow(currency: com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity) = Unit
         override suspend fun currenciesOf(accountId: Long): List<String> = emptyList()
+        override fun observePocketBalances(): Flow<List<com.ritesh.cashiro.data.database.dao.PocketBalance>> = flowOf(emptyList())
+        override suspend fun getPocketBalances(): List<com.ritesh.cashiro.data.database.dao.PocketBalance> = emptyList()
         override suspend fun updateAccountRow(account: com.ritesh.cashiro.data.database.entity.AccountEntity) = Unit
         override suspend fun deleteAllBalanceRows() = Unit
         override suspend fun deleteAllAccountRows() = Unit

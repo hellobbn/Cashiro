@@ -390,7 +390,8 @@ private fun HistoryRecordItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = CurrencyFormatter.formatCurrency(balance.balance, accountPrimaryCurrency),
+                        // Each row in its own currency: an account may hold several
+                        text = CurrencyFormatter.formatCurrency(balance.balance, balance.currency),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = if (isLatest) {

@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.data.repository.LocalAccountHoldings
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -104,6 +105,27 @@ fun List<AccountBalanceEntity>.sortedForDisplay(mainKey: String?): List<AccountB
 }
 
 /**
+ * The balance an account shows: for one holding several currencies, their sum in the app's main
+ * currency; otherwise its own balance.
+ */
+@Composable
+fun accountBalanceText(account: AccountBalanceEntity): String {
+    val holdings = account.accountId?.let { LocalAccountHoldings.current[it] }
+    return if (holdings != null && holdings.isMultiCurrency) {
+        CurrencyFormatter.formatCurrency(holdings.total, holdings.totalCurrency)
+    } else {
+        CurrencyFormatter.formatCurrency(account.balance, account.currency)
+    }
+}
+
+/** Each currency an account holds with its balance, e.g. "HKD 15,000 · USD 890"; null when it holds one. */
+@Composable
+fun accountCurrenciesText(account: AccountBalanceEntity): String? {
+    val holdings = account.accountId?.let { LocalAccountHoldings.current[it] }?.takeIf { it.isMultiCurrency } ?: return null
+    return holdings.pockets.joinToString(" · ") { CurrencyFormatter.formatCurrency(it.balance, it.currency) }
+}
+
+/**
  * Icon, name and subtitle, plus the balance on the right unless [showBalance] is false.
  * [note] is appended to the subtitle, e.g. "Main".
  */
@@ -137,12 +159,21 @@ fun RowScope.AccountRowContent(account: AccountBalanceEntity, showBalance: Boole
         Spacer(Modifier.width(Spacing.sm))
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = CurrencyFormatter.formatCurrency(account.balance, account.currency),
+                text = accountBalanceText(account),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
-            if (account.isCreditCard) {
+            val currencies = accountCurrenciesText(account)
+            if (currencies != null) {
+                Text(
+                    text = currencies,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            } else if (account.isCreditCard) {
                 Text(
                     text = stringResource(R.string.outstanding_label),
                     style = MaterialTheme.typography.bodySmall,

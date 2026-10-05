@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.presentation.ui.components.GenericTypeSwitcher
 import androidx.compose.material3.ripple
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -154,6 +155,21 @@ fun SharedTransitionScope.AccountDetailScreen(
             }
             item{
                 Spacer(Modifier.height(Spacing.md))
+            }
+
+            // An account holding several currencies: history and transactions one currency at a time
+            if (uiState.currencies.size > 1) {
+                item {
+                    GenericTypeSwitcher(
+                        selectedIndex = uiState.currencies.indexOf(uiState.selectedCurrency).coerceAtLeast(0),
+                        onIndexChange = { accountDetailViewModel.selectCurrency(uiState.currencies[it]) },
+                        options = uiState.currencies,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.Padding.content)
+                    )
+                }
+                item {
+                    Spacer(Modifier.height(Spacing.md))
+                }
             }
 
             // Date Range Filter
