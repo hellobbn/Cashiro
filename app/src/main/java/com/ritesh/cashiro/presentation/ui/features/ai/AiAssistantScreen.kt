@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -124,6 +125,14 @@ fun AiAssistantScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
+    val listState = rememberLazyListState()
+    // Follow the run as steps come in
+    val runningSteps = (state.phase as? AiPhase.Running)?.steps?.size
+    LaunchedEffect(runningSteps) {
+        if (runningSteps != null && listState.layoutInfo.totalItemsCount > 0) {
+            listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
+        }
+    }
     val defaultRequest = stringResource(R.string.ai_default_request)
     val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         viewModel.addFiles(uris)
@@ -178,6 +187,7 @@ fun AiAssistantScreen(
         }
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize().hazeSource(hazeState),
             contentPadding = PaddingValues(
                 start = Dimensions.Padding.content,
@@ -221,20 +231,7 @@ fun AiAssistantScreen(
                         }
                     }
                 }
-                is AiPhase.Running -> item(key = "running") {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Spacing.md)
-                    ) {
-                        LoadingIndicator()
-                        Text(
-                            text = stringResource(R.string.ai_running, phase.proposed),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                is AiPhase.Running -> aiProgress(phase, state.config.model)
                 AiPhase.Review, is AiPhase.Saved -> {
                     val saved = state.phase is AiPhase.Saved
                     // Once saved, the page is a record of what was written, not a proposal

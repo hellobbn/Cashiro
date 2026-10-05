@@ -94,7 +94,8 @@ client, no provider SDKs, to keep the app small.
     account the user left out is saved without an account. Balance calibrations and account edits
     come last, so a rename also carries the transactions just added.
 - `AiLedgerSession` runs the tool loop. The accounts (as refs `A1`, `A2`…) and the categories are
-  in the system prompt.
+  in the system prompt. It reports each round, model note, lookup and proposal as an `AiStep`,
+  which `AiProgress.kt` shows as a timeline while the run lasts.
 - `AiAttachmentReader` handles the input files:
   - Tall screenshots are cut into tiles.
   - PDFs go to Claude as documents and to other providers as their text layer, or as the file

@@ -23,6 +23,13 @@ import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /** A file the user shared, copied out of the sharing app while access lasts. */
 data class AiAttachment(val name: String, val mimeType: String, val bytes: ByteArray) {
@@ -144,6 +151,18 @@ internal fun decodeText(bytes: ByteArray): String = try {
     String(bytes, Charset.forName("GB18030"))
 }.removePrefix("\uFEFF")
 
+/** What a session has done so far, shown while it runs. */
+sealed interface AiStep {
+    /** The request went to the model; [turn] counts from 1. Finished once a later step follows. */
+    data class Asking(val turn: Int) : AiStep
+    /** What the model wrote alongside its tool calls. */
+    data class Note(val text: String) : AiStep
+    /** The model looked up recorded transactions; [found] is null when the lookup failed. */
+    data class Searched(val from: String?, val to: String?, val text: String?, val found: Int?) : AiStep
+    /** A write tool queued [changes]; [rejected] when it refused some of its input. */
+    data class Proposed(val tool: String, val changes: List<LedgerChange>, val rejected: Boolean) : AiStep
+}
+
 /** The result of one AI session: the proposed changes and the model's closing note. */
 data class AiProposal(val changes: List<LedgerChange>, val summary: String)
 
@@ -153,7 +172,7 @@ class AiLedgerSession @Inject constructor(
     private val settings: AiSettings,
     private val tools: LedgerTools
 ) {
-    suspend fun run(parts: List<AiPart>, request: String, onProgress: (Int) -> Unit = {}): AiProposal {
+    suspend fun run(parts: List<AiPart>, request: String, onStep: (AiStep) -> Unit = {}): AiProposal {
         val config = settings.config.value
         if (!config.isConfigured) throw AiException("Set up an AI provider first.")
         val context = tools.context()
@@ -163,17 +182,32 @@ class AiLedgerSession @Inject constructor(
 
         val queue = mutableListOf<LedgerChange>()
         repeat(MAX_TURNS) { turn ->
-            onProgress(queue.size)
+            onStep(AiStep.Asking(turn + 1))
             val reply = chat.send(conversation)
             if (reply.calls.isEmpty()) {
                 if (reply.truncated) throw AiException("The answer was cut off. Try fewer pages at a time.")
                 return AiProposal(queue.toList(), reply.text.trim())
             }
-            val results = reply.calls.map { tools.run(it, context, queue) }
+            reply.text.trim().takeIf { it.isNotEmpty() }?.let { onStep(AiStep.Note(it)) }
+            val results = reply.calls.map { call ->
+                val queuedBefore = queue.size
+                tools.run(call, context, queue).also { result -> onStep(step(call, result, queue.subList(queuedBefore, queue.size).toList())) }
+            }
             chat.addToolResults(conversation, results)
         }
         return AiProposal(queue.toList(), "")
     }
+
+    private fun step(call: AiToolCall, result: AiToolResult, queued: List<LedgerChange>): AiStep =
+        if (call.name == LedgerTools.FIND) {
+            val found = if (result.isError) null
+            else runCatching { Json.parseToJsonElement(result.content).jsonObject["count"]?.jsonPrimitive?.intOrNull }.getOrNull()
+            AiStep.Searched(call.input.text("from_date"), call.input.text("to_date"), call.input.text("text"), found)
+        } else {
+            AiStep.Proposed(call.name, queued, rejected = result.isError || "Rejected:" in result.content)
+        }
+
+    private fun JsonObject.text(key: String) = (this[key] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }
 
     private fun systemPrompt(ledger: String) = """
         You keep the user's personal ledger in Cashiro, a bookkeeping app. Today is ${LocalDate.now()}.

@@ -3838,7 +3838,7 @@ private fun shareReceiptAsPng(
 }
 
 /** "中国银行 · 1234" / "Bank of China · 1234"; just the name for wallets or when digits are unknown. */
-private fun withLast4(bankName: String?, last4: String?): String? {
+internal fun withLast4(bankName: String?, last4: String?): String? {
     val digits = last4?.takeIf { it.length in 3..4 && it.all(Char::isDigit) }
     return when {
         bankName.isNullOrBlank() -> digits?.let { "•• $it" }
@@ -3849,7 +3849,7 @@ private fun withLast4(bankName: String?, last4: String?): String? {
 
 /** Dates as the locale writes them: 2026年10月4日 / 4 Oct 2026 (10月4日 / 4 October without the year). */
 @Composable
-private fun localizedDateFormatter(withYear: Boolean = true): DateTimeFormatter {
+internal fun localizedDateFormatter(withYear: Boolean = true): DateTimeFormatter {
     val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     return remember(locale, withYear) {
         val zh = locale.language == "zh"

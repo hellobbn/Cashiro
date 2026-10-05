@@ -68,7 +68,6 @@
     <string name="ai_default_request">Record the transactions in these files.</string>
     <string name="ai_privacy_note">Files and your request are sent to %1$s. Nothing is saved until you review it.</string>
     <string name="ai_analyze">Analyze</string>
-    <string name="ai_running">Reading… %1$d proposed so far</string>
     <string name="ai_cancel">Cancel</string>
     <string name="ai_review_empty">Nothing to change.</string>
     <string name="ai_save_selected">Save %1$d</string>
@@ -107,4 +106,49 @@
     <string name="ai_kind_changed">Account type changed</string>
     <string name="ai_rename_note">Its transactions, cards, templates and budgets move to the new name.</string>
     <string name="cd_navigate_back">Back</string>
+    <string name="ai_progress_turn">round %1$d</string>
+    <string name="ai_progress_hint">Each round the model reads, then looks up or proposes entries. Nothing is saved until you review it.</string>
+    <string name="ai_step_no_files">No files; working from your request</string>
+    <string name="ai_step_asking">Round %1$d: waiting for the model…</string>
+    <string name="ai_step_answered">Round %1$d: the model replied</string>
+    <string name="ai_step_searched">Looked up recorded transactions</string>
+    <string name="ai_step_rejected">Some entries were invalid; the model is asked to fix them</string>
+    <string name="ai_step_nothing">The model called %1$s but nothing was queued</string>
+    <string name="ai_step_accounts">Account changes</string>
+    <string name="ai_step_new_account">New account: %1$s</string>
+    <string name="ai_step_balance">Set balance of %1$s to %2$s</string>
+    <string name="ai_step_account_edit">Edit account: %1$s → %2$s</string>
+    <string name="ai_step_more">and %1$d more</string>
+    <plurals name="ai_progress_proposed">
+        <item quantity="one">%d change proposed so far</item>
+        <item quantity="other">%d changes proposed so far</item>
+    </plurals>
+    <plurals name="ai_step_reading_files">
+        <item quantity="one">Reading %d file…</item>
+        <item quantity="other">Reading %d files…</item>
+    </plurals>
+    <plurals name="ai_step_read_files">
+        <item quantity="one">Read %d file</item>
+        <item quantity="other">Read %d files</item>
+    </plurals>
+    <plurals name="ai_step_images">
+        <item quantity="one">%d image</item>
+        <item quantity="other">%d images</item>
+    </plurals>
+    <plurals name="ai_step_found">
+        <item quantity="one">Found %d</item>
+        <item quantity="other">Found %d</item>
+    </plurals>
+    <plurals name="ai_step_added">
+        <item quantity="one">Proposed %d new transaction</item>
+        <item quantity="other">Proposed %d new transactions</item>
+    </plurals>
+    <plurals name="ai_step_updated">
+        <item quantity="one">Proposed editing %d transaction</item>
+        <item quantity="other">Proposed editing %d transactions</item>
+    </plurals>
+    <plurals name="ai_step_deleted">
+        <item quantity="one">Proposed deleting %d transaction</item>
+        <item quantity="other">Proposed deleting %d transactions</item>
+    </plurals>
 </resources>

@@ -83,7 +83,6 @@
     <string name="ai_default_request">記錄這些檔案裡的交易。</string>
     <string name="ai_privacy_note">檔案和請求會傳送到 %1$s；你確認之前不會儲存任何內容。</string>
     <string name="ai_analyze">開始分析</string>
-    <string name="ai_running">正在讀取… 已提出 %1$d 筆</string>
     <string name="ai_cancel">取消</string>
     <string name="ai_review_empty">沒有需要修改的內容。</string>
     <string name="ai_save_selected">儲存 %1$d 項</string>
@@ -122,4 +121,41 @@
     <string name="ai_kind_changed">帳戶類型變更</string>
     <string name="ai_rename_note">它名下的交易、卡片、範本和預算會一併改到新名稱。</string>
     <string name="cd_navigate_back">返回</string>
+    <string name="ai_progress_turn">第 %1$d 輪</string>
+    <string name="ai_progress_hint">每一輪模型會先閱讀，再查找或提出記錄。你確認之前不會儲存任何內容。</string>
+    <string name="ai_step_no_files">沒有檔案，依你的要求處理</string>
+    <string name="ai_step_asking">第 %1$d 輪：等待模型回覆…</string>
+    <string name="ai_step_answered">第 %1$d 輪：模型已回覆</string>
+    <string name="ai_step_searched">查找已記錄的交易</string>
+    <string name="ai_step_rejected">部分項目無效，已讓模型修正</string>
+    <string name="ai_step_nothing">模型呼叫了 %1$s，但沒有提出內容</string>
+    <string name="ai_step_accounts">帳戶調整</string>
+    <string name="ai_step_new_account">新帳戶：%1$s</string>
+    <string name="ai_step_balance">%1$s 餘額校準為 %2$s</string>
+    <string name="ai_step_account_edit">修改帳戶：%1$s → %2$s</string>
+    <string name="ai_step_more">還有 %1$d 筆</string>
+    <plurals name="ai_progress_proposed">
+        <item quantity="other">已提出 %d 項變更</item>
+    </plurals>
+    <plurals name="ai_step_reading_files">
+        <item quantity="other">正在讀取 %d 個檔案…</item>
+    </plurals>
+    <plurals name="ai_step_read_files">
+        <item quantity="other">已讀取 %d 個檔案</item>
+    </plurals>
+    <plurals name="ai_step_images">
+        <item quantity="other">%d 張圖片</item>
+    </plurals>
+    <plurals name="ai_step_found">
+        <item quantity="other">找到 %d 筆</item>
+    </plurals>
+    <plurals name="ai_step_added">
+        <item quantity="other">提出 %d 筆新交易</item>
+    </plurals>
+    <plurals name="ai_step_updated">
+        <item quantity="other">提出修改 %d 筆交易</item>
+    </plurals>
+    <plurals name="ai_step_deleted">
+        <item quantity="other">提出刪除 %d 筆交易</item>
+    </plurals>
 </resources>
