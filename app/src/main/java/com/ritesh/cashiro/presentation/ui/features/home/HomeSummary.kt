@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.ShowChart
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -60,6 +61,10 @@ internal fun HomeSummaryCard(
     canChangeCurrency: Boolean,
     onCurrencyClick: () -> Unit,
     onMonthClick: () -> Unit,
+    // Net worth opens every account; the category breakdown below the card is shown on request
+    onNetWorthClick: () -> Unit,
+    breakdownShown: Boolean,
+    onToggleBreakdown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showTrend by rememberSaveable { mutableStateOf(false) }
@@ -72,14 +77,20 @@ internal fun HomeSummaryCard(
         contentColor = content
     ) {
         Column(Modifier.animateContentSize(MaterialTheme.motionScheme.fastSpatialSpec())) {
-            Column(Modifier.padding(start = 20.dp, end = 8.dp, top = 12.dp)) {
+            Column(
+                Modifier
+                    .clickable(onClick = onNetWorthClick)
+                    .padding(start = 20.dp, end = 8.dp, top = 12.dp)
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.net_worth_label),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = muted,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(R.string.net_worth_label),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = muted
+                        )
+                        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, Modifier.size(18.dp), tint = muted)
+                    }
                     if (canChangeCurrency) {
                         TextButton(onClick = onCurrencyClick, contentPadding = PaddingValues(horizontal = 8.dp)) {
                             Text(currency, style = MaterialTheme.typography.labelLarge, color = content)
@@ -104,13 +115,23 @@ internal fun HomeSummaryCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(end = 12.dp)
                 )
-                if (liabilities != null && liabilities.signum() > 0) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        modifier = Modifier.padding(top = 4.dp, end = 12.dp)
-                    ) {
-                        LabeledFigure(stringResource(R.string.home_assets), CurrencyFormatter.formatCurrency(netWorth + liabilities, currency), muted)
-                        LabeledFigure(stringResource(R.string.home_liabilities), CurrencyFormatter.formatCurrency(liabilities, currency), muted)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    val debt = liabilities?.takeIf { it.signum() > 0 }
+                    if (debt != null) {
+                        LabeledFigure(stringResource(R.string.home_assets), CurrencyFormatter.formatCurrency(netWorth + debt, currency), muted)
+                        LabeledFigure(stringResource(R.string.home_liabilities), CurrencyFormatter.formatCurrency(debt, currency), muted)
+                    }
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = onToggleBreakdown, contentPadding = PaddingValues(horizontal = 8.dp)) {
+                        Text(stringResource(R.string.home_by_category), style = MaterialTheme.typography.labelLarge, color = content)
+                        Icon(
+                            if (breakdownShown) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                            null, Modifier.size(18.dp), tint = content
+                        )
                     }
                 }
             }

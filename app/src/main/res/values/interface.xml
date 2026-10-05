@@ -206,4 +206,5 @@
     <string name="default_account_note">Default</string>
     <string name="default_account_title">Default account for new entries</string>
     <string name="default_account_hint">Preselected when you add a transaction</string>
+    <string name="home_by_category">By category</string>
 </resources>
