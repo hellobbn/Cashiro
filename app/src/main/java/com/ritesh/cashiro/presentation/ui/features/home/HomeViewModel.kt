@@ -634,6 +634,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun showBreakdownDialog() {
+        _uiState.value = _uiState.value.copy(showBreakdownDialog = true)
+    }
+
     fun hideBreakdownDialog() {
         _uiState.value = _uiState.value.copy(showBreakdownDialog = false)
     }

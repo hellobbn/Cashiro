@@ -239,7 +239,6 @@ fun SharedTransitionScope.HomeScreen(
     }
     val scope = rememberCoroutineScope()
 
-    var showMoreBottomSheet by remember { mutableStateOf(false) }
     var showEditWidgetsSheet by remember { mutableStateOf(false) }
 
     // Haptic feedback
@@ -310,9 +309,7 @@ fun SharedTransitionScope.HomeScreen(
                     profileImageUri = uiState.profileImageUri,
                     profileBackgroundColor = uiState.profileBackgroundColor,
                     onProfileClick = onNavigateToSettings,
-                    onNotificationClick = { navController.safeNavigate(NotificationSettings) },
-                    onAiClick = { navController.safeNavigate(AiAssistant) },
-                    onMoreClick = { showMoreBottomSheet = true }
+                    onAiClick = { navController.safeNavigate(AiAssistant) }
                 )
             }
         },
@@ -384,11 +381,15 @@ fun SharedTransitionScope.HomeScreen(
                                 item(key = "net_worth") {
                                     NetworthSummaryCards(
                                         uiState = uiState,
+                                        // What the credit cards owe, from the same overview as the rows below
+                                        liabilities = overviewItems
+                                            .firstOrNull { it.category == com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.CREDIT_CARDS }
+                                            ?.takeIf { it.status == com.ritesh.cashiro.presentation.ui.features.accounts.OverviewStatus.READY }
+                                            ?.amount,
                                         onCurrencySelected = {
                                             homeViewModel.selectCurrency(it)
                                         },
-                                        blurEffects = blurEffects && uiState.showBannerImage,
-                                        hazeState = hazeStateBanner,
+                                        onMonthClick = homeViewModel::showBreakdownDialog
                                     )
                                 }
                             }
@@ -500,203 +501,15 @@ fun SharedTransitionScope.HomeScreen(
                             }
                             HomeWidget.RECENT_TRANSACTIONS -> {
                                 item(key = "recent_transactions") {
-                                    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                                    Column {
-                                        Surface(
-                                            modifier = Modifier
-                                                .padding(horizontal = Spacing.md)
-                                                .fillMaxWidth()
-                                                .clip(RoundedCornerShape(Dimensions.Radius.lg))
-                                                .then(
-                                                    if (blurEffects && uiState.showBannerImage) Modifier.hazeEffect(
-                                                        state = hazeStateBanner,
-                                                        block = fun HazeEffectScope.() {
-                                                            inputScale = HazeInputScale.Auto
-                                                            style = HazeDefaults.style(
-                                                                backgroundColor = Color.Transparent,
-                                                                tint = HazeDefaults.tint(containerColor),
-                                                                blurRadius = 20.dp,
-                                                                noiseFactor = -1f,
-                                                            )
-                                                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                                        }
-                                                    ) else Modifier
-                                                ),
-                                            shape = RoundedCornerShape(Dimensions.Radius.lg),
-                                            color = if (blurEffects && uiState.showBannerImage) MaterialTheme.colorScheme.surface.copy(0.5f)
-                                            else MaterialTheme.colorScheme.surface,
-                                            contentColor = Color.Transparent,
-                                        ) {
-                                            Column {
-                                                SectionHeader(
-                                                    title = stringResource(R.string.recent),
-                                                    action = {
-                                                        Row(
-                                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                                            verticalAlignment = Alignment.CenterVertically
-                                                        ) {
-                                                            // Search button
-                                                            TextButton(
-                                                                shapes = ButtonDefaults.shapes(),
-                                                                onClick = onNavigateToTransactionsWithSearch,
-                                                                modifier = Modifier.then(
-                                                                    if (animatedContentScope != null) {
-                                                                        Modifier.sharedBounds(
-                                                                            rememberSharedContentState(key = "transactions_search"),
-                                                                            animatedVisibilityScope = animatedContentScope,
-                                                                            boundsTransform = { _, _ ->
-                                                                                tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
-                                                                            },
-                                                                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                                                                contentScale = ContentScale.None,
-                                                                                alignment = Alignment.Center
-                                                                            ),
-                                                                            renderInOverlayDuringTransition = false
-                                                                        )
-                                                                            .skipToLookaheadSize()
-                                                                    } else Modifier
-                                                                )
-                                                            ) {
-                                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                                    Icon(
-                                                                        imageVector = Iconax.Search,
-                                                                        contentDescription = stringResource(R.string.search_transactions),
-                                                                        modifier = Modifier.size(Dimensions.Icon.small),
-                                                                        tint = MaterialTheme.colorScheme.primary
-                                                                    )
-                                                                    Spacer(modifier = Modifier.width(4.dp))
-                                                                    Text(stringResource(R.string.search))
-                                                                }
-
-                                                            }
-                                                        }
-                                                    },
-                                                    modifier = Modifier.padding(
-                                                        start = 16.dp,
-                                                        end = 8.dp,
-                                                    )
-                                                )
-
-                                                if (uiState.isLoading) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .height(Dimensions.Component.minTouchTarget * 2),
-                                                        contentAlignment = Alignment.Center
-                                                    ) { LoadingCircle() }
-                                                } else if (uiState.recentTransactions.isEmpty()) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .padding(Dimensions.Padding.card),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Column(
-                                                            modifier = Modifier.fillMaxWidth(),
-                                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                                            ) {
-                                                            Icon(
-                                                                imageVector = Iconax.ReceiptItem,
-                                                                contentDescription = null,
-                                                                modifier = Modifier.size(48.dp),
-                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                                            )
-                                                            Spacer(modifier = Modifier.height(Spacing.md))
-                                                            Text(
-                                                                text = stringResource(R.string.no_transactions_yet),
-                                                                style = MaterialTheme.typography.bodyLarge,
-                                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                            )
-                                                        }
-                                                    }
-                                                } else {
-                                                    uiState.recentTransactions.forEachIndexed { index, transaction ->
-                                                        val position = ListItemPosition.from(
-                                                            index,
-                                                            uiState.recentTransactions.size
-                                                        )
-                                                        val decoration = remember(transaction, lookups, uiState.conversions) {
-                                                            lookups.decorate(transaction, uiState.conversions)
-                                                        }
-                                                        TransactionItem(
-                                                            transaction = transaction,
-                                                            decoration = decoration,
-                                                            mainCurrency = uiState.baseCurrency,
-                                                            onClick = {
-                                                                onTransactionClick(
-                                                                    transaction.id,
-                                                                    "transaction_${transaction.id}"
-                                                                )
-                                                            },
-                                                            shape = position.toShape(),
-                                                            modifier = Modifier.fillMaxWidth(),
-                                                            animatedContentScope = animatedContentScope,
-                                                            sharedElementKey = "transaction_${transaction.id}"
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.height(Spacing.sm))
-                                        Box(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            TextButton(
-                                                shapes = ButtonDefaults.shapes(),
-                                                onClick = onNavigateToTransactions,
-                                                modifier = Modifier
-                                                    .then(
-                                                        if (animatedContentScope != null) {
-                                                            Modifier.sharedBounds(
-                                                                rememberSharedContentState(key = "transactions_screen"),
-                                                                animatedVisibilityScope = animatedContentScope,
-                                                                boundsTransform = { _, _ ->
-                                                                    tween(durationMillis = MotionDurations.standard, easing = FastOutSlowInEasing)
-                                                                },
-                                                                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                                                    contentScale = ContentScale.None,
-                                                                    alignment = Alignment.Center
-                                                                ),
-                                                                renderInOverlayDuringTransition = false
-                                                            )
-                                                                .skipToLookaheadSize()
-                                                        } else Modifier
-                                                    )
-                                                    .clip(RoundedCornerShape(Dimensions.Radius.lg))
-                                                    .then(
-                                                        if (blurEffects && uiState.showBannerImage) Modifier.hazeEffect(
-                                                            state = hazeStateBanner,
-                                                            block = fun HazeEffectScope.() {
-                                                                inputScale = HazeInputScale.Auto
-                                                                style = HazeDefaults.style(
-                                                                    backgroundColor = Color.Transparent,
-                                                                    tint = HazeDefaults.tint(containerColor),
-                                                                    blurRadius = 20.dp,
-                                                                    noiseFactor = -1f,
-                                                                )
-                                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
-                                                            }
-                                                        ) else Modifier
-                                                    )
-                                                    .height(26.dp),
-                                                colors = ButtonDefaults.textButtonColors(
-                                                    contentColor = MaterialTheme.colorScheme.primary,
-                                                    containerColor = if (blurEffects && uiState.showBannerImage)
-                                                        MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f)
-                                                    else MaterialTheme.colorScheme.surfaceContainerLow
-                                                ),
-                                                contentPadding = PaddingValues(0.dp)
-                                            ) {
-                                                Text(
-                                                    text = stringResource(R.string.view_all),
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
-                                                    modifier = Modifier.padding(horizontal = Spacing.md)
-                                                )
-                                            }
-                                        }
-                                    }
+                                    RecentTransactionsCard(
+                                        transactions = uiState.recentTransactions,
+                                        decorate = { lookups.decorate(it, uiState.conversions) },
+                                        mainCurrency = uiState.baseCurrency,
+                                        isLoading = uiState.isLoading,
+                                        onTransactionClick = { onTransactionClick(it.id, "transaction_${it.id}") },
+                                        onViewAll = onNavigateToTransactions,
+                                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                                    )
                                 }
                             }
                         }
@@ -716,8 +529,9 @@ fun SharedTransitionScope.HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(Spacing.md)
                 ) {
                     widgetItems(homeWidgets)
+                    item { CustomizeHomeButton { showEditWidgetsSheet = true } }
                     item {
-                        Spacer(Modifier.height(200.dp)) //Extra space for better scroll
+                        Spacer(Modifier.height(120.dp)) // Clear of the add button
                     }
                 }
             } else {
@@ -734,83 +548,9 @@ fun SharedTransitionScope.HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(Spacing.md)
                         ) {
                             widgetItems(column)
+                            if (state === activityListState) item { CustomizeHomeButton { showEditWidgetsSheet = true } }
                             item { Spacer(Modifier.height(120.dp)) }
                         }
-                    }
-                }
-            }
-
-            // More Options BottomSheet
-            if (showMoreBottomSheet) {
-                CashiroModalBottomSheet(
-                    onDismissRequest = { showMoreBottomSheet = false },
-                    sheetState = rememberModalBottomSheetState(),
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    dragHandle = { BottomSheetDefaults.DragHandle() }
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 32.dp)
-                            .padding(horizontal = 16.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.more_options),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(bottom = Spacing.sm).fillMaxWidth()
-                        )
-
-
-
-                        // Edit Widgets Option
-                        ListItem(
-                            headline = { Text(stringResource(R.string.edit_widgets)) },
-                            leading = {
-                                Icon(
-                                    imageVector = Iconax.Convertshape2,
-                                    contentDescription = null,
-                                )
-                            },
-                            onClick = {
-                                showMoreBottomSheet = false
-                                showEditWidgetsSheet = true
-                            },
-                            shape = ListItemPosition.Top.toShape()
-                        )
-
-                        // Settings Option
-                        ListItem(
-                            headline = { Text(stringResource(R.string.settings)) },
-                            leading = {
-                                Icon(
-                                    imageVector = Iconax.Setting2,
-                                    contentDescription = null,
-                                )
-                            },
-                            onClick = {
-                                showMoreBottomSheet = false
-                                onNavigateToSettings()
-                            },
-                            shape = ListItemPosition.Middle.toShape()
-                        )
-
-
-
-                        // Banner Image Toggle
-                        PreferenceSwitch(
-                            title = stringResource(R.string.show_banner_image),
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Iconax.Gallery,
-                                    contentDescription = null,
-                                )
-                            },
-                            checked = uiState.showBannerImage,
-                            onCheckedChange = { homeViewModel.toggleBannerImage() },
-                            isLast = true
-                        )
                     }
                 }
             }
@@ -836,7 +576,9 @@ fun SharedTransitionScope.HomeScreen(
                     widgets = homeWidgets,
                     onToggleVisibility = homeViewModel::toggleHomeWidgetVisibility,
                     onReorder = homeViewModel::updateWidgetsOrder,
-                    onResetLayout = homeViewModel::resetWidgetsLayout
+                    onResetLayout = homeViewModel::resetWidgetsLayout,
+                    showBannerImage = uiState.showBannerImage,
+                    onToggleBannerImage = homeViewModel::toggleBannerImage
                 )
             }
         }
@@ -1100,13 +842,12 @@ private fun UpcomingSubscriptionsCard(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun NetworthSummaryCards(
     uiState: HomeUiState,
+    liabilities: java.math.BigDecimal?,
     onCurrencySelected: (String) -> Unit = {},
-    blurEffects: Boolean,
-    hazeState: HazeState = remember { HazeState() },
+    onMonthClick: () -> Unit = {},
 ) {
     var showCurrencySheet by remember { mutableStateOf(false) }
 
@@ -1123,60 +864,41 @@ private fun NetworthSummaryCards(
     }
 
     val context = LocalContext.current
-    val abbreviatedName = remember(uiState.userName) {
-        if (uiState.userName.contains(" ")) {
-            uiState.userName.split(" ")
-                .filter { it.isNotBlank() }
-                .take(2)
-                .map { it[0] }
-                .joinToString("")
-                .uppercase()
-        } else if (uiState.userName.length > 4) {
-            uiState.userName.filter { it !in "aeiouAEIOU" }.take(4).uppercase().ifEmpty { 
-                uiState.userName.take(4).uppercase() 
-            }
-        } else {
-            uiState.userName.uppercase()
-        }
-    }
-
-    val dateRangeLabel = remember(uiState.balanceHistory) {
+    val trendLabel = remember(uiState.balanceHistory) {
         if (uiState.balanceHistory.size < 2) ""
         else {
             val start = uiState.balanceHistory.first().timestamp.toLocalDate()
             val end = uiState.balanceHistory.last().timestamp.toLocalDate()
-            val days = ChronoUnit.DAYS.between(start, end)
-            context.getString(R.string.last_days_format, days)
+            context.getString(R.string.last_days_format, ChronoUnit.DAYS.between(start, end))
         }
     }
 
-    val balanceContent: @Composable (Boolean) -> Unit = { embedded ->
+    HomeSummaryCard(
+        netWorth = uiState.totalBalance,
+        currency = uiState.selectedCurrency,
+        liabilities = liabilities,
+        monthExpenses = uiState.currentMonthExpenses,
+        monthIncome = uiState.currentMonthIncome,
+        lastMonthExpenses = uiState.lastMonthExpenses,
+        balanceHistory = uiState.balanceHistory,
+        trendLabel = trendLabel,
+        canChangeCurrency = uiState.availableCurrencies.size > 1,
+        onCurrencyClick = { showCurrencySheet = true },
+        onMonthClick = onMonthClick,
+        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+    )
+}
 
-        BalanceCard(
-            totalBalance = uiState.totalBalance,
-            monthlyChange = uiState.monthlyChange,
-            monthlyChangePercent = uiState.monthlyChangePercent,
-            currency = uiState.selectedCurrency,
-            abbreviatedName = abbreviatedName,
-            userName = uiState.userName,
-            balanceHistory = uiState.balanceHistory,
-            dateRangeLabel = dateRangeLabel,
-            thisMonthValue = CurrencyFormatter.formatCurrency(uiState.currentMonthTotal, uiState.selectedCurrency),
-            thisYearValue = CurrencyFormatter.formatCurrency(uiState.currentYearTotal, uiState.selectedCurrency),
-            availableCurrenciesCount = uiState.availableCurrencies.size,
-            onCurrencyClick = { showCurrencySheet = true },
-            // Always solid. The embedded variant never blurred; re-enabling the real-time blur
-            // on the standalone card made the home screen visibly less smooth.
-            blurEffects = false,
-            embedded = embedded,
-            hazeState = hazeState,
-            modifier = if (embedded) Modifier else Modifier.padding(
-                start = Dimensions.Padding.content,
-                end = Dimensions.Padding.content,
-            )
-        )
+/** Where Home's cards are chosen and ordered (the header no longer has a menu for it). */
+@Composable
+private fun CustomizeHomeButton(onClick: () -> Unit) {
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        TextButton(onClick = onClick) {
+            Icon(Iconax.Convertshape2, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.home_customize))
+        }
     }
-    balanceContent(false)
 }
 
 /** Home splits into two columns from this window width (an unfolded foldable). */

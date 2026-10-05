@@ -187,4 +187,18 @@
     <string name="account_add_currency_confirm">Add</string>
     <string name="account_add_named_currency">Add %1$s</string>
     <string name="transfer_target_lacks_currency">%1$s has no %2$s: add it, or send to one of its currencies and enter the amount received.</string>
+    <string name="home_ai_button">AI</string>
+    <string name="home_trend">Trend</string>
+    <string name="home_assets">Assets</string>
+    <string name="home_liabilities">Card debt</string>
+    <string name="home_month_expenses">Spent this month</string>
+    <string name="home_month_income">Income this month</string>
+    <string name="home_vs_last_month_more">%1$s more than last month</string>
+    <string name="home_vs_last_month_less">%1$s less than last month</string>
+    <string name="home_vs_last_month_same">Same as last month</string>
+    <string name="home_recent">Recent</string>
+    <string name="home_customize">Customize Home</string>
+    <string name="overview_owed">Owed %1$s</string>
+    <string name="overview_overpaid">Overpaid %1$s</string>
+    <string name="overview_connect_short">Connect</string>
 </resources>

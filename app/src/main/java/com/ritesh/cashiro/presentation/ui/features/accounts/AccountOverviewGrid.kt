@@ -19,16 +19,22 @@ import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.utils.CurrencyFormatter
 
-/** The figure an overview row shows on its right: amount, or why there is none. */
+/**
+ * The figure an overview row shows on its right: the amount (what credit cards owe reads
+ * "Owed ¥…"), or why there is none.
+ */
 @Composable
 private fun overviewValue(item: AccountOverviewItem): String = when (item.status) {
     OverviewStatus.READY -> {
-        val debt = item.category == AccountCategory.CREDIT_CARDS
-        val contribution = item.netWorthContribution()
-        val sign = if (!debt || contribution?.signum() == 0) "" else if (contribution!!.signum() < 0) "−" else "+"
-        sign + (if (item.converted) "≈" else "") + CurrencyFormatter.formatCurrency(if (debt) item.amount!!.abs() else item.amount!!, item.currency)
+        val amount = CurrencyFormatter.formatCurrency(item.amount!!.abs(), item.currency)
+        when {
+            item.category != AccountCategory.CREDIT_CARDS -> CurrencyFormatter.formatCurrency(item.amount, item.currency)
+            item.amount.signum() > 0 -> stringResource(R.string.overview_owed, amount)
+            item.amount.signum() < 0 -> stringResource(R.string.overview_overpaid, amount)
+            else -> amount
+        }
     }
-    OverviewStatus.CONNECT -> stringResource(R.string.overview_connect)
+    OverviewStatus.CONNECT -> stringResource(R.string.overview_connect_short)
     OverviewStatus.LOADING -> "—"
     OverviewStatus.UNAVAILABLE -> stringResource(R.string.overview_unavailable)
     OverviewStatus.MULTIPLE_SOURCES -> stringResource(R.string.overview_sources)
@@ -85,7 +91,13 @@ internal fun CompactAccountOverview(items: List<AccountOverviewItem>, onOpen: (A
                             maxLines = 1
                         )
                     }
-                    Text(overviewValue(item), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, maxLines = 1)
+                    Text(
+                        overviewValue(item),
+                        style = if (item.status == OverviewStatus.CONNECT) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = if (item.status == OverviewStatus.CONNECT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
+                    )
                 }
             }
         }
