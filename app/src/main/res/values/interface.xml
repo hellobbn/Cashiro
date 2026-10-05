@@ -170,4 +170,10 @@
         <item quantity="one">%d round</item>
         <item quantity="other">%d rounds</item>
     </plurals>
+    <string name="merchant_icon_title">Merchant icon</string>
+    <string name="merchant_icon_search_hint">Search the App Store</string>
+    <string name="merchant_icon_privacy">Searches send the words above to Apple’s App Store. The icon you pick is kept on this device and used for every transaction at %1$s.</string>
+    <string name="merchant_icon_none">No apps found</string>
+    <string name="merchant_icon_error">Couldn’t search: %1$s</string>
+    <string name="merchant_icon_reset">Use the default icon</string>
 </resources>

@@ -2193,6 +2193,8 @@ private fun TransactionReceipt(
     linkedLoanPersonAvatar: String? = null,
     isCapture: Boolean = false
 ) {
+    // The icon picker for this merchant, opened from the merchant badge
+    var showIconSheet by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     var cutoutOffsetPx by remember { mutableFloatStateOf(with(density) { 420.dp.toPx() }) }
     val cutoutRadius = 10.dp
@@ -2259,8 +2261,12 @@ private fun TransactionReceipt(
                         personName = linkedLoanPersonName,
                         personColor = linkedLoanPersonColor,
                         personAvatar = linkedLoanPersonAvatar,
-                        isCapture = isCapture
+                        isCapture = isCapture,
+                        onIconClick = if (isCapture) null else { { showIconSheet = true } }
                     )
+                    if (showIconSheet) {
+                        MerchantIconSheet(merchantName = transaction.merchantName, onDismiss = { showIconSheet = false })
+                    }
                     DashedLine(
                         modifier = Modifier.weight(1f),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
@@ -2764,7 +2770,8 @@ private fun ReceiptBadge(
     personName: String? = null,
     personColor: String? = null,
     personAvatar: String? = null,
-    isCapture: Boolean = false
+    isCapture: Boolean = false,
+    onIconClick: (() -> Unit)? = null
 ) {
     Surface(
         shape = RoundedCornerShape(24.dp),
@@ -2844,7 +2851,13 @@ private fun ReceiptBadge(
                     category = category,
                     subcategory = subcategory,
                     accountIconName = null, // Not an account icon in this context
-                    modifier = brandIconModifier
+                    modifier = brandIconModifier.then(
+                        if (onIconClick != null) {
+                            Modifier
+                                .clip(CircleShape)
+                                .clickable(onClickLabel = stringResource(R.string.merchant_icon_title), onClick = onIconClick)
+                        } else Modifier
+                    )
                 )
                 Text(
                     text = merchantName,

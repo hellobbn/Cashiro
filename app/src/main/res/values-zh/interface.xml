@@ -161,4 +161,10 @@
     <plurals name="ai_run_rounds">
         <item quantity="other">%d 轮</item>
     </plurals>
+    <string name="merchant_icon_title">商户图标</string>
+    <string name="merchant_icon_search_hint">搜索 App Store</string>
+    <string name="merchant_icon_privacy">搜索时会把上面的文字发送到 Apple App Store。选中的图标保存在本机，所有“%1$s”的交易都会使用它。</string>
+    <string name="merchant_icon_none">没有找到 App</string>
+    <string name="merchant_icon_error">搜索失败：%1$s</string>
+    <string name="merchant_icon_reset">恢复默认图标</string>
 </resources>

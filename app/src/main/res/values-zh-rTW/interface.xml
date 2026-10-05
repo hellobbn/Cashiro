@@ -176,4 +176,10 @@
     <plurals name="ai_run_rounds">
         <item quantity="other">%d 輪</item>
     </plurals>
+    <string name="merchant_icon_title">商戶圖示</string>
+    <string name="merchant_icon_search_hint">搜尋 App Store</string>
+    <string name="merchant_icon_privacy">搜尋時會把上面的文字傳送到 Apple App Store。選中的圖示儲存在本機，所有「%1$s」的交易都會使用它。</string>
+    <string name="merchant_icon_none">沒有找到 App</string>
+    <string name="merchant_icon_error">搜尋失敗：%1$s</string>
+    <string name="merchant_icon_reset">恢復預設圖示</string>
 </resources>

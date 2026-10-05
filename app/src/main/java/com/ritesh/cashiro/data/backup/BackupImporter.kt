@@ -6,6 +6,8 @@ import android.util.Log
 import com.google.gson.GsonBuilder
 import androidx.room.withTransaction
 import com.ritesh.cashiro.data.brokerage.BrokerageRepository
+import com.ritesh.cashiro.data.icons.MerchantIconStore
+import org.json.JSONObject
 import com.ritesh.cashiro.data.database.CashiroDatabase
 import com.ritesh.cashiro.data.database.entity.*
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
@@ -35,7 +37,8 @@ class BackupImporter @Inject constructor(
     private val database: CashiroDatabase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val webhookRepository: WebhookRepository,
-    private val brokerageRepository: BrokerageRepository
+    private val brokerageRepository: BrokerageRepository,
+    private val merchantIconStore: MerchantIconStore
 ) {
     
     private val gson = GsonBuilder()
@@ -64,7 +67,7 @@ class BackupImporter @Inject constructor(
     ): ImportResult = withContext(Dispatchers.IO) {
         try {
             // Read and parse the backup file
-            val (backup, brokerage) = readBackupFile(uri)
+            val (backup, extras) = readBackupFile(uri)
 
             // Validate backup version
             if (!isCompatibleVersion(backup)) {
@@ -79,11 +82,19 @@ class BackupImporter @Inject constructor(
                 ImportStrategy.SELECTIVE -> selectiveImport(backup, filter, restoreOnboardingCompletion)
             }
             // Brokerage connections are only added, never replaced: a failure here leaves the ledger import intact
-            if (result is ImportResult.Success && brokerage != null) {
+            if (result is ImportResult.Success && extras.brokerage != null) {
                 try {
-                    brokerageRepository.restore(brokerage)
+                    brokerageRepository.restore(extras.brokerage)
                 } catch (e: Exception) {
                     Log.w("BackupImporter", "Brokerage connections not restored: ${e.javaClass.simpleName}")
+                }
+            }
+            if (result is ImportResult.Success && extras.merchantIcons != null) {
+                try {
+                    val index = JSONObject(extras.merchantIcons)
+                    merchantIconStore.restore(index.keys().asSequence().associateWith { index.getString(it) })
+                } catch (e: Exception) {
+                    Log.w("BackupImporter", "Merchant icons not restored: ${e.javaClass.simpleName}")
                 }
             }
             result
@@ -99,7 +110,10 @@ class BackupImporter @Inject constructor(
     /**
      * Read and parse backup file (ZIP or JSON)
      */
-    private suspend fun readBackupFile(uri: Uri): Pair<CashiroBackup, String?> {
+    /** What a backup zip carries besides backup.json, read before the import decides to use it. */
+    private data class BackupExtras(val brokerage: String? = null, val merchantIcons: String? = null)
+
+    private suspend fun readBackupFile(uri: Uri): Pair<CashiroBackup, BackupExtras> {
         return withContext(Dispatchers.IO) {
             // Try to read as ZIP first
             try {
@@ -107,6 +121,7 @@ class BackupImporter @Inject constructor(
                     val zipInput = ZipInputStream(inputStream)
                     var backup: CashiroBackup? = null
                     var brokerage: String? = null
+                    var merchantIcons: String? = null
                     var entry = zipInput.nextEntry
 
                     if (entry != null) {
@@ -124,6 +139,13 @@ class BackupImporter @Inject constructor(
                                 backup = gson.fromJson(content, CashiroBackup::class.java)
                             } else if (name == BackupExporter.BROKERAGE_ENTRY) {
                                 brokerage = String(zipInput.readBytes(), Charsets.UTF_8)
+                            } else if (name == BackupExporter.MERCHANT_ICON_INDEX) {
+                                merchantIcons = String(zipInput.readBytes(), Charsets.UTF_8)
+                            } else if (name.startsWith("${MerchantIconStore.DIRECTORY}/") && !entry.isDirectory) {
+                                merchantIconStore.directory.mkdirs()
+                                FileOutputStream(File(merchantIconStore.directory, File(name).name)).use { output ->
+                                    zipInput.copyTo(output)
+                                }
                             } else if (name.startsWith("attachments/") && !entry.isDirectory) {
                                 // Extract Attachment
                                 val fileName = File(name).name
@@ -153,7 +175,7 @@ class BackupImporter @Inject constructor(
                             entry = zipInput.nextEntry
                         }
                         // If we found a backup.json, return it
-                        if (backup != null) return@withContext backup to brokerage
+                        if (backup != null) return@withContext backup to BackupExtras(brokerage, merchantIcons)
                     }
                 }
             } catch (e: Exception) {
@@ -165,7 +187,7 @@ class BackupImporter @Inject constructor(
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 val reader = BufferedReader(InputStreamReader(inputStream))
                 val content = reader.readText()
-                gson.fromJson(content, CashiroBackup::class.java) to null
+                gson.fromJson(content, CashiroBackup::class.java) to BackupExtras()
             } ?: throw Exception("Failed to read backup file")
         }
     }
