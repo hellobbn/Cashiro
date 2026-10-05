@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ripple
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.toggleable
@@ -694,6 +696,31 @@ fun TransactionTabContent(
                                 )
                             }
                         }
+                    }
+
+                    // Into an account in another currency: what arrives there
+                    val targetCurrency = uiState.targetAccount?.currency
+                    if (targetCurrency != null && targetCurrency != uiState.currency) {
+                        TextField(
+                            value = uiState.targetAmount,
+                            onValueChange = viewModel::updateTargetAmount,
+                            label = {
+                                Text(stringResource(R.string.transfer_received_amount, targetCurrency), fontWeight = FontWeight.SemiBold)
+                            },
+                            supportingText = {
+                                Text(stringResource(R.string.transfer_received_amount_hint, uiState.currency, targetCurrency))
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))

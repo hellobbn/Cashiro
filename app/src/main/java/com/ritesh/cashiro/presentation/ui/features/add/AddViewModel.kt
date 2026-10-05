@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import com.ritesh.cashiro.data.currency.CurrencyConversionService
+import kotlinx.coroutines.Job
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -54,6 +56,7 @@ constructor(
     private val updateSubscriptionUseCase: UpdateSubscriptionUseCase,
     private val quickTemplateRepository: QuickTemplateRepository,
     private val transactionRepository: TransactionRepository,
+    private val currencyConversionService: CurrencyConversionService,
     val attachmentService: AttachmentService,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -222,6 +225,7 @@ constructor(
         _transactionUiState.update { currentState ->
             currentState.copy(amount = validAmount, amountError = validateAmount(validAmount))
         }
+        refreshTargetAmount()
     }
 
     fun updateTransactionType(type: TransactionType) {
@@ -439,6 +443,13 @@ constructor(
                 return
             }
             
+            if (state.targetAccount.currency != state.currency && state.targetAmount.toBigDecimalOrNull() == null) {
+                _transactionUiState.update { currentState ->
+                    currentState.copy(error = context.getString(R.string.err_transfer_received_amount))
+                }
+                return
+            }
+
             if (state.selectedAccount?.id == state.targetAccount?.id) {
                 _transactionUiState.update { currentState ->
                     currentState.copy(
@@ -494,6 +505,8 @@ constructor(
                     sourceAccountId = state.selectedAccount?.id,
                     targetAccountBankName = state.targetAccount?.bankName,
                     targetAccountLast4 = state.targetAccount?.accountLast4,
+                    targetAmount = state.targetAmount.toBigDecimalOrNull()
+                        ?.takeIf { state.targetAccount != null && state.targetAccount.currency != state.currency },
                     attachments = attachmentService.joinAttachments(_transactionAttachments.value)
                 )
 
@@ -546,12 +559,41 @@ constructor(
                 currency = account?.currency ?: "CNY"
             ) 
         }
+        refreshTargetAmount()
     }
 
     fun updateTransactionTargetAccount(
         account: AccountBalanceEntity?
     ) {
-        _transactionUiState.update { currentState -> currentState.copy(targetAccount = account) }
+        _transactionUiState.update { currentState -> currentState.copy(targetAccount = account, targetAmountEdited = false) }
+        refreshTargetAmount()
+    }
+
+    fun updateTargetAmount(amount: String) {
+        val filtered = amount.filter { it.isDigit() || it == '.' }
+        if (filtered.count { it == '.' } > 1) return
+        _transactionUiState.update { it.copy(targetAmount = filtered, targetAmountEdited = true) }
+    }
+
+    private var targetAmountJob: Job? = null
+
+    /** Converts the amount into the target account's currency, until the user types their own. */
+    private fun refreshTargetAmount() {
+        val state = _transactionUiState.value
+        val targetCurrency = state.targetAccount?.currency
+        if (targetCurrency == null || targetCurrency == state.currency) {
+            _transactionUiState.update { it.copy(targetAmount = "", targetAmountEdited = false) }
+            return
+        }
+        if (state.targetAmountEdited) return
+        val amount = state.amount.toBigDecimalOrNull() ?: return
+        targetAmountJob?.cancel()
+        targetAmountJob = viewModelScope.launch {
+            val converted = currencyConversionService.convertAmount(amount, state.currency, targetCurrency)
+            _transactionUiState.update {
+                if (it.targetAmountEdited) it else it.copy(targetAmount = converted.stripTrailingZeros().toPlainString())
+            }
+        }
     }
 
     fun updateTransactionPersonId(personId: Long?) {
@@ -893,6 +935,9 @@ data class TransactionUiState(
     val isRecurring: Boolean = false,
     val selectedAccount: AccountBalanceEntity? = null,
     val targetAccount: AccountBalanceEntity? = null,
+    // A transfer to an account in another currency: what arrives there, and whether the user typed it
+    val targetAmount: String = "",
+    val targetAmountEdited: Boolean = false,
     val currency: String = "CNY",
     val isLoading: Boolean = false,
     val error: String? = null,

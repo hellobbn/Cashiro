@@ -107,7 +107,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
                                      else -> currentBalance
                                  }
                              }
-                         }.max(BigDecimal.ZERO)
+                         }
 
                         val balanceEntity = AccountBalanceEntity(
                             bankName = bankName,

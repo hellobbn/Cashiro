@@ -182,4 +182,7 @@
     <string name="merchant_icon_none">沒有找到 App</string>
     <string name="merchant_icon_error">搜尋失敗：%1$s</string>
     <string name="merchant_icon_reset">恢復預設圖示</string>
+    <string name="transfer_received_amount">到帳金額（%1$s）</string>
+    <string name="transfer_received_amount_hint">已按目前匯率從 %1$s 換算，可改成實際到帳的 %2$s 金額。</string>
+    <string name="err_transfer_received_amount">請填寫轉入帳戶的到帳金額。</string>
 </resources>

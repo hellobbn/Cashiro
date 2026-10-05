@@ -176,4 +176,7 @@
     <string name="merchant_icon_none">No apps found</string>
     <string name="merchant_icon_error">Couldn’t search: %1$s</string>
     <string name="merchant_icon_reset">Use the default icon</string>
+    <string name="transfer_received_amount">Amount received (%1$s)</string>
+    <string name="transfer_received_amount_hint">Converted from %1$s at today’s rate; change it to what actually arrived in %2$s.</string>
+    <string name="err_transfer_received_amount">Enter the amount the target account received.</string>
 </resources>

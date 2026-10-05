@@ -66,6 +66,10 @@ Personal Chinese / cross-border manual accounts:
   brand logo (`BrandIcons`), else its subcategory or category icon. The picker opens from the icon on
   the transaction detail and searches Apple's App Store (`AppStoreIconSearch`, country `cn`) only
   when the user does; nothing is fetched automatically.
+- Balances: a credit card's balance is what is owed and may go negative (overpaid). An account's
+  balance rows keep the account's own currency. A transfer between currencies stores what arrived
+  in `to_amount` (the Add form asks for it, converted at today's rate). Edits go through
+  `TransactionEditor`: undo the old effect as a delete does, apply the new one as an add does.
 - Accounts have no id of their own: everything refers to one by bank name + last 4. Rename through
   `AccountRenamer`, which moves balances, transactions, cards, templates, budgets, subscriptions and
   the hidden/main preferences in one transaction.

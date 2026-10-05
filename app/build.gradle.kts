@@ -301,6 +301,8 @@ dependencies {
     "standardImplementation"(libs.review.ktx)
     testImplementation(libs.junit)
     testImplementation(libs.androidx.room.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.work.testing)

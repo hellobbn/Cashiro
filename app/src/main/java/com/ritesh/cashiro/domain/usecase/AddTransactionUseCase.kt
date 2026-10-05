@@ -37,6 +37,8 @@ constructor(
             sourceAccountId: Long? = null,
             targetAccountBankName: String? = null,
             targetAccountLast4: String? = null,
+            // What reached the target account of a transfer in its own currency, if that differs
+            targetAmount: BigDecimal? = null,
             billingCycle: String? = null,
             createSubscription: Boolean = true,
             attachments: String = ""
@@ -61,6 +63,7 @@ constructor(
                         accountNumber = accountLast4,
                         fromAccount = accountLast4,
                         toAccount = targetAccountLast4,
+                        toAmount = targetAmount?.takeIf { type == TransactionType.TRANSFER && it.compareTo(amount) != 0 },
                         balanceAfter = null,
                         transactionHash = transactionHash,
                         isRecurring = isRecurring,
@@ -96,7 +99,7 @@ constructor(
                         accountBalanceRepository.insertTransactionBalance(
                             bankName = targetAccountBankName,
                             accountLast4 = targetAccountLast4,
-                            amount = amount,
+                            amount = targetAmount ?: amount,
                             transactionType = TransactionType.INCOME,
                             explicitBalance = null,
                             timestamp = date,

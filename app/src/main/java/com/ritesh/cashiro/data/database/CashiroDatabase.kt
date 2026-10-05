@@ -74,7 +74,7 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
             com.ritesh.cashiro.data.database.entity.LendBorrowTransactionEntity::class,
             com.ritesh.cashiro.data.database.entity.QuickTemplateEntity::class
         ],
-        version = 65,
+        version = 66,
     exportSchema = true,
     autoMigrations =
         [
@@ -162,7 +162,8 @@ MIGRATION_55_56,
                                 MIGRATION_61_62,
                                 MIGRATION_62_63,
                                 MIGRATION_63_64,
-                                MIGRATION_64_65
+                                MIGRATION_64_65,
+                                MIGRATION_65_66
                             )
                             .build()
                     INSTANCE = instance
@@ -657,6 +658,14 @@ MIGRATION_55_56,
                         )
                         """.trimIndent()
                     )
+                }
+            }
+
+        /** Transfers keep the amount that reached the target account, in its own currency. */
+        val MIGRATION_65_66 =
+            object : Migration(65, 66) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `transactions` ADD COLUMN `to_amount` TEXT")
                 }
             }
 
