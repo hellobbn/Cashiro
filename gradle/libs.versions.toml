@@ -37,6 +37,8 @@ opencsv = "5.12.0"
 review = "2.0.2"
 reviewKtx = "2.0.2"
 roomVersion = "2.8.4"
+robolectricVersion = "4.16"
+androidxTestCoreVersion = "1.7.0"
 
 workVersion = "2.11.0"
 haze = "1.7.1"
@@ -73,6 +75,8 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomVersion" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomVersion" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomVersion" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectricVersion" }
+androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTestCoreVersion" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workVersion" }
 androidx-work-testing = { module = "androidx.work:work-testing", version.ref = "workVersion" }
 app-update = { module = "com.google.android.play:app-update", version.ref = "appUpdate" }

@@ -58,7 +58,10 @@ abstract class AccountBalanceDao {
             ab.source_type AS sourceType,
             ab.is_credit_card AS isCreditCard,
             ab.transaction_id AS transactionId,
-            t.amount AS transactionAmount,
+            -- The receiving side of a transfer moves by what arrived, in its own currency
+            CASE WHEN t.transaction_type = 'TRANSFER'
+                AND NOT (t.bank_name = ab.bank_name AND t.account_number = ab.account_last4)
+                THEN COALESCE(t.to_amount, t.amount) ELSE t.amount END AS transactionAmount,
             CASE WHEN t.transaction_type = 'TRANSFER' THEN
                 CASE WHEN t.bank_name = ab.bank_name AND t.account_number = ab.account_last4
                     THEN 'EXPENSE' ELSE 'INCOME' END
@@ -182,12 +185,15 @@ abstract class AccountBalanceDao {
             if (earliest?.sourceType == SOURCE_MANUAL || earliest?.sourceType == SOURCE_OPENING_BALANCE) earliest else null
         }
 
+        // An account keeps its own currency whatever the transaction was in
+        val accountCurrency = previousForBalance?.currency ?: latest?.currency ?: currency
+
         if (previous == null && explicitBalance == null) {
             insertBalance(AccountBalanceEntity(
                 bankName = bankName, accountLast4 = accountLast4,
                 balance = previousForBalance?.balance ?: BigDecimal.ZERO,
                 timestamp = timestamp.minusNanos(1_000_000),
-                sourceType = SOURCE_OPENING_BALANCE, currency = currency,
+                sourceType = SOURCE_OPENING_BALANCE, currency = accountCurrency,
                 isCreditCard = isCreditCard || (previousForBalance?.isCreditCard ?: false),
                 creditLimit = previousForBalance?.creditLimit ?: latest?.creditLimit,
                 iconResId = latest?.iconResId ?: 0, iconName = latest?.iconName ?: "",
@@ -222,7 +228,7 @@ abstract class AccountBalanceDao {
                 } else {
                     SOURCE_TRANSACTION_CALCULATED
                 },
-                currency = currency,
+                currency = accountCurrency,
                 iconResId = previousForBalance?.iconResId ?: latest?.iconResId ?: 0,
                 iconName = previousForBalance?.iconName ?: latest?.iconName ?: "",
                 isWallet = previousForBalance?.isWallet ?: latest?.isWallet ?: false,
@@ -515,6 +521,8 @@ private fun reverseTransactionBalance(
     isCreditCard: Boolean
 ): BigDecimal {
     return when {
+        // A card's balance is what is owed: a payment or refund lowered it, anything else raised it
+        isCreditCard && transactionType == TransactionType.INCOME -> balanceAfter + amount
         isCreditCard -> balanceAfter - amount
         transactionType == TransactionType.INCOME || transactionType == TransactionType.CREDIT || transactionType == TransactionType.BORROWED -> balanceAfter - amount
         transactionType == TransactionType.EXPENSE || transactionType == TransactionType.INVESTMENT || transactionType == TransactionType.LENT -> balanceAfter + amount
@@ -529,8 +537,8 @@ private fun calculateTransactionBalance(
     isCreditCard: Boolean
 ): BigDecimal {
     return when {
-        isCreditCard && transactionType == TransactionType.INCOME ->
-            (currentBalance - amount).max(BigDecimal.ZERO)
+        // Paying more than is owed leaves a credit on the card: a negative balance, not zero
+        isCreditCard && transactionType == TransactionType.INCOME -> currentBalance - amount
         isCreditCard -> currentBalance + amount
         transactionType == TransactionType.INCOME || transactionType == TransactionType.CREDIT || transactionType == TransactionType.BORROWED -> currentBalance + amount
         transactionType == TransactionType.EXPENSE || transactionType == TransactionType.INVESTMENT || transactionType == TransactionType.LENT ->

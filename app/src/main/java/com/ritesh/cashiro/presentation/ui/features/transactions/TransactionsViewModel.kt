@@ -21,6 +21,7 @@ import com.ritesh.cashiro.core.Constants
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
+import com.ritesh.cashiro.data.repository.TransactionEditor
 import com.ritesh.cashiro.data.repository.CurrencyRepository
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
@@ -51,6 +52,7 @@ class TransactionsViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val subcategoryRepository: SubcategoryRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
+    private val transactionEditor: TransactionEditor,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val currencyRepository: CurrencyRepository,
     private val currencyConversionService: CurrencyConversionService,
@@ -631,36 +633,17 @@ class TransactionsViewModel @Inject constructor(
                     updatedAt = LocalDateTime.now()
                 )
 
-                transactionRepository.updateTransaction(updatedTxn)
-
-                if (newAmount != null && newAmount != txn.amount && txn.bankName != null && txn.accountNumber != null) {
-                    val bankName = txn.bankName
-                    val accountLast4 = txn.accountNumber
-                    val timestamp = updatedDateTime
-
-                    val oldEffect = balanceEffect(txn.amount, txn.transactionType)
-                    val newEffect = balanceEffect(updatedAmount, txn.transactionType)
-
-                    val linkedEntry = accountBalanceRepository.getBalanceByTransactionId(txn.id)
-                    if (linkedEntry != null) {
-                        val newBalance = (linkedEntry.balance - oldEffect + newEffect).let { if (linkedEntry.isCreditCard) it.max(BigDecimal.ZERO) else it }
-                        accountBalanceRepository.updateBalance(linkedEntry.copy(balance = newBalance))
-                        accountBalanceRepository.recalculateBalancesAfter(bankName, accountLast4, timestamp, newBalance)
-                    }
+                // A new amount or date moves the transaction's effect on balances with it
+                if (updatedTxn.amount.compareTo(txn.amount) != 0 || updatedTxn.dateTime != txn.dateTime) {
+                    transactionEditor.update(txn, updatedTxn)
+                } else {
+                    transactionRepository.updateTransaction(updatedTxn)
                 }
             }
 
             _selectedTransactionIds.value = emptySet()
             _selectionMode.value = false
             onComplete()
-        }
-    }
-
-    private fun balanceEffect(amount: BigDecimal, type: TransactionType): BigDecimal {
-        return when (type) {
-            TransactionType.INCOME, TransactionType.CREDIT -> amount
-            TransactionType.EXPENSE, TransactionType.INVESTMENT -> amount.negate()
-            else -> BigDecimal.ZERO
         }
     }
 

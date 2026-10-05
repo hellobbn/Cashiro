@@ -167,4 +167,7 @@
     <string name="merchant_icon_none">没有找到 App</string>
     <string name="merchant_icon_error">搜索失败：%1$s</string>
     <string name="merchant_icon_reset">恢复默认图标</string>
+    <string name="transfer_received_amount">到账金额（%1$s）</string>
+    <string name="transfer_received_amount_hint">已按当前汇率从 %1$s 换算，可改成实际到账的 %2$s 金额。</string>
+    <string name="err_transfer_received_amount">请填写转入账户的到账金额。</string>
 </resources>

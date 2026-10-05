@@ -39,6 +39,9 @@ data class TransactionEntity(
         @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "INR",
         @ColumnInfo(name = "from_account") val fromAccount: String? = null,
         @ColumnInfo(name = "to_account") val toAccount: String? = null,
+        // Transfers between accounts in different currencies: what reached the target account,
+        // in its currency. Null when both sides moved the same amount.
+        @ColumnInfo(name = "to_amount") val toAmount: BigDecimal? = null,
         @ColumnInfo(name = "reference") val reference: String? = null,
         @ColumnInfo(name = "billing_cycle") val billingCycle: String? = null,
         @ColumnInfo(name = "attachments", defaultValue = "") val attachments: String = "",

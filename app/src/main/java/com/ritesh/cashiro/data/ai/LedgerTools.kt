@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.data.ai
 
+import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
@@ -45,6 +46,8 @@ data class TransactionDraft(
     val subcategory: String?,
     val account: AccountBalanceEntity?,
     val toAccount: AccountBalanceEntity?,
+    // What reached [toAccount] when it is in another currency; null converts at today's rate
+    val toAmount: BigDecimal? = null,
     val notes: String?,
     // An existing transaction with the same amount around the same day, on the same account
     val possibleDuplicate: TransactionEntity?
@@ -91,7 +94,8 @@ class LedgerTools @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val subcategoryRepository: SubcategoryRepository,
     private val addTransactionUseCase: AddTransactionUseCase,
-    private val accountRenamer: AccountRenamer
+    private val accountRenamer: AccountRenamer,
+    private val currencyConversionService: CurrencyConversionService
 ) {
     /** The user's accounts and categories, loaded once per session. */
     class Context internal constructor(
@@ -163,14 +167,15 @@ class LedgerTools @Inject constructor(
                     schema(
                         required = listOf("date", "amount", "type", "merchant", "category"),
                         "date" to str("yyyy-MM-dd or yyyy-MM-dd HH:mm"),
-                        "amount" to num("Positive amount"),
-                        "currency" to str("ISO code; defaults to the account's"),
+                        "amount" to num("Positive amount in the account's currency (what was billed); note a foreign original amount in notes"),
+                        "currency" to str("ISO code, only for a transaction without an account; one with an account is in the account's currency"),
                         "type" to enumOf("EXPENSE", "INCOME", "TRANSFER"),
                         "merchant" to str("Payee or payer as the user would name it"),
                         "category" to str("Exactly one of the user's category names"),
                         "subcategory" to str("One of that category's subcategories, if any fits"),
                         "account" to str("Account ref such as A1"),
                         "to_account" to str("Transfers only: the receiving account ref"),
+                        "to_amount" to num("Transfers between currencies: the amount received, in the receiving account's currency; converted at today's rate if left out"),
                         "notes" to str("Optional note")
                     )
                 )
@@ -358,13 +363,15 @@ class LedgerTools @Inject constructor(
         return TransactionDraft(
             dateTime = dateTime,
             amount = amount,
-            currency = item.string("currency")?.uppercase() ?: account?.currency ?: DEFAULT_CURRENCY,
+            // An account's transactions are in its currency, or its balance would change by a foreign amount
+            currency = account?.currency ?: item.string("currency")?.uppercase() ?: DEFAULT_CURRENCY,
             type = type,
             merchant = item.string("merchant").orEmpty().trim(),
             category = category,
             subcategory = subcategory,
             account = account,
             toAccount = toAccount,
+            toAmount = item.decimal("to_amount")?.abs()?.takeIf { toAccount != null && it.signum() > 0 },
             notes = item.string("notes")?.trim()?.takeIf { it.isNotEmpty() },
             possibleDuplicate = possibleDuplicate
         )
@@ -528,6 +535,9 @@ class LedgerTools @Inject constructor(
                         sourceAccountId = account?.id,
                         targetAccountBankName = toAccount?.bankName,
                         targetAccountLast4 = toAccount?.accountLast4,
+                        targetAmount = toAccount?.takeIf { it.currency != currency }?.let { target ->
+                            toAmount ?: currencyConversionService.convertAmount(amount, currency, target.currency)
+                        },
                         createSubscription = false
                     )
                 }

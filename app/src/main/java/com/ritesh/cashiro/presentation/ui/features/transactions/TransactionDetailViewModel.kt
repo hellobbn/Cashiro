@@ -13,6 +13,7 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.database.entity.LendBorrowType
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
+import com.ritesh.cashiro.data.repository.TransactionEditor
 import com.ritesh.cashiro.data.repository.QuickTemplateRepository
 import com.ritesh.cashiro.data.database.entity.QuickTemplateEntity
 import com.ritesh.cashiro.data.repository.CategoryRepository
@@ -57,6 +58,7 @@ class TransactionDetailViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val subcategoryRepository: SubcategoryRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
+    private val transactionEditor: TransactionEditor,
     private val subscriptionRepository: SubscriptionRepository,
     private val currencyConversionService: CurrencyConversionService,
     private val currencyRepository: CurrencyRepository,
@@ -73,6 +75,9 @@ class TransactionDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TransactionDetailUiState())
+
+    // The account a transfer was moved to while editing; a transaction keeps only its last 4
+    private var selectedTargetAccount: AccountBalanceEntity? = null
     val uiState: StateFlow<TransactionDetailUiState> = _uiState.asStateFlow()
 
     init {
@@ -602,6 +607,7 @@ class TransactionDetailViewModel @Inject constructor(
     }
 
     fun updateTransactionTargetAccount(account: AccountBalanceEntity?) {
+        selectedTargetAccount = account
         _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(toAccount = account?.accountLast4)) }
 
         // Update category if type is TRANSFER
@@ -654,13 +660,17 @@ class TransactionDetailViewModel @Inject constructor(
                     attachments = attachmentService.joinAttachments(_editableAttachments.value)
                 )
 
-                transactionRepository.updateTransaction(normalizedTransaction)
-
-                // Handle Balance Updates
+                // Saves it and moves its effect on balances (amount, type, date, account, target)
                 val originalTransaction = state.transaction
                 if (originalTransaction != null) {
-                    updateAccountBalances(originalTransaction, normalizedTransaction)
+                    val withTarget = normalizedTransaction.copy(
+                        toAmount = transferTargetAmount(originalTransaction, normalizedTransaction, selectedTargetAccount)
+                    )
+                    transactionEditor.update(originalTransaction, withTarget, selectedTargetAccount)
+                } else {
+                    transactionRepository.updateTransaction(normalizedTransaction)
                 }
+                selectedTargetAccount = null
 
                 // Sync with subscriptions if recurring
                 syncSubscriptionForTransaction(normalizedTransaction)
@@ -697,7 +707,27 @@ class TransactionDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * What reaches a transfer's target in its own currency, when that differs from the source's:
+     * a newly picked target converts at today's rate, an edited amount keeps the transfer's rate.
+     */
+    private suspend fun transferTargetAmount(
+        original: TransactionEntity,
+        updated: TransactionEntity,
+        newTarget: AccountBalanceEntity?
+    ): BigDecimal? {
+        if (updated.transactionType != TransactionType.TRANSFER) return null
+        if (newTarget != null) {
+            return if (newTarget.currency == updated.currency) null
+            else currencyConversionService.convertAmount(updated.amount, updated.currency, newTarget.currency)
+        }
+        val received = original.toAmount ?: return null
+        if (original.amount.signum() == 0 || original.amount.compareTo(updated.amount) == 0) return received
+        return received.multiply(updated.amount).divide(original.amount, 2, java.math.RoundingMode.HALF_UP)
+    }
+
     fun cancelEdit() {
+        selectedTargetAccount = null
         exitEditMode()
     }
 
@@ -882,107 +912,4 @@ class TransactionDetailViewModel @Inject constructor(
     }
 
 
-    private suspend fun updateAccountBalances(
-        oldTransaction: TransactionEntity,
-        newTransaction: TransactionEntity
-    ) {
-        if (oldTransaction.transactionType == TransactionType.TRANSFER) {
-            handleTransferBalanceEdit(oldTransaction, newTransaction)
-            return
-        }
-        if (oldTransaction.bankName != null && oldTransaction.accountNumber != null) {
-            updateNonTransferBalance(oldTransaction, newTransaction)
-        }
-    }
-
-    private suspend fun updateNonTransferBalance(
-        oldTransaction: TransactionEntity,
-        newTransaction: TransactionEntity
-    ) {
-        val bankName = oldTransaction.bankName!!
-        val accountLast4 = oldTransaction.accountNumber!!
-        val timestamp = oldTransaction.dateTime ?: LocalDateTime.now()
-
-        val oldEffect = balanceEffect(oldTransaction.amount, oldTransaction.transactionType)
-        val newEffect = balanceEffect(newTransaction.amount, newTransaction.transactionType)
-
-        // Fix the historical balance entry at the transaction's timestamp, then
-        // recalculate forward — this cascades the change to all subsequent entries
-        // including the latest balance. No additional delta application needed.
-        val linkedEntry = accountBalanceRepository.getBalanceByTransactionId(oldTransaction.id)
-        if (linkedEntry != null) {
-            val newBalance = (linkedEntry.balance - oldEffect + newEffect).let { if (linkedEntry.isCreditCard) it.max(BigDecimal.ZERO) else it }
-            accountBalanceRepository.updateBalance(linkedEntry.copy(balance = newBalance))
-            accountBalanceRepository.recalculateBalancesAfter(bankName, accountLast4, timestamp, newBalance)
-        }
-    }
-
-    private suspend fun handleTransferBalanceEdit(
-        oldTransaction: TransactionEntity,
-        newTransaction: TransactionEntity
-    ) {
-        val oldAmount = oldTransaction.amount
-        val newAmount = newTransaction.amount
-
-        // source account: -amount effect
-        val sourceDelta = -(newAmount - oldAmount)
-        if (sourceDelta != BigDecimal.ZERO && oldTransaction.bankName != null && oldTransaction.accountNumber != null) {
-            applyBalanceWithDelta(oldTransaction.bankName, oldTransaction.accountNumber, sourceDelta, newTransaction.currency)
-        }
-
-        // target account: +amount effect
-        val oldTarget = oldTransaction.toAccount
-        val newTarget = newTransaction.toAccount
-        if (oldTarget != null) {
-            findAccountByLast4(oldTarget)?.let { target ->
-                val targetDelta = newAmount - oldAmount
-                if (targetDelta != BigDecimal.ZERO) {
-                    applyBalanceWithDelta(target.bankName, target.accountLast4, targetDelta, newTransaction.currency)
-                }
-            }
-        }
-        if (newTarget != null && newTarget != oldTarget) {
-            findAccountByLast4(newTarget)?.let { target ->
-                applyBalanceWithDelta(target.bankName, target.accountLast4, newAmount, newTransaction.currency)
-            }
-        }
-    }
-
-    private fun balanceEffect(amount: BigDecimal, type: TransactionType): BigDecimal {
-        return when (type) {
-            TransactionType.INCOME, TransactionType.CREDIT -> amount
-            TransactionType.EXPENSE, TransactionType.INVESTMENT -> amount.negate()
-            else -> BigDecimal.ZERO
-        }
-    }
-
-    private suspend fun applyBalanceWithDelta(
-        bankName: String,
-        accountLast4: String,
-        delta: BigDecimal,
-        currency: String
-    ) {
-        val currentBalance = accountBalanceRepository.getLatestBalance(bankName, accountLast4)
-        val newBalance = (currentBalance?.balance ?: BigDecimal.ZERO) + delta
-        accountBalanceRepository.insertBalance(
-            AccountBalanceEntity(
-                bankName = bankName,
-                accountLast4 = accountLast4,
-                balance = newBalance,
-                timestamp = LocalDateTime.now(),
-                transactionId = null,
-                sourceType = "MANUAL_EDIT",
-                iconResId = currentBalance?.iconResId ?: 0,
-                isCreditCard = currentBalance?.isCreditCard ?: false,
-                isWallet = currentBalance?.isWallet ?: false,
-                creditLimit = currentBalance?.creditLimit,
-                currency = currency
-            )
-        )
-    }
-
-    private suspend fun findAccountByLast4(last4: String): AccountBalanceEntity? {
-        return accountBalanceRepository.getAllLatestBalances().first()
-            .find { it.accountLast4 == last4 }
-    }
 }
