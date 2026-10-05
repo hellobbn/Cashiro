@@ -287,6 +287,19 @@ interface TransactionDao {
             endDate: LocalDateTime
     ): Flow<List<TransactionEntity>>
 
+    /**
+     * Transfers into account [oldAccountId] go to [newAccountId] instead (accounts merged), in
+     * the same currency when that account holds it, else in its main one.
+     */
+    @Query("""
+        UPDATE transactions SET to_account_id = :newAccountId, to_account = :newLast4,
+            to_currency = CASE
+                WHEN to_currency IN (SELECT currency FROM account_currencies WHERE account_id = :newAccountId) THEN to_currency
+                ELSE (SELECT main_currency FROM accounts WHERE id = :newAccountId) END
+        WHERE to_account_id = :oldAccountId
+    """)
+    suspend fun retargetTransfers(oldAccountId: Long, newAccountId: Long, newLast4: String)
+
     @Query(
             "UPDATE transactions SET bank_name = :newBankName, account_number = :newAccountNumber, " +
                 "account_id = COALESCE((SELECT id FROM accounts WHERE name = :newBankName AND last4 = :newAccountNumber), account_id) " +

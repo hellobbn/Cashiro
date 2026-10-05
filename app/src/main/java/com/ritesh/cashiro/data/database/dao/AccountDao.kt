@@ -45,6 +45,9 @@ interface AccountDao {
     suspend fun getCurrencies(accountId: Long): List<AccountCurrencyEntity>
 
     @Query("SELECT * FROM account_currencies ORDER BY account_id, created_at, currency")
+    suspend fun getAllCurrencies(): List<AccountCurrencyEntity>
+
+    @Query("SELECT * FROM account_currencies ORDER BY account_id, created_at, currency")
     fun observeAllCurrencies(): Flow<List<AccountCurrencyEntity>>
 
     /** Adds a currency to an account; one it already holds is left as it is. */

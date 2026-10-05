@@ -134,6 +134,13 @@ data class DatabaseSnapshot(
     @SerializedName("exchange_rates")
     val exchangeRates: List<ExchangeRateEntity> = emptyList(),
 
+    // Absent from backups made before accounts had rows of their own (database version 67)
+    @SerializedName("accounts")
+    val accounts: List<com.ritesh.cashiro.data.database.entity.AccountEntity>? = null,
+
+    @SerializedName("account_currencies")
+    val accountCurrencies: List<com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity>? = null,
+
     @SerializedName("lend_borrow_persons")
     val lendBorrowPersons: List<LendBorrowPersonEntity> = emptyList(),
 
