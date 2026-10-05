@@ -201,4 +201,6 @@
     <string name="overview_owed">Owed %1$s</string>
     <string name="overview_overpaid">Overpaid %1$s</string>
     <string name="overview_connect_short">Connect</string>
+    <string name="account_holds_currencies">%1$s</string>
+    <string name="list_separator">", "</string>
 </resources>
