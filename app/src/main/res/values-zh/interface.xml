@@ -104,6 +104,7 @@
     <string name="ai_balance_change">余额 %1$s → %2$s</string>
     <string name="ai_limit_change">额度 %1$s → %2$s</string>
     <string name="ai_kind_changed">账户类型变更</string>
+    <string name="ai_currencies_added">添加币种 %1$s</string>
     <string name="ai_rename_note">它名下的交易、卡片、模板和预算会一并改到新名称。</string>
     <string name="cd_navigate_back">返回</string>
     <string name="ai_progress_turn">第 %1$d 轮</string>

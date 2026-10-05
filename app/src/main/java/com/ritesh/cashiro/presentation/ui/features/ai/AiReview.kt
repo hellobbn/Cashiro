@@ -96,6 +96,8 @@ private fun TransactionDraft.toEntity(index: Int) = TransactionEntity(
     bankName = account?.bankName,
     accountNumber = account?.accountLast4,
     toAccount = toAccount?.accountLast4,
+    toAmount = toAmount,
+    toCurrency = toCurrency,
     transactionHash = "",
     currency = currency
 )
@@ -202,6 +204,9 @@ private fun accountChangeLine(item: ReviewItem): String? {
             "${change.before.bankName} → ${change.after.bankName}".takeIf { change.before.bankName != change.after.bankName },
             stringResource(R.string.ai_kind_changed).takeIf {
                 change.before.isCreditCard != change.after.isCreditCard || change.before.isWallet != change.after.isWallet
+            },
+            change.addedCurrencies.takeIf { it.isNotEmpty() }?.let {
+                stringResource(R.string.ai_currencies_added, it.joinToString(", "))
             },
             change.after.creditLimit?.takeIf { change.after.creditLimit != change.before.creditLimit }?.let {
                 stringResource(R.string.ai_limit_change,

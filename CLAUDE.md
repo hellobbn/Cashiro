@@ -66,13 +66,21 @@ Personal Chinese / cross-border manual accounts:
   brand logo (`BrandIcons`), else its subcategory or category icon. The picker opens from the icon on
   the transaction detail and searches Apple's App Store (`AppStoreIconSearch`, country `cn`) only
   when the user does; nothing is fetched automatically.
-- Balances: a credit card's balance is what is owed and may go negative (overpaid). An account's
-  balance rows keep the account's own currency. A transfer between currencies stores what arrived
-  in `to_amount` (the Add form asks for it, converted at today's rate). Edits go through
-  `TransactionEditor`: undo the old effect as a delete does, apply the new one as an add does.
-- Accounts have no id of their own: everything refers to one by bank name + last 4. Rename through
-  `AccountRenamer`, which moves balances, transactions, cards, templates, budgets, subscriptions and
-  the hidden/main preferences in one transaction.
+- Multi-currency accounts: an account is a row in `accounts` (main currency, kind, limit, look)
+  and holds one or more currencies in `account_currencies` (added in the account sheet or when a
+  transfer target lacks one; never removed or hidden). Balance rows carry `account_id` and the
+  currency ("pocket") they belong to. A transaction lands in its currency's pocket when the account
+  holds it, else in the main one (`pocketCurrency`). A transfer stores its target as
+  `to_account_id` + `to_currency`, and what arrived in `to_amount` when the currencies differ
+  (two currencies of one account included). The account card's big number is the total in the
+  app's main currency (`AccountHoldingsSource`), with each currency listed under it.
+- Balances: a credit card's balance is what is owed and may go negative (overpaid). Edits go
+  through `TransactionEditor`: undo the old effect as a delete does, apply the new one as an add does.
+- Most code still finds an account by bank name + last 4 (cards, templates, budgets, preferences).
+  Rename through `AccountRenamer`, which moves the account row, balances, transactions, cards,
+  templates, budgets, subscriptions and the hidden/main preferences in one transaction.
+- Backups carry `accounts` and `account_currencies`; older ones are restored the way migration
+  66→67 converts a database (stray currencies on an account's rows join its main currency).
 
 ## AI bookkeeping
 
@@ -92,10 +100,15 @@ client, no provider SDKs, to keep the app small.
     a `LedgerChange`.
   - `create_account` returns a ref (`N1`…) the same session's transactions can use. Icon, color and
     currency come from `InstitutionCatalog` when the name matches.
-  - `set_balance` calibrates a listed account's balance (and card limit) with a new
+  - Each account ref lists the currencies it holds. A transaction is in one of its account's
+    currencies (`currency`, default the main one); a transfer picks the target's with `to_currency`
+    and states what arrived in `to_amount` when they differ.
+  - `set_balance` calibrates one currency of a listed account (and the card limit) with a new
     `BALANCE_CALIBRATION` row, as the app's own balance edit does.
-  - `update_account` renames an account or changes its kind or credit limit; a rename goes through
-    `AccountRenamer`. Currency and last 4 are not changeable, and the model never deletes accounts.
+  - `update_account` renames an account, changes its kind or credit limit, or adds currencies
+    (`add_currencies`, applied before the transactions in them); a rename goes through
+    `AccountRenamer`. Main currency and last 4 are not changeable, and the model never deletes
+    accounts or currencies.
   - Updates touch merchant, category, subcategory and notes only. Amount, date, type or account
     changes are a delete plus an add.
   - `apply` goes through `AddTransactionUseCase` and the repository's delete, so balances stay

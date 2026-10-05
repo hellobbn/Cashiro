@@ -49,6 +49,9 @@ class AccountBalanceRepository @Inject constructor(
     suspend fun pocketBalances(): List<com.ritesh.cashiro.data.database.dao.PocketBalance> =
         accountBalanceDao.getPocketBalances()
 
+    /** Takes back a currency just added to an account; see [AccountBalanceDao.removeCurrency]. */
+    suspend fun removeCurrency(accountId: Long, currency: String) = accountBalanceDao.removeCurrency(accountId, currency)
+
     suspend fun account(bankName: String, accountLast4: String): AccountEntity? =
         accountBalanceDao.accountFor(bankName, accountLast4)
 

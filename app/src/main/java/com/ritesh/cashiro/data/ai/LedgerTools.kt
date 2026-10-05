@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.data.ai
 
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
+import com.ritesh.cashiro.data.database.dao.PocketBalance
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.AccountEntity
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
@@ -49,6 +50,8 @@ data class TransactionDraft(
     val toAccount: AccountBalanceEntity?,
     // What reached [toAccount] when it is in another currency; null converts at today's rate
     val toAmount: BigDecimal? = null,
+    // Which of [toAccount]'s currencies a transfer lands in
+    val toCurrency: String? = null,
     val notes: String?,
     // An existing transaction with the same amount around the same day, on the same account
     val possibleDuplicate: TransactionEntity?
@@ -58,7 +61,8 @@ data class TransactionDraft(
 sealed interface LedgerChange {
     // A new account; [ref] (N1, N2…) is how the model's transactions refer to it
     data class CreateAccount(val ref: String, val account: AccountBalanceEntity) : LedgerChange
-    // A balance (and, for a card, credit limit) calibration on an existing account
+    // A balance (and, for a card, credit limit) calibration on an existing account; [account] is
+    // the currency calibrated, with that currency's balance
     data class SetBalance(
         val ref: String,
         val account: AccountBalanceEntity,
@@ -66,7 +70,13 @@ sealed interface LedgerChange {
         val creditLimit: BigDecimal?
     ) : LedgerChange
     // New name, kind or credit limit for an existing account; [after] is how it will look
-    data class UpdateAccount(val ref: String, val before: AccountBalanceEntity, val after: AccountBalanceEntity) : LedgerChange
+    // and [addedCurrencies] the currencies it starts to hold
+    data class UpdateAccount(
+        val ref: String,
+        val before: AccountBalanceEntity,
+        val after: AccountBalanceEntity,
+        val addedCurrencies: List<String> = emptyList()
+    ) : LedgerChange
     data class Add(val draft: TransactionDraft) : LedgerChange
     data class Update(val before: TransactionEntity, val after: TransactionEntity) : LedgerChange
     data class Delete(val transaction: TransactionEntity, val reason: String?) : LedgerChange
@@ -83,7 +93,9 @@ data class AppliedChanges(
     val updated: List<TransactionEntity>,
     val deleted: List<TransactionEntity>,
     // Accounts' details before their kind, limit or look changed
-    val accountsBefore: List<AccountEntity> = emptyList()
+    val accountsBefore: List<AccountEntity> = emptyList(),
+    // Currencies added to accounts: (account id, currency)
+    val addedCurrencies: List<Pair<Long, String>> = emptyList()
 )
 
 /**
@@ -104,7 +116,9 @@ class LedgerTools @Inject constructor(
     class Context internal constructor(
         val accounts: List<AccountBalanceEntity>,
         val categories: List<CategoryEntity>,
-        val subcategories: Map<Long, List<SubcategoryEntity>>
+        val subcategories: Map<Long, List<SubcategoryEntity>>,
+        // Each account's currencies and their balances, by account id
+        val pockets: Map<Long, List<PocketBalance>> = emptyMap()
     ) {
         // Short stable references the model uses instead of bank names: A1, A2…
         val accountRefs: Map<String, AccountBalanceEntity> =
@@ -115,6 +129,19 @@ class LedgerTools @Inject constructor(
 
         fun account(ref: String): AccountBalanceEntity? = accountRefs[ref] ?: newAccounts[ref]
 
+        // Currencies proposed for accounts in this session, by ref
+        internal val addedCurrencies = mutableMapOf<String, MutableSet<String>>()
+
+        /** The currencies the account [ref] holds, its main one first, with those proposed for it. */
+        fun currenciesOf(ref: String): List<String> {
+            val account = account(ref) ?: return emptyList()
+            val held = account.accountId?.let { pockets[it] }.orEmpty().map { it.currency }
+            return (listOf(account.currency) + held + addedCurrencies[ref].orEmpty()).distinct()
+        }
+
+        fun pocket(account: AccountBalanceEntity, currency: String): PocketBalance? =
+            account.accountId?.let { pockets[it] }?.firstOrNull { it.currency == currency }
+
         fun refOf(bankName: String?, last4: String?): String? =
             accountRefs.entries.firstOrNull { it.value.bankName == bankName && it.value.accountLast4 == last4 }?.key
     }
@@ -122,12 +149,13 @@ class LedgerTools @Inject constructor(
     suspend fun context(): Context = Context(
         accounts = accountBalanceRepository.getAllLatestBalances().first(),
         categories = categoryRepository.getAllCategories().first(),
-        subcategories = subcategoryRepository.getAllSubcategories().first().groupBy { it.categoryId }
+        subcategories = subcategoryRepository.getAllSubcategories().first().groupBy { it.categoryId },
+        pockets = accountBalanceRepository.pocketBalances().groupBy { it.accountId }
     )
 
     /** The accounts and categories as the model sees them, for the system prompt. */
     fun describe(context: Context): String = buildString {
-        appendLine("Accounts (ref: name, currency):")
+        appendLine("Accounts (ref: name, main currency):")
         context.accountRefs.forEach { (ref, a) ->
             val kind = when {
                 a.isCreditCard -> ", credit card"
@@ -135,7 +163,10 @@ class LedgerTools @Inject constructor(
                 else -> ""
             }
             val limit = a.creditLimit?.let { ", limit ${it.toPlainString()}" } ?: ""
-            appendLine("- $ref: ${a.bankName} ${a.accountLast4}, ${a.currency}$kind, balance ${a.balance.toPlainString()}$limit")
+            val others = a.accountId?.let { context.pockets[it] }.orEmpty().filter { it.currency != a.currency }
+            val also = if (others.isEmpty()) "" else
+                "; also holds " + others.joinToString(", ") { "${it.currency} balance ${it.balance.toPlainString()}" }
+            appendLine("- $ref: ${a.bankName} ${a.accountLast4}, ${a.currency}$kind, balance ${a.balance.toPlainString()}$limit$also")
         }
         appendLine()
         appendLine("Categories (name: subcategories):")
@@ -163,22 +194,24 @@ class LedgerTools @Inject constructor(
         AiTool(
             name = ADD,
             description = "Propose new transactions for the user to review (at most 50 per call). Amounts " +
-                "are positive; the type gives the direction. A transfer needs to_account.",
+                "are positive; the type gives the direction. A transfer needs to_account; it may move money " +
+                "between two currencies of one account.",
             schema = schema(
                 required = listOf("transactions"),
                 "transactions" to array(
                     schema(
                         required = listOf("date", "amount", "type", "merchant", "category"),
                         "date" to str("yyyy-MM-dd or yyyy-MM-dd HH:mm"),
-                        "amount" to num("Positive amount in the account's currency (what was billed); note a foreign original amount in notes"),
-                        "currency" to str("ISO code, only for a transaction without an account; one with an account is in the account's currency"),
+                        "amount" to num("Positive amount in the transaction's currency (what was billed); note a foreign original amount in notes"),
+                        "currency" to str("ISO code. With an account: one of the currencies it holds, its main one if left out"),
                         "type" to enumOf("EXPENSE", "INCOME", "TRANSFER"),
                         "merchant" to str("Payee or payer as the user would name it"),
                         "category" to str("Exactly one of the user's category names"),
                         "subcategory" to str("One of that category's subcategories, if any fits"),
                         "account" to str("Account ref such as A1"),
                         "to_account" to str("Transfers only: the receiving account ref"),
-                        "to_amount" to num("Transfers between currencies: the amount received, in the receiving account's currency; converted at today's rate if left out"),
+                        "to_currency" to str("Transfers only: which of the receiving account's currencies it lands in; the sent currency if it holds that, else its main one"),
+                        "to_amount" to num("Transfers between currencies: the amount received, in to_currency; converted at today's rate if left out"),
                         "notes" to str("Optional note")
                     )
                 )
@@ -209,19 +242,22 @@ class LedgerTools @Inject constructor(
                 required = listOf("account", "balance"),
                 "account" to str("Account ref such as A1"),
                 "balance" to num("The correct current balance; for a credit card, the amount owed"),
-                "credit_limit" to num("Credit cards only: the credit limit, if the document states it")
+                "currency" to str("Which of the account's currencies; its main one if left out"),
+                "credit_limit" to num("Credit cards only, main currency only: the credit limit, if the document states it")
             )
         ),
         AiTool(
             name = UPDATE_ACCOUNT,
-            description = "Propose renaming a listed account or changing its kind or credit limit. The " +
-                "currency and last 4 digits cannot be changed.",
+            description = "Propose renaming a listed account, changing its kind or credit limit, or adding " +
+                "currencies it holds (an account can hold several, e.g. a Hong Kong account with HKD and USD). " +
+                "Its main currency and last 4 digits cannot be changed, and currencies cannot be removed.",
             schema = schema(
                 required = listOf("account"),
                 "account" to str("Account ref such as A1"),
                 "name" to str("New name"),
                 "type" to enumOf("BANK", "CREDIT_CARD", "WALLET"),
-                "credit_limit" to num("Credit cards only")
+                "credit_limit" to num("Credit cards only"),
+                "add_currencies" to arrayOf(str("ISO code of a currency the account should also hold"))
             )
         ),
         AiTool(
@@ -347,14 +383,27 @@ class LedgerTools @Inject constructor(
             ?: throw IllegalArgumentException("amount must be a positive number")
         val type = item.string("type")?.let { name -> ALLOWED_TYPES.firstOrNull { it.name == name } }
             ?: throw IllegalArgumentException("type must be EXPENSE, INCOME or TRANSFER")
-        val account = item.string("account")?.let {
+        val accountRef = item.string("account")
+        val account = accountRef?.let {
             context.account(it) ?: throw IllegalArgumentException("unknown account $it")
         }
-        val toAccount = item.string("to_account")?.let {
+        val toRef = item.string("to_account")
+        val toAccount = toRef?.let {
             context.account(it) ?: throw IllegalArgumentException("unknown account $it")
         }
         if (type == TransactionType.TRANSFER && (account == null || toAccount == null)) {
             throw IllegalArgumentException("a transfer needs account and to_account")
+        }
+        // An account's transactions are in a currency it holds, or its balance would change by a foreign amount
+        val asked = item.string("currency")?.uppercase()
+        val currency = if (accountRef == null) asked ?: DEFAULT_CURRENCY else heldCurrency(context, accountRef, asked)
+        val toCurrency = toRef?.let { ref ->
+            item.string("to_currency")?.uppercase()?.let { heldCurrency(context, ref, it) }
+                ?: currency.takeIf { it in context.currenciesOf(ref) }
+                ?: toAccount!!.currency
+        }
+        if (toRef != null && toRef == accountRef && toCurrency == currency) {
+            throw IllegalArgumentException("a transfer within $toRef goes between two of its currencies; give to_currency")
         }
         val (category, subcategory) = category(item.string("category"), item.string("subcategory"), context)
         val possibleDuplicate = transactionRepository
@@ -366,18 +415,31 @@ class LedgerTools @Inject constructor(
         return TransactionDraft(
             dateTime = dateTime,
             amount = amount,
-            // An account's transactions are in its currency, or its balance would change by a foreign amount
-            currency = account?.currency ?: item.string("currency")?.uppercase() ?: DEFAULT_CURRENCY,
+            currency = currency,
             type = type,
             merchant = item.string("merchant").orEmpty().trim(),
             category = category,
             subcategory = subcategory,
             account = account,
             toAccount = toAccount,
-            toAmount = item.decimal("to_amount")?.abs()?.takeIf { toAccount != null && it.signum() > 0 },
+            toAmount = item.decimal("to_amount")?.abs()?.takeIf { toCurrency != null && toCurrency != currency && it.signum() > 0 },
+            toCurrency = toCurrency,
             notes = item.string("notes")?.trim()?.takeIf { it.isNotEmpty() },
             possibleDuplicate = possibleDuplicate
         )
+    }
+
+    /** [wanted] (else the main currency) when the account [ref] holds it. */
+    private fun heldCurrency(context: Context, ref: String, wanted: String?): String {
+        val held = context.currenciesOf(ref)
+        return when {
+            wanted == null -> held.first()
+            wanted in held -> wanted
+            else -> throw IllegalArgumentException(
+                "$ref holds ${held.joinToString()}, not $wanted: use one of those (a foreign original amount " +
+                    "goes in notes), or first propose adding $wanted with update_account add_currencies"
+            )
+        }
     }
 
     private fun createAccount(input: JsonObject, context: Context, queue: MutableList<LedgerChange>): String {
@@ -423,13 +485,18 @@ class LedgerTools @Inject constructor(
     }
 
     private fun setBalance(input: JsonObject, context: Context, queue: MutableList<LedgerChange>): String {
-        val (ref, account) = existingAccount(input, context)
+        val (ref, main) = existingAccount(input, context)
+        val currency = heldCurrency(context, ref, input.string("currency")?.uppercase())
+        // The currency calibrated, with its own balance
+        val account = if (currency == main.currency) main else context.pocket(main, currency).let { pocket ->
+            main.copy(currency = currency, balance = pocket?.balance ?: BigDecimal.ZERO, creditLimit = pocket?.creditLimit)
+        }
         val balance = input.decimal("balance") ?: throw IllegalArgumentException("balance is required")
-        val limit = input.decimal("credit_limit")?.abs()?.takeIf { account.isCreditCard }
+        val limit = input.decimal("credit_limit")?.abs()?.takeIf { account.isCreditCard && currency == main.currency }
         if (balance.compareTo(account.balance) == 0 && (limit == null || account.creditLimit?.compareTo(limit) == 0)) {
             return "$ref already has that balance; nothing to change."
         }
-        queue.removeAll { it is LedgerChange.SetBalance && it.ref == ref }
+        queue.removeAll { it is LedgerChange.SetBalance && it.ref == ref && it.account.currency == currency }
         queue += LedgerChange.SetBalance(ref, account, balance, limit)
         return "Queued balance correction for $ref for the user's review."
     }
@@ -454,9 +521,16 @@ class LedgerTools @Inject constructor(
         }
         if (type != null) after = after.copy(isCreditCard = type == "CREDIT_CARD", isWallet = type == "WALLET")
         input.decimal("credit_limit")?.abs()?.let { if (after.isCreditCard) after = after.copy(creditLimit = it) }
-        if (after == account) return "$ref already looks like that; nothing to change."
+        val held = account.accountId?.let { context.pockets[it] }.orEmpty().map { it.currency } + account.currency
+        val added = (input["add_currencies"] as? JsonArray).orEmpty()
+            .mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim()?.uppercase() }
+            .onEach { if (!it.matches(Regex("[A-Z]{3}"))) throw IllegalArgumentException("$it is not an ISO currency code") }
+            .filter { it !in held }
+            .distinct()
+        if (after == account && added.isEmpty()) return "$ref already looks like that; nothing to change."
         queue.removeAll { it is LedgerChange.UpdateAccount && it.ref == ref }
-        queue += LedgerChange.UpdateAccount(ref, account, after)
+        context.addedCurrencies[ref] = added.toMutableSet()
+        queue += LedgerChange.UpdateAccount(ref, account, after, added)
         return "Queued changes to $ref for the user's review."
     }
 
@@ -515,6 +589,22 @@ class LedgerTools @Inject constructor(
         // Accounts first, so the transactions on them find them
         val created = changes.filterIsInstance<LedgerChange.CreateAccount>().map { it.account }
         created.forEach { accountBalanceRepository.insertBalance(it.copy(timestamp = LocalDateTime.now())) }
+        // Then the currencies accounts start to hold, which their transactions may be in
+        val addedCurrencies = mutableListOf<Pair<Long, String>>()
+        changes.filterIsInstance<LedgerChange.UpdateAccount>().forEach { change ->
+            val accountId = accountBalanceRepository.account(change.before.bankName, change.before.accountLast4)?.id
+                ?: return@forEach
+            change.addedCurrencies.forEach { currency ->
+                val now = LocalDateTime.now()
+                accountBalanceRepository.insertBalance(
+                    change.before.copy(
+                        id = 0, balance = BigDecimal.ZERO, currency = currency, timestamp = now, transactionId = null,
+                        smsSource = null, sourceType = "MANUAL", createdAt = now
+                    )
+                )
+                addedCurrencies += accountId to currency
+            }
+        }
         // A new account left out of the save: its transactions are saved without an account
         fun AccountBalanceEntity?.kept() = this?.takeIf { it.id != 0L || it in created }
         val added = mutableListOf<Long>()
@@ -524,6 +614,15 @@ class LedgerTools @Inject constructor(
             when (change) {
                 is LedgerChange.CreateAccount, is LedgerChange.SetBalance, is LedgerChange.UpdateAccount -> Unit
                 is LedgerChange.Add -> with(change.draft.let { it.copy(account = it.account.kept(), toAccount = it.toAccount.kept()) }) {
+                    // A currency whose addition was left out: the amount goes into the account's main one
+                    val pocket = account?.let { accountBalanceRepository.pocketCurrency(it.bankName, it.accountLast4, currency) }
+                        ?: currency
+                    val amount = if (pocket == currency) amount else currencyConversionService.convertAmount(amount, currency, pocket)
+                    val notes = if (pocket == currency) notes else
+                        listOfNotNull(notes, "${this.amount.toPlainString()} $currency").joinToString(" · ")
+                    val landsIn = toAccount?.let {
+                        accountBalanceRepository.pocketCurrency(it.bankName, it.accountLast4, toCurrency ?: pocket)
+                    }
                     added += addTransactionUseCase.execute(
                         amount = amount,
                         merchant = merchant,
@@ -534,12 +633,13 @@ class LedgerTools @Inject constructor(
                         notes = notes,
                         bankName = account?.bankName,
                         accountLast4 = account?.accountLast4,
-                        currency = currency,
+                        currency = pocket,
                         sourceAccountId = account?.id,
                         targetAccountBankName = toAccount?.bankName,
                         targetAccountLast4 = toAccount?.accountLast4,
-                        targetAmount = toAccount?.takeIf { it.currency != currency }?.let { target ->
-                            toAmount ?: currencyConversionService.convertAmount(amount, currency, target.currency)
+                        targetCurrency = landsIn,
+                        targetAmount = landsIn?.takeIf { it != pocket }?.let { target ->
+                            toAmount?.takeIf { target == toCurrency } ?: currencyConversionService.convertAmount(amount, pocket, target)
                         },
                         createSubscription = false
                     )
@@ -567,6 +667,7 @@ class LedgerTools @Inject constructor(
                 latest.copy(
                     id = 0,
                     balance = change.balance,
+                    currency = change.account.currency,
                     creditLimit = change.creditLimit ?: latest.creditLimit,
                     timestamp = LocalDateTime.now(),
                     transactionId = null,
@@ -583,6 +684,8 @@ class LedgerTools @Inject constructor(
         }
         changes.filterIsInstance<LedgerChange.UpdateAccount>().forEach { change ->
             val before = change.before
+            // Only currencies added (done above)
+            if (change.after == before) return@forEach
             if (change.after.bankName != before.bankName) {
                 accountRenamer.rename(before.bankName, before.accountLast4, change.after.bankName)
                 renames += Triple(before.bankName, change.after.bankName, before.accountLast4)
@@ -599,7 +702,7 @@ class LedgerTools @Inject constructor(
                 )
             }?.let { accountsBefore += it }
         }
-        return AppliedChanges(created, balanceRows, renames, added, updated, deleted, accountsBefore)
+        return AppliedChanges(created, balanceRows, renames, added, updated, deleted, accountsBefore, addedCurrencies)
     }
 
     /** Takes back what [apply] did. */
@@ -611,6 +714,7 @@ class LedgerTools @Inject constructor(
         applied.addedIds.forEach { transactionRepository.deleteTransactionById(it, hardDelete = true) }
         applied.updated.forEach { transactionRepository.updateTransaction(it) }
         if (applied.deleted.isNotEmpty()) transactionRepository.undoDeleteTransactions(applied.deleted)
+        applied.addedCurrencies.forEach { (accountId, currency) -> accountBalanceRepository.removeCurrency(accountId, currency) }
         applied.createdAccounts.forEach { accountBalanceRepository.deleteAccount(it.bankName, it.accountLast4) }
     }
 

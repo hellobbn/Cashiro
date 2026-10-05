@@ -728,6 +728,8 @@ class AddTransactionUseCaseTest {
         override suspend fun linkTransactionAccounts() = Unit
         override suspend fun linkTransferTargets() = Unit
         override suspend fun linkTransferCurrencies() = Unit
+        override suspend fun deleteCurrencyRows(accountId: Long, currency: String) = Unit
+        override suspend fun deleteCurrencyRow(accountId: Long, currency: String) = Unit
         override suspend fun deleteSampleBalanceRows() = Unit
         override suspend fun deleteSampleAccountRows() = Unit
         override suspend fun deleteBalanceRowsOf(bankName: String, accountLast4: String): Int = 0
