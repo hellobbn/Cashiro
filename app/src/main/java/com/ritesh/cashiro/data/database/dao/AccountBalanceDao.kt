@@ -438,6 +438,40 @@ abstract class AccountBalanceDao {
     @Query("DELETE FROM accounts")
     abstract suspend fun deleteAllAccountRows()
 
+    /**
+     * Gives transactions without account ids (restored from a backup older than accounts) their
+     * accounts, the way the 66→67 migration did: a transfer's target from its own balance rows.
+     */
+    @Transaction
+    open suspend fun linkTransactionsToAccounts() {
+        linkTransactionAccounts()
+        linkTransferTargets()
+        linkTransferCurrencies()
+    }
+
+    @Query("""
+        UPDATE transactions SET account_id = (SELECT a.id FROM accounts a
+            WHERE a.name = transactions.bank_name AND a.last4 = transactions.account_number)
+        WHERE account_id IS NULL
+    """)
+    abstract suspend fun linkTransactionAccounts()
+
+    @Query("""
+        UPDATE transactions SET to_account_id = (
+            SELECT ab.account_id FROM account_balances ab
+            WHERE ab.transaction_id = transactions.id
+            AND NOT (ab.bank_name = transactions.bank_name AND ab.account_last4 = transactions.account_number)
+            ORDER BY ab.id LIMIT 1)
+        WHERE transaction_type = 'TRANSFER' AND to_account_id IS NULL
+    """)
+    abstract suspend fun linkTransferTargets()
+
+    @Query("""
+        UPDATE transactions SET to_currency = (SELECT a.main_currency FROM accounts a WHERE a.id = transactions.to_account_id)
+        WHERE to_account_id IS NOT NULL AND to_currency IS NULL
+    """)
+    abstract suspend fun linkTransferCurrencies()
+
     @Transaction
     open suspend fun deleteAllBalances() {
         deleteAllBalanceRows()

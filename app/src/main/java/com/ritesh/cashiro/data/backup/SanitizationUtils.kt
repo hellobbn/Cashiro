@@ -73,6 +73,10 @@ fun TransactionEntity.sanitize(): TransactionEntity {
         currency = currency ?: "INR",
         fromAccount = fromAccount,
         toAccount = toAccount,
+        toAmount = toAmount,
+        accountId = accountId,
+        toAccountId = toAccountId,
+        toCurrency = toCurrency,
         billingCycle = billingCycle,
         attachments = attachments ?: "",
         isSample = isSample
@@ -159,6 +163,7 @@ fun AccountBalanceEntity.sanitize(): AccountBalanceEntity {
         currency = currency ?: "INR",
         isWallet = isWallet,
         color = color ?: "#33B5E5",
-        isSample = isSample
+        isSample = isSample,
+        accountId = accountId
     )
 }

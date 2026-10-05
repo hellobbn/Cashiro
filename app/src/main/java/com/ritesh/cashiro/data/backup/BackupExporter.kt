@@ -187,6 +187,8 @@ class BackupExporter @Inject constructor(
         val categories = if (config.includeProfileData) database.categoryDao().getAllCategories().first() else emptyList()
         val cards = if (config.includeProfileData) database.cardDao().getAllCards().first() else emptyList()
         val accountBalances = if (config.includeTransactionalData) database.accountBalanceDao().getAllBalances().first() else emptyList()
+        val accounts = if (config.includeTransactionalData) database.accountDao().getAccounts() else emptyList()
+        val accountCurrencies = if (config.includeTransactionalData) database.accountDao().getAllCurrencies() else emptyList()
         val subscriptions = if (config.includeBudgets) database.subscriptionDao().getAllSubscriptions().first() else emptyList()
         val merchantMappings = if (config.includeProfileData) database.merchantMappingDao().getAllMappings().first() else emptyList()
         val budgets = if (config.includeBudgets) database.budgetDao().getAllBudgets().first() else emptyList()
@@ -280,6 +282,8 @@ class BackupExporter @Inject constructor(
                 ruleApplications = ruleApplications,
                 webhookProfiles = webhookProfiles,
                 exchangeRates = exchangeRates,
+                accounts = accounts,
+                accountCurrencies = accountCurrencies,
                 lendBorrowPersons = lendBorrowPersons,
                 lendBorrowTransactions = lendBorrowTransactions
             ),

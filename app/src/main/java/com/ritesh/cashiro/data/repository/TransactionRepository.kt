@@ -381,6 +381,9 @@ class TransactionRepository @Inject constructor(
         )
     }
 
+    suspend fun retargetTransfers(oldAccountId: Long, newAccountId: Long, newLast4: String) =
+        transactionDao.retargetTransfers(oldAccountId, newAccountId, newLast4)
+
     suspend fun updateTransactionsCategory(oldCategory: String, newCategory: String, newSubcategory: String?) {
         transactionDao.updateTransactionsCategory(oldCategory, newCategory, newSubcategory)
     }

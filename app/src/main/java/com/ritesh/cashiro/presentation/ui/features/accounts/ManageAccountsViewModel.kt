@@ -764,6 +764,12 @@ constructor(
                         oldAccountNumber = source.accountLast4,
                         newBankName = targetAccount.bankName,newAccountNumber = targetAccount.accountLast4
                     )
+                    // Transfers into the merged account now go into the target
+                    val from = source.accountId
+                    val into = targetAccount.accountId
+                    if (from != null && into != null && from != into) {
+                        transactionRepository.retargetTransfers(from, into, targetAccount.accountLast4)
+                    }
                 }
 
                 // Update target balance if requested

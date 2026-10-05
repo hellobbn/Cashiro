@@ -560,6 +560,7 @@ class AddTransactionUseCaseTest {
             oldBankName: String, oldAccountNumber: String,
             newBankName: String, newAccountNumber: String
         ) = Unit
+        override suspend fun retargetTransfers(oldAccountId: Long, newAccountId: Long, newLast4: String) = Unit
         override suspend fun updateTransactionsCategory(
             oldCategory: String, newCategory: String, newSubcategory: String?
         ) = Unit
@@ -724,6 +725,9 @@ class AddTransactionUseCaseTest {
         override suspend fun updateAccountRow(account: com.ritesh.cashiro.data.database.entity.AccountEntity) = Unit
         override suspend fun deleteAllBalanceRows() = Unit
         override suspend fun deleteAllAccountRows() = Unit
+        override suspend fun linkTransactionAccounts() = Unit
+        override suspend fun linkTransferTargets() = Unit
+        override suspend fun linkTransferCurrencies() = Unit
         override suspend fun deleteSampleBalanceRows() = Unit
         override suspend fun deleteSampleAccountRows() = Unit
         override suspend fun deleteBalanceRowsOf(bankName: String, accountLast4: String): Int = 0
