@@ -2,6 +2,14 @@
 
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.data.repository.LocalAccountHoldings
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.ripple
 import com.ritesh.cashiro.presentation.ui.components.maskAccountNumber
 import androidx.compose.animation.animateContentSize
@@ -89,7 +97,7 @@ import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.IconResolutionUtils
 import java.math.BigDecimal
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun EditAccountSheet(
     account: AccountBalanceEntity? = null,
@@ -111,7 +119,9 @@ fun EditAccountSheet(
         isCreditCard: Boolean,
         isWallet: Boolean,
         creditLimit: BigDecimal?,
-        currency: String
+        currency: String,
+        // Currencies added in this sheet with their starting balances
+        addedCurrencies: Map<String, BigDecimal>
     ) -> Unit
 ) {
     val context = LocalContext.current
@@ -139,6 +149,16 @@ fun EditAccountSheet(
     var showCurrencySheet by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
+    // Currencies the account already holds besides the selected one, with their balances
+    val holdings = account?.accountId?.let { LocalAccountHoldings.current[it] }
+    val heldBalances = remember(holdings) { holdings?.pockets?.associate { it.currency to it.balance }.orEmpty() }
+    // Currencies added here: the account will hold them once saved, and they can't be removed
+    val addedCurrencies = remember { mutableStateMapOf<String, BigDecimal>() }
+    // A currency waiting for the "can't be removed" confirmation; true when it becomes the main one
+    var pendingCurrency by remember { mutableStateOf<Pair<String, Boolean>?>(null) }
+    var addingCurrency by remember { mutableStateOf(false) }
+    var editingAddedCurrency by remember { mutableStateOf<String?>(null) }
+
 
     val duplicateAccount = account == null && bankName.isNotBlank() && allAccounts.any {
         it.bankName.trim() == bankName.trim() && it.accountLast4 == accountLast4
@@ -157,9 +177,14 @@ fun EditAccountSheet(
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
             NumberPad(
-                initialValue = if (editingCreditLimit) creditLimit.toString() else balance.toString(),
+                initialValue = editingAddedCurrency?.let { addedCurrencies[it]?.toString() }
+                    ?: if (editingCreditLimit) creditLimit.toString() else balance.toString(),
                 onDone = {
-                    if (editingCreditLimit) {
+                    val added = editingAddedCurrency
+                    if (added != null) {
+                        addedCurrencies[added] = it.toBigDecimalOrNull() ?: BigDecimal.ZERO
+                        editingAddedCurrency = null
+                    } else if (editingCreditLimit) {
                         creditLimit = it.toBigDecimalOrNull() ?: BigDecimal.ZERO
                     } else {
                         balance = it.toBigDecimalOrNull() ?: BigDecimal.ZERO
@@ -194,10 +219,63 @@ fun EditAccountSheet(
         CurrencyBottomSheet(
             selectedCurrency = selectedCurrency,
             onCurrencySelected = { currency ->
-                selectedCurrency = currency
                 showCurrencySheet = false
+                when {
+                    // A new account takes any currency as its main one
+                    account == null -> {
+                        addedCurrencies.remove(currency)
+                        selectedCurrency = currency
+                    }
+                    // One it holds becomes the main one, showing its own balance
+                    currency in heldBalances -> {
+                        selectedCurrency = currency
+                        balance = heldBalances.getValue(currency)
+                    }
+                    currency in addedCurrencies -> {
+                        selectedCurrency = currency
+                        balance = addedCurrencies.remove(currency) ?: BigDecimal.ZERO
+                    }
+                    else -> pendingCurrency = currency to true
+                }
             },
             onDismiss = { showCurrencySheet = false }
+        )
+    }
+
+    if (addingCurrency) {
+        CurrencyBottomSheet(
+            selectedCurrency = selectedCurrency,
+            onCurrencySelected = { currency ->
+                addingCurrency = false
+                if (currency != selectedCurrency && currency !in heldBalances && currency !in addedCurrencies) {
+                    if (account == null) addedCurrencies[currency] = BigDecimal.ZERO
+                    else pendingCurrency = currency to false
+                }
+            },
+            onDismiss = { addingCurrency = false }
+        )
+    }
+
+    pendingCurrency?.let { (currency, asMain) ->
+        AlertDialog(
+            onDismissRequest = { pendingCurrency = null },
+            title = { Text(stringResource(R.string.account_add_currency_title, currency)) },
+            text = { Text(stringResource(R.string.account_add_currency_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (asMain) {
+                        // The current main currency stays held; the new one starts at zero
+                        selectedCurrency = currency
+                        balance = BigDecimal.ZERO
+                    } else {
+                        addedCurrencies[currency] = BigDecimal.ZERO
+                    }
+                    pendingCurrency = null
+                }) { Text(stringResource(R.string.account_add_currency_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingCurrency = null }) { Text(stringResource(R.string.cancel)) }
+            }
         )
     }
 
@@ -634,6 +712,43 @@ fun EditAccountSheet(
                     enabled = false
                 )
 
+                // The account's other currencies: held ones with their balances, added ones editable
+                val others = heldBalances.filterKeys { it != selectedCurrency }
+                Text(
+                    text = stringResource(R.string.account_other_currencies),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = Spacing.xs, top = Spacing.sm)
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+                ) {
+                    others.forEach { (currency, amount) ->
+                        AssistChip(
+                            onClick = {},
+                            enabled = false,
+                            label = { Text(CurrencyFormatter.formatCurrency(amount, currency)) }
+                        )
+                    }
+                    addedCurrencies.forEach { (currency, amount) ->
+                        InputChip(
+                            selected = true,
+                            onClick = {
+                                editingAddedCurrency = currency
+                                editingCreditLimit = false
+                                showNumberPad = true
+                            },
+                            label = { Text(CurrencyFormatter.formatCurrency(amount, currency)) }
+                        )
+                    }
+                    AssistChip(
+                        onClick = { addingCurrency = true },
+                        label = { Text(stringResource(R.string.account_add_currency)) },
+                        leadingIcon = { Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Color Picker Section
@@ -716,7 +831,8 @@ fun EditAccountSheet(
                                 isCreditCard,
                                 isWallet,
                                 if (isCreditCard) creditLimit else null,
-                                selectedCurrency
+                                selectedCurrency,
+                                addedCurrencies.toMap()
                             )
                         },
                         enabled = !isSaving && !duplicateAccount && bankName.isNotBlank() && (isWallet || accountLast4.length == 4),

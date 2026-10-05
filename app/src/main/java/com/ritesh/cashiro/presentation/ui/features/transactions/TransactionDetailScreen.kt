@@ -1585,6 +1585,8 @@ private fun EditableExtractedInfoCard(
                         }
                     }
 
+                    TransferCurrencyFields(transaction, selectedAccount, targetAccount, viewModel)
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // Category Selection
@@ -1618,6 +1620,7 @@ private fun EditableExtractedInfoCard(
                         placeholder = stringResource(R.string.select_account),
                         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
                     )
+                    SourceCurrencyChoice(transaction, selectedAccount, viewModel)
                     
                     // Category Selection
                     CategoryDropdown(
@@ -3873,5 +3876,81 @@ internal fun localizedDateFormatter(withYear: Boolean = true): DateTimeFormatter
             else -> "d MMMM"
         }
         DateTimeFormatter.ofPattern(pattern, locale)
+    }
+}
+
+/** Which of the account's currencies the transaction is in, when it holds more than one. */
+@Composable
+private fun SourceCurrencyChoice(
+    transaction: TransactionEntity,
+    account: AccountBalanceEntity?,
+    viewModel: TransactionDetailViewModel
+) {
+    val holdings = com.ritesh.cashiro.data.repository.LocalAccountHoldings.current
+    val currencies = remember(account, holdings) { viewModel.currenciesOf(account) }
+    if (currencies.size > 1) {
+        com.ritesh.cashiro.presentation.ui.components.AccountCurrencyChoice(
+            currencies = currencies,
+            selected = transaction.currency,
+            onSelect = viewModel::updateTransactionCurrency,
+            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.xs)
+        )
+    }
+}
+
+/**
+ * A transfer's currencies: the source's and the target's, when either holds several, and what
+ * reached the target when the two differ.
+ */
+@Composable
+private fun TransferCurrencyFields(
+    transaction: TransactionEntity,
+    source: AccountBalanceEntity?,
+    target: AccountBalanceEntity?,
+    viewModel: TransactionDetailViewModel
+) {
+    SourceCurrencyChoice(transaction, source, viewModel)
+    val holdings = com.ritesh.cashiro.data.repository.LocalAccountHoldings.current
+    val targetCurrencies = remember(target, holdings) { viewModel.currenciesOf(target) }
+    val toCurrency = transaction.toCurrency ?: target?.currency
+    if (targetCurrencies.size > 1) {
+        com.ritesh.cashiro.presentation.ui.components.AccountCurrencyChoice(
+            currencies = targetCurrencies,
+            selected = toCurrency,
+            onSelect = viewModel::updateTransactionTargetCurrency,
+            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.xs)
+        )
+    }
+    if (target != null && toCurrency != null && toCurrency != transaction.currency) {
+        val received = transaction.toAmount
+        var text by remember { mutableStateOf(received?.toPlainString().orEmpty()) }
+        // Follows the rate until the user types; a half-typed "12." still reads as 12
+        LaunchedEffect(received) {
+            if (received != null && text.toBigDecimalOrNull()?.compareTo(received) != 0) text = received.toPlainString()
+        }
+        TextField(
+            value = text,
+            onValueChange = { typed ->
+                val filtered = typed.filter { it.isDigit() || it == '.' }
+                if (filtered.count { it == '.' } <= 1) {
+                    text = filtered
+                    viewModel.updateReceivedAmount(filtered)
+                }
+            },
+            label = { Text(stringResource(R.string.transfer_received_amount, toCurrency), fontWeight = FontWeight.SemiBold) },
+            supportingText = { Text(stringResource(R.string.transfer_received_amount_hint, transaction.currency, toCurrency)) },
+            singleLine = true,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
+            ),
+            shape = RoundedCornerShape(16.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }

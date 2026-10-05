@@ -48,7 +48,7 @@ class TransactionEditor @Inject constructor(private val database: CashiroDatabas
                 else -> null
             }
             val toCurrency = target?.let {
-                val wanted = updated.toCurrency.takeIf { newTarget == null } ?: newTarget?.currency ?: oldTarget?.currency
+                val wanted = updated.toCurrency ?: newTarget?.currency ?: oldTarget?.currency
                 balances.pocketCurrency(it.name, it.last4, wanted ?: it.mainCurrency)
             }
             val saved = updated.copy(accountId = account?.id, toAccountId = target?.id, toCurrency = toCurrency)

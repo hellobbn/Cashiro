@@ -293,6 +293,7 @@ constructor(
         isWallet: Boolean = false,
         creditLimit: BigDecimal? = null,
         currency: String = "CNY",
+        addedCurrencies: Map<String, BigDecimal> = emptyMap(),
         onSaved: () -> Unit = {}
     ) {
         if (_uiState.value.isSavingAccount) return
@@ -323,6 +324,7 @@ constructor(
                         color = colorHex
                     )
                 )
+                addCurrencies(normalizedName, accountLast4, addedCurrencies)
                 saved = true
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -388,7 +390,27 @@ constructor(
         }
     }
 
-    fun updateAccountBalance(bankName: String, accountLast4: String, newBalance: BigDecimal) {
+    /** Adds currencies to an account, each starting at its own balance. */
+    private suspend fun addCurrencies(bankName: String, accountLast4: String, currencies: Map<String, BigDecimal>) {
+        val account = accountBalanceRepository.getLatestBalance(bankName, accountLast4) ?: return
+        val now = LocalDateTime.now()
+        currencies.forEach { (currency, opening) ->
+            accountBalanceRepository.insertBalance(
+                account.copy(
+                    id = 0,
+                    balance = opening,
+                    currency = currency,
+                    timestamp = now,
+                    transactionId = null,
+                    smsSource = null,
+                    sourceType = "MANUAL",
+                    createdAt = now
+                )
+            )
+        }
+    }
+
+    fun updateAccountBalance(bankName: String, accountLast4: String, newBalance: BigDecimal, currency: String? = null) {
         viewModelScope.launch {
             // Get the latest balance to preserve credit limit
             val latestBalance = accountBalanceRepository.getLatestBalance(bankName, accountLast4)
@@ -403,7 +425,7 @@ constructor(
                 iconName = latestBalance?.iconName ?: "",
                 isWallet = latestBalance?.isWallet ?: false,
                 sourceType = "BALANCE_CALIBRATION",
-                currency = latestBalance?.currency ?: resolveDefaultCurrency(),
+                currency = currency ?: latestBalance?.currency ?: resolveDefaultCurrency(),
                 color = latestBalance?.color ?: "#33B5E5"
             )
             )
@@ -414,7 +436,8 @@ constructor(
             bankName: String,
             accountLast4: String,
             newBalance: BigDecimal,
-            newLimit: BigDecimal
+            newLimit: BigDecimal,
+            currency: String? = null
     ) {
         viewModelScope.launch {
             val latestBalance = accountBalanceRepository.getLatestBalance(bankName, accountLast4)
@@ -429,7 +452,7 @@ constructor(
                     sourceType = "BALANCE_CALIBRATION",
                     iconResId = latestBalance?.iconResId ?: 0,
                     iconName = latestBalance?.iconName ?: "type_finance_credit_card",
-                    currency = latestBalance?.currency ?: resolveDefaultCurrency(),
+                    currency = currency ?: latestBalance?.currency ?: resolveDefaultCurrency(),
                     color = latestBalance?.color ?: "#E91E63"
                 )
             )
@@ -664,7 +687,8 @@ constructor(
             newIconResId: Int,
             newIconName: String,
             newColorHex: String,
-            newCurrency: String? = null
+            newCurrency: String? = null,
+            addedCurrencies: Map<String, BigDecimal> = emptyMap()
     ) {
         viewModelScope.launch {
             try {
@@ -702,6 +726,7 @@ constructor(
                         color = newColorHex
                     )
                 )
+                addCurrencies(newBankName, accountLast4, addedCurrencies)
                 // The account's own details: what every screen shows
                 accountBalanceRepository.updateAccount(newBankName, accountLast4) {
                     it.copy(

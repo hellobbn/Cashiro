@@ -2,6 +2,9 @@
 
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import com.ritesh.cashiro.data.repository.LocalAccountHoldings
+import com.ritesh.cashiro.presentation.ui.components.AddCurrencyConfirmation
+import com.ritesh.cashiro.presentation.ui.components.AccountCurrencyChoice
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ripple
@@ -145,6 +148,8 @@ fun TransactionTabContent(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.transactionUiState.collectAsState()
+    // Accounts' currencies change when one is added
+    val holdingsVersion = LocalAccountHoldings.current
     val categories by viewModel.categories.collectAsState()
     val transactionSubcategories by viewModel.transactionSubcategories.collectAsState()
     val transactionAttachments by viewModel.transactionAttachments.collectAsState()
@@ -205,14 +210,22 @@ fun TransactionTabContent(
             // Amount Input
             AmountInput(
                 amount = uiState.amount.ifEmpty { "0" },
-                currencySymbol = CurrencyFormatter.getCurrencySymbol(
-                    uiState.selectedAccount?.currency ?: "CNY"
-                ),
+                currencySymbol = CurrencyFormatter.getCurrencySymbol(uiState.currency),
                 onClick = {
                     showNumberPad = true
                 },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            // An account holding several currencies: which one the money is in
+            val sourceCurrencies = remember(uiState.selectedAccount, holdingsVersion) { viewModel.currenciesOf(uiState.selectedAccount) }
+            if (sourceCurrencies.size > 1) {
+                AccountCurrencyChoice(
+                    currencies = sourceCurrencies,
+                    selected = uiState.currency,
+                    onSelect = viewModel::updateTransactionCurrency
+                )
+            }
 
             // Transaction Type Selection
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -640,6 +653,7 @@ fun TransactionTabContent(
             val accounts by viewModel.accounts.collectAsState()
             var showAccountSheet by remember { mutableStateOf(false) }
             var showTargetAccountSheet by remember { mutableStateOf(false) }
+            var pendingTargetCurrency by remember { mutableStateOf<String?>(null) }
 
             // Conditional UI based on transaction type
             BlurredAnimatedVisibility(uiState.transactionType == TransactionType.TRANSFER) {
@@ -699,7 +713,40 @@ fun TransactionTabContent(
                     }
 
                     // Into an account in another currency: what arrives there
-                    val targetCurrency = uiState.targetAccount?.currency
+                    // Which of the target's currencies it goes into; one it lacks can be added
+                    val target = uiState.targetAccount
+                    if (target != null) {
+                        val targetCurrencies = remember(target, holdingsVersion) { viewModel.currenciesOf(target) }
+                        val missing = uiState.currency.takeIf { it !in targetCurrencies }
+                        if (targetCurrencies.size > 1 || missing != null) {
+                            if (missing != null) {
+                                Text(
+                                    text = stringResource(R.string.transfer_target_lacks_currency, target.bankName, missing),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            AccountCurrencyChoice(
+                                currencies = targetCurrencies,
+                                selected = uiState.targetCurrency,
+                                onSelect = viewModel::updateTransactionTargetCurrency,
+                                suggested = missing,
+                                onAddSuggested = { pendingTargetCurrency = missing }
+                            )
+                        }
+                    }
+                    pendingTargetCurrency?.let { currency ->
+                        AddCurrencyConfirmation(
+                            currency = currency,
+                            onConfirm = {
+                                uiState.targetAccount?.let { viewModel.addCurrencyToAccount(it, currency, asTarget = true) }
+                                pendingTargetCurrency = null
+                            },
+                            onDismiss = { pendingTargetCurrency = null }
+                        )
+                    }
+
+                    val targetCurrency = uiState.targetCurrency
                     if (targetCurrency != null && targetCurrency != uiState.currency) {
                         TextField(
                             value = uiState.targetAmount,
@@ -1041,7 +1088,10 @@ fun TransactionTabContent(
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
                     // Filter out the source account from target selection
-                    val availableTargetAccounts = accounts.filter { it.id != uiState.selectedAccount?.id }
+                    // The source itself only when it holds another currency to exchange into
+                    val availableTargetAccounts = accounts.filter {
+                        it.id != uiState.selectedAccount?.id || viewModel.currenciesOf(it).size > 1
+                    }
                     AccountSelectionSheet(
                         accounts = availableTargetAccounts,
                         selectedAccount = uiState.targetAccount,
