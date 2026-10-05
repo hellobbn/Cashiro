@@ -182,28 +182,30 @@ contentDescription = stringResource(R.string.search),
                                 }.take(15)
                             }
 
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Dimensions.Radius.md)),
-                            maxItemsInEachRow = 3,
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            displayedCurrencies.forEach { currency ->
-                                CurrencyCard(
-                                    currency = currency,
-                                    isSelected = currency.code.equals(
-                                        selectedCurrency,
-                                        ignoreCase = true
-                                    ),
-                                    onCurrencyCardClick = {
-                                        scope.launch { sheetState.hide() }
-                                            .invokeOnCompletion {
-                                                if (!sheetState.isVisible) {
-                                                    onCurrencySelected(currency.code)
-                                                }
+                        // Three equal columns; a short last row keeps the same widths
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                            displayedCurrencies.chunked(3).forEach { row ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                                    row.forEach { currency ->
+                                        CurrencyCard(
+                                            currency = currency,
+                                            modifier = Modifier.weight(1f),
+                                            isSelected = currency.code.equals(
+                                                selectedCurrency,
+                                                ignoreCase = true
+                                            ),
+                                            onCurrencyCardClick = {
+                                                scope.launch { sheetState.hide() }
+                                                    .invokeOnCompletion {
+                                                        if (!sheetState.isVisible) {
+                                                            onCurrencySelected(currency.code)
+                                                        }
+                                                    }
                                             }
+                                        )
                                     }
-                                )
+                                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                                }
                             }
                         }
 
@@ -411,14 +413,15 @@ contentDescription = stringResource(R.string.search),
 fun CurrencyCard(
     currency: Currency,
     isSelected: Boolean = false,
+    // Width: a grid cell's weight, or a fixed width in a row
+    modifier: Modifier = Modifier.width(96.dp),
     onCurrencyCardClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier
-            .sizeIn(minWidth = 90.dp, minHeight = 70.dp, maxHeight = 90.dp, maxWidth = 110.dp)
+        modifier = modifier
+            .heightIn(min = 88.dp)
             .clip(RoundedCornerShape(Dimensions.Radius.md))
-            .clickable(onClick = onCurrencyCardClick)
-            .padding(vertical = 5.dp),
+            .clickable(onClick = onCurrencyCardClick),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected)
                 MaterialTheme.colorScheme.primaryContainer
@@ -433,14 +436,14 @@ fun CurrencyCard(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(5.dp),
-            verticalArrangement = Arrangement.Center,
+                .fillMaxWidth()
+                .heightIn(min = 88.dp)
+                .padding(horizontal = 8.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = currency.code.uppercase(),
-                lineHeight = 12.sp,
                 style = MaterialTheme.typography.bodySmall,
                 color = if (isSelected)
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(0.7f)
@@ -449,18 +452,16 @@ fun CurrencyCard(
             )
             Text(
                 text = currency.symbol,
-                lineHeight = 20.sp,
+                maxLines = 1,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected)
                     MaterialTheme.colorScheme.onPrimaryContainer
                 else
-                    MaterialTheme.colorScheme.inverseSurface,
-                modifier = Modifier.padding(vertical = 5.dp)
+                    MaterialTheme.colorScheme.inverseSurface
             )
             Text(
                 text = currency.localizedName(),
-                lineHeight = 10.sp,
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
