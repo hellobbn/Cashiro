@@ -8,6 +8,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import com.ritesh.cashiro.data.repository.AccountHoldingsSource
+import com.ritesh.cashiro.data.repository.LocalAccountHoldings
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -54,6 +58,9 @@ class MainActivity : AppCompatActivity() {
     private val themeViewModel: ThemeViewModel by viewModels()
     private val appLockViewModel: AppLockViewModel by viewModels()
     
+    @Inject
+    lateinit var accountHoldingsSource: AccountHoldingsSource
+
     @Inject
     lateinit var notificationScheduler: NotificationScheduler
 
@@ -117,6 +124,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
+            val holdings by accountHoldingsSource.holdings.collectAsState()
+            CompositionLocalProvider(LocalAccountHoldings provides holdings) {
             CashiroApp(
                 editTransactionId = editTransactionId,
                 onEditComplete = { editTransactionId = null },
@@ -133,6 +142,7 @@ class MainActivity : AppCompatActivity() {
                 appLockViewModel = appLockViewModel,
                 themeViewModel = themeViewModel,
             )
+            }
         }
     }
 

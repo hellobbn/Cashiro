@@ -2,6 +2,10 @@
 
 package com.ritesh.cashiro.presentation.ui.features.investments
 
+import com.ritesh.cashiro.data.repository.LocalAccountHoldings
+import com.ritesh.cashiro.data.repository.byCurrency
+import com.ritesh.cashiro.presentation.ui.components.accountBalanceText
+import com.ritesh.cashiro.presentation.ui.components.accountCurrenciesText
 import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ButtonDefaults
@@ -388,7 +392,8 @@ private fun InvestmentNetWorthBanner(
     connections: List<BrokerConnection>
 ) {
     val totals = mutableMapOf<String, BigDecimal>()
-    manuals.forEach { account ->
+    // Every currency a brokerage account holds
+    manuals.byCurrency(LocalAccountHoldings.current).forEach { account ->
         totals[account.currency] = (totals[account.currency] ?: BigDecimal.ZERO) + account.balance
     }
     connections.snapshotTotals().forEach { (currency, amount) ->
@@ -438,10 +443,12 @@ private fun InvestmentAccountBreakdown(
                 headline = { Text(account.bankName, fontWeight = FontWeight.Medium) },
                 supporting = { Text(accountSubtitle(account)) },
                 trailing = {
-                    Text(
-                        CurrencyFormatter.formatCurrency(account.balance, account.currency),
-                        fontWeight = FontWeight.Medium
-                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(accountBalanceText(account), fontWeight = FontWeight.Medium)
+                        accountCurrenciesText(account)?.let {
+                            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                 },
                 onClick = onManageManualAccounts,
                 shape = ListItemPosition.from(index, count).toShape(),

@@ -35,7 +35,6 @@ import com.ritesh.cashiro.presentation.ui.theme.AccountSurfaceElevation
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
-import com.ritesh.cashiro.utils.formatBalance
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
@@ -126,7 +125,7 @@ internal fun SharedTransitionScope.AccountBalanceRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 BasicText(
-                    text = account.formatBalance(),
+                    text = accountBalanceText(account),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -139,6 +138,15 @@ internal fun SharedTransitionScope.AccountBalanceRow(
                         stepSize = 0.5.sp
                     )
                 )
+                accountCurrenciesText(account)?.let { currencies ->
+                    Text(
+                        text = currencies,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
         ListItem(

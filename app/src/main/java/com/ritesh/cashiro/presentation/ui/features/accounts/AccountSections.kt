@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import com.ritesh.cashiro.data.repository.AccountHoldings
+import com.ritesh.cashiro.data.repository.byCurrency
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.presentation.ui.components.sortedForDisplay
 import java.math.BigDecimal
@@ -33,7 +35,8 @@ internal fun AccountBalanceEntity.listKey(): String =
 internal fun buildAccountSections(
     accounts: List<AccountBalanceEntity>,
     hiddenKeys: Set<String>,
-    mainKey: String? = null
+    mainKey: String? = null,
+    holdings: Map<Long, AccountHoldings> = emptyMap()
 ): AccountSections {
     // Same order as the account picker: one bank's accounts together, the main account first.
     val (hidden, visible) = accounts.sortedForDisplay(mainKey).partition {
@@ -49,7 +52,8 @@ internal fun buildAccountSections(
                     AccountSectionKind.INVESTMENTS -> it.category() == AccountCategory.INVESTMENTS
                 }
             }
-            AccountSection(kind, members, members.groupBy { it.currency }.toSortedMap().mapValues { (_, group) ->
+            // Totals per currency count every currency an account holds
+            AccountSection(kind, members, members.byCurrency(holdings).groupBy { it.currency }.toSortedMap().mapValues { (_, group) ->
                 group.fold(BigDecimal.ZERO) { total, account -> total + account.balance }
             })
         },

@@ -2,6 +2,7 @@ package com.ritesh.cashiro.domain.usecase
 
 import android.content.Context
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
+import com.ritesh.cashiro.data.database.dao.PocketBalance
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.utils.sumOfBigDecimal
 import java.math.BigDecimal
@@ -30,12 +31,35 @@ fun List<AccountBalanceEntity>.excludingHidden(hiddenKeys: Set<String>): List<Ac
 suspend fun List<AccountBalanceEntity>.netWorthIn(
     targetCurrency: String,
     conversionService: CurrencyConversionService,
-    investmentSnapshots: Map<String, BigDecimal> = emptyMap()
+    investmentSnapshots: Map<String, BigDecimal> = emptyMap(),
+    // Every currency of every account; an account found here counts each of its currencies
+    pockets: List<PocketBalance> = emptyList()
 ): BigDecimal {
-    val (creditCards, assets) = partition { it.isCreditCard }
+    val (creditCards, assets) = withPockets(pockets).partition { it.isCreditCard }
     return assets.convertedTotal(targetCurrency, conversionService) -
         creditCards.convertedTotal(targetCurrency, conversionService) +
         investmentSnapshots.convertedTotal(targetCurrency, conversionService)
+}
+
+/** Each account once per currency it holds (see [PocketBalance]); accounts not in [pockets] as they are. */
+fun List<AccountBalanceEntity>.withPockets(pockets: List<PocketBalance>): List<AccountBalanceEntity> {
+    if (pockets.isEmpty()) return this
+    val byAccount = pockets.groupBy { it.accountId }
+    return flatMap { account ->
+        account.accountId?.let { byAccount[it] }?.map { account.copy(balance = it.balance, currency = it.currency) }
+            ?: listOf(account)
+    }
+}
+
+/** What a card owes across all its currencies, in its main currency. */
+suspend fun AccountBalanceEntity.owedAcrossCurrencies(
+    pockets: List<PocketBalance>,
+    conversionService: CurrencyConversionService
+): BigDecimal {
+    val own = pockets.filter { it.accountId == accountId }.takeIf { it.isNotEmpty() } ?: return balance
+    var total = BigDecimal.ZERO
+    for (pocket in own) total += conversionService.convertAmount(pocket.balance, pocket.currency, currency)
+    return total
 }
 
 /** Total of [AccountBalanceEntity.balance] expressed in [targetCurrency]. */

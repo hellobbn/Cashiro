@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import com.ritesh.cashiro.data.repository.byCurrency
 import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyListScope
@@ -200,8 +201,13 @@ fun SharedTransitionScope.HomeScreen(
     val homeWidgets by homeViewModel.homeWidgets.collectAsStateWithLifecycle()
     val overviewViewModel: com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewViewModel = hiltViewModel()
     val overviewItems by overviewViewModel.items.collectAsStateWithLifecycle()
-    LaunchedEffect(uiState.accountBalances, uiState.creditCards, uiState.selectedCurrency) {
-        overviewViewModel.update(uiState.accountBalances + uiState.creditCards, uiState.selectedCurrency)
+    val holdings = com.ritesh.cashiro.data.repository.LocalAccountHoldings.current
+    LaunchedEffect(uiState.accountBalances, uiState.creditCards, uiState.selectedCurrency, holdings) {
+        // Every currency an account holds counts towards its category
+        overviewViewModel.update(
+            (uiState.accountBalances + uiState.creditCards).byCurrency(holdings),
+            uiState.selectedCurrency
+        )
     }
     val openCategory: (com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory) -> Unit = { category ->
         if (category == com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.INVESTMENTS)

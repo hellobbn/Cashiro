@@ -118,7 +118,8 @@ constructor(
                 .netWorthIn(
                     baseCurrency,
                     currencyConversionService,
-                    investmentSnapshots = connections.investmentSnapshotsOrEmpty()
+                    investmentSnapshots = connections.investmentSnapshotsOrEmpty(),
+                    pockets = accountBalanceRepository.pocketBalances()
                 )
         }.onEach { total ->
             _state.update { it.copy(netWorth = total) }

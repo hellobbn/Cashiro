@@ -29,6 +29,12 @@ private const val ACCOUNT_ROW = "SELECT ab.id, a.icon_res_id, a.icon_name, a.nam
     "ab.created_at, ab.currency, a.is_wallet, a.color, a.is_sample, a.id AS account_id " +
     "FROM accounts a JOIN account_balances ab ON ab.account_id = a.id AND ab.currency = a.main_currency"
 
+private const val POCKET_BALANCES = "SELECT ac.account_id AS accountId, ac.currency AS currency, " +
+    "COALESCE((SELECT l.balance FROM account_balances l WHERE l.account_id = ac.account_id AND l.currency = ac.currency " +
+    "ORDER BY l.timestamp DESC, l.id DESC LIMIT 1), '0') AS balance, " +
+    "a.is_credit_card AS isCreditCard, COALESCE(ac.credit_limit, CASE WHEN ac.currency = a.main_currency THEN a.credit_limit END) AS creditLimit " +
+    "FROM account_currencies ac JOIN accounts a ON a.id = ac.account_id ORDER BY ac.account_id, ac.created_at, ac.currency"
+
 private const val RECEIVING_SIDE = "((t.to_account_id IS NOT NULL AND ab.account_id = t.to_account_id " +
     "AND (t.to_account_id != COALESCE(t.account_id, -1) OR ab.currency = t.to_currency)) " +
     "OR (t.to_account_id IS NULL AND NOT (t.bank_name = ab.bank_name AND t.account_number = ab.account_last4)))"
@@ -418,6 +424,13 @@ abstract class AccountBalanceDao {
     
     @Query("SELECT * FROM account_balances ORDER BY timestamp DESC")
     abstract fun getAllBalances(): Flow<List<AccountBalanceEntity>>
+
+    /** The latest balance of every currency of every account. */
+    @Query(POCKET_BALANCES)
+    abstract fun observePocketBalances(): Flow<List<PocketBalance>>
+
+    @Query(POCKET_BALANCES)
+    abstract suspend fun getPocketBalances(): List<PocketBalance>
     
     @Query("DELETE FROM account_balances")
     abstract suspend fun deleteAllBalanceRows()
@@ -594,6 +607,15 @@ data class AccountBalanceTransactionInfo(
     val transactionType: String?,
     val transactionBalanceAfter: BigDecimal?,
     val isDeleted: Boolean?
+)
+
+/** One currency of an account and its latest balance. */
+data class PocketBalance(
+    val accountId: Long,
+    val currency: String,
+    val balance: BigDecimal,
+    val isCreditCard: Boolean,
+    val creditLimit: BigDecimal?
 )
 
 /** Inverse of [calculateTransactionBalance]: the balance before [amount] was applied. */

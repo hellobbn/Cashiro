@@ -279,12 +279,9 @@ text = {
                     }
                 }
 
-                // Balance
+                // Balance: an account in several currencies shows their sum, then each currency
                 Text(
-                    text = CurrencyFormatter.formatCurrency(
-                        account.balance,
-                        account.currency
-                    ),
+                    text = accountBalanceText(account),
                     style = MaterialTheme.typography.displaySmall.copy(
                         fontSize = 40.sp,
                         fontWeight = FontWeight.Bold
@@ -292,6 +289,14 @@ text = {
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
+                accountCurrenciesText(account)?.let { currencies ->
+                    Text(
+                        text = currencies,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
 
                 // Bottom Section (Bank Info)
                 Column {
