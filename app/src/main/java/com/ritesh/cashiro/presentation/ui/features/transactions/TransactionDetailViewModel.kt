@@ -42,6 +42,7 @@ import com.ritesh.cashiro.utils.capitalizeFirst
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -59,6 +60,7 @@ class TransactionDetailViewModel @Inject constructor(
     private val subcategoryRepository: SubcategoryRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
     private val transactionEditor: TransactionEditor,
+    private val accountHoldings: com.ritesh.cashiro.data.repository.AccountHoldingsSource,
     private val subscriptionRepository: SubscriptionRepository,
     private val currencyConversionService: CurrencyConversionService,
     private val currencyRepository: CurrencyRepository,
@@ -274,7 +276,9 @@ class TransactionDetailViewModel @Inject constructor(
     val targetAccount: StateFlow<AccountBalanceEntity?> = _uiState.map { state ->
         val transaction = state.editableTransaction
         if (transaction == null) return@map null
-        availableAccounts.value.find { it.accountLast4 == transaction.toAccount }
+        val accounts = availableAccounts.value
+        transaction.toAccountId?.let { id -> accounts.find { it.accountId == id } }
+            ?: accounts.find { it.accountLast4 == transaction.toAccount }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
 
@@ -340,6 +344,7 @@ class TransactionDetailViewModel @Inject constructor(
     }
 
     fun enterEditMode() {
+        receivedAmountEdited = false
         val currentTransaction = _uiState.value.transaction
         val billingCycle = currentTransaction?.billingCycle
         
@@ -496,6 +501,7 @@ class TransactionDetailViewModel @Inject constructor(
         val amount = amountStr.toBigDecimalOrNull()
         if (amount != null && amount > BigDecimal.ZERO) {
             _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(amount = amount), errorMessage = null) }
+            refreshReceivedAmount()
         } else if (amountStr.isNotEmpty()) {
             _uiState.update { it.copy(errorMessage = "Amount must be a positive number") }
         }
@@ -503,6 +509,7 @@ class TransactionDetailViewModel @Inject constructor(
 
     fun updateTransactionType(type: TransactionType) {
         _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(transactionType = type)) }
+        refreshReceivedAmount()
 
         // Auto-select category based on type
         val newCategory = when (type) {
@@ -604,11 +611,74 @@ class TransactionDetailViewModel @Inject constructor(
                 accountIconName = account?.iconName // Update the icon name in state too
             )
         }
+        refreshReceivedAmount()
+    }
+
+    /** The currencies [account] holds, its main one first. */
+    fun currenciesOf(account: AccountBalanceEntity?): List<String> {
+        account ?: return emptyList()
+        val held = account.accountId?.let { accountHoldings.holdings.value[it] }?.pockets?.map { it.currency }.orEmpty()
+        return listOf(account.currency) + held.filter { it != account.currency }
+    }
+
+    /** Which of the account's currencies the transaction is in. */
+    fun updateTransactionCurrency(currency: String) {
+        _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(currency = currency)) }
+        _uiState.value.editableTransaction?.let { viewModelScope.launch { calculateConvertedAmount(it) } }
+        refreshReceivedAmount()
+    }
+
+    /** Which of the target account's currencies a transfer lands in. */
+    fun updateTransactionTargetCurrency(currency: String) {
+        _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(toCurrency = currency)) }
+        refreshReceivedAmount()
+    }
+
+    /** What reached the target, typed by the user; it then stays as typed. */
+    fun updateReceivedAmount(amount: String) {
+        val value = amount.toBigDecimalOrNull()?.takeIf { it > BigDecimal.ZERO } ?: return
+        receivedAmountEdited = true
+        _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(toAmount = value)) }
+    }
+
+    // Set once the user typed what reached the target; the amount then no longer follows the rate
+    private var receivedAmountEdited = false
+    private var receivedAmountJob: Job? = null
+
+    /**
+     * Keeps what reaches a transfer's target in step with the edit: nothing when both sides share a
+     * currency, the transfer's own rate while its currencies stay, else today's rate.
+     */
+    private fun refreshReceivedAmount() {
+        if (receivedAmountEdited) return
+        receivedAmountJob?.cancel()
+        receivedAmountJob = viewModelScope.launch {
+            val txn = _uiState.value.editableTransaction ?: return@launch
+            val original = _uiState.value.transaction
+            val toCurrency = txn.toCurrency
+            val received = when {
+                txn.transactionType != TransactionType.TRANSFER || toCurrency == null || toCurrency == txn.currency -> null
+                original?.toAmount != null && selectedTargetAccount == null &&
+                    original.currency == txn.currency && original.toCurrency == toCurrency ->
+                    if (original.amount.signum() == 0) original.toAmount
+                    else original.toAmount.multiply(txn.amount).divide(original.amount, 2, java.math.RoundingMode.HALF_UP)
+                else -> currencyConversionService.convertAmount(txn.amount, txn.currency, toCurrency)
+            }
+            _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(toAmount = received)) }
+        }
     }
 
     fun updateTransactionTargetAccount(account: AccountBalanceEntity?) {
         selectedTargetAccount = account
-        _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(toAccount = account?.accountLast4)) }
+        _uiState.update { state ->
+            val txn = state.editableTransaction
+            // Lands in the currency sent when the target holds it, else in its main one
+            val toCurrency = account?.let { target -> txn?.currency?.takeIf { it in currenciesOf(target) } ?: target.currency }
+            state.copy(editableTransaction = txn?.copy(
+                toAccount = account?.accountLast4, toAccountId = account?.accountId, toCurrency = toCurrency
+            ))
+        }
+        refreshReceivedAmount()
 
         // Update category if type is TRANSFER
         _uiState.value.editableTransaction?.let { txn ->
@@ -663,14 +733,20 @@ class TransactionDetailViewModel @Inject constructor(
                 // Saves it and moves its effect on balances (amount, type, date, account, target)
                 val originalTransaction = state.transaction
                 if (originalTransaction != null) {
+                    receivedAmountJob?.join()
+                    val received = _uiState.value.editableTransaction?.toAmount
                     val withTarget = normalizedTransaction.copy(
-                        toAmount = transferTargetAmount(originalTransaction, normalizedTransaction, selectedTargetAccount)
+                        toAmount = received?.takeIf {
+                            normalizedTransaction.transactionType == TransactionType.TRANSFER &&
+                                normalizedTransaction.toCurrency != normalizedTransaction.currency
+                        }
                     )
                     transactionEditor.update(originalTransaction, withTarget, selectedTargetAccount)
                 } else {
                     transactionRepository.updateTransaction(normalizedTransaction)
                 }
                 selectedTargetAccount = null
+                receivedAmountEdited = false
 
                 // Sync with subscriptions if recurring
                 syncSubscriptionForTransaction(normalizedTransaction)
@@ -707,27 +783,9 @@ class TransactionDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * What reaches a transfer's target in its own currency, when that differs from the source's:
-     * a newly picked target converts at today's rate, an edited amount keeps the transfer's rate.
-     */
-    private suspend fun transferTargetAmount(
-        original: TransactionEntity,
-        updated: TransactionEntity,
-        newTarget: AccountBalanceEntity?
-    ): BigDecimal? {
-        if (updated.transactionType != TransactionType.TRANSFER) return null
-        if (newTarget != null) {
-            return if (newTarget.currency == updated.currency) null
-            else currencyConversionService.convertAmount(updated.amount, updated.currency, newTarget.currency)
-        }
-        val received = original.toAmount ?: return null
-        if (original.amount.signum() == 0 || original.amount.compareTo(updated.amount) == 0) return received
-        return received.multiply(updated.amount).divide(original.amount, 2, java.math.RoundingMode.HALF_UP)
-    }
-
     fun cancelEdit() {
         selectedTargetAccount = null
+        receivedAmountEdited = false
         exitEditMode()
     }
 

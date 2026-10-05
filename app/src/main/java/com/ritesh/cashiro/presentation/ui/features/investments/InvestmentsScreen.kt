@@ -229,7 +229,7 @@ fun InvestmentsScreen(
                 saveError = accountState.accountSaveError,
                 onClearSaveError = accountsViewModel::clearAccountSaveError,
                 onDismiss = { if (!accountState.isSavingAccount) showAddAccount = false },
-                onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency ->
+                onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies ->
                     accountsViewModel.addAccount(
                         bankName = bankName,
                         balance = balance,
@@ -241,6 +241,7 @@ fun InvestmentsScreen(
                         isWallet = isWallet,
                         creditLimit = limit,
                         currency = currency,
+                        addedCurrencies = addedCurrencies,
                         onSaved = { showAddAccount = false }
                     )
                 }

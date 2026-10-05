@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
+import androidx.compose.runtime.key
 import com.ritesh.cashiro.presentation.ui.theme.successColor
 import com.ritesh.cashiro.presentation.ui.theme.warningColor
 import androidx.compose.material3.ripple
@@ -747,50 +748,52 @@ fun ManageAccountsScreen(
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
-            if (selectedAccountEntity!!.isCreditCard) {
-                NumberPad(
-                    initialValue =
-                        selectedAccountEntity!!.balance.toPlainString(),
-                    title = stringResource(R.string.update_outstanding_title),
-                    bankName = selectedAccount!!.first,
-                    accountLast4 = selectedAccount!!.second,
-                    doneButtonLabel = stringResource(R.string.update_outstanding_title),
-                    onDone = { newValue ->
-                        newValue.toBigDecimalOrNull()?.let { newBalance ->
-                            manageAccountsViewModel.updateCreditCard(
-                                selectedAccount!!.first,
-                                selectedAccount!!.second,
-                                newBalance,
-                                selectedAccountEntity!!.creditLimit
-                                    ?: BigDecimal.ZERO
-                            )
+            // An account holding several currencies is calibrated one currency at a time
+            val calibrated = selectedAccountEntity!!
+            val pockets = calibrated.accountId?.let { com.ritesh.cashiro.data.repository.LocalAccountHoldings.current[it] }?.pockets.orEmpty()
+            var calibrationCurrency by remember(calibrated.id) { mutableStateOf(calibrated.currency) }
+            val currentValue = pockets.firstOrNull { it.currency == calibrationCurrency }?.balance ?: calibrated.balance
+            Column {
+                if (pockets.size > 1) {
+                    com.ritesh.cashiro.presentation.ui.components.AccountCurrencyChoice(
+                        currencies = listOf(calibrated.currency) + pockets.map { it.currency }.filter { it != calibrated.currency },
+                        selected = calibrationCurrency,
+                        onSelect = { calibrationCurrency = it },
+                        modifier = Modifier.padding(horizontal = Spacing.md)
+                    )
+                }
+                key(calibrationCurrency) {
+                    NumberPad(
+                        initialValue = currentValue.toPlainString(),
+                        title = stringResource(if (calibrated.isCreditCard) R.string.update_outstanding_title else R.string.balance_calibration),
+                        bankName = selectedAccount!!.first,
+                        accountLast4 = selectedAccount!!.second,
+                        doneButtonLabel = stringResource(if (calibrated.isCreditCard) R.string.update_outstanding_title else R.string.balance_calibration),
+                        onDone = { newValue ->
+                            newValue.toBigDecimalOrNull()?.let { newBalance ->
+                                if (calibrated.isCreditCard) {
+                                    manageAccountsViewModel.updateCreditCard(
+                                        selectedAccount!!.first,
+                                        selectedAccount!!.second,
+                                        newBalance,
+                                        calibrated.creditLimit ?: BigDecimal.ZERO,
+                                        calibrationCurrency
+                                    )
+                                } else {
+                                    manageAccountsViewModel.updateAccountBalance(
+                                        selectedAccount!!.first,
+                                        selectedAccount!!.second,
+                                        newBalance,
+                                        calibrationCurrency
+                                    )
+                                }
+                            }
+                            showUpdateDialog = false
+                            selectedAccount = null
+                            selectedAccountEntity = null
                         }
-                        showUpdateDialog = false
-                        selectedAccount = null
-                        selectedAccountEntity = null
-                    }
-                )
-            } else {
-                NumberPad(
-                    initialValue =
-                        selectedAccountEntity!!.balance.toPlainString(),
-                    title = stringResource(R.string.balance_calibration),
-                    bankName = selectedAccount!!.first,
-                    accountLast4 = selectedAccount!!.second,
-                    doneButtonLabel = stringResource(R.string.balance_calibration),
-                    onDone = { newValue ->
-                        newValue.toBigDecimalOrNull()?.let { newBalance ->
-                            manageAccountsViewModel.updateAccountBalance(
-                                selectedAccount!!.first,
-                                selectedAccount!!.second,
-                                newBalance
-                            )
-                        }
-                        showUpdateDialog = false
-                        selectedAccount = null
-                        selectedAccountEntity = null
-                    }
-                )
+                    )
+                }
             }
         }
     }
@@ -905,7 +908,7 @@ fun ManageAccountsScreen(
                     accountToEdit = null
                     showDeleteConfirmDialog = true
                 },
-                onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency ->
+                onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies ->
                     manageAccountsViewModel.editAccount(
                         oldBankName = accountToEdit!!.bankName,
                         accountLast4 = accountToEdit!!.accountLast4,
@@ -917,7 +920,8 @@ fun ManageAccountsScreen(
                         newIconResId = iconResId,
                         newIconName = iconName,
                         newColorHex = color,
-                        newCurrency = currency
+                        newCurrency = currency,
+                        addedCurrencies = addedCurrencies
                     )
                     showEditSheet = false
                     accountToEdit = null

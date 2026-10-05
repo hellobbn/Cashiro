@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import kotlinx.coroutines.flow.first
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import kotlinx.coroutines.Job
 import android.content.Context
@@ -57,6 +58,7 @@ constructor(
     private val quickTemplateRepository: QuickTemplateRepository,
     private val transactionRepository: TransactionRepository,
     private val currencyConversionService: CurrencyConversionService,
+    private val accountHoldings: com.ritesh.cashiro.data.repository.AccountHoldingsSource,
     val attachmentService: AttachmentService,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -443,14 +445,15 @@ constructor(
                 return
             }
             
-            if (state.targetAccount.currency != state.currency && state.targetAmount.toBigDecimalOrNull() == null) {
+            if (state.targetCurrency != state.currency && state.targetAmount.toBigDecimalOrNull() == null) {
                 _transactionUiState.update { currentState ->
                     currentState.copy(error = context.getString(R.string.err_transfer_received_amount))
                 }
                 return
             }
 
-            if (state.selectedAccount?.id == state.targetAccount?.id) {
+            // One account to itself only as an exchange between two of its currencies
+            if (state.selectedAccount?.id == state.targetAccount?.id && state.targetCurrency == state.currency) {
                 _transactionUiState.update { currentState ->
                     currentState.copy(
                         error = context.getString(R.string.err_accounts_different)
@@ -482,7 +485,7 @@ constructor(
                     TransactionType.INVESTMENT, TransactionType.LENT, TransactionType.TRANSFER)
                 if (!allowOverdraft && spendsMoney && account != null) {
                     val projected = accountBalanceRepository.projectedExpenseBalance(
-                        account.bankName, account.accountLast4, state.date, amount)
+                        account.bankName, account.accountLast4, state.date, amount, state.currency)
                     if (projected != null && projected < BigDecimal.ZERO) {
                         _transactionUiState.update { it.copy(overdraftBalance = projected, isLoading = false) }
                         return@launch
@@ -506,7 +509,8 @@ constructor(
                     targetAccountBankName = state.targetAccount?.bankName,
                     targetAccountLast4 = state.targetAccount?.accountLast4,
                     targetAmount = state.targetAmount.toBigDecimalOrNull()
-                        ?.takeIf { state.targetAccount != null && state.targetAccount.currency != state.currency },
+                        ?.takeIf { state.targetAccount != null && state.targetCurrency != state.currency },
+                    targetCurrency = state.targetCurrency,
                     attachments = attachmentService.joinAttachments(_transactionAttachments.value)
                 )
 
@@ -562,11 +566,52 @@ constructor(
         refreshTargetAmount()
     }
 
+    /** The currencies an account holds, its main one first. */
+    fun currenciesOf(account: AccountBalanceEntity?): List<String> {
+        account ?: return emptyList()
+        val held = account.accountId?.let { accountHoldings.holdings.value[it] }?.pockets?.map { it.currency }.orEmpty()
+        return listOf(account.currency) + held.filter { it != account.currency }
+    }
+
+    /** Which of the source account's currencies the transaction is in. */
+    fun updateTransactionCurrency(currency: String) {
+        _transactionUiState.update { it.copy(currency = currency) }
+        refreshTargetAmount()
+    }
+
     fun updateTransactionTargetAccount(
         account: AccountBalanceEntity?
     ) {
-        _transactionUiState.update { currentState -> currentState.copy(targetAccount = account, targetAmountEdited = false) }
+        _transactionUiState.update { currentState ->
+            currentState.copy(targetAccount = account, targetAmountEdited = false, targetCurrencyPicked = false)
+        }
         refreshTargetAmount()
+    }
+
+    fun updateTransactionTargetCurrency(currency: String) {
+        _transactionUiState.update { it.copy(targetCurrency = currency, targetCurrencyPicked = true, targetAmountEdited = false) }
+        refreshTargetAmount()
+    }
+
+    /**
+     * Adds [currency] to [account] (it starts at zero and can't be removed), then uses it: as the
+     * transaction's currency, or with [asTarget] as the currency a transfer goes into.
+     */
+    fun addCurrencyToAccount(account: AccountBalanceEntity, currency: String, asTarget: Boolean) {
+        viewModelScope.launch {
+            val now = LocalDateTime.now()
+            accountBalanceRepository.insertBalance(
+                account.copy(
+                    id = 0, balance = BigDecimal.ZERO, currency = currency, timestamp = now,
+                    transactionId = null, smsSource = null, sourceType = "MANUAL", createdAt = now
+                )
+            )
+            // Once the account is known to hold it, so the choice sticks
+            kotlinx.coroutines.withTimeoutOrNull(2_000) {
+                accountHoldings.holdings.first { held -> held[account.accountId]?.pockets?.any { it.currency == currency } == true }
+            }
+            if (asTarget) updateTransactionTargetCurrency(currency) else updateTransactionCurrency(currency)
+        }
     }
 
     fun updateTargetAmount(amount: String) {
@@ -579,8 +624,20 @@ constructor(
 
     /** Converts the amount into the target account's currency, until the user types their own. */
     private fun refreshTargetAmount() {
+        // Unless picked, a transfer goes into the target's matching currency, else its main one
+        _transactionUiState.update { current ->
+            val target = current.targetAccount
+            current.copy(targetCurrency = when {
+                target == null -> null
+                current.targetCurrencyPicked && current.targetCurrency in currenciesOf(target) -> current.targetCurrency
+                // An exchange inside one account goes into another of its currencies
+                target.id == current.selectedAccount?.id -> currenciesOf(target).firstOrNull { it != current.currency }
+                current.currency in currenciesOf(target) -> current.currency
+                else -> target.currency
+            })
+        }
         val state = _transactionUiState.value
-        val targetCurrency = state.targetAccount?.currency
+        val targetCurrency = state.targetCurrency
         if (targetCurrency == null || targetCurrency == state.currency) {
             _transactionUiState.update { it.copy(targetAmount = "", targetAmountEdited = false) }
             return
@@ -938,6 +995,9 @@ data class TransactionUiState(
     // A transfer to an account in another currency: what arrives there, and whether the user typed it
     val targetAmount: String = "",
     val targetAmountEdited: Boolean = false,
+    // The target account's currency a transfer goes into; picked by the user or resolved from the source's
+    val targetCurrency: String? = null,
+    val targetCurrencyPicked: Boolean = false,
     val currency: String = "CNY",
     val isLoading: Boolean = false,
     val error: String? = null,
