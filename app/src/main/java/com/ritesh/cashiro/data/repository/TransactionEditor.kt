@@ -27,9 +27,31 @@ class TransactionEditor @Inject constructor(private val database: CashiroDatabas
         database.withTransaction {
             val balances = database.accountBalanceDao()
             val linked = balances.getBalancesForTransaction(original.id)
-            val oldSource = linked.firstOrNull { it.bankName == original.bankName && it.accountLast4 == original.accountNumber }
-            val oldTarget = linked.firstOrNull { it !== oldSource }
+            // The receiving row of a transfer: its target account and currency (a transfer between
+            // two currencies of one account has both rows on the same account)
+            val oldTarget = if (original.transactionType != TransactionType.TRANSFER) null else
+                linked.firstOrNull {
+                    original.toAccountId != null && it.accountId == original.toAccountId &&
+                        (original.toAccountId != original.accountId || it.currency == original.toCurrency)
+                } ?: linked.firstOrNull { !(it.bankName == original.bankName && it.accountLast4 == original.accountNumber) }
+            val oldSource = linked.firstOrNull { it !== oldTarget }
             val accountChanged = original.bankName != updated.bankName || original.accountNumber != updated.accountNumber
+
+            // Where the edited transaction moves money now
+            val account = if (updated.bankName != null && updated.accountNumber != null) {
+                balances.accountFor(updated.bankName, updated.accountNumber)
+            } else null
+            val target = when {
+                updated.transactionType != TransactionType.TRANSFER -> null
+                newTarget != null -> balances.accountFor(newTarget.bankName, newTarget.accountLast4)
+                oldTarget != null && oldTarget.accountLast4 == updated.toAccount -> balances.accountFor(oldTarget.bankName, oldTarget.accountLast4)
+                else -> null
+            }
+            val toCurrency = target?.let {
+                val wanted = updated.toCurrency.takeIf { newTarget == null } ?: newTarget?.currency ?: oldTarget?.currency
+                balances.pocketCurrency(it.name, it.last4, wanted ?: it.mainCurrency)
+            }
+            val saved = updated.copy(accountId = account?.id, toAccountId = target?.id, toCurrency = toCurrency)
 
             if (linked.isNotEmpty() && !original.isDeleted) {
                 // Recalculates every affected account as if the transaction were gone; its rows
@@ -37,45 +59,40 @@ class TransactionEditor @Inject constructor(private val database: CashiroDatabas
                 balances.changeTransactionDeletion(listOf(original.id), deleted = true)
             }
             linked.forEach { balances.deleteBalanceById(it.id) }
-            database.transactionDao().updateTransaction(updated)
+            database.transactionDao().updateTransaction(saved)
 
             // A transaction that never moved a balance only starts to once it is given an account
-            if (updated.isDeleted || (linked.isEmpty() && !accountChanged)) return@withTransaction
-            val bankName = updated.bankName ?: return@withTransaction
-            val accountLast4 = updated.accountNumber ?: return@withTransaction
-            balances.getLatestBalance(bankName, accountLast4) ?: return@withTransaction
+            if (saved.isDeleted || (linked.isEmpty() && !accountChanged) || account == null) return@withTransaction
 
-            when (updated.transactionType) {
+            when (saved.transactionType) {
                 TransactionType.BALANCE_UPDATE -> Unit
                 TransactionType.TRANSFER -> {
-                    val target = newTarget?.let { it.bankName to it.accountLast4 }
-                        ?: oldTarget?.let { it.bankName to it.accountLast4 }?.takeIf { it.second == updated.toAccount }
-                        ?: return@withTransaction
+                    if (target == null) return@withTransaction
                     balances.insertTransactionBalance(
-                        bankName = bankName, accountLast4 = accountLast4, amount = updated.amount,
+                        bankName = account.name, accountLast4 = account.last4, amount = saved.amount,
                         transactionType = TransactionType.EXPENSE, explicitBalance = null,
-                        timestamp = updated.dateTime, transactionId = updated.id, creditLimit = null,
-                        isCreditCard = false, smsSource = null, currency = updated.currency
+                        timestamp = saved.dateTime, transactionId = saved.id, creditLimit = null,
+                        isCreditCard = false, smsSource = null, currency = saved.currency
                     )
                     balances.insertTransactionBalance(
-                        bankName = target.first, accountLast4 = target.second, amount = updated.toAmount ?: updated.amount,
+                        bankName = target.name, accountLast4 = target.last4, amount = saved.toAmount ?: saved.amount,
                         transactionType = TransactionType.INCOME, explicitBalance = null,
-                        timestamp = updated.dateTime, transactionId = updated.id, creditLimit = null,
-                        isCreditCard = false, smsSource = null, currency = updated.currency
+                        timestamp = saved.dateTime, transactionId = saved.id, creditLimit = null,
+                        isCreditCard = false, smsSource = null, currency = toCurrency ?: saved.currency
                     )
                 }
                 else -> {
                     // A balance the bank reported with the transaction still holds if only details changed
                     val reported = oldSource?.takeIf {
                         it.sourceType == SOURCE_TRANSACTION_SMS_BALANCE && !accountChanged &&
-                            original.amount.compareTo(updated.amount) == 0 &&
-                            original.transactionType == updated.transactionType && original.dateTime == updated.dateTime
+                            original.amount.compareTo(saved.amount) == 0 &&
+                            original.transactionType == saved.transactionType && original.dateTime == saved.dateTime
                     }?.balance
                     balances.insertTransactionBalance(
-                        bankName = bankName, accountLast4 = accountLast4, amount = updated.amount,
-                        transactionType = updated.transactionType, explicitBalance = reported,
-                        timestamp = updated.dateTime, transactionId = updated.id, creditLimit = null,
-                        isCreditCard = false, smsSource = null, currency = updated.currency
+                        bankName = account.name, accountLast4 = account.last4, amount = saved.amount,
+                        transactionType = saved.transactionType, explicitBalance = reported,
+                        timestamp = saved.dateTime, transactionId = saved.id, creditLimit = null,
+                        isCreditCard = false, smsSource = null, currency = saved.currency
                     )
                 }
             }

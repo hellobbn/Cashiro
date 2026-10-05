@@ -10,8 +10,10 @@ import java.time.LocalDateTime
 @Entity(
     tableName = "account_balances",
     indices = [
-        Index(value = ["bank_name", "account_last4", "timestamp"], unique = true),
+        // Each currency of an account keeps its own history, so two can share a moment
+        Index(value = ["bank_name", "account_last4", "currency", "timestamp"], unique = true),
         Index(value = ["bank_name", "account_last4"]),
+        Index(value = ["account_id", "currency", "timestamp"]),
         Index(value = ["timestamp"]
         )
     ]
@@ -34,5 +36,7 @@ data class AccountBalanceEntity(
     @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "INR",
     @ColumnInfo(name = "is_wallet", defaultValue = "0") val isWallet: Boolean = false,
     @ColumnInfo(name = "color", defaultValue = "#33B5E5") val color: String = "#33B5E5",
-    @ColumnInfo(name = "is_sample", defaultValue = "0") val isSample: Boolean = false
+    @ColumnInfo(name = "is_sample", defaultValue = "0") val isSample: Boolean = false,
+    // The account this row belongs to (accounts.id); its currency is the row's currency
+    @ColumnInfo(name = "account_id") val accountId: Long? = null
 )

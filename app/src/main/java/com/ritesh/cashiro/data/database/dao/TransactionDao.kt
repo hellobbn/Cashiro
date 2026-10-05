@@ -288,7 +288,9 @@ interface TransactionDao {
     ): Flow<List<TransactionEntity>>
 
     @Query(
-            "UPDATE transactions SET bank_name = :newBankName, account_number = :newAccountNumber WHERE bank_name = :oldBankName AND account_number = :oldAccountNumber"
+            "UPDATE transactions SET bank_name = :newBankName, account_number = :newAccountNumber, " +
+                "account_id = COALESCE((SELECT id FROM accounts WHERE name = :newBankName AND last4 = :newAccountNumber), account_id) " +
+                "WHERE bank_name = :oldBankName AND account_number = :oldAccountNumber"
     )
     suspend fun updateAccountForTransactions(
             oldBankName: String,

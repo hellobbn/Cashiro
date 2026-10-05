@@ -4,6 +4,8 @@ import android.content.Context
 import com.ritesh.cashiro.data.database.dao.AccountBalanceDao
 import com.ritesh.cashiro.data.database.dao.SOURCE_OPENING_BALANCE
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.data.database.entity.AccountEntity
+import com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
@@ -24,13 +26,43 @@ class AccountBalanceRepository @Inject constructor(
         accountBalanceDao.changeTransactionDeletion(ids, deleted, hardDelete)
     }
 
-    suspend fun projectedExpenseBalance(bankName: String, accountLast4: String, timestamp: LocalDateTime, amount: BigDecimal): BigDecimal? {
-        val previous = accountBalanceDao.getLatestBalanceOnOrBefore(bankName, accountLast4, timestamp)
-            ?: accountBalanceDao.getEarliestBalance(bankName, accountLast4)?.takeIf { it.sourceType == "MANUAL" || it.sourceType == SOURCE_OPENING_BALANCE }
+    suspend fun projectedExpenseBalance(
+        bankName: String,
+        accountLast4: String,
+        timestamp: LocalDateTime,
+        amount: BigDecimal,
+        currency: String? = null
+    ): BigDecimal? {
+        val pocket = pocketCurrency(bankName, accountLast4, currency)
+            ?: accountBalanceDao.getLatestBalance(bankName, accountLast4)?.currency ?: return null
+        val previous = accountBalanceDao.getLatestBalanceOnOrBefore(bankName, accountLast4, pocket, timestamp)
+            ?: accountBalanceDao.getEarliestBalance(bankName, accountLast4, pocket)?.takeIf { it.sourceType == "MANUAL" || it.sourceType == SOURCE_OPENING_BALANCE }
         val account = previous ?: accountBalanceDao.getLatestBalance(bankName, accountLast4)
         if (account?.isCreditCard == true) return null
         return (previous?.balance ?: BigDecimal.ZERO) - amount
     }
+
+    suspend fun account(bankName: String, accountLast4: String): AccountEntity? =
+        accountBalanceDao.accountFor(bankName, accountLast4)
+
+    /** Changes an account's own details (kind, limit, look, main currency); returns them as they were. */
+    suspend fun updateAccount(bankName: String, accountLast4: String, change: (AccountEntity) -> AccountEntity): AccountEntity? {
+        val before = accountBalanceDao.accountFor(bankName, accountLast4) ?: return null
+        val after = change(before)
+        if (after.mainCurrency != before.mainCurrency) {
+            accountBalanceDao.insertCurrencyRow(AccountCurrencyEntity(before.id, after.mainCurrency))
+        }
+        accountBalanceDao.updateAccountRow(after.copy(id = before.id))
+        return before
+    }
+
+    /** Puts back details saved by [updateAccount]. */
+    suspend fun restoreAccount(account: AccountEntity) = accountBalanceDao.updateAccountRow(account)
+
+    /** The currency of the account a transaction in [currency] lands in; null [currency] means its main one. */
+    suspend fun pocketCurrency(bankName: String, accountLast4: String, currency: String?): String? =
+        if (currency != null) accountBalanceDao.pocketCurrency(bankName, accountLast4, currency)
+        else accountBalanceDao.accountFor(bankName, accountLast4)?.mainCurrency
 
     suspend fun insertBalance(balance: AccountBalanceEntity): Long {
         val balanceWithIconName = if (balance.iconName.isEmpty() && balance.iconResId != 0) {
@@ -48,9 +80,11 @@ class AccountBalanceRepository @Inject constructor(
     suspend fun getLatestBalanceOnOrBefore(
         bankName: String,
         accountLast4: String,
-        timestamp: LocalDateTime
+        timestamp: LocalDateTime,
+        currency: String? = null
     ): AccountBalanceEntity? {
-        return accountBalanceDao.getLatestBalanceOnOrBefore(bankName, accountLast4, timestamp)
+        val pocket = pocketCurrency(bankName, accountLast4, currency) ?: return null
+        return accountBalanceDao.getLatestBalanceOnOrBefore(bankName, accountLast4, pocket, timestamp)
     }
 
     suspend fun resolveAccountLast4(bankName: String, accountLast4: String): String {
@@ -273,8 +307,9 @@ class AccountBalanceRepository @Inject constructor(
         bankName: String,
         accountLast4: String,
         timestamp: LocalDateTime,
-        startingBalance: BigDecimal
+        startingBalance: BigDecimal,
+        currency: String? = null
     ) {
-        accountBalanceDao.recalculateBalancesAfter(bankName, accountLast4, timestamp, startingBalance)
+        accountBalanceDao.recalculateBalancesAfter(bankName, accountLast4, timestamp, startingBalance, currency)
     }
 }

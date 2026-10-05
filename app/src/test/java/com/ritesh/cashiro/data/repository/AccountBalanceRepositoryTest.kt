@@ -533,6 +533,7 @@ class AccountBalanceRepositoryTest {
         override suspend fun getLatestBalanceOnOrBefore(
             bankName: String,
             accountLast4: String,
+            currency: String,
             timestamp: LocalDateTime
         ): AccountBalanceEntity? {
             return balanceAtOrBefore
@@ -544,6 +545,7 @@ class AccountBalanceRepositoryTest {
         override suspend fun getBalancesAfterWithTransactions(
             bankName: String,
             accountLast4: String,
+            currency: String,
             timestamp: LocalDateTime
         ): List<AccountBalanceTransactionInfo> {
             if (balancesAfter.isNotEmpty()) {
@@ -640,9 +642,30 @@ class AccountBalanceRepositoryTest {
             newBankName: String
         ): Int = 0
 
+
+        // Account rows (tables these fakes don't model)
+        override suspend fun insertBalanceRow(balance: AccountBalanceEntity): Long = insertBalance(balance)
+        override suspend fun accountFor(name: String, last4: String): com.ritesh.cashiro.data.database.entity.AccountEntity? = null
+        override suspend fun insertAccountRow(account: com.ritesh.cashiro.data.database.entity.AccountEntity): Long = 0
+        override suspend fun insertCurrencyRow(currency: com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity) = Unit
+        override suspend fun currenciesOf(accountId: Long): List<String> = emptyList()
+        override suspend fun updateAccountRow(account: com.ritesh.cashiro.data.database.entity.AccountEntity) = Unit
+        override suspend fun deleteAllBalanceRows() = Unit
+        override suspend fun deleteAllAccountRows() = Unit
+        override suspend fun deleteSampleBalanceRows() = Unit
+        override suspend fun deleteSampleAccountRows() = Unit
+        override suspend fun deleteBalanceRowsOf(bankName: String, accountLast4: String): Int = 0
+        override suspend fun deleteAccountRow(bankName: String, accountLast4: String) = Unit
+        override suspend fun renameBalanceRows(oldBankName: String, accountLast4: String, newBankName: String): Int = 0
+        override suspend fun renameAccountRow(oldBankName: String, accountLast4: String, newBankName: String) = Unit
+        // Without account rows there is one currency, so every query sees the whole account
+        override suspend fun recalculateBalancesAfter(
+            bankName: String, accountLast4: String, timestamp: LocalDateTime, startingBalance: BigDecimal, currency: String?
+        ) = super.recalculateBalancesAfter(bankName, accountLast4, timestamp, startingBalance, currency ?: "INR")
+
         override suspend fun getAccountByLast4(accountLast4: String): AccountBalanceEntity? = null
 
-        override suspend fun getEarliestBalance(bankName: String, accountLast4: String): AccountBalanceEntity? {
+        override suspend fun getEarliestBalance(bankName: String, accountLast4: String, currency: String): AccountBalanceEntity? {
             return balances.filter { it.bankName == bankName && it.accountLast4 == accountLast4 }
                 .minByOrNull { it.timestamp }
         }

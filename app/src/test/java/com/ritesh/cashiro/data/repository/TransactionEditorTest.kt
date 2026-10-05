@@ -167,6 +167,46 @@ class TransactionEditorTest {
         assertEquals("USD", db.accountBalanceDao().getLatestBalance(BROKER, BROKER_LAST4)!!.currency)
     }
 
+    @Test fun oneAccountHoldsSeveralCurrencies() = runTest {
+        account(BROKER, BROKER_LAST4, "100", card = false, currency = "USD")
+        // A second currency: its first row adds it to the account
+        account(BROKER, BROKER_LAST4, "10000", card = false, currency = "HKD")
+        val broker = db.accountDao().findAccount(BROKER, BROKER_LAST4)!!
+        assertEquals("USD", broker.mainCurrency)
+        assertEquals(setOf("USD", "HKD"), db.accountDao().getCurrencies(broker.id).map { it.currency }.toSet())
+
+        // Exchange inside the account: HKD out, USD in
+        val fx = TransactionEntity(
+            amount = BigDecimal("5000"), merchantName = "FX", category = "c", transactionType = TransactionType.TRANSFER,
+            dateTime = start.plusDays(2), bankName = BROKER, accountNumber = BROKER_LAST4, toAccount = BROKER_LAST4,
+            toAmount = BigDecimal("640"), accountId = broker.id, toAccountId = broker.id, toCurrency = "USD",
+            transactionHash = "fx", currency = "HKD"
+        )
+        val fxId = db.transactionDao().insertTransaction(fx)
+        val balances = db.accountBalanceDao()
+        balances.insertTransactionBalance(BROKER, BROKER_LAST4, fx.amount, TransactionType.EXPENSE, null, fx.dateTime, fxId, null, false, null, "HKD")
+        balances.insertTransactionBalance(BROKER, BROKER_LAST4, fx.toAmount!!, TransactionType.INCOME, null, fx.dateTime, fxId, null, false, null, "USD")
+        assertEquals("5000", pocket("HKD"))
+        assertEquals("740", pocket("USD"))
+        // The account as the screens see it: its main currency
+        assertEquals("USD", balances.getLatestBalance(BROKER, BROKER_LAST4)!!.currency)
+
+        // An earlier USD dividend recalculates only the USD side, the exchange still counted as income there
+        add(TransactionType.INCOME, "10", 1, BROKER, BROKER_LAST4, currency = "USD")
+        assertEquals("750", pocket("USD"))
+        assertEquals("5000", pocket("HKD"))
+
+        // Editing the exchange moves both sides of the one account
+        val saved = db.transactionDao().getTransactionById(fxId)!!
+        editor.update(saved, saved.copy(amount = BigDecimal("6000"), toAmount = BigDecimal("768")))
+        assertEquals("4000", pocket("HKD"))
+        assertEquals("878", pocket("USD"))
+    }
+
+    private suspend fun pocket(currency: String) = db.accountBalanceDao()
+        .getLatestBalanceOnOrBefore(BROKER, BROKER_LAST4, currency, start.plusYears(1))!!
+        .balance.stripTrailingZeros().toPlainString()
+
     private companion object {
         const val HK_BANK = "汇丰香港"
         const val BROKER = "盈透证券"

@@ -72,9 +72,11 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
             WebhookCursorEntity::class,
             com.ritesh.cashiro.data.database.entity.LendBorrowPersonEntity::class,
             com.ritesh.cashiro.data.database.entity.LendBorrowTransactionEntity::class,
-            com.ritesh.cashiro.data.database.entity.QuickTemplateEntity::class
+            com.ritesh.cashiro.data.database.entity.QuickTemplateEntity::class,
+            com.ritesh.cashiro.data.database.entity.AccountEntity::class,
+            com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity::class
         ],
-        version = 66,
+        version = 67,
     exportSchema = true,
     autoMigrations =
         [
@@ -108,6 +110,7 @@ abstract class CashiroDatabase : RoomDatabase() {
     abstract fun merchantMappingDao(): MerchantMappingDao
     abstract fun categoryDao(): CategoryDao
     abstract fun accountBalanceDao(): AccountBalanceDao
+    abstract fun accountDao(): com.ritesh.cashiro.data.database.dao.AccountDao
     abstract fun cardDao(): CardDao
     abstract fun ruleDao(): RuleDao
     abstract fun ruleApplicationDao(): RuleApplicationDao
@@ -163,7 +166,8 @@ MIGRATION_55_56,
                                 MIGRATION_62_63,
                                 MIGRATION_63_64,
                                 MIGRATION_64_65,
-                                MIGRATION_65_66
+                                MIGRATION_65_66,
+                                MIGRATION_66_67
                             )
                             .build()
                     INSTANCE = instance
@@ -660,6 +664,8 @@ MIGRATION_55_56,
                     )
                 }
             }
+
+        val MIGRATION_66_67 = AccountsMigration
 
         /** Transfers keep the amount that reached the target account, in its own currency. */
         val MIGRATION_65_66 =
