@@ -24,6 +24,9 @@ class BrandLookupPerformanceRegressionTest {
         assertEquals(R.drawable.ic_brand_meituan, BrandIcons.getIconResource("美团外卖"))
         assertEquals(R.drawable.ic_brand_starbucks, BrandIcons.getIconResource("星巴克（南京西路店）"))
         assertEquals(R.drawable.ic_brand_netease_cloud_music, BrandIcons.getIconResource("网易云音乐会员"))
+        assertEquals(R.drawable.ic_brand_china_unicom, BrandIcons.getIconResource("中国联通话费充值"))
+        assertEquals(R.drawable.ic_brand_amap, BrandIcons.getIconResource("高德打车"))
+        assertEquals(R.drawable.ic_brand_waldorf_astoria, BrandIcons.getIconResource("Waldorf Astoria Shanghai"))
     }
 
     @Test fun emptyAndUnknownNamesRetainFallback() {
