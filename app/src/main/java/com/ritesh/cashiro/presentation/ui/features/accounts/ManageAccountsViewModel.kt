@@ -592,7 +592,7 @@ constructor(
                     }
                 } else {
                     // No balance to copy, just show link success
-                    _uiState.update { it.copy(successMessage = "Card linked successfully") }
+                    _uiState.update { it.copy(successMessage = context.getString(R.string.msg_card_linked)) }
                 }
 
                 // Clear message after delay
@@ -603,7 +603,7 @@ constructor(
                 loadAccounts()
             } catch (e: Exception) {
                 Log.e("ManageAccountsViewModel", "Failed to link card", e)
-                _uiState.update { it.copy(errorMessage = "Failed to link card: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_card_link_failed, e.message.orEmpty())) }
             }
         }
     }
@@ -620,7 +620,7 @@ constructor(
             try {
                 Log.d("ManageAccountsViewModel", "Deleting card with ID: $cardId")
                 cardRepository.deleteCard(cardId)
-                _uiState.update { it.copy(successMessage = "Card deleted successfully") }
+                _uiState.update { it.copy(successMessage = context.getString(R.string.msg_card_deleted)) }
 
                 // Clear message after delay
                 delay(2000)
@@ -629,7 +629,7 @@ constructor(
                 loadCards()
             } catch (e: Exception) {
                Log.e("ManageAccountsViewModel", "Failed to delete card", e)
-                _uiState.update { it.copy(errorMessage = "Failed to delete card: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_card_delete_failed, e.message.orEmpty())) }
             }
         }
     }
@@ -677,7 +677,7 @@ constructor(
 
                 loadCards() // Reload cards to update UI
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to delete account: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_account_delete_failed, e.message.orEmpty())) }
             }
         }
     }
@@ -749,13 +749,13 @@ constructor(
                     )
                 }
 
-                _uiState.update { it.copy(successMessage = "Account updated successfully") }
+                _uiState.update { it.copy(successMessage = context.getString(R.string.msg_account_updated)) }
 
 
                 delay(3000)
                 _uiState.update { it.copy(successMessage = null) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to update account: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_account_update_failed, e.message.orEmpty())) }
             }
         }
     }

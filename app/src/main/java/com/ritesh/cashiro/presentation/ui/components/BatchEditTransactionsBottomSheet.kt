@@ -2,6 +2,11 @@
 
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.utils.DateFormats
+
+import com.ritesh.cashiro.utils.pickerDate
+import com.ritesh.cashiro.utils.toPickerMillis
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -204,7 +209,7 @@ fun BatchEditTransactionsBottomSheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = selectedDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy")),
+                                text = selectedDate.format(DateFormats.fullDateFormatter()),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -240,7 +245,7 @@ fun BatchEditTransactionsBottomSheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = selectedTime.format(DateTimeFormatter.ofPattern("hh:mm a")),
+                                text = selectedTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -416,13 +421,13 @@ fun BatchEditTransactionsBottomSheet(
     // DatePicker Dialog
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = selectedDate.toPickerMillis()
         )
         DatePicker(
             onDismiss = { showDatePicker = false },
             onConfirm = {
                 datePickerState.selectedDateMillis?.let { millis ->
-                    selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                    selectedDate = pickerDate(millis)
                 }
                 showDatePicker = false
             },
@@ -436,7 +441,8 @@ fun BatchEditTransactionsBottomSheet(
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState(
             initialHour = selectedTime.hour,
-            initialMinute = selectedTime.minute
+            initialMinute = selectedTime.minute,
+            is24Hour = true
         )
         TimePicker(
             onDismiss = { showTimePicker = false },

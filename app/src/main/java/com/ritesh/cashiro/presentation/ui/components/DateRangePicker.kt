@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.ui.res.stringResource
+
+import com.ritesh.cashiro.R
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -100,7 +104,7 @@ fun DateRangePickerDialog(
                 modifier = Modifier,
                 title = {
                     Text(
-                        text = "Select Date Range",
+                        text = stringResource(R.string.select_date_range),
                         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 16.dp)
                     )
                 },

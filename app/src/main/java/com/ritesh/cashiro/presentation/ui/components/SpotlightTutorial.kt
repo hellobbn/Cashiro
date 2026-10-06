@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.ui.res.stringResource
+
+import com.ritesh.cashiro.R
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -130,7 +134,7 @@ fun SpotlightTutorial(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Tap anywhere to dismiss",
+                        text = stringResource(R.string.tap_anywhere_dismiss),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Black.copy(alpha = 0.6f)
                     )

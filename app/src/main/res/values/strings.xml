@@ -1248,7 +1248,7 @@
 <string name="this_week_lbl">This Week</string>
 <string name="this_year_lbl">THIS YEAR</string>
 <string name="time_period_all_time">All Time</string>
-<string name="time_period_current_fy">Current FY</string>
+<string name="time_period_current_fy">This year</string>
 <string name="time_period_custom_range">Custom Range</string>
 <string name="time_period_last_month">Last Month</string>
 <string name="time_period_this_month">This Month</string>

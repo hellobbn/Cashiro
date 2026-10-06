@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.features.subscriptions
 
+import com.ritesh.cashiro.utils.DateFormats
+
 import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.core.tween
@@ -620,7 +622,7 @@ private fun SwipeableSubscriptionItem(
                                             daysUntilNext == 0L -> stringResource(R.string.due_today)
                                             daysUntilNext == 1L -> stringResource(R.string.due_tomorrow)
                                             daysUntilNext in 2..7 -> stringResource(R.string.due_in_days_format, daysUntilNext)
-                                            else -> subscriptionDate.format(DateTimeFormatter.ofPattern("MMM d"))
+                                            else -> subscriptionDate.format(DateFormats.monthDayFormatter())
                                         },
                                         color = if (isOverdue || daysUntilNext <= 3) MaterialTheme.colorScheme.error else dateTagColor
                                     )
@@ -849,8 +851,8 @@ private fun PaymentStatusBottomSheet(
                         )
                         if (subscription.nextPaymentDate != null) {
                             Text(
-                                text = if (isOverdue) stringResource(R.string.overdue_since_format, subscription.nextPaymentDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy")))
-                                       else stringResource(R.string.due_on_format, subscription.nextPaymentDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))),
+                                text = if (isOverdue) stringResource(R.string.overdue_since_format, subscription.nextPaymentDate.format(DateFormats.fullDateFormatter()))
+                                       else stringResource(R.string.due_on_format, subscription.nextPaymentDate.format(DateFormats.fullDateFormatter())),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (isOverdue) MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f) 
                                        else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)

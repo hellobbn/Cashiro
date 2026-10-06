@@ -409,7 +409,10 @@ private fun HistoryRecordItem(
                         "SMS_BALANCE" -> Triple(Iconax.Messages, stringResource(R.string.source_sms), MaterialTheme.colorScheme.secondary)
                         "CARD_LINK" -> Triple(Iconax.Card, stringResource(R.string.source_card_link), MaterialTheme.colorScheme.primary)
                         "BALANCE_CALIBRATION" -> Triple(Iconax.Edit2, stringResource(R.string.balance_calibration), MaterialTheme.colorScheme.primary)
-                        "MANUAL" -> Triple(Iconax.Edit2, stringResource(R.string.source_manual), MaterialTheme.colorScheme.onSurfaceVariant)
+                        "MANUAL", "MANUAL_EDIT" -> Triple(Iconax.Edit2, stringResource(R.string.source_manual), MaterialTheme.colorScheme.onSurfaceVariant)
+                        "OPENING_BALANCE" -> Triple(Iconax.Edit2, stringResource(R.string.source_opening), MaterialTheme.colorScheme.primary)
+                        "DELETE_REVERSAL" -> Triple(Icons.Rounded.SwapHoriz, stringResource(R.string.source_deleted), MaterialTheme.colorScheme.tertiary)
+                        "CASHEW_IMPORT" -> Triple(Iconax.Information, stringResource(R.string.source_import), MaterialTheme.colorScheme.onSurfaceVariant)
                         else -> Triple(Iconax.Information, stringResource(R.string.source_system), MaterialTheme.colorScheme.onSurfaceVariant)
                     }
 

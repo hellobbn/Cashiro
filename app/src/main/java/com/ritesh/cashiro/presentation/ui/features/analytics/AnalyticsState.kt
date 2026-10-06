@@ -19,6 +19,8 @@ data class FilterState(
 
 data class AnalyticsUiState(
     val totalSpending: BigDecimal = BigDecimal.ZERO,
+    // Income in the period when several types are shown: kept apart from the spending total
+    val totalIncome: BigDecimal? = null,
     val categoryBreakdown: List<CategoryData> = emptyList(),
     val topMerchants: List<MerchantData> = emptyList(),
     val transactionCount: Int = 0,

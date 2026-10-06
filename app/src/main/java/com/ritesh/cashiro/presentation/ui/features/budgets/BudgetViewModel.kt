@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
+import com.ritesh.cashiro.R
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.database.entity.BudgetEntity
@@ -34,7 +36,8 @@ class BudgetViewModel @Inject constructor(
     private val accountBalanceDao: AccountBalanceDao,
     private val currencyRepository: CurrencyRepository,
     private val currencyConversionService: CurrencyConversionService,
-    transactionLookupsSource: com.ritesh.cashiro.presentation.common.TransactionLookupsSource
+    transactionLookupsSource: com.ritesh.cashiro.presentation.common.TransactionLookupsSource,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
     // Category, account and lend/borrow person lookups for the transaction rows
     val lookups = transactionLookupsSource.lookups
@@ -123,7 +126,7 @@ class BudgetViewModel @Inject constructor(
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
-                        error = e.message ?: "Failed to load budgets"
+                        error = context.getString(R.string.msg_budgets_load_failed)
                     )
                 }
             }
@@ -469,7 +472,7 @@ class BudgetViewModel @Inject constructor(
                 loadBudgets()
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Failed to save budget")
+                onError(context.getString(R.string.msg_budget_save_failed))
             }
         }
     }
@@ -481,7 +484,7 @@ class BudgetViewModel @Inject constructor(
                 loadBudgets()
                 onSuccess()
             } catch (e: Exception) {
-                onError(e.message ?: "Failed to delete budget")
+                onError(context.getString(R.string.msg_budget_delete_failed))
             }
         }
     }

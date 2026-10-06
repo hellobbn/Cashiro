@@ -1,5 +1,9 @@
 package com.ritesh.cashiro.presentation.ui.features.lendborrow
 
+import com.ritesh.cashiro.utils.DateFormats
+import com.ritesh.cashiro.utils.pickerDate
+import com.ritesh.cashiro.utils.toPickerMillis
+
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -320,7 +324,7 @@ fun AddEditLendBorrowTransactionSheet(
                             )
                             Spacer(Modifier.size(8.dp))
 
-                            val dateLabel = dateTime.format(DateTimeFormatter.ofPattern("dd MMMM"))
+                            val dateLabel = dateTime.format(DateFormats.monthDayFormatter())
                             val yearLabel = dateTime.format(DateTimeFormatter.ofPattern("yyyy"))
                             Column(verticalArrangement = Arrangement.Center) {
                                 Text(
@@ -356,12 +360,8 @@ fun AddEditLendBorrowTransactionSheet(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.End
                         ) {
-                            val hour = if (dateTime.hour % 12 == 0) 12 else dateTime.hour % 12
+                            val hour = dateTime.hour
                             val minute = dateTime.minute
-                            val amPm =
-                                if (dateTime.hour < 12) stringResource(R.string.am_lbl) else stringResource(
-                                    R.string.pm_lbl
-                                )
 
                             Box(
                                 modifier = Modifier.padding(5.dp).background(
@@ -397,14 +397,6 @@ fun AddEditLendBorrowTransactionSheet(
                                     modifier = Modifier.padding(5.dp)
                                 )
                             }
-                            Box(modifier = Modifier.padding(5.dp)) {
-                                Text(
-                                    text = amPm,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
                         }
                     }
                 }
@@ -438,7 +430,7 @@ fun AddEditLendBorrowTransactionSheet(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = dueDate?.format(DateTimeFormatter.ofPattern("dd MMMM, yyyy"))
+                                text = dueDate?.format(DateFormats.fullDateFormatter())
                                     ?: stringResource(R.string.no_due_date),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (dueDate != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(
@@ -807,13 +799,13 @@ fun AddEditLendBorrowTransactionSheet(
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = dateTime.toLocalDate().toPickerMillis()
         )
         DatePicker(
             onDismiss = { showDatePicker = false },
             onConfirm = { 
                 datePickerState.selectedDateMillis?.let { millis ->
-                    dateTime = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+                    dateTime = pickerDate(millis).atTime(dateTime.toLocalTime())
                 }
                 showDatePicker = false 
             },
@@ -825,13 +817,13 @@ fun AddEditLendBorrowTransactionSheet(
 
     if (showDueDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = (dueDate ?: LocalDateTime.now()).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = (dueDate ?: LocalDateTime.now()).toLocalDate().toPickerMillis()
         )
         DatePicker(
             onDismiss = { showDueDatePicker = false },
             onConfirm = { 
                 datePickerState.selectedDateMillis?.let { millis ->
-                    dueDate = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+                    dueDate = pickerDate(millis).atStartOfDay()
                 }
                 showDueDatePicker = false
             },
@@ -844,7 +836,8 @@ fun AddEditLendBorrowTransactionSheet(
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState(
             initialHour = dateTime.hour,
-            initialMinute = dateTime.minute
+            initialMinute = dateTime.minute,
+            is24Hour = true
         )
         TimePicker(
             onDismiss = { showTimePicker = false },

@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import com.ritesh.cashiro.utils.DateFormats
+import com.ritesh.cashiro.utils.pickerDate
+
 import androidx.compose.material3.ripple
 import android.content.Intent
 import android.net.Uri
@@ -323,7 +326,7 @@ fun SubscriptionTabContent(
                             Spacer(Modifier.size(8.dp))
 
                             val dateLabel =
-                                uiState.nextPaymentDate.format(DateTimeFormatter.ofPattern("dd MMMM"))
+                                uiState.nextPaymentDate.format(DateFormats.monthDayFormatter())
                             val yearLabel =
                                 uiState.nextPaymentDate.format(DateTimeFormatter.ofPattern("yyyy"))
                             Column(
@@ -775,7 +778,7 @@ fun SubscriptionTabContent(
             onDismiss = { showCustomEndDatePicker = false },
             onConfirm = {
                 datePickerState.selectedDateMillis?.let { millis ->
-                    val localDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                    val localDate = pickerDate(millis)
                     viewModel.updateSubscriptionCustomCycleEndDate(localDate)
                 }
                 showCustomEndDatePicker = false

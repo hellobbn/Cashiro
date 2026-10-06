@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.utils.DateFormats
+
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.Surface
 import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
@@ -175,7 +177,7 @@ fun ExportTransactionsDialog(
                                 if (transactions.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(8.dp))
                                     
-                                    val dateFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
+                                    val dateFormatter = DateFormats.fullDateFormatter()
                                     val startDate = transactions.last().dateTime.format(dateFormatter)
                                     val endDate = transactions.first().dateTime.format(dateFormatter)
                                     

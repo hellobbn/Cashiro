@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.accounts
 
+import com.ritesh.cashiro.R
+
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -153,7 +155,7 @@ class CurrencyViewModel @Inject constructor(
                         isLoading = false,
                         currencies = currencies,
                         selectedCurrency = it.selectedCurrency ?: selectedCurrency,
-                        error = "Failed to load currencies from API, using defaults.",
+                        error = context.getString(R.string.msg_currencies_fallback),
                         isOfflineMode = !_isConnected.value
                     )
                 }

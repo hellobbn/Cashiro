@@ -1,6 +1,11 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 
 package com.ritesh.cashiro.presentation.ui.features.budgets
+
+import com.ritesh.cashiro.utils.DateFormats
+
+import com.ritesh.cashiro.utils.pickerDate
+import com.ritesh.cashiro.utils.toPickerMillis
  
 import androidx.compose.ui.platform.LocalContext
 import com.ritesh.cashiro.presentation.ui.components.mainAccountKey
@@ -156,13 +161,13 @@ fun EditBudgetSheet(
     // Date Picker Dialogs
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = budgetState.startDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = budgetState.startDate.toLocalDate().toPickerMillis()
         )
         DatePicker(
             onDismiss = { showStartDatePicker = false },
             onConfirm = {
                 datePickerState.selectedDateMillis?.let {
-                    onStartDateChange(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()))
+                    onStartDateChange(pickerDate(it).atStartOfDay())
                 }
                 showStartDatePicker = false
             },
@@ -174,13 +179,13 @@ fun EditBudgetSheet(
 
     if (showEndDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = budgetState.endDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = budgetState.endDate.toLocalDate().toPickerMillis()
         )
         DatePicker(
             onDismiss = { showEndDatePicker = false },
             onConfirm = {
                 datePickerState.selectedDateMillis?.let {
-                    onEndDateChange(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()))
+                    onEndDateChange(pickerDate(it).atStartOfDay())
                 }
                 showEndDatePicker = false
             },
@@ -429,7 +434,7 @@ fun EditBudgetSheet(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(stringResource(R.string.starts), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
-                            text = budgetState.startDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                            text = budgetState.startDate.format(DateFormats.fullDateFormatter()),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -446,7 +451,7 @@ fun EditBudgetSheet(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(stringResource(R.string.ends), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
-                                text = budgetState.endDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                                text = budgetState.endDate.format(DateFormats.fullDateFormatter()),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -461,7 +466,7 @@ fun EditBudgetSheet(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(stringResource(R.string.ends), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
-                                text = budgetState.endDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                                text = budgetState.endDate.format(DateFormats.fullDateFormatter()),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

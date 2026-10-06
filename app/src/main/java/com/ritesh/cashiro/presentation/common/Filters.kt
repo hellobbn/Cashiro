@@ -37,17 +37,8 @@ fun getDateRangeForPeriod(period: TimePeriod): Pair<LocalDate, LocalDate>? {
             val end = lastMonth.atEndOfMonth()
             start to end
         }
-        TimePeriod.CURRENT_FY -> {
-            // Indian Financial Year: April 1 to March 31
-            val currentYear = today.year
-            val currentMonth = today.monthValue
-            val fyStart = if (currentMonth >= 4) {
-                LocalDate.of(currentYear, 4, 1)  // Apr 1 of current year
-            } else {
-                LocalDate.of(currentYear - 1, 4, 1)  // Apr 1 of previous year
-            }
-            fyStart to today
-        }
+        // Kept under its old name so saved filters still load; it is the calendar year
+        TimePeriod.CURRENT_FY -> today.withDayOfYear(1) to today
         TimePeriod.ALL -> {
             // Use a reasonable date range for "All Time" - 10 years back to today
             val start = today.minusYears(10)

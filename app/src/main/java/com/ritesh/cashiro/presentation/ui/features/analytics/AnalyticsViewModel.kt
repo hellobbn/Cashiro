@@ -190,7 +190,17 @@ class AnalyticsViewModel @Inject constructor(
                         }
                     }
                 }
-            }.map { filteredTransactions: List<TransactionEntity> ->
+            }.map { rows: List<TransactionEntity> ->
+                // Several types at once: income is not added to spending but shown beside it, and
+                // transfers only move money between accounts, so they count as neither
+                val split = TransactionTypeFilter.ALL in filterState.typeFilter || filterState.typeFilter.size > 1
+                val filteredTransactions = if (split) {
+                    rows.filter { it.transactionType != TransactionType.INCOME && it.transactionType != TransactionType.TRANSFER }
+                } else rows
+                val totalIncome = if (split) {
+                    rows.filter { it.transactionType == TransactionType.INCOME }
+                        .fold(BigDecimal.ZERO) { acc, tx -> acc.add(tx.amount) }
+                } else null
 
                 // Calculate total precisely
                 val totalSpending = filteredTransactions.fold(BigDecimal.ZERO) { acc, tx -> acc.add(tx.amount) }
@@ -236,12 +246,13 @@ class AnalyticsViewModel @Inject constructor(
                     .sortedByDescending { it.amount }
                     .take(10) // Top 10 merchants
 
-                // Calculate average amount
-                val averageAmount = if (filteredTransactions.isNotEmpty()) {
-                    totalSpending.divide(BigDecimal(filteredTransactions.size), 2, RoundingMode.HALF_UP)
-                } else {
-                    BigDecimal.ZERO
-                }
+                // Per day over the period so far; "all time" starts at the first transaction
+                val periodStart = if (filterState.period == TimePeriod.ALL) {
+                    rows.minOfOrNull { it.dateTime.toLocalDate() } ?: dateRange.first
+                } else dateRange.first
+                val periodEnd = minOf(dateRange.second, java.time.LocalDate.now())
+                val days = (java.time.temporal.ChronoUnit.DAYS.between(periodStart, periodEnd) + 1).coerceAtLeast(1)
+                val averageAmount = totalSpending.divide(BigDecimal(days), 2, RoundingMode.HALF_UP)
 
                 // Get top category info
                 val topCategory = categoryBreakdown.firstOrNull()
@@ -262,6 +273,7 @@ class AnalyticsViewModel @Inject constructor(
                     totalSpending = totalSpending,
                     categoryBreakdown = categoryBreakdown,
                     topMerchants = merchantBreakdown,
+                    totalIncome = totalIncome?.takeIf { it.signum() > 0 },
                     transactionCount = filteredTransactions.size,
                     averageAmount = averageAmount,
                     topCategory = topCategory?.name,

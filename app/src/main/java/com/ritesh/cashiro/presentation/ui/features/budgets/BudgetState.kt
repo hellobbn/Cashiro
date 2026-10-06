@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
+import com.ritesh.cashiro.utils.DateFormats
+
 import com.ritesh.cashiro.data.currency.Conversions
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
@@ -54,11 +56,11 @@ data class EditBudgetState(
             }
             BudgetPeriod.YEARLY -> "${startDate.year} Budget"
             BudgetPeriod.DAILY -> {
-                val dateStr = startDate.format(DateTimeFormatter.ofPattern("MMM d"))
+                val dateStr = startDate.format(DateFormats.monthDayFormatter())
                 "$dateStr Budget"
             }
             BudgetPeriod.WEEKLY -> {
-                val startStr = startDate.format(DateTimeFormatter.ofPattern("MMM d"))
+                val startStr = startDate.format(DateFormats.monthDayFormatter())
                 "Weekly ($startStr)"
             }
             BudgetPeriod.CUSTOM -> "Custom Budget"

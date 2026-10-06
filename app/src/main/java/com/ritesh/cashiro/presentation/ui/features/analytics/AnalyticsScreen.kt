@@ -306,12 +306,13 @@ fun SharedTransitionScope.AnalyticsScreen(
                 // Analytics Summary
                 item {
                     BlurredAnimatedVisibility(
-                        uiState.totalSpending > BigDecimal.ZERO || uiState.transactionCount > 0,
+                        uiState.totalSpending > BigDecimal.ZERO || uiState.transactionCount > 0 || uiState.totalIncome != null,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
                         exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
                     ) {
                         AnalyticsSummaryCard(
                             totalAmount = uiState.totalSpending,
+                            incomeAmount = uiState.totalIncome,
                             transactionCount = uiState.transactionCount,
                             averageAmount = uiState.averageAmount,
                             topCategory = uiState.topCategory,
@@ -839,12 +840,12 @@ private fun EmptyAnalyticsState(
                 )
                 Spacer(modifier = Modifier.height(Spacing.md))
                 Text(
-                    text = "No analytics data",
+                    text = stringResource(R.string.no_analytics_data),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Spacer(modifier = Modifier.height(Spacing.xs))
                 Text(
-                    text = "Try changing the filters or add more transactions",
+                    text = stringResource(R.string.no_analytics_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center

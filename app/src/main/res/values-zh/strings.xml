@@ -127,7 +127,7 @@
     <string name="section_unlinked_cards">未关联的卡片</string>
     <string name="section_credit_cards">信用卡</string>
     <string name="hidden_accounts_count">隐藏账户 (%1$d)</string>
-    <string name="update_outstanding_title">更新未完成事项</string>
+    <string name="update_outstanding_title">校准欠款</string>
     <string name="update_balance">更新余额</string>
     <string name="enter_merged_balance">输入合并余额</string>
     <string name="confirm_balance">确认余额</string>
@@ -801,7 +801,7 @@
     <string name="custom_label">自定义</string>
     <string name="time_period_this_month">本月</string>
     <string name="time_period_last_month">上月</string>
-    <string name="time_period_current_fy">本财年</string>
+    <string name="time_period_current_fy">今年</string>
     <string name="time_period_all_time">所有时间</string>
     <string name="time_period_custom_range">自定义范围</string>
     <string name="type_all">全部</string>

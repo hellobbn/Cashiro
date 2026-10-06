@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.applock
 
+import com.ritesh.cashiro.R
+
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AppLockViewModel @Inject constructor(
     private val appLockRepository: AppLockRepository,
-    private val biometricAuthManager: BiometricAuthManager
+    private val biometricAuthManager: BiometricAuthManager,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppLockUiState())
@@ -96,7 +99,7 @@ class AppLockViewModel @Inject constructor(
      * Called when authentication fails (wrong fingerprint, etc.)
      */
     fun onAuthenticationFailed() {
-        _uiState.update { it.copy(authenticationError = "Authentication failed. Please try again.") }
+        _uiState.update { it.copy(authenticationError = context.getString(R.string.msg_auth_failed)) }
     }
 
     /**

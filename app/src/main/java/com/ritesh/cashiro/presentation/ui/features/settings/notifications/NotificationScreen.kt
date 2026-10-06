@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.notifications
 
+import com.ritesh.cashiro.utils.DateFormats
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -135,7 +137,7 @@ fun NotificationScreen(
                                 val isLastItem = index == subscriptions.lastIndex
                                 PreferenceSwitch(
                                     title = item.subscription.merchantName,
-                                    subtitle = item.subscription.nextPaymentDate?.format(DateTimeFormatter.ofPattern("MMM dd")) ?: "No date",
+                                    subtitle = item.subscription.nextPaymentDate?.format(DateFormats.monthDayFormatter()) ?: stringResource(R.string.no_date),
                                     checked = item.isNotificationEnabled,
                                     onCheckedChange = { 
                                         notificationViewModel.toggleSubscriptionNotification(item.subscription.id, it)
