@@ -28,7 +28,9 @@ class LendBorrowRepository @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val currencyRepository: CurrencyRepository,
     private val currencyConversionService: CurrencyConversionService,
-    private val accountBalanceRepository: AccountBalanceRepository
+    private val accountBalanceRepository: AccountBalanceRepository,
+    private val addTransactionUseCase: com.ritesh.cashiro.domain.usecase.AddTransactionUseCase,
+    private val transactionEditor: TransactionEditor
 ) {
 
     fun getPersons(): Flow<List<LendBorrowPerson>> {
@@ -245,33 +247,35 @@ class LendBorrowRepository @Inject constructor(
         val personName = lendBorrowDao.getPersonByIdSync(transaction.personId)?.name ?: transaction.title
         var entry = transaction
         if (entry.transactionId == null) {
-            val currency = currencyRepository.effectiveBaseCurrencyCode.first()
-            val account = entry.accountId?.let { accountBalanceRepository.getBalanceById(it) }
-            // The amount is recorded in the account's currency when one is linked,
-            // otherwise the effective base currency at entry time.
-            val recordCurrency = account?.currency ?: currency
-            entry = entry.copy(currency = recordCurrency)
-            val walletId = transactionRepository.insertTransaction(
-                buildWalletTransaction(entry, personName, currency, account)
-            )
-            entry = entry.copy(transactionId = walletId)
-            if (account != null) {
-                accountBalanceRepository.insertTransactionBalance(
-                    bankName = account.bankName,
-                    accountLast4 = account.accountLast4,
-                    amount = entry.amount,
-                    transactionType = walletTransactionType(entry.type),
-                    explicitBalance = null,
-                    timestamp = entry.date,
-                    transactionId = walletId,
-                    creditLimit = null,
-                    isCreditCard = account.isCreditCard,
-                    smsSource = null,
-                    currency = currency
-                )
-            }
+            val (walletId, currency) = addWalletTransaction(entry, personName)
+            entry = entry.copy(transactionId = walletId, currency = currency)
         }
         return lendBorrowDao.insertTransaction(entry)
+    }
+
+    /**
+     * Records the money movement of a loan entry the way the add screen records one, so the
+     * account's balance moves with it: in the account's currency, as LENT (money out) or
+     * BORROWED (money in) rather than as spending or income.
+     */
+    private suspend fun addWalletTransaction(entry: LendBorrowTransactionEntity, personName: String): Pair<Long, String> {
+        val account = entry.accountId?.let { accountBalanceRepository.getBalanceById(it) }
+        val currency = account?.currency ?: currencyRepository.effectiveBaseCurrencyCode.first()
+        val type = walletTransactionType(entry.type)
+        val walletId = addTransactionUseCase.execute(
+            amount = entry.amount,
+            merchant = entry.merchant ?: personName,
+            category = entry.category ?: walletCategory(type),
+            type = type,
+            date = entry.date,
+            notes = entry.title,
+            bankName = account?.bankName,
+            accountLast4 = account?.accountLast4,
+            currency = currency,
+            createSubscription = false,
+            attachments = entry.attachments.joinToString(",")
+        )
+        return walletId to currency
     }
 
     suspend fun updateTransaction(transaction: LendBorrowTransactionEntity) {
@@ -279,47 +283,32 @@ class LendBorrowRepository @Inject constructor(
         val personName = lendBorrowDao.getPersonByIdSync(transaction.personId)?.name ?: transaction.title
         val linkedId = transaction.transactionId ?: existing.transactionId
         var entry = transaction.copy(transactionId = linkedId)
+        val wallet = linkedId?.let { transactionRepository.getTransactionById(it) }
 
-        if (linkedId != null) {
-            val wallet = transactionRepository.getTransactionById(linkedId)
-            if (wallet != null) {
-                val walletType = walletTransactionType(entry.type)
-                transactionRepository.updateTransaction(
-                    wallet.copy(
-                        amount = entry.amount,
-                        merchantName = entry.merchant ?: personName,
-                        category = entry.category ?: walletCategory(walletType),
-                        transactionType = walletType,
-                        dateTime = entry.date,
-                        description = entry.title,
-                        updatedAt = LocalDateTime.now(),
-                        bankName = if (entry.accountId != null) "" else wallet.bankName,
-                        attachments = entry.attachments.joinToString(",")
-                    )
-                )
-            }
-        } else {
-            val currency = currencyRepository.effectiveBaseCurrencyCode.first()
+        if (wallet != null) {
+            // Edited like any transaction, so the balance moves from the old figures to the new
+            val walletType = walletTransactionType(entry.type)
             val account = entry.accountId?.let { accountBalanceRepository.getBalanceById(it) }
-            val recordCurrency = account?.currency ?: currency
-            entry = entry.copy(currency = recordCurrency)
-            val walletId = transactionRepository.insertTransaction(buildWalletTransaction(entry, personName, recordCurrency, account))
-            entry = entry.copy(transactionId = walletId)
-            if (account != null) {
-                accountBalanceRepository.insertTransactionBalance(
-                    bankName = account.bankName,
-                    accountLast4 = account.accountLast4,
+            transactionEditor.update(
+                wallet,
+                wallet.copy(
                     amount = entry.amount,
-                    transactionType = walletTransactionType(entry.type),
-                    explicitBalance = null,
-                    timestamp = entry.date,
-                    transactionId = walletId,
-                    creditLimit = null,
-                    isCreditCard = account.isCreditCard,
-                    smsSource = null,
-                    currency = recordCurrency
+                    merchantName = entry.merchant ?: personName,
+                    category = entry.category ?: walletCategory(walletType),
+                    transactionType = walletType,
+                    dateTime = entry.date,
+                    description = entry.title,
+                    updatedAt = LocalDateTime.now(),
+                    bankName = account?.bankName ?: wallet.bankName,
+                    accountNumber = account?.accountLast4 ?: wallet.accountNumber,
+                    currency = account?.currency ?: wallet.currency,
+                    attachments = entry.attachments.joinToString(",")
                 )
-            }
+            )
+            entry = entry.copy(currency = account?.currency ?: wallet.currency)
+        } else {
+            val (walletId, currency) = addWalletTransaction(entry, personName)
+            entry = entry.copy(transactionId = walletId, currency = currency)
         }
 
         lendBorrowDao.updateTransaction(entry.copy(updatedAt = LocalDateTime.now()))
@@ -356,40 +345,17 @@ class LendBorrowRepository @Inject constructor(
 
     /**
      * Maps a Khata entry type to a wallet transaction type so ledger activity
-     * reflects real money movement: lending/paying back is money out (EXPENSE),
-     * borrowing/being repaid is money in (INCOME).
+     * reflects real money movement: lending/paying back is money out (LENT),
+     * borrowing/being repaid is money in (BORROWED); neither is spending or income.
      */
     private fun walletTransactionType(type: LendBorrowType): TransactionType =
         when (type) {
-            LendBorrowType.LENT, LendBorrowType.SETTLEMENT_BORROWED -> TransactionType.EXPENSE
-            LendBorrowType.BORROWED, LendBorrowType.SETTLEMENT_LENT -> TransactionType.INCOME
+            LendBorrowType.LENT, LendBorrowType.SETTLEMENT_BORROWED -> TransactionType.LENT
+            LendBorrowType.BORROWED, LendBorrowType.SETTLEMENT_LENT -> TransactionType.BORROWED
         }
 
     private fun walletCategory(type: TransactionType): String =
-        if (type == TransactionType.INCOME) "Income" else "Miscellaneous"
-
-    private fun buildWalletTransaction(
-        entry: LendBorrowTransactionEntity,
-        personName: String,
-        currency: String,
-        account: AccountBalanceEntity? = null
-    ): TransactionEntity {
-        val type = walletTransactionType(entry.type)
-        return TransactionEntity(
-            amount = entry.amount,
-            merchantName = entry.merchant ?: personName,
-            category = entry.category ?: walletCategory(type),
-            transactionType = type,
-            dateTime = entry.date,
-            description = entry.title,
-            transactionHash = UUID.randomUUID().toString(),
-            currency = currency,
-            bankName = account?.bankName ?: (if (entry.accountId != null) "Linked Account" else "Manual Entry"),
-            accountNumber = account?.accountLast4 ?: (if (entry.accountId != null) "linked" else null),
-            isSample = entry.isSample,
-            attachments = entry.attachments.joinToString(",")
-        )
-    }
+        if (type == TransactionType.BORROWED) "Borrowed" else "Lent"
 
     private suspend fun LendBorrowTransactionEntity.toDomain(baseCurrency: String) = LendBorrowTransactionItem(
         id = id,

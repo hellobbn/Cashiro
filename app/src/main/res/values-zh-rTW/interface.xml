@@ -260,4 +260,5 @@
     <string name="cycle_annual">每年</string>
     <string name="cycle_weekly">每週</string>
     <string name="cycle_custom">自訂</string>
+    <string name="card_overdue">已逾期 %1$d 天</string>
 </resources>

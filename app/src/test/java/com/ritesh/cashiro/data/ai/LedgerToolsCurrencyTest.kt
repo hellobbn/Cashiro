@@ -65,7 +65,8 @@ class LedgerToolsCurrencyTest {
             SubcategoryRepository(db.subcategoryDao(), db.categoryDao(), context, scope),
             AddTransactionUseCase(transactions, SubscriptionRepository(db.subscriptionDao()), balances),
             AccountRenamer(db, context),
-            CurrencyConversionService(db.exchangeRateDao(), offline, UserPreferencesRepository(context))
+            CurrencyConversionService(db.exchangeRateDao(), offline, UserPreferencesRepository(context)),
+            db
         )
     }
 

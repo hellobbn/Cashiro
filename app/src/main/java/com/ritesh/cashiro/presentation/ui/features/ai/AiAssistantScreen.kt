@@ -317,7 +317,7 @@ private fun AiBottomBar(
                         Text(stringResource(R.string.ai_start_over))
                     }
                     val count = state.review.count { it.included }
-                    Button(onClick = onSave, enabled = count > 0, shapes = ButtonDefaults.shapes()) {
+                    Button(onClick = onSave, enabled = count > 0 && !state.busy, shapes = ButtonDefaults.shapes()) {
                         Text(stringResource(R.string.ai_save_selected, count))
                     }
                 }

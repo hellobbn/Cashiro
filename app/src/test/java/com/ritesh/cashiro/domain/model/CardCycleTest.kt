@@ -26,6 +26,11 @@ class CardCycleTest {
         assertEquals(d(1, 8, 2027), CardCycle.dueAfter(d(12, 20), 8))
     }
 
+    @Test fun aShortMonthKeepsALateDueDayInTheSameMonth() {
+        // 账单日 30 号，还款日 31 号：二月两者都落在 28 号，还款仍在当月
+        assertEquals(d(2, 28), CardCycle.dueAfter(d(2, 28), 31, statementDay = 30))
+    }
+
     @Test fun nextDueIsTodayOrLater() {
         assertEquals(d(10, 25), CardCycle.nextDue(25, d(10, 25)))
         assertEquals(d(11, 25), CardCycle.nextDue(25, d(10, 26)))

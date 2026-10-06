@@ -225,6 +225,8 @@ class BackupImporter @Inject constructor(
                 database.ruleDao().deleteAllRules()
                 database.ruleApplicationDao().deleteAllApplications()
                 database.exchangeRateDao().deleteAllRates()
+                database.lendBorrowDao().deleteAllTransactions()
+                database.lendBorrowDao().deleteAllPersons()
 
                 // Accounts first: transactions and balances refer to them
                 val accountIds = importAccounts(backup.database, keepIds = true)
@@ -321,6 +323,7 @@ class BackupImporter @Inject constructor(
         
         return database.withTransaction {
             try {
+                val accountsBefore = existingAccountKeys()
                 val accountIds = importAccounts(backup.database, keepIds = false)
 
                 // Get existing data for duplicate checking
@@ -366,6 +369,8 @@ class BackupImporter @Inject constructor(
                 
                 // Mapping to track OldTransactionID -> NewTransactionID for rule applications
                 val transactionIdMap = mutableMapOf<Long, Long>()
+                // Backup transactions that are new here: only their balance rows come along
+                val insertedTransactions = mutableSetOf<Long>()
 
                 // Import transactions (merge by hash)
                 backup.database.transactions.forEach { backupTxn ->
@@ -376,6 +381,7 @@ class BackupImporter @Inject constructor(
                         val newTransaction = sanitizedTxn.copy(id = 0)
                         val newId = database.transactionDao().insertTransaction(newTransaction)
                         transactionIdMap[sanitizedTxn.id] = newId
+                        if (newId > 0) insertedTransactions += sanitizedTxn.id
                         importedTransactions++
                     } else {
                         transactionIdMap[sanitizedTxn.id] = existingTxn.id
@@ -425,23 +431,14 @@ class BackupImporter @Inject constructor(
                 
                 // Import other entities with duplicate checking
                 importCardsWithMerge(backup.database.cards)
-                importAccountBalancesWithMerge(backup.database, transactionIdMap)
+                importAccountBalancesWithMerge(backup.database, transactionIdMap, insertedTransactions, accountsBefore)
                 importSubscriptionsWithMerge(backup.database.subscriptions)
                 importMerchantMappingsWithMerge(backup.database.merchantMappings)
                 importBudgetsWithMerge(backup.database.budgets, backup.database.budgetCategoryLimits)
                 importWebhookProfilesWithMerge(backup.database.webhookProfiles)
                 importExchangeRatesWithMerge(backup.database.exchangeRates)
 
-                backup.database.lendBorrowPersons.forEach { person ->
-                    database.lendBorrowDao().insertPerson(person)
-                }
-
-                backup.database.lendBorrowTransactions.forEach { tx ->
-                    val remappedTx = tx.transactionId?.let { oldId ->
-                        transactionIdMap[oldId]?.let { newId -> tx.copy(transactionId = newId) }
-                    } ?: tx
-                    database.lendBorrowDao().insertTransaction(remappedTx)
-                }
+                importLendBorrowWithMerge(backup.database, transactionIdMap)
                 
                 database.accountBalanceDao().linkTransactionsToAccounts()
 
@@ -475,7 +472,9 @@ class BackupImporter @Inject constructor(
             try {
                 // Without its balances, a backup's accounts are not brought in: transactions find
                 // the accounts already here by name
+                val accountsBefore = existingAccountKeys()
                 val accountIds = if (filter.includeAccountBalances) importAccounts(backup.database, keepIds = false) else emptyMap()
+                val insertedTransactions = mutableSetOf<Long>()
                 val existingTransactionsMap = database.transactionDao()
                     .getAllTransactions().first()
                     .associateBy { it.transactionHash }
@@ -526,6 +525,7 @@ class BackupImporter @Inject constructor(
                             val newTransaction = sanitizedTxn.copy(id = 0)
                             val newId = database.transactionDao().insertTransaction(newTransaction)
                             transactionIdMap[sanitizedTxn.id] = newId
+                            if (newId > 0) insertedTransactions += sanitizedTxn.id
                             importedTransactions++
                         } else {
                             transactionIdMap[sanitizedTxn.id] = existingTxn.id
@@ -566,7 +566,7 @@ class BackupImporter @Inject constructor(
                     importCardsWithMerge(backup.database.cards)
                 }
                 if (filter.includeAccountBalances) {
-                    importAccountBalancesWithMerge(backup.database, transactionIdMap)
+                    importAccountBalancesWithMerge(backup.database, transactionIdMap, insertedTransactions, accountsBefore)
                 }
                 if (filter.includeSubscriptions) {
                     importSubscriptionsWithMerge(backup.database.subscriptions)
@@ -619,12 +619,43 @@ class BackupImporter @Inject constructor(
     /**
      * Import account balances with duplicate checking
      */
-    private suspend fun importAccountBalancesWithMerge(snapshot: DatabaseSnapshot, transactionIds: Map<Long, Long>) {
-        // For balances, we'll import all as they represent historical data; a row stays with its
-        // transaction under the id that transaction has here
+    private suspend fun importAccountBalancesWithMerge(
+        snapshot: DatabaseSnapshot,
+        transactionIds: Map<Long, Long>,
+        insertedTransactions: Set<Long>,
+        accountsBefore: Set<Pair<String, String>>
+    ) {
+        // Only what is new here: the rows of transactions just added (under their ids here), and
+        // the other rows (setup, calibrations) only of accounts that did not exist. Re-adding every
+        // row on each sync piled up copies, and a copy with a higher id could bring back an old balance.
         balancesToImport(snapshot).forEach { balance ->
-            val newBalance = balance.copy(id = 0, transactionId = balance.transactionId?.let { transactionIds[it] ?: it })
+            val keep = balance.transactionId?.let { it in insertedTransactions }
+                ?: ((balance.bankName to balance.accountLast4) !in accountsBefore)
+            if (!keep) return@forEach
+            val newBalance = balance.copy(id = 0, transactionId = balance.transactionId?.let { transactionIds[it] })
             database.accountBalanceDao().insertBalance(newBalance)
+        }
+    }
+
+    private suspend fun existingAccountKeys(): Set<Pair<String, String>> =
+        database.accountDao().getAccounts().map { it.name to it.last4 }.toSet()
+
+    /**
+     * People and loan entries from a backup, under new ids: an id from another device can belong
+     * to a different record here. A person with the same name is the same person; an entry whose
+     * transaction is already linked to one here is not added again.
+     */
+    private suspend fun importLendBorrowWithMerge(snapshot: DatabaseSnapshot, transactionIds: Map<Long, Long>) {
+        val dao = database.lendBorrowDao()
+        val byName = dao.getAllPersonsSync().associateBy { it.name }
+        val personIds = snapshot.lendBorrowPersons.associate { person ->
+            person.id to (byName[person.name]?.id ?: dao.insertPerson(person.copy(id = 0)))
+        }
+        snapshot.lendBorrowTransactions.forEach { entry ->
+            val personId = personIds[entry.personId] ?: return@forEach
+            val linked = entry.transactionId?.let { transactionIds[it] }
+            if (linked != null && dao.getTransactionByWalletId(linked) != null) return@forEach
+            dao.insertTransaction(entry.copy(id = 0, personId = personId, transactionId = linked))
         }
     }
 

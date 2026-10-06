@@ -24,11 +24,15 @@ object CardCycle {
     fun nextClosing(statementDay: Int, today: LocalDate): LocalDate =
         dayIn(YearMonth.from(lastClosing(statementDay, today)).plusMonths(1), statementDay)
 
-    /** When the statement closing on [closing] is due: the next [dueDay] after it. */
-    fun dueAfter(closing: LocalDate, dueDay: Int): LocalDate {
+    /**
+     * When the statement closing on [closing] is due: the next [dueDay] after it. A due day after
+     * the statement day falls in the same month, even when a short month squeezes both onto its
+     * last day (statement the 30th, due the 31st, in February: both the 28th).
+     */
+    fun dueAfter(closing: LocalDate, dueDay: Int, statementDay: Int = closing.dayOfMonth): LocalDate {
         val month = YearMonth.from(closing)
         val sameMonth = dayIn(month, dueDay)
-        return if (sameMonth.isAfter(closing)) sameMonth else dayIn(month.plusMonths(1), dueDay)
+        return if (dueDay > statementDay || sameMonth.isAfter(closing)) sameMonth else dayIn(month.plusMonths(1), dueDay)
     }
 
     /** The next payment due date on or after [today]. */

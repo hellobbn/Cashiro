@@ -113,7 +113,9 @@ data class AiAssistantUiState(
     val passwordFor: String? = null,
     val models: ModelListState = ModelListState(),
     // The steps of the run that produced the review, kept so they can be read afterwards
-    val lastRun: AiPhase.Running? = null
+    val lastRun: AiPhase.Running? = null,
+    // Saving or undoing: Save and Undo wait, so a second tap cannot write everything twice
+    val busy: Boolean = false
 )
 
 @HiltViewModel
@@ -256,22 +258,38 @@ class AiAssistantViewModel @Inject constructor(
 
     fun save() {
         val chosen = _state.value.review.filter { it.included }.map { it.change }
-        if (chosen.isEmpty()) return
+        if (chosen.isEmpty() || _state.value.busy) return
+        _state.update { it.copy(busy = true) }
         viewModelScope.launch {
             try {
+                // All or nothing: a failure leaves nothing written, so Save can simply be tried again
                 val applied = tools.apply(chosen)
                 _state.update { it.copy(phase = AiPhase.Saved(applied)) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message ?: e.javaClass.simpleName) }
+            } finally {
+                _state.update { it.copy(busy = false) }
             }
         }
     }
 
     fun undo() {
         val applied = (_state.value.phase as? AiPhase.Saved)?.applied ?: return
+        if (_state.value.busy) return
+        _state.update { it.copy(busy = true) }
         viewModelScope.launch {
-            tools.undo(applied)
-            _state.update { it.copy(phase = AiPhase.Review) }
+            try {
+                tools.undo(applied)
+                _state.update { it.copy(phase = AiPhase.Review) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(error = e.message ?: e.javaClass.simpleName) }
+            } finally {
+                _state.update { it.copy(busy = false) }
+            }
         }
     }
 

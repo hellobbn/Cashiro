@@ -37,7 +37,9 @@ data class CardStatus(
     val due: java.time.LocalDate,
     val closing: java.time.LocalDate?,
     val statementAmount: BigDecimal?,
-    val remaining: BigDecimal?
+    val remaining: BigDecimal?,
+    // Past its due date and not paid off
+    val overdue: Boolean = false
 )
 
 enum class DateRange(val label: String) {

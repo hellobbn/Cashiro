@@ -9,6 +9,7 @@ import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
 import com.ritesh.cashiro.data.repository.SubscriptionRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
+import androidx.room.withTransaction
 import java.math.BigDecimal
 import java.security.MessageDigest
 import java.time.LocalDate
@@ -20,7 +21,9 @@ class AddTransactionUseCase
 constructor(
         private val transactionRepository: TransactionRepository,
         private val subscriptionRepository: SubscriptionRepository,
-        private val accountBalanceRepository: AccountBalanceRepository
+        private val accountBalanceRepository: AccountBalanceRepository,
+        // The row, its balance legs and its subscription are written together (null in unit tests)
+        private val database: com.ritesh.cashiro.data.database.CashiroDatabase? = null
 ) {
     suspend fun execute(
             amount: BigDecimal,
@@ -45,6 +48,7 @@ constructor(
             createSubscription: Boolean = true,
             attachments: String = ""
     ): Long {
+        val write: suspend () -> Long = write@{
         // Generate a unique hash for manual transactions
         val transactionHash =
                 generateManualTransactionHash(amount = amount, merchant = merchant, date = date)
@@ -89,6 +93,8 @@ constructor(
 
         // Insert the transaction
         val transactionId = transactionRepository.insertTransaction(transaction)
+        // A duplicate hash is ignored (-1): nothing was added, so no balance moves
+        if (transactionId <= 0L) return@write transactionId
 
         // Update account balances based on transaction type
         if (bankName != null && accountLast4 != null) {
@@ -172,7 +178,9 @@ constructor(
 
             subscriptionRepository.insertSubscription(subscription)
         }
-        return transactionId
+        transactionId
+        }
+        return database?.withTransaction { write() } ?: write()
     }
 
 

@@ -247,4 +247,5 @@
     <string name="cycle_unit_year">years</string>
     <string name="cycle_every">Every %1$d %2$s</string>
     <string name="cycle_with_monthly">%1$s · about %2$s/mo</string>
+    <string name="card_overdue">%1$d days overdue</string>
 </resources>
