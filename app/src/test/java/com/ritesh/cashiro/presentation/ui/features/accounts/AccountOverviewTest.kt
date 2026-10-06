@@ -77,4 +77,13 @@ class AccountOverviewTest {
         assertEquals(BigDecimal("100"),investment.netWorthContribution())
         assertEquals(BigDecimal("100"),investment.copy(isSnapshot=false).netWorthContribution())
     }
+    @Test fun `the investments summary counts connected broker accounts and their snapshot`() {
+        val manual = buildAccountSections(listOf(account("IBKR", "USD", "5"))).visible[3]
+        val merged = manual.withBrokerSnapshots(listOf(connection()))
+        assertEquals(1, merged.linkedCount)
+        assertEquals(0, BigDecimal("125.25").compareTo(merged.totals["USD"]))
+        // A holding without a market value leaves the snapshot out rather than undercounting
+        assertEquals(manual.totals, manual.withBrokerSnapshots(listOf(connection(null))).totals)
+        assertSame(manual, manual.withBrokerSnapshots(emptyList()))
+    }
 }
