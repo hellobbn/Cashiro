@@ -80,17 +80,34 @@ class AccountDetailViewModel @Inject constructor(
         val dueDay = dates.dueDay ?: return null
         val statementDay = dates.statementDay ?: return CardStatus(cycle.nextDue(dueDay, today), null, null, null)
         val closing = cycle.lastClosing(statementDay, today)
-        val due = cycle.dueAfter(closing, dueDay)
-        if (today.isAfter(due)) {
-            // That bill is past; the next one is not out yet
+        val due = cycle.dueAfter(closing, dueDay, statementDay)
+        val closedAt = closing.atTime(java.time.LocalTime.MAX)
+        val statement = accountBalanceRepository.getLatestBalanceOnOrBefore(bankName, accountLast4, closedAt, latest.currency)
+            ?.balance?.coerceAtLeast(BigDecimal.ZERO)
+        val nextBill = {
             val next = cycle.nextClosing(statementDay, today)
-            return CardStatus(cycle.dueAfter(next, dueDay), next, null, null)
+            CardStatus(cycle.dueAfter(next, dueDay, statementDay), next, null, null)
         }
-        val statement = accountBalanceRepository.getLatestBalanceOnOrBefore(
-            bankName, accountLast4, closing.atTime(java.time.LocalTime.MAX), latest.currency
-        )?.balance?.coerceAtLeast(BigDecimal.ZERO)
-        // Payments since closing bring what is owed below the statement; new spending is the next bill's
-        val remaining = statement?.min(latest.balance.coerceAtLeast(BigDecimal.ZERO))
+        // Nothing recorded by the closing date: only the next bill is known
+        statement ?: return nextBill()
+        // What was paid onto the card since the statement closed, in its currency
+        val paid = transactionRepository.getTransactionsByAccount(bankName, accountLast4).first()
+            .filter { it.dateTime.isAfter(closedAt) && !it.isDeleted }
+            .sumOf { tx ->
+                val ontoCard = when (tx.transactionType) {
+                    TransactionType.INCOME, TransactionType.BORROWED -> tx.accountId == latest.accountId
+                    TransactionType.TRANSFER -> tx.toAccountId == latest.accountId && tx.accountId != latest.accountId
+                    else -> false
+                }
+                val currency = if (tx.transactionType == TransactionType.TRANSFER) tx.toCurrency ?: tx.currency else tx.currency
+                val amount = if (tx.transactionType == TransactionType.TRANSFER) tx.toAmount ?: tx.amount else tx.amount
+                if (ontoCard && currency == latest.currency) amount else BigDecimal.ZERO
+            }
+        val remaining = (statement - paid).coerceAtLeast(BigDecimal.ZERO)
+        if (today.isAfter(due)) {
+            // A past bill stays in view until it is paid off
+            return if (remaining.signum() > 0) CardStatus(due, closing, statement, remaining, overdue = true) else nextBill()
+        }
         return CardStatus(due, closing, statement, remaining)
     }
     

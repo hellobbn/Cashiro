@@ -608,8 +608,9 @@ private fun CardBillPanel(status: CardStatus?, currency: String, onSetDates: () 
             return@Surface
         }
         val daysLeft = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), status.due)
-        val dueText = when (daysLeft) {
-            0L -> stringResource(R.string.card_due_today)
+        val dueText = when {
+            status.overdue -> stringResource(R.string.card_overdue, (-daysLeft).toInt())
+            daysLeft == 0L -> stringResource(R.string.card_due_today)
             else -> stringResource(R.string.card_due_in, daysLeft.toInt())
         }
         Row(
@@ -641,7 +642,11 @@ private fun CardBillPanel(status: CardStatus?, currency: String, onSetDates: () 
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(stringResource(R.string.card_due_on, status.due.format(dateFormat)), style = MaterialTheme.typography.labelLarge)
-                Text(dueText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    dueText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (status.overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

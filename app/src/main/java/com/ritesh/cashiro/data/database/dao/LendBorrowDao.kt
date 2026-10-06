@@ -39,13 +39,13 @@ interface LendBorrowDao {
     suspend fun deletePersonById(id: Long)
 
     // Transaction queries
-    @Query("SELECT * FROM lend_borrow_transactions WHERE person_id = :personId ORDER BY date DESC")
+    @Query("SELECT * FROM lend_borrow_transactions WHERE person_id = :personId AND (transaction_id IS NULL OR transaction_id NOT IN (SELECT id FROM transactions WHERE is_deleted = 1)) ORDER BY date DESC")
     fun getTransactionsForPerson(personId: Long): Flow<List<LendBorrowTransactionEntity>>
 
-    @Query("SELECT * FROM lend_borrow_transactions WHERE person_id = :personId ORDER BY date DESC")
+    @Query("SELECT * FROM lend_borrow_transactions WHERE person_id = :personId AND (transaction_id IS NULL OR transaction_id NOT IN (SELECT id FROM transactions WHERE is_deleted = 1)) ORDER BY date DESC")
     suspend fun getTransactionsForPersonSync(personId: Long): List<LendBorrowTransactionEntity>
 
-    @Query("SELECT * FROM lend_borrow_transactions ORDER BY date DESC")
+    @Query("SELECT * FROM lend_borrow_transactions WHERE (transaction_id IS NULL OR transaction_id NOT IN (SELECT id FROM transactions WHERE is_deleted = 1)) ORDER BY date DESC")
     fun getAllTransactions(): Flow<List<LendBorrowTransactionEntity>>
 
     @Query("SELECT * FROM lend_borrow_transactions WHERE id = :id")
@@ -69,4 +69,13 @@ interface LendBorrowDao {
 
     @Query("DELETE FROM lend_borrow_transactions WHERE person_id = :personId")
     suspend fun deleteAllTransactionsForPerson(personId: Long)
+
+    @Query("DELETE FROM lend_borrow_transactions")
+    suspend fun deleteAllTransactions()
+
+    @Query("DELETE FROM lend_borrow_persons")
+    suspend fun deleteAllPersons()
+
+    @Query("SELECT * FROM lend_borrow_persons")
+    suspend fun getAllPersonsSync(): List<LendBorrowPersonEntity>
 }

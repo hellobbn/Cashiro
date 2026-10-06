@@ -238,4 +238,5 @@
     <string name="cycle_unit_year">年</string>
     <string name="cycle_every">每 %1$d %2$s</string>
     <string name="cycle_with_monthly">%1$s，约 %2$s/月</string>
+    <string name="card_overdue">已逾期 %1$d 天</string>
 </resources>

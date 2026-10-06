@@ -162,8 +162,11 @@ fun TransactionItem(
         transaction?.dateTime?.format(dateTimeFormatter) ?: "" 
     }
     val amountText = remember(transaction, amountOverride, finalAmount, effectiveSign) {
-        amountOverride ?: transaction?.let { 
-             val formatted = it.formatAmount()
+        amountOverride ?: transaction?.let {
+             // The receiving side of a transfer between currencies shows what arrived there
+             val received = it.toAmount?.takeIf { effectiveSign == "+" }
+             val formatted = if (received != null) CurrencyFormatter.formatCurrency(received, it.toCurrency ?: it.currency)
+                 else it.formatAmount()
              if (effectiveSign != null) "$effectiveSign $formatted" else formatted
         } ?: finalAmount.toString()
     }

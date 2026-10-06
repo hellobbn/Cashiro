@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.data.ai
 
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
+import androidx.room.withTransaction
 import com.ritesh.cashiro.data.database.dao.PocketBalance
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.AccountEntity
@@ -110,7 +111,8 @@ class LedgerTools @Inject constructor(
     private val subcategoryRepository: SubcategoryRepository,
     private val addTransactionUseCase: AddTransactionUseCase,
     private val accountRenamer: AccountRenamer,
-    private val currencyConversionService: CurrencyConversionService
+    private val currencyConversionService: CurrencyConversionService,
+    private val database: com.ritesh.cashiro.data.database.CashiroDatabase
 ) {
     /** The user's accounts and categories, loaded once per session. */
     class Context internal constructor(
@@ -585,7 +587,11 @@ class LedgerTools @Inject constructor(
     }
 
     /** Commits approved changes. */
-    suspend fun apply(changes: List<LedgerChange>): AppliedChanges {
+    suspend fun apply(changes: List<LedgerChange>): AppliedChanges =
+        // One database transaction: a failure part-way writes nothing
+        database.withTransaction { applyAll(changes) }
+
+    private suspend fun applyAll(changes: List<LedgerChange>): AppliedChanges {
         // Accounts first, so the transactions on them find them
         val created = changes.filterIsInstance<LedgerChange.CreateAccount>().map { it.account }
         created.forEach { accountBalanceRepository.insertBalance(it.copy(timestamp = LocalDateTime.now())) }
@@ -706,7 +712,10 @@ class LedgerTools @Inject constructor(
     }
 
     /** Takes back what [apply] did. */
-    suspend fun undo(applied: AppliedChanges) {
+    suspend fun undo(applied: AppliedChanges) =
+        database.withTransaction { undoAll(applied) }
+
+    private suspend fun undoAll(applied: AppliedChanges) {
         // Reverse order of apply: account changes were made last
         applied.balanceRowIds.forEach { accountBalanceRepository.deleteBalanceById(it) }
         applied.accountsBefore.asReversed().forEach { accountBalanceRepository.restoreAccount(it) }
