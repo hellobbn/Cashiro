@@ -126,7 +126,8 @@ abstract class AccountBalanceDao {
             ab.id AS id,
             ab.balance AS balance,
             ab.source_type AS sourceType,
-            ab.is_credit_card AS isCreditCard,
+            -- The account's kind now, not the row's: an account turned into a card later runs as one
+            COALESCE((SELECT a.is_credit_card FROM accounts a WHERE a.id = ab.account_id), ab.is_credit_card) AS isCreditCard,
             ab.transaction_id AS transactionId,
             -- The receiving side of a transfer moves by what arrived, in its own currency
             CASE WHEN t.transaction_type = 'TRANSFER' AND $RECEIVING_SIDE
@@ -205,7 +206,7 @@ abstract class AccountBalanceDao {
             ?: return null
         val opening = entry.copy(
             id = 0,
-            balance = reverseTransactionBalance(entry.balance, amount, transactionType, entry.isCreditCard),
+            balance = reverseTransactionBalance(entry.balance, amount, transactionType, info.isCreditCard),
             timestamp = openingTimestamp,
             transactionId = null,
             smsSource = null,
@@ -264,14 +265,15 @@ abstract class AccountBalanceDao {
                 balance = previousForBalance?.balance ?: BigDecimal.ZERO,
                 timestamp = timestamp.minusNanos(1_000_000),
                 sourceType = SOURCE_OPENING_BALANCE, currency = accountCurrency,
-                isCreditCard = isCreditCard || (previousForBalance?.isCreditCard ?: false),
+                isCreditCard = latest?.isCreditCard ?: (isCreditCard || previousForBalance?.isCreditCard == true),
                 creditLimit = previousForBalance?.creditLimit ?: latest?.creditLimit,
                 iconResId = latest?.iconResId ?: 0, iconName = latest?.iconName ?: "",
                 isWallet = latest?.isWallet ?: false, color = latest?.color ?: "#33B5E5"
             ))
         }
 
-        val accountIsCreditCard = isCreditCard || (previousForBalance?.isCreditCard ?: false)
+        // Which way a card moves comes from the account (what is owed), not from older rows
+        val accountIsCreditCard = latest?.isCreditCard ?: (isCreditCard || previousForBalance?.isCreditCard == true)
         val newBalance = explicitBalance ?: calculateTransactionBalance(
             currentBalance = previousForBalance?.balance ?: BigDecimal.ZERO,
             amount = amount,
@@ -677,7 +679,7 @@ private fun reverseTransactionBalance(
 ): BigDecimal {
     return when {
         // A card's balance is what is owed: a payment or refund lowered it, anything else raised it
-        isCreditCard && transactionType == TransactionType.INCOME -> balanceAfter + amount
+        isCreditCard && (transactionType == TransactionType.INCOME || transactionType == TransactionType.BORROWED) -> balanceAfter + amount
         isCreditCard -> balanceAfter - amount
         transactionType == TransactionType.INCOME || transactionType == TransactionType.CREDIT || transactionType == TransactionType.BORROWED -> balanceAfter - amount
         transactionType == TransactionType.EXPENSE || transactionType == TransactionType.INVESTMENT || transactionType == TransactionType.LENT -> balanceAfter + amount
@@ -693,7 +695,8 @@ private fun calculateTransactionBalance(
 ): BigDecimal {
     return when {
         // Paying more than is owed leaves a credit on the card: a negative balance, not zero
-        isCreditCard && transactionType == TransactionType.INCOME -> currentBalance - amount
+        // Borrowed money arriving on a card pays it down like a payment
+        isCreditCard && (transactionType == TransactionType.INCOME || transactionType == TransactionType.BORROWED) -> currentBalance - amount
         isCreditCard -> currentBalance + amount
         transactionType == TransactionType.INCOME || transactionType == TransactionType.CREDIT || transactionType == TransactionType.BORROWED -> currentBalance + amount
         transactionType == TransactionType.EXPENSE || transactionType == TransactionType.INVESTMENT || transactionType == TransactionType.LENT ->

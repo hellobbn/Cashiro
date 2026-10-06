@@ -360,6 +360,8 @@ internal fun ReviewDetailSheet(
                         draft?.let(onEdit)
                         onDismiss()
                     },
+                    // A transfer needs where the money goes
+                    enabled = draft?.let { it.type != TransactionType.TRANSFER || it.toAccount != null } ?: true,
                     shapes = ButtonDefaults.shapes()
                 ) { Text(stringResource(R.string.done)) }
             }
@@ -477,7 +479,9 @@ private fun DraftForm(draft: TransactionDraft, lookups: TransactionLookups, onCh
                 onAccountSelected = { account: AccountBalanceEntity? ->
                     onChange(
                         if (target) draft.copy(toAccount = account)
-                        else draft.copy(account = account, currency = account?.currency ?: draft.currency)
+                        // The amount stays in its currency; saving puts it in the account's own
+                        // pocket for it, or converts it into the main one
+                        else draft.copy(account = account)
                     )
                     pickingAccount = false
                     pickingTarget = false

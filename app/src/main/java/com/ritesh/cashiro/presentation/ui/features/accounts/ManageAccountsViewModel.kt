@@ -120,10 +120,16 @@ constructor(
         return userPreferencesRepository.baseCurrency.first()
     }
 
+    /**
+     * A Cash wallet to start with, created once: renamed or deleted, it stays that way.
+     */
     private fun initializeDefaultWallet() {
+        if (sharedPrefs.getBoolean(KEY_WALLET_SEEDED, false)) return
+        sharedPrefs.edit { putBoolean(KEY_WALLET_SEEDED, true) }
         viewModelScope.launch {
-            val wallet = accountBalanceRepository.getLatestBalance("Cash", "wallet")
-            if (wallet == null) {
+            // An install that already has accounts was seeded before this flag existed
+            val hasAccounts = accountBalanceRepository.getAllLatestBalances().first().isNotEmpty()
+            if (!hasAccounts) {
                 val baseCurrency = userPreferencesRepository.userPreferences.first().baseCurrency
                 accountBalanceRepository.insertBalance(
                     AccountBalanceEntity(
@@ -191,35 +197,14 @@ constructor(
         _uiState.update { it.copy(mainAccountKey = null) }
     }
 
+    /**
+     * The account new entries start with. It only preselects the account: the app's main
+     * currency is its own setting, and no other account changes.
+     */
     fun setAsMainAccount(bankName: String, accountLast4: String) {
         val key = "${bankName}_${accountLast4}"
         sharedPrefs.edit { putString("main_account", key) }
-        _uiState.update { it.copy(mainAccountKey = key, successMessage = "Main account set successfully") }
-        viewModelScope.launch {
-            // Persist this account's currency as the app-wide base currency
-            val account = _uiState.value.accounts.find {
-                it.bankName == bankName && it.accountLast4 == accountLast4
-            }
-            if (account != null) {
-                userPreferencesRepository.updateBaseCurrency(account.currency)
-                
-                // Also update the in-built Cash wallet to match the main account's currency
-                val cashWallet = accountBalanceRepository.getLatestBalance("Cash", "wallet")
-                if (cashWallet != null && cashWallet.currency != account.currency) {
-                    accountBalanceRepository.insertBalance(
-                        cashWallet.copy(
-                            id = 0,
-                            currency = account.currency,
-                            timestamp = LocalDateTime.now(),
-                            sourceType = "MAIN_ACCOUNT_SYNC"
-                        )
-                    )
-                    accountBalanceRepository.updateAccount("Cash", "wallet") { it.copy(mainCurrency = account.currency) }
-                }
-            }
-            delay(3000)
-            _uiState.update { it.copy(successMessage = null) }
-        }
+        _uiState.update { it.copy(mainAccountKey = key) }
     }
 
     fun updateBankName(name: String) {
@@ -512,12 +497,18 @@ constructor(
     fun deleteBalanceRecord(id: Long, bankName: String, accountLast4: String) {
         viewModelScope.launch {
             val record = accountBalanceRepository.getBalanceById(id) ?: return@launch
-            if (record.sourceType in setOf("BALANCE_CALIBRATION", "OPENING_BALANCE")) return@launch
+            // A transaction's row goes with the transaction; the opening balance stays
+            if (record.transactionId != null || record.sourceType == "OPENING_BALANCE") return@launch
 
             // Check if this is the only record
             val count = accountBalanceRepository.getBalanceCountForAccount(bankName, accountLast4)
             if (count > 1) {
                 accountBalanceRepository.deleteBalanceById(id)
+                // Later rows run on from what was there before it
+                val before = accountBalanceRepository.getLatestBalanceOnOrBefore(
+                    bankName, accountLast4, record.timestamp, record.currency
+                )?.balance ?: BigDecimal.ZERO
+                accountBalanceRepository.recalculateBalancesAfter(bankName, accountLast4, record.timestamp, before, record.currency)
                 // Reload history and accounts
                 loadBalanceHistory(bankName, accountLast4)
                 loadAccounts()
@@ -533,9 +524,12 @@ constructor(
     ) {
         viewModelScope.launch {
             val record = accountBalanceRepository.getBalanceById(id) ?: return@launch
-            if (record.sourceType in setOf("BALANCE_CALIBRATION", "OPENING_BALANCE")) return@launch
+            // A transaction's row follows the transaction: edit the transaction instead
+            if (record.transactionId != null) return@launch
 
             accountBalanceRepository.updateBalanceById(id, newBalance)
+            // Later rows run on from the corrected figure
+            accountBalanceRepository.recalculateBalancesAfter(bankName, accountLast4, record.timestamp, newBalance, record.currency)
             // Reload history and accounts
             loadBalanceHistory(bankName, accountLast4)
             loadAccounts()
@@ -834,5 +828,8 @@ constructor(
             }
         }
     }
-}
 
+    private companion object {
+        const val KEY_WALLET_SEEDED = "default_wallet_seeded"
+    }
+}

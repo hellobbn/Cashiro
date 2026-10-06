@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
+import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.repository.CurrencyRepository
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
@@ -59,6 +60,7 @@ class TransactionDetailViewModel @Inject constructor(
     private val subcategoryRepository: SubcategoryRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
     private val transactionEditor: TransactionEditor,
+    private val addTransactionUseCase: com.ritesh.cashiro.domain.usecase.AddTransactionUseCase,
     private val accountHoldings: com.ritesh.cashiro.data.repository.AccountHoldingsSource,
     private val subscriptionRepository: SubscriptionRepository,
     private val currencyConversionService: CurrencyConversionService,
@@ -578,7 +580,7 @@ class TransactionDetailViewModel @Inject constructor(
     fun updateBillingCycle(cycle: String) {
         _uiState.update { it.copy(
             editableTransaction = it.editableTransaction?.copy(billingCycle = cycle),
-            isCustomCycle = cycle == "Custom"
+            isCustomCycle = com.ritesh.cashiro.utils.SubscriptionUtils.isCustom(cycle)
         ) }
     }
 
@@ -708,7 +710,14 @@ class TransactionDetailViewModel @Inject constructor(
 
         // Validate before saving
         if (toSave.amount <= BigDecimal.ZERO) {
-            _uiState.update { it.copy(errorMessage = "Amount must be positive") }
+            _uiState.update { it.copy(errorMessage = context.getString(R.string.err_amount_positive)) }
+            return
+        }
+        // A transfer moves money only once it knows where to
+        if (toSave.transactionType == TransactionType.TRANSFER && selectedTargetAccount == null &&
+            toSave.toAccountId == null && toSave.toAccount.isNullOrBlank()
+        ) {
+            _uiState.update { it.copy(errorMessage = context.getString(R.string.err_transfer_needs_target)) }
             return
         }
 
@@ -748,7 +757,7 @@ class TransactionDetailViewModel @Inject constructor(
                 receivedAmountEdited = false
 
                 // Sync with subscriptions if recurring
-                syncSubscriptionForTransaction(normalizedTransaction)
+                syncSubscriptionForTransaction(state.transaction, normalizedTransaction)
 
                 // Update existing transactions if checkbox is checked (fuzzy/contains match)
                 if (state.updateExistingTransactions && normalizedTransaction.merchantName.isNotBlank()) {
@@ -869,13 +878,26 @@ class TransactionDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value.transaction?.let { txn ->
                 try {
-                    val duplicate = txn.copy(
-                        id = 0,
-                        transactionHash = UUID.randomUUID().toString(),
-                        createdAt = LocalDateTime.now(),
-                        updatedAt = LocalDateTime.now()
+                    // A new entry dated now, written the way the add screen writes one, so it
+                    // moves the same balances as the original
+                    val target = txn.toAccountId?.let { id -> availableAccounts.value.firstOrNull { it.accountId == id } }
+                    addTransactionUseCase.execute(
+                        amount = txn.amount,
+                        merchant = txn.merchantName,
+                        category = txn.category,
+                        subcategory = txn.subcategory,
+                        type = txn.transactionType,
+                        date = LocalDateTime.now(),
+                        notes = txn.description,
+                        bankName = txn.bankName?.takeIf { txn.accountNumber != null },
+                        accountLast4 = txn.accountNumber,
+                        currency = txn.currency,
+                        targetAccountBankName = target?.bankName,
+                        targetAccountLast4 = target?.accountLast4,
+                        targetAmount = txn.toAmount,
+                        targetCurrency = txn.toCurrency,
+                        createSubscription = false
                     )
-                    transactionRepository.insertTransaction(duplicate)
                     _uiState.update { it.copy(duplicateSuccess = true) }
                 } catch (e: Exception) {
                     _uiState.update { it.copy(errorMessage = "Failed to duplicate transaction") }
@@ -888,54 +910,50 @@ class TransactionDetailViewModel @Inject constructor(
         _uiState.update { it.copy(duplicateSuccess = false) }
     }
 
-    private suspend fun syncSubscriptionForTransaction(transaction: TransactionEntity) {
-        if (transaction.isRecurring) {
-            val existing = subscriptionRepository.matchTransactionToSubscription(
-                transaction.merchantName,
-                transaction.amount
-            )
+    /**
+     * Keeps the subscription in step with a recurring transaction. Only a transaction that is or
+     * was recurring touches one, matched by what it was before the edit: fixing the category of
+     * an ordinary payment must not hide a subscription that happens to share merchant and amount.
+     */
+    private suspend fun syncSubscriptionForTransaction(original: TransactionEntity?, transaction: TransactionEntity) {
+        val wasRecurring = original?.isRecurring == true
+        if (!wasRecurring && !transaction.isRecurring) return
+        val existing = original?.takeIf { wasRecurring }?.let {
+            subscriptionRepository.matchTransactionToSubscription(it.merchantName, it.amount)
+        } ?: subscriptionRepository.matchTransactionToSubscription(transaction.merchantName, transaction.amount)
 
-            val nextPaymentDate = SubscriptionUtils.calculateNextPaymentDate(
-                (transaction.dateTime ?: LocalDateTime.now()).toLocalDate(),
-                transaction.billingCycle
-            )
-
-            val subscription = existing?.copy(
-                amount = transaction.amount,
-                nextPaymentDate = nextPaymentDate,
-                category = transaction.category,
-                subcategory = transaction.subcategory,
-                bankName = transaction.bankName,
-                currency = transaction.currency,
-                billingCycle = transaction.billingCycle,
-                state = SubscriptionState.ACTIVE,
-                updatedAt = LocalDateTime.now()
-            )
-                ?: SubscriptionEntity(
-                    merchantName = transaction.merchantName,
-                    amount = transaction.amount,
-                    nextPaymentDate = nextPaymentDate,
-                    state = SubscriptionState.ACTIVE,
-                    bankName = transaction.bankName,
-                    category = transaction.category,
-                    subcategory = transaction.subcategory,
-                    currency = transaction.currency,
-                    billingCycle = transaction.billingCycle,
-                    createdAt = LocalDateTime.now(),
-                    updatedAt = LocalDateTime.now()
-                )
-            subscriptionRepository.insertSubscription(subscription)
-        } else {
-            // Find existing matching subscription and hide it
-            val existing = subscriptionRepository.matchTransactionToSubscription(
-                transaction.merchantName,
-                transaction.amount
-            )
-            if (existing != null) {
-                subscriptionRepository.hideSubscription(existing.id)
-            }
+        if (!transaction.isRecurring) {
+            existing?.let { subscriptionRepository.hideSubscription(it.id) }
+            return
         }
+        val fromThis = SubscriptionUtils.calculateNextPaymentDate(transaction.dateTime.toLocalDate(), transaction.billingCycle)
+        // Editing an older charge must not pull the next payment back
+        val nextPaymentDate = existing?.nextPaymentDate?.takeIf { it.isAfter(fromThis) } ?: fromThis
+        val subscription = existing?.copy(
+            merchantName = transaction.merchantName,
+            amount = transaction.amount,
+            nextPaymentDate = nextPaymentDate,
+            category = transaction.category,
+            subcategory = transaction.subcategory,
+            bankName = transaction.bankName,
+            currency = transaction.currency,
+            billingCycle = transaction.billingCycle,
+            state = SubscriptionState.ACTIVE,
+            updatedAt = LocalDateTime.now()
+        ) ?: SubscriptionEntity(
+            merchantName = transaction.merchantName,
+            amount = transaction.amount,
+            nextPaymentDate = nextPaymentDate,
+            state = SubscriptionState.ACTIVE,
+            bankName = transaction.bankName,
+            category = transaction.category,
+            subcategory = transaction.subcategory,
+            currency = transaction.currency,
+            billingCycle = transaction.billingCycle,
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
+        )
+        subscriptionRepository.insertSubscription(subscription)
     }
-
 
 }

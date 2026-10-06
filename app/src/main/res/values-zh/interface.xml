@@ -231,4 +231,11 @@
     <string name="cloud_restore_confirm_text">本机所有数据会被 %1$s 替换。恢复前会先在本机保留一份当前数据。</string>
     <string name="cloud_restore_confirm">恢复</string>
     <string name="ai_key_not_persisted">本机无法加密保存 key，它只会保留到 App 关闭为止。</string>
+    <string name="err_transfer_needs_target">请选择转入的账户</string>
+    <string name="cycle_unit_day">天</string>
+    <string name="cycle_unit_week">周</string>
+    <string name="cycle_unit_month">个月</string>
+    <string name="cycle_unit_year">年</string>
+    <string name="cycle_every">每 %1$d %2$s</string>
+    <string name="cycle_with_monthly">%1$s，约 %2$s/月</string>
 </resources>

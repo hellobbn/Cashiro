@@ -61,8 +61,9 @@ class TransactionEditor @Inject constructor(private val database: CashiroDatabas
             linked.forEach { balances.deleteBalanceById(it.id) }
             database.transactionDao().updateTransaction(saved)
 
-            // A transaction that never moved a balance only starts to once it is given an account
-            if (saved.isDeleted || (linked.isEmpty() && !accountChanged) || account == null) return@withTransaction
+            // With an account, the edited transaction always moves its balance, even one that had
+            // no rows before (a copy, or a transfer saved without a target)
+            if (saved.isDeleted || account == null) return@withTransaction
 
             when (saved.transactionType) {
                 TransactionType.BALANCE_UPDATE -> Unit

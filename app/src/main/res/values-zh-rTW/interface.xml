@@ -246,4 +246,18 @@
     <string name="cloud_restore_confirm_text">本機所有資料會被 %1$s 取代。還原前會先在本機保留一份目前資料。</string>
     <string name="cloud_restore_confirm">還原</string>
     <string name="ai_key_not_persisted">本機無法加密儲存 key，它只會保留到 App 關閉為止。</string>
+    <string name="err_amount_positive">金額必須大於 0</string>
+    <string name="err_transfer_needs_target">請選擇轉入的帳戶</string>
+    <string name="cycle_unit_day">天</string>
+    <string name="cycle_unit_week">週</string>
+    <string name="cycle_unit_month">個月</string>
+    <string name="cycle_unit_year">年</string>
+    <string name="cycle_every">每 %1$d %2$s</string>
+    <string name="cycle_with_monthly">%1$s，約 %2$s/月</string>
+    <string name="cycle_monthly">每月</string>
+    <string name="cycle_quarterly">每季</string>
+    <string name="cycle_semi_annual">每半年</string>
+    <string name="cycle_annual">每年</string>
+    <string name="cycle_weekly">每週</string>
+    <string name="cycle_custom">自訂</string>
 </resources>

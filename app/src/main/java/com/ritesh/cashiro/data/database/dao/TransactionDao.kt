@@ -250,14 +250,22 @@ interface TransactionDao {
             endDate: LocalDateTime
     ): List<TransactionEntity>
 
+    /**
+     * An account's transactions: by its id, the side it is on; older rows without ids by exact
+     * name and last 4, or by the balance rows they wrote. Every wallet's last 4 is "wallet", so
+     * matching a transfer's target by last 4 alone listed it under every wallet.
+     */
     @Query(
             """
         SELECT * FROM transactions
         WHERE is_deleted = 0
         AND (
-            (bank_name = :bankName AND (account_number = :accountLast4 OR account_number IS NULL))
-            OR
-            (transaction_type = 'TRANSFER' AND to_account = :accountLast4)
+            account_id = (SELECT id FROM accounts WHERE name = :bankName AND last4 = :accountLast4)
+            OR to_account_id = (SELECT id FROM accounts WHERE name = :bankName AND last4 = :accountLast4)
+            OR (account_id IS NULL AND bank_name = :bankName AND account_number = :accountLast4)
+            OR (to_account_id IS NULL AND EXISTS (
+                SELECT 1 FROM account_balances ab WHERE ab.transaction_id = transactions.id
+                AND ab.bank_name = :bankName AND ab.account_last4 = :accountLast4))
         )
         ORDER BY date_time DESC
     """

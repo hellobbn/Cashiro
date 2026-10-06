@@ -142,7 +142,8 @@ fun SubscriptionTabContent(
         subcategories.find { it.name == uiState.subcategory }
     }
 
-    val billingCycles = listOf(stringResource(R.string.cycle_monthly), stringResource(R.string.cycle_quarterly), stringResource(R.string.cycle_semi_annual), stringResource(R.string.cycle_annual), stringResource(R.string.cycle_weekly), stringResource(R.string.cycle_custom))
+    // Stored as keys, shown translated: a saved label would not be understood when computing dates
+    val billingCycles = com.ritesh.cashiro.utils.SubscriptionUtils.CYCLE_KEYS
     val scrollState = rememberScrollState()
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -238,7 +239,7 @@ fun SubscriptionTabContent(
                         modifier = Modifier.weight(1f)
                     ) {
                         TextField(
-                            value = uiState.billingCycle,
+                            value = if (uiState.billingCycle.isBlank()) "" else com.ritesh.cashiro.presentation.ui.components.billingCycleLabel(uiState.billingCycle),
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(stringResource(R.string.billing_cycle_label)) },
@@ -276,7 +277,7 @@ fun SubscriptionTabContent(
                                 val isLastItem = index == billingCycles.lastIndex
                                 val isMiddleItem = !isFirstItem && !isLastItem
                                 DropdownMenuItem(
-                                    text = { Text(cycle) },
+                                    text = { Text(com.ritesh.cashiro.presentation.ui.components.billingCycleLabel(cycle)) },
                                     onClick = {
                                         viewModel.updateSubscriptionBillingCycle(cycle)
                                         showBillingCycleMenu = false

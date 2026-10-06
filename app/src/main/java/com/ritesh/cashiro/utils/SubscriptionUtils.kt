@@ -15,6 +15,30 @@ object SubscriptionUtils {
     private val MC = MathContext.DECIMAL64
     private val CUSTOM_CYCLE_UNITS = setOf("day", "week", "month", "year")
 
+    /** The cycles a subscription can have, as stored; screens show their translated names. */
+    val CYCLE_KEYS = listOf("Monthly", "Quarterly", "Semi-Annual", "Annual", "Weekly", "Custom")
+
+    // Cycles saved under their on-screen name before they were stored as keys
+    private val LEGACY_LABELS = mapOf(
+        "每月" to "monthly", "每季度" to "quarterly", "每半年" to "semi-annual", "每年" to "annual",
+        "每周" to "weekly", "每週" to "weekly", "自定义" to "custom", "自訂" to "custom",
+        "semi-annually" to "semi-annual", "yearly" to "annual"
+    )
+
+    /** A stored cycle as a lower-case key ("monthly", "custom_2_week_forever"…), old labels included. */
+    fun cycleKey(billingCycle: String?): String {
+        val raw = billingCycle?.trim().orEmpty()
+        if (raw.isEmpty()) return "monthly"
+        return LEGACY_LABELS[raw] ?: LEGACY_LABELS[raw.lowercase()] ?: raw.lowercase()
+    }
+
+    /** Whether [billingCycle] is (or is being set to) a custom cycle. */
+    fun isCustom(billingCycle: String?): Boolean = cycleKey(billingCycle).startsWith("custom")
+
+    /** The parts of a custom cycle: how many units, which unit; null for a standard one. */
+    fun customParts(billingCycle: String?): Pair<Long, String>? =
+        cycleKey(billingCycle).takeIf { it.startsWith("custom_") }?.let(::parseCustomCycle)?.let { it.count to it.unit }
+
     private data class CustomCycle(val count: Long, val unit: String, val endDate: String?)
 
     private fun parseCustomCycle(cycle: String): CustomCycle? {
@@ -25,7 +49,7 @@ object SubscriptionUtils {
     }
 
     fun formatBillingCycle(billingCycle: String?): String {
-        val cycle = billingCycle?.lowercase() ?: "monthly"
+        val cycle = cycleKey(billingCycle)
 
         if (cycle.startsWith("custom_")) {
             val (count, unit, _) = parseCustomCycle(cycle) ?: return "Monthly"
@@ -52,7 +76,7 @@ object SubscriptionUtils {
     }
 
     fun monthlyEquivalent(amount: BigDecimal, billingCycle: String?): BigDecimal {
-        val cycle = billingCycle?.lowercase() ?: "monthly"
+        val cycle = cycleKey(billingCycle)
 
         if (cycle.startsWith("custom_")) {
             val (count, unit, _) = parseCustomCycle(cycle) ?: return amount
@@ -84,7 +108,7 @@ object SubscriptionUtils {
         billingCycle: String?
     ): LocalDate {
         val today = LocalDate.now()
-        val cycle = billingCycle?.lowercase() ?: "monthly"
+        val cycle = cycleKey(billingCycle)
         
         val custom = if (cycle.startsWith("custom_")) parseCustomCycle(cycle) else null
         if (custom != null) {

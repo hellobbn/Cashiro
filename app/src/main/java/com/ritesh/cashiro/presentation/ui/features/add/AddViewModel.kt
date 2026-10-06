@@ -787,7 +787,7 @@ constructor(
             currentState.copy(
                 billingCycle = cycle, 
                 billingCycleError = null,
-                isCustomCycle = cycle == "Custom"
+                isCustomCycle = com.ritesh.cashiro.utils.SubscriptionUtils.isCustom(cycle)
             )
         }
     }
