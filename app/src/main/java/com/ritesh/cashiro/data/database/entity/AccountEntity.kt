@@ -15,7 +15,7 @@ import java.time.LocalDateTime
  */
 @Entity(
     tableName = "accounts",
-    indices = [Index(value = ["name", "last4"], unique = true)]
+    indices = [Index(value = ["sync_id"]), Index(value = ["name", "last4"], unique = true)]
 )
 data class AccountEntity(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
@@ -34,12 +34,16 @@ data class AccountEntity(
     // A credit card's statement closing day and payment due day, as days of the month (1–31;
     // a short month uses its last day)
     @ColumnInfo(name = "statement_day") val statementDay: Int? = null,
-    @ColumnInfo(name = "due_day") val dueDay: Int? = null
+    @ColumnInfo(name = "due_day") val dueDay: Int? = null,
+    // Sync identity and last local change (epoch millis), kept by SyncTriggers; see docs/sync.md
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String = "",
+    @ColumnInfo(name = "sync_updated_at", defaultValue = "0") val syncUpdatedAt: Long = 0
 )
 
 /** A currency an account holds. Added, never removed. */
 @Entity(
     tableName = "account_currencies",
+    indices = [Index(value = ["sync_id"])],
     primaryKeys = ["account_id", "currency"],
     foreignKeys = [
         ForeignKey(
@@ -55,5 +59,8 @@ data class AccountCurrencyEntity(
     @ColumnInfo(name = "currency") val currency: String,
     // A card limit of this currency alone; null shares the account's limit
     @ColumnInfo(name = "credit_limit") val creditLimit: BigDecimal? = null,
-    @ColumnInfo(name = "created_at") val createdAt: LocalDateTime = LocalDateTime.now()
+    @ColumnInfo(name = "created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
+    // Sync identity and last local change (epoch millis), kept by SyncTriggers; see docs/sync.md
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String = "",
+    @ColumnInfo(name = "sync_updated_at", defaultValue = "0") val syncUpdatedAt: Long = 0
 )

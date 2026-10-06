@@ -56,9 +56,11 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
             com.ritesh.cashiro.data.database.entity.LendBorrowTransactionEntity::class,
             com.ritesh.cashiro.data.database.entity.QuickTemplateEntity::class,
             com.ritesh.cashiro.data.database.entity.AccountEntity::class,
-            com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity::class
+            com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity::class,
+            com.ritesh.cashiro.data.database.entity.SyncOutboxEntity::class,
+            com.ritesh.cashiro.data.database.entity.SyncControlEntity::class
         ],
-        version = 70,
+        version = 71,
     exportSchema = true,
     autoMigrations =
         [
@@ -99,6 +101,7 @@ abstract class CashiroDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
     abstract fun lendBorrowDao(): com.ritesh.cashiro.data.database.dao.LendBorrowDao
     abstract fun quickTemplateDao(): com.ritesh.cashiro.data.database.dao.QuickTemplateDao
+    abstract fun syncDao(): com.ritesh.cashiro.data.database.dao.SyncDao
 
     companion object {
         const val DATABASE_NAME = "pennywise_database"
@@ -132,6 +135,7 @@ abstract class CashiroDatabase : RoomDatabase() {
             MIGRATION_66_67,
             MIGRATION_67_68,
             MIGRATION_68_69,
+            MIGRATION_70_71,
         )
     }
 }

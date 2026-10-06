@@ -2,13 +2,14 @@ package com.ritesh.cashiro.data.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-@Entity(tableName = "subscriptions")
+@Entity(tableName = "subscriptions", indices = [Index(value = ["sync_id"])])
 data class SubscriptionEntity(
         @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
         @ColumnInfo(name = "merchant_name") val merchantName: String,
@@ -26,7 +27,10 @@ data class SubscriptionEntity(
         @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "CNY",
         @ColumnInfo(name = "billing_cycle") val billingCycle: String? = null,
         @ColumnInfo(name = "last_paid_date") val lastPaidDate: LocalDate? = null,
-        @ColumnInfo(name = "is_sample", defaultValue = "0") val isSample: Boolean = false
+        @ColumnInfo(name = "is_sample", defaultValue = "0") val isSample: Boolean = false,
+        // Sync identity and last local change (epoch millis), kept by SyncTriggers; see docs/sync.md
+        @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String = "",
+        @ColumnInfo(name = "sync_updated_at", defaultValue = "0") val syncUpdatedAt: Long = 0
 )
 
 enum class SubscriptionState {

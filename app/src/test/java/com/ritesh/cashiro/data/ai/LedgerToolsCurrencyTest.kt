@@ -7,6 +7,7 @@ import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.data.currency.ExchangeRateProvider
 import com.ritesh.cashiro.data.currency.ExchangeRateResponseWithMetadata
 import com.ritesh.cashiro.data.database.CashiroDatabase
+import com.ritesh.cashiro.data.database.SyncTriggers
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.ExchangeRateEntity
@@ -48,7 +49,7 @@ class LedgerToolsCurrencyTest {
 
     @Before fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, CashiroDatabase::class.java).allowMainThreadQueries().build()
+        db = Room.inMemoryDatabaseBuilder(context, CashiroDatabase::class.java).addCallback(SyncTriggers.Callback).allowMainThreadQueries().build()
         balances = AccountBalanceRepository(db.accountBalanceDao(), context)
         val transactions = TransactionRepository(db.transactionDao(), balances)
         val offline = object : ExchangeRateProvider {

@@ -6,6 +6,8 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ritesh.cashiro.data.database.CashiroDatabase
 import com.ritesh.cashiro.data.database.DatabaseCallback
+import com.ritesh.cashiro.data.database.SyncTriggers
+import com.ritesh.cashiro.data.database.dao.SyncDao
 
 import com.ritesh.cashiro.data.database.dao.AccountBalanceDao
 import com.ritesh.cashiro.data.database.dao.BudgetDao
@@ -53,6 +55,8 @@ object DatabaseModule {
                 // Enable auto-migrations
                 // Room will automatically detect schema changes between versions
 
+                // Sync change capture first, so the seeded rows are captured too (docs/sync.md)
+                .addCallback(SyncTriggers.Callback)
                 // Add callback to seed default data on first creation
                 .addCallback(DatabaseCallback(context))
                 .build()
@@ -160,4 +164,8 @@ object DatabaseModule {
     fun provideQuickTemplateDao(database: CashiroDatabase): com.ritesh.cashiro.data.database.dao.QuickTemplateDao {
         return database.quickTemplateDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideSyncDao(database: CashiroDatabase): SyncDao = database.syncDao()
 }

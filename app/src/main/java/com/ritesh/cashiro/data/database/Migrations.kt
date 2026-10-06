@@ -1592,3 +1592,39 @@ class Migration46To47 : AutoMigrationSpec {
 )
 @RenameColumn(tableName = "subscriptions", fromColumnName = "sms_body", toColumnName = "notes")
 class Migration69To70 : AutoMigrationSpec
+
+/**
+ * 70 -> 71: groundwork for multi-device sync (docs/sync.md). Every synced table gets a sync id
+ * (filled in for every row here) and the time of its last local change; the outbox, its switch
+ * and the triggers that fill the outbox are added. Existing rows are not queued: the first sync
+ * uploads everything anyway.
+ */
+val MIGRATION_70_71 =
+    object : Migration(70, 71) {
+        // The synced tables of version 71, fixed here whatever later versions add
+        private val tables = listOf(
+            "accounts", "account_currencies", "account_balances", "transactions", "categories",
+            "subcategories", "cards", "budgets", "budget_category_limits", "subscriptions",
+            "lend_borrow_persons", "lend_borrow_transactions", "quick_templates",
+        )
+
+        override fun migrate(db: SupportSQLiteDatabase) {
+            tables.forEach { table ->
+                db.execSQL("ALTER TABLE `$table` ADD COLUMN `sync_id` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `$table` ADD COLUMN `sync_updated_at` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL(
+                    "UPDATE `$table` SET sync_id = ${SyncTriggers.NEW_ID_SQL}, sync_updated_at = ${SyncTriggers.NOW_SQL}"
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_${table}_sync_id` ON `$table` (`sync_id`)")
+            }
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `sync_outbox` (`table_name` TEXT NOT NULL, `sync_id` TEXT NOT NULL, " +
+                    "`op` TEXT NOT NULL, `queued_at` INTEGER NOT NULL, PRIMARY KEY(`table_name`, `sync_id`))"
+            )
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `sync_control` (`id` INTEGER NOT NULL, `applying_remote` INTEGER " +
+                    "NOT NULL DEFAULT 0, `capturing` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))"
+            )
+            SyncTriggers.install(db, tables)
+        }
+    }

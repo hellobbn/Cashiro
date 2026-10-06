@@ -3,6 +3,7 @@ package com.ritesh.cashiro.data.repository
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.ritesh.cashiro.data.database.CashiroDatabase
+import com.ritesh.cashiro.data.database.SyncTriggers
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
@@ -28,7 +29,7 @@ class TransactionEditorTest {
 
     @Before fun setUp() {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), CashiroDatabase::class.java)
-            .allowMainThreadQueries().build()
+            .addCallback(SyncTriggers.Callback).allowMainThreadQueries().build()
         editor = TransactionEditor(db)
     }
 

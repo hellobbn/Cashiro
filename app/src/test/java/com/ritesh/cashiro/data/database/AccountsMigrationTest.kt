@@ -96,7 +96,7 @@ class AccountsMigrationTest {
 
         val db = Room.databaseBuilder(context, CashiroDatabase::class.java, name)
             .addMigrations(*CashiroDatabase.MIGRATIONS)
-            .allowMainThreadQueries()
+            .addCallback(SyncTriggers.Callback).allowMainThreadQueries()
             .build()
         try {
             val accounts = db.accountDao().getAccounts().associateBy { it.name }

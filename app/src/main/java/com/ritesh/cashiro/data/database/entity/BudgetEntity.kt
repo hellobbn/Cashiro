@@ -2,6 +2,7 @@ package com.ritesh.cashiro.data.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -10,7 +11,7 @@ import java.time.LocalDateTime
  * Entity representing a monthly budget.
  * Users can create multiple budgets, each tied to a specific month and year.
  */
-@Entity(tableName = "budgets")
+@Entity(tableName = "budgets", indices = [Index(value = ["sync_id"])])
 data class BudgetEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
@@ -63,7 +64,10 @@ data class BudgetEntity(
     val color: String = "#4CAF50",
 
     @ColumnInfo(name = "is_sample", defaultValue = "0")
-    val isSample: Boolean = false
+    val isSample: Boolean = false,
+    // Sync identity and last local change (epoch millis), kept by SyncTriggers; see docs/sync.md
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String = "",
+    @ColumnInfo(name = "sync_updated_at", defaultValue = "0") val syncUpdatedAt: Long = 0
 )
 
 enum class BudgetPeriod {

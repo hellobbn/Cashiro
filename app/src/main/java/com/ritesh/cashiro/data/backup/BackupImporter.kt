@@ -45,6 +45,7 @@ class BackupImporter @Inject constructor(
         .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
         .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
         .registerTypeAdapter(BigDecimal::class.java, BigDecimalTypeAdapter())
+        .registerTypeAdapterFactory(SyncIdDefaultsFactory())
         .create()
     
     /**
@@ -301,9 +302,10 @@ class BackupImporter @Inject constructor(
                 val accountIds = importAccounts(backup.database, keepIds = false)
 
                 // Get existing data for duplicate checking
-                val existingTransactionsMap = database.transactionDao()
-                    .getAllTransactions().first()
-                    .associateBy { it.transactionHash }
+                val existingTransactions = database.transactionDao().getAllTransactions().first()
+                val existingTransactionsMap = existingTransactions.associateBy { it.transactionHash }
+                // The same record edited elsewhere has another hash but keeps its sync id
+                val existingBySyncId = existingTransactions.filter { it.syncId.isNotEmpty() }.associateBy { it.syncId }
                 
                 val existingCategories = database.categoryDao()
                     .getAllCategories().first()
@@ -350,6 +352,7 @@ class BackupImporter @Inject constructor(
                 backup.database.transactions.forEach { backupTxn ->
                     val sanitizedTxn = backupTxn.sanitize().withAccounts(accountIds)
                     val existingTxn = existingTransactionsMap[sanitizedTxn.transactionHash]
+                        ?: sanitizedTxn.syncId.takeIf { it.isNotEmpty() }?.let { existingBySyncId[it] }
                     if (existingTxn == null) {
                         // New transaction, insert it
                         val newTransaction = sanitizedTxn.copy(id = 0)
@@ -380,7 +383,8 @@ class BackupImporter @Inject constructor(
                         }
  
                         if (shouldUpdate) {
-                            val updatedTxn = sanitizedTxn.copy(id = existingTxn.id)
+                            // A record keeps its own sync id; the triggers would restore it anyway
+                            val updatedTxn = sanitizedTxn.copy(id = existingTxn.id, syncId = existingTxn.syncId)
                             database.transactionDao().updateTransaction(updatedTxn)
                             importedTransactions++
                         } else {
@@ -477,7 +481,8 @@ class BackupImporter @Inject constructor(
     /**
      * Brings a backup's accounts and their currencies in, before its transactions and balances,
      * and returns each backup account id's id here. An account already here (same name and
-     * last 4) is kept as it is and gains the backup's currencies.
+     * last 4) is kept as it is and gains the backup's currencies. (Matched by name, not sync id:
+     * balance rows still name their account. One whose sync id is taken here gets a new one.)
      */
     private suspend fun importAccounts(snapshot: DatabaseSnapshot, keepIds: Boolean): Map<Long, Long> {
         val dao = database.accountDao()
