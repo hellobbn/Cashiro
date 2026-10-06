@@ -74,42 +74,20 @@ class AccountDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun cardStatus(dates: com.ritesh.cashiro.domain.model.CardDates, latest: AccountBalanceEntity): CardStatus? {
-        val cycle = com.ritesh.cashiro.domain.model.CardCycle
-        val today = java.time.LocalDate.now()
-        val dueDay = dates.dueDay ?: return null
-        val statementDay = dates.statementDay ?: return CardStatus(cycle.nextDue(dueDay, today), null, null, null)
-        val closing = cycle.lastClosing(statementDay, today)
-        val due = cycle.dueAfter(closing, dueDay, statementDay)
-        val closedAt = closing.atTime(java.time.LocalTime.MAX)
-        val statement = accountBalanceRepository.getLatestBalanceOnOrBefore(bankName, accountLast4, closedAt, latest.currency)
-            ?.balance?.coerceAtLeast(BigDecimal.ZERO)
-        val nextBill = {
-            val next = cycle.nextClosing(statementDay, today)
-            CardStatus(cycle.dueAfter(next, dueDay, statementDay), next, null, null)
-        }
-        // Nothing recorded by the closing date: only the next bill is known
-        statement ?: return nextBill()
-        // What was paid onto the card since the statement closed, in its currency
-        val paid = transactionRepository.getTransactionsByAccount(bankName, accountLast4).first()
-            .filter { it.dateTime.isAfter(closedAt) && !it.isDeleted }
-            .sumOf { tx ->
-                val ontoCard = when (tx.transactionType) {
-                    TransactionType.INCOME, TransactionType.BORROWED -> tx.accountId == latest.accountId
-                    TransactionType.TRANSFER -> tx.toAccountId == latest.accountId && tx.accountId != latest.accountId
-                    else -> false
-                }
-                val currency = if (tx.transactionType == TransactionType.TRANSFER) tx.toCurrency ?: tx.currency else tx.currency
-                val amount = if (tx.transactionType == TransactionType.TRANSFER) tx.toAmount ?: tx.amount else tx.amount
-                if (ontoCard && currency == latest.currency) amount else BigDecimal.ZERO
+    private suspend fun cardStatus(dates: com.ritesh.cashiro.domain.model.CardDates, latest: AccountBalanceEntity): CardStatus? =
+        cardStatus(
+            dates,
+            java.time.LocalDate.now(),
+            statementAt = { closedAt ->
+                accountBalanceRepository.getLatestBalanceOnOrBefore(bankName, accountLast4, closedAt, latest.currency)?.balance
+            },
+            paidSince = { closedAt ->
+                paidOntoCard(
+                    transactionRepository.getTransactionsByAccount(bankName, accountLast4).first(),
+                    latest.accountId, latest.currency, closedAt
+                )
             }
-        val remaining = (statement - paid).coerceAtLeast(BigDecimal.ZERO)
-        if (today.isAfter(due)) {
-            // A past bill stays in view until it is paid off
-            return if (remaining.signum() > 0) CardStatus(due, closing, statement, remaining, overdue = true) else nextBill()
-        }
-        return CardStatus(due, closing, statement, remaining)
-    }
+        )
     
     private fun loadAccountData() {
         _uiState.update { it.copy(
@@ -300,3 +278,53 @@ class AccountDetailViewModel @Inject constructor(
         return CurrencyFormatter.getBankBaseCurrency(bankName)
     }
 }
+
+/**
+ * The bill of a card with [dates] on [today]: the last statement ([statementAt] its closing
+ * time; what was owed then) less what was paid onto the card since ([paidSince]). A bill past
+ * its due date stays shown until paid off; with no statement day only the due date is known.
+ */
+internal suspend fun cardStatus(
+    dates: com.ritesh.cashiro.domain.model.CardDates,
+    today: java.time.LocalDate,
+    statementAt: suspend (java.time.LocalDateTime) -> BigDecimal?,
+    paidSince: suspend (java.time.LocalDateTime) -> BigDecimal
+): CardStatus? {
+    val cycle = com.ritesh.cashiro.domain.model.CardCycle
+    val dueDay = dates.dueDay ?: return null
+    val statementDay = dates.statementDay ?: return CardStatus(cycle.nextDue(dueDay, today), null, null, null)
+    val closing = cycle.lastClosing(statementDay, today)
+    val due = cycle.dueAfter(closing, dueDay, statementDay)
+    val closedAt = closing.atTime(java.time.LocalTime.MAX)
+    val nextBill = {
+        val next = cycle.nextClosing(statementDay, today)
+        CardStatus(cycle.dueAfter(next, dueDay, statementDay), next, null, null)
+    }
+    // Nothing recorded by the closing date: only the next bill is known
+    val statement = statementAt(closedAt)?.coerceAtLeast(BigDecimal.ZERO) ?: return nextBill()
+    val remaining = (statement - paidSince(closedAt)).coerceAtLeast(BigDecimal.ZERO)
+    if (today.isAfter(due)) {
+        return if (remaining.signum() > 0) CardStatus(due, closing, statement, remaining, overdue = true) else nextBill()
+    }
+    return CardStatus(due, closing, statement, remaining)
+}
+
+/** What [transactions] paid onto card [cardId] after [after], in the card's [currency]. */
+internal fun paidOntoCard(
+    transactions: List<com.ritesh.cashiro.data.database.entity.TransactionEntity>,
+    cardId: Long?,
+    currency: String,
+    after: java.time.LocalDateTime
+): BigDecimal = transactions
+    .filter { it.dateTime.isAfter(after) && !it.isDeleted }
+    .sumOf { tx ->
+        val transfer = tx.transactionType == TransactionType.TRANSFER
+        val ontoCard = when (tx.transactionType) {
+            TransactionType.INCOME, TransactionType.BORROWED -> tx.accountId == cardId
+            TransactionType.TRANSFER -> tx.toAccountId == cardId && tx.accountId != cardId
+            else -> false
+        }
+        val txCurrency = if (transfer) tx.toCurrency ?: tx.currency else tx.currency
+        val amount = if (transfer) tx.toAmount ?: tx.amount else tx.amount
+        if (ontoCard && txCurrency == currency) amount else BigDecimal.ZERO
+    }
