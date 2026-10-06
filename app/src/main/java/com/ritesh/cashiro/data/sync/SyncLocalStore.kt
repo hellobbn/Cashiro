@@ -74,6 +74,30 @@ internal class SyncLocalStore(private val db: SupportSQLiteDatabase) {
 
     fun count(sql: String): Long = db.query(sql).use { if (it.moveToFirst()) it.getLong(0) else 0 }
 
+    /** One currency of one account, as balance rows name it. */
+    data class Pocket(val bankName: String, val accountLast4: String, val currency: String)
+
+    /** The pocket and stored time of balance row [rowId]. */
+    fun balancePlace(rowId: Long): Pair<Pocket, String>? =
+        db.query("SELECT bank_name, account_last4, currency, timestamp FROM account_balances WHERE rowid = ?", arrayOf<Any>(rowId))
+            .use { if (it.moveToFirst()) Pocket(it.getString(0), it.getString(1), it.getString(2)) to it.getString(3) else null }
+
+    /** The latest balance row of [pocket] strictly before [time] (stored form), as (time, balance). */
+    fun balanceBefore(pocket: Pocket, time: String): Pair<String, String>? =
+        db.query(
+            "SELECT timestamp, balance FROM account_balances WHERE bank_name = ? AND account_last4 = ? AND currency = ? " +
+                "AND timestamp < ? ORDER BY timestamp DESC, id DESC LIMIT 1",
+            arrayOf<Any>(pocket.bankName, pocket.accountLast4, pocket.currency, time)
+        ).use { if (it.moveToFirst()) it.getString(0) to it.getString(1) else null }
+
+    /** The earliest balance row of [pocket] at or after [time], as (time, balance). */
+    fun balanceFrom(pocket: Pocket, time: String): Pair<String, String>? =
+        db.query(
+            "SELECT timestamp, balance FROM account_balances WHERE bank_name = ? AND account_last4 = ? AND currency = ? " +
+                "AND timestamp >= ? ORDER BY timestamp ASC, id ASC LIMIT 1",
+            arrayOf<Any>(pocket.bankName, pocket.accountLast4, pocket.currency, time)
+        ).use { if (it.moveToFirst()) it.getString(0) to it.getString(1) else null }
+
     // ---- writing -------------------------------------------------------------------------
 
     /**

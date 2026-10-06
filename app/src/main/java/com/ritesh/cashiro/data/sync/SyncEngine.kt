@@ -98,6 +98,7 @@ class SyncEngine(
         var applied = 0
         var unreadable = 0
         val seen = mutableSetOf<String>()
+        touched.clear()
         while (true) {
             val page = remote.fetchAfter(cursorStore.cursor, pageSize)
             if (page.isEmpty()) break
@@ -111,6 +112,7 @@ class SyncEngine(
             if (page.size < pageSize) break
         }
         val retried = retryHeld()
+        replayTouchedBalances()
         val held = database.syncDao().inbox()
         PullResult(applied + retried, held.size, held.count { it.waitingFor == WAITING_VERSION }, unreadable, seen)
     }
@@ -200,6 +202,37 @@ class SyncEngine(
         return PageOutcome(applied, unreadable, waiting)
     }
 
+    /** Per pocket, the earliest stored time a remote balance change touched in this pull. */
+    private val touched = mutableMapOf<SyncLocalStore.Pocket, String>()
+
+    private fun touch(place: Pair<SyncLocalStore.Pocket, String>) {
+        val (pocket, time) = place
+        touched[pocket] = touched[pocket]?.let { minOf(it, time) } ?: time
+    }
+
+    /**
+     * Each balance row holds the balance after its change, worked out on the device that wrote it.
+     * Two devices adding to one account while apart each work from the balance they knew, so the
+     * rows they copy to each other disagree. After a pull, every pocket a remote balance row
+     * touched is worked out again from the row before the earliest touched time, the way a
+     * back-dated entry is (stopping at a balance calibration). It runs with capture on, so a row
+     * that changes is uploaded and every device ends on the same numbers.
+     */
+    private suspend fun replayTouchedBalances() {
+        if (touched.isEmpty()) return
+        val dao = database.accountBalanceDao()
+        val local = store
+        for ((pocket, time) in touched.toList()) {
+            val anchor = local.balanceBefore(pocket, time) ?: local.balanceFrom(pocket, time) ?: continue
+            val anchorTime = converters.toLocalDateTime(anchor.first) ?: continue
+            val anchorBalance = anchor.second.toBigDecimalOrNull() ?: continue
+            dao.recalculateBalancesAfter(pocket.bankName, pocket.accountLast4, anchorTime, anchorBalance, pocket.currency)
+        }
+        touched.clear()
+    }
+
+    private val converters = com.ritesh.cashiro.data.database.converter.Converters()
+
     private fun release(docId: String) = sql.execSQL("DELETE FROM sync_inbox WHERE doc_id = ?", arrayOf<Any>(docId))
 
     private fun apply(local: SyncLocalStore, record: Incoming): Applied {
@@ -207,6 +240,15 @@ class SyncEngine(
         if (record.version > SyncSchema.VERSION) return Applied.Waiting(WAITING_VERSION)
         // A change made here and not sent yet wins: it reaches the server later, so it is the last write
         if (local.pendingOp(table.name, record.syncId) != null) return Applied.Done
+        if (table.name == BALANCES) local.rowIdOf(table.name, record.syncId)?.let { row -> local.balancePlace(row)?.let(::touch) }
+        val result = applyRecord(local, table, record)
+        if (table.name == BALANCES && result == Applied.Done) {
+            local.rowIdOf(table.name, record.syncId)?.let { row -> local.balancePlace(row)?.let(::touch) }
+        }
+        return result
+    }
+
+    private fun applyRecord(local: SyncLocalStore, table: SyncSchema.Table, record: Incoming): Applied {
         if (record.deleted) {
             applyDelete(local, table, record.syncId, record.replacedBy)
             return Applied.Done
@@ -395,6 +437,7 @@ class SyncEngine(
 
     companion object {
         private const val TAG = "SyncEngine"
+        private const val BALANCES = "account_balances"
         private const val PUSH_BATCH = 400
         // Firestore commits at most 500 writes at once
         private const val WRITE_BATCH = 400

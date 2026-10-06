@@ -266,6 +266,33 @@ class SyncEngineTest {
         assertEquals(0, a.db.syncDao().pendingCount() + b.db.syncDao().pendingCount())
     }
 
+    @Test fun twoDevicesAddingToOneAccountApartEndOnTheSameRightBalance() = runTest {
+        val a = Device("a")
+        val b = Device("b").apply { shiftIds() }
+        val start = LocalDateTime.of(2026, 9, 1, 12, 0)
+        a.balances.insertBalance(
+            AccountBalanceEntity(bankName = "ICBC", accountLast4 = "1234", balance = BigDecimal("965"), timestamp = start, sourceType = "MANUAL", currency = "CNY")
+        )
+        a.sync(); b.sync()
+
+        // Both apart: each works from 965, so a writes 945 at 13:00 and b writes 915 at 14:00
+        a.add.execute(
+            amount = BigDecimal("20"), merchant = "Lunch", category = "Food", type = TransactionType.EXPENSE,
+            date = start.plusHours(1), bankName = "ICBC", accountLast4 = "1234", currency = "CNY"
+        )
+        b.add.execute(
+            amount = BigDecimal("50"), merchant = "Taxi", category = "Transport", type = TransactionType.EXPENSE,
+            date = start.plusHours(2), bankName = "ICBC", accountLast4 = "1234", currency = "CNY"
+        )
+
+        // Until every device has nothing left to send
+        repeat(4) { a.sync(); b.sync() }
+        assertEquals(mapOf("ICBC/CNY" to "895"), a.pockets())
+        assertEquals(a.pockets(), b.pockets())
+        assertEquals(a.payloads(), b.payloads())
+        assertEquals(0, a.db.syncDao().pendingCount() + b.db.syncDao().pendingCount())
+    }
+
     @Test fun aChildThatArrivesBeforeItsParentWaitsForIt() = runTest {
         val b = Device("b")
         val accountId = SyncIds.newId()

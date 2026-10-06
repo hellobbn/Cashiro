@@ -629,6 +629,13 @@ an ordinary edit of that record.
    references to local ids; write it by sync id: update the row that has it, else insert it
    (handling a natural-key clash as in [Duplicates](#duplicates)), or delete it.
 4. Retry held records, fetching missing parents as described above.
+5. Work balances out again. Every pocket (account, currency) that a remote balance row touched
+   is replayed with `recalculateBalancesAfter`. The replay starts from the pocket's row before
+   the earliest touched `timestamp`, or from the earliest row if there is none before it. It
+   runs the same way as for a back-dated entry, including stopping at a `BALANCE_CALIBRATION`
+   row. Capture is on, so rows whose value changes are queued and uploaded. Every device sees
+   the same transactions, so every device replays to the same numbers, and the second round
+   changes nothing.
 
 Remote data never goes through `AddTransactionUseCase`, `TransactionEditor` or the repository:
 balance rows are records like any other and are copied as they are, so no balance moves twice.
@@ -681,13 +688,26 @@ preferences, the AI provider and key, brokerage connections and tokens, exchange
 
 ### Limits and caveats
 
-- **Concurrent offline edits to one account's balance.** Balance rows are snapshots; two devices
-  that each add a transaction to the same account while apart each write a row computed from
-  the balance they saw. Both transactions sync, but the latest balance row (by time) wins, so
-  the balance can be off until the next change on that account or a calibration.
+- **Concurrent offline edits to one account's balance.** Balance rows are snapshots. Two devices
+  that each add to the same account while apart each write a row computed from the balance they
+  saw. Step 5 of [Pull](#pull) replays the pocket afterwards, so both end on the right balance.
+  - The replay writes, and uploads, every later row whose value changes, up to the next
+    calibration. A back-dated entry in an account that has never been calibrated can therefore
+    rewrite many rows and spend that many Firestore writes.
+  - Other clients (iOS) must replay the same way after applying remote balance rows, or their
+    numbers drift until the next change.
 - **Restoring a backup** while sync is on queues the restored state (phase 1, Backups), which
   then replaces the cloud's copy of those records.
 - Tombstones are never removed.
+- **Indexes.** Firestore indexes every field by default, and index entries count as stored data.
+  - `payload` is ciphertext that is never queried, and indexing it about doubles a record's
+    size, so `firestore.indexes.json` exempts it. Queries only use `updatedAt` and the document
+    id.
+  - Apply the file once per project, with either:
+    - `firebase deploy --only firestore:indexes`;
+    - Console → Firestore → Indexes → Single field → Add exemption: collection group `records`,
+      field `payload`, all indexes off.
+  - A record is then about 1 KB.
 - Firestore's free tier allows 20000 writes and 50000 reads a day; a first upload writes one
   document per row.
 
