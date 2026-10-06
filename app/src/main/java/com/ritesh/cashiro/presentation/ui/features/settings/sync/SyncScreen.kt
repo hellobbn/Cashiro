@@ -63,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -203,7 +204,8 @@ fun SyncScreen(
                                 state = state,
                                 wrong = wrongPassphrase,
                                 onEdit = viewModel::clearWrongPassphrase,
-                                onSubmit = { viewModel.submitPassphrase(it) }
+                                onSubmit = { viewModel.submitPassphrase(it) },
+                                onRetry = { viewModel.refresh() }
                             )
                             Stage.CHOICE -> {
                                 Row(
@@ -253,10 +255,25 @@ private fun PassphraseSection(
     wrong: Boolean,
     onEdit: () -> Unit,
     onSubmit: (String) -> Unit,
+    onRetry: () -> Unit,
 ) {
     val creating = state.passphraseExists == false
     if (state.passphraseExists == null) {
-        BusyRow(stringResource(R.string.sync_checking))
+        if (state.problem != null && !state.busy) {
+            Row(
+                icon = Icons.Rounded.ErrorOutline,
+                title = stringResource(R.string.sync_problem_title),
+                supporting = stringResource(problemText(state.problem)),
+                position = ListItemPosition.Single,
+                onClick = onRetry,
+                error = true
+            )
+            Button(onClick = onRetry, shapes = ButtonDefaults.shapes(), modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.sync_retry))
+            }
+        } else {
+            BusyRow(stringResource(R.string.sync_checking))
+        }
         return
     }
     var passphrase by rememberSaveable { mutableStateOf("") }
@@ -303,7 +320,7 @@ private fun PassphraseSection(
         isError = wrong || tooShort,
         supportingText = when {
             wrong -> { { Text(stringResource(R.string.sync_passphrase_wrong)) } }
-            tooShort -> { { Text(stringResource(R.string.sync_passphrase_too_short, MIN_PASSPHRASE)) } }
+            tooShort -> { { Text(pluralStringResource(R.plurals.sync_passphrase_too_short, MIN_PASSPHRASE, MIN_PASSPHRASE)) } }
             else -> null
         },
         trailingIcon = {
@@ -376,15 +393,7 @@ private fun StatusSection(state: SyncManager.State, onSyncNow: () -> Unit) {
             Row(
                 icon = Icons.Rounded.ErrorOutline,
                 title = stringResource(R.string.sync_problem_title),
-                supporting = stringResource(
-                    when (problem) {
-                        SyncProblem.NETWORK -> R.string.sync_problem_network
-                        SyncProblem.PERMISSION -> R.string.sync_problem_permission
-                        SyncProblem.UNREADABLE -> R.string.sync_problem_unreadable
-                        SyncProblem.NEWER_VERSION -> R.string.sync_problem_newer
-                        SyncProblem.OTHER -> R.string.sync_problem_other
-                    }
-                ),
+                supporting = stringResource(problemText(problem)),
                 position = position,
                 error = true
             )
@@ -407,6 +416,14 @@ private fun StatusSection(state: SyncManager.State, onSyncNow: () -> Unit) {
             Text(stringResource(R.string.sync_now))
         }
     }
+}
+
+private fun problemText(problem: SyncProblem): Int = when (problem) {
+    SyncProblem.NETWORK -> R.string.sync_problem_network
+    SyncProblem.PERMISSION -> R.string.sync_problem_permission
+    SyncProblem.UNREADABLE -> R.string.sync_problem_unreadable
+    SyncProblem.NEWER_VERSION -> R.string.sync_problem_newer
+    SyncProblem.OTHER -> R.string.sync_problem_other
 }
 
 @Composable

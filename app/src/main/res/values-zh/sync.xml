@@ -21,7 +21,9 @@
     <string name="sync_passphrase_warning">忘记同步密码后，任何人都无法读取云端数据，包括你自己。本机数据不受影响。</string>
     <string name="sync_passphrase">同步密码</string>
     <string name="sync_passphrase_confirm">再次输入密码</string>
-    <string name="sync_passphrase_too_short">至少需要 %1$d 个字符</string>
+    <plurals name="sync_passphrase_too_short">
+        <item quantity="other">至少需要 %1$d 个字符</item>
+    </plurals>
     <string name="sync_passphrase_mismatch">两次输入的密码不一致</string>
     <string name="sync_passphrase_wrong">同步密码不正确</string>
     <string name="sync_passphrase_show">显示密码</string>
@@ -48,6 +50,7 @@
     <string name="sync_problem_unreadable">部分记录无法解密：它们是用另一个同步密码写入的。</string>
     <string name="sync_problem_newer">部分记录来自更新版本的 Cashiro，请更新应用后再读取。</string>
     <string name="sync_problem_other">出了点问题，请稍后重试。</string>
+    <string name="sync_retry">重试</string>
     <string name="sync_now">立即同步</string>
     <string name="sync_done">同步完成</string>
     <string name="sync_failed">同步失败，联网后会自动重试。</string>

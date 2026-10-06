@@ -83,13 +83,9 @@ class SyncManager @Inject constructor(
     fun start() {
         if (started) return
         started = true
-        scope.launch {
-            // A session that ended elsewhere (account removed, signed out on this device's Google account)
-            if (backend.available && settings.account != null && backend.currentAccount()?.uid != settings.account?.uid) {
-                settings.clearAccount()
-            }
-            publish()
-        }
+        // A session that ended elsewhere shows as a permission problem on the next sync; signing
+        // out and in again fixes it. Nothing is cleared here, so a slow auth start costs nothing.
+        scope.launch { publish() }
         scope.launch {
             combine(database.syncDao().pendingCountFlow(), database.syncDao().inboxCountFlow()) { p, h -> p to h }
                 .collect { (pending, held) -> _state.update { it.copy(pending = pending, held = held) } }
@@ -106,8 +102,9 @@ class SyncManager @Inject constructor(
 
     fun onForeground() {
         foreground = true
-        if (!active) return
+        // Off the main thread: reading the key opens the keystore
         scope.launch {
+            if (!active) return@launch
             sync()
             listen()
         }
@@ -121,6 +118,7 @@ class SyncManager @Inject constructor(
         }
     }
 
+    @Synchronized
     private fun listen() {
         if (listener != null || !foreground) return
         val account = settings.account ?: return
@@ -128,6 +126,7 @@ class SyncManager @Inject constructor(
             .onFailure { Log.w(TAG, "Listening failed", it) }.getOrNull()
     }
 
+    @Synchronized
     private fun stopListening() {
         runCatching { listener?.close() }
         listener = null
@@ -199,6 +198,8 @@ class SyncManager @Inject constructor(
             publish()
             return
         }
+        settings.lastProblem = null
+        publish()
         _state.update { it.copy(passphraseExists = exists) }
     }
 

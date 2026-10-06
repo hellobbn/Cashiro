@@ -37,8 +37,11 @@ class SyncViewModel @Inject constructor(private val manager: SyncManager) : View
     val wrongPassphrase: StateFlow<Boolean> = _wrongPassphrase.asStateFlow()
 
     init {
-        viewModelScope.launch { manager.refreshPassphraseState() }
+        refresh()
     }
+
+    /** Looks up again whether the account has a passphrase (after a failure, e.g. offline). */
+    fun refresh() = viewModelScope.launch { manager.refreshPassphraseState() }
 
     fun signIn(activityContext: Context) = viewModelScope.launch {
         try {

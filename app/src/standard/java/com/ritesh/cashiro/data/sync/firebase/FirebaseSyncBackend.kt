@@ -7,6 +7,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.FirebaseApp
@@ -75,6 +76,9 @@ class FirebaseSyncBackend @Inject constructor(
             credentialManager.getCredential(activityContext, request).credential
         } catch (e: GetCredentialCancellationException) {
             throw SignInCancelledException()
+        } catch (e: NoCredentialException) {
+            // No Google account on the device (or none allowed)
+            throw SyncRemoteException(SyncProblem.OTHER, e)
         } catch (e: GetCredentialException) {
             throw SyncRemoteException(SyncProblem.OTHER, e)
         }
