@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.data.ai
 
+import com.ritesh.cashiro.R
+
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.android.Android
@@ -60,7 +62,20 @@ data class AiReply(
     val outputTokens: Int? = null
 )
 
-class AiException(message: String) : Exception(message)
+/**
+ * A failure to show the user. [res] (with [args]) is the localized text; [message] stays English
+ * for logs and tests.
+ */
+class AiException(
+    message: String,
+    @androidx.annotation.StringRes val res: Int = 0,
+    val args: List<Any> = emptyList()
+) : Exception(message)
+
+/** The text to show for a failed AI step, in the app's language when it is an [AiException]. */
+fun Throwable.aiMessage(context: android.content.Context): String =
+    (this as? AiException)?.takeIf { it.res != 0 }?.let { context.getString(it.res, *it.args.toTypedArray()) }
+        ?: message ?: javaClass.simpleName
 
 /**
  * A conversation with a cloud model over plain HTTP, in either protocol. Messages stay in the
@@ -155,7 +170,7 @@ class AiChat internal constructor(engine: HttpClientEngine) {
             if (fallbacks) header("anthropic-beta", "server-side-fallback-2026-07-01")
         }
         val stop = response["stop_reason"]?.jsonPrimitive?.contentOrNull
-        if (stop == "refusal") throw AiException("The model declined this request.")
+        if (stop == "refusal") throw AiException("The model declined this request.", R.string.ai_err_refused)
         val content = response["content"]?.jsonArray ?: JsonArray(emptyList())
         c.messages += buildJsonObject {
             put("role", "assistant")
@@ -239,8 +254,8 @@ class AiChat internal constructor(engine: HttpClientEngine) {
             header("Authorization", "Bearer ${c.config.apiKey}")
         }
         val choice = response["choices"]?.jsonArray?.firstOrNull()?.jsonObject
-            ?: throw AiException("The provider returned no answer.")
-        val message = choice["message"]?.jsonObject ?: throw AiException("The provider returned no answer.")
+            ?: throw AiException("The provider returned no answer.", R.string.ai_err_no_answer)
+        val message = choice["message"]?.jsonObject ?: throw AiException("The provider returned no answer.", R.string.ai_err_no_answer)
         c.messages += message
         val calls = message["tool_calls"]?.let { it as? JsonArray }.orEmpty().map { el ->
             val call = el.jsonObject
@@ -354,7 +369,7 @@ class AiChat internal constructor(engine: HttpClientEngine) {
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            throw AiException("Could not reach the provider: ${e.javaClass.simpleName}")
+            throw AiException("Could not reach the provider: ${e.javaClass.simpleName}", R.string.ai_err_unreachable, listOf(e.javaClass.simpleName))
         }
         val text = response.bodyAsText()
         val parsed = runCatching { json.parseToJsonElement(text).jsonObject }.getOrNull()
@@ -363,9 +378,10 @@ class AiChat internal constructor(engine: HttpClientEngine) {
                 (error as? JsonObject)?.get("message")?.jsonPrimitive?.contentOrNull
                     ?: (error as? JsonPrimitive)?.contentOrNull
             }
-            throw AiException("HTTP ${response.status.value}" + (message?.let { ": $it" } ?: ""))
+            val detail = "HTTP ${response.status.value}" + (message?.let { ": $it" } ?: "")
+            throw AiException(detail, R.string.ai_err_http, listOf(detail))
         }
-        return parsed ?: throw AiException("The provider sent a response that is not JSON.")
+        return parsed ?: throw AiException("The provider sent a response that is not JSON.", R.string.ai_err_not_json)
     }
 
     private val JsonObject.type get() = string("type")

@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
+import com.ritesh.cashiro.utils.DateFormats
+
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -244,11 +246,11 @@ fun SharedTransitionScope.BudgetDetailScreen(
                         val startDate = budgetWithSpending.budget.startDate
                         val endDate = budgetWithSpending.budget.endDate
                         val periodText = remember(startDate, endDate) {
-                            val periodFormatter = DateTimeFormatter.ofPattern("MMM d")
+                            val periodFormatter = DateFormats.monthDayFormatter()
                             if (startDate.year == endDate.year) {
                                 "${startDate.format(periodFormatter)} - ${endDate.format(periodFormatter)}, ${startDate.year}"
                             } else {
-                                val fullFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
+                                val fullFormatter = DateFormats.fullDateFormatter()
                                 "${startDate.format(fullFormatter)} - ${endDate.format(fullFormatter)}"
                             }
                         }

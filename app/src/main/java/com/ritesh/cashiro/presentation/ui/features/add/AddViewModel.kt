@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import com.ritesh.cashiro.utils.pickerDate
+
 import kotlinx.coroutines.flow.first
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import kotlinx.coroutines.Job
@@ -398,8 +400,7 @@ constructor(
     }
 
     fun updateTransactionDate(dateMillis: Long) {
-        val instant = Instant.ofEpochMilli(dateMillis)
-        val localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate()
+        val localDate = pickerDate(dateMillis)
         val currentTime = _transactionUiState.value.date.toLocalTime()
         val newDateTime = LocalDateTime.of(localDate, currentTime)
 
@@ -547,7 +548,7 @@ constructor(
                 _transactionUiState.update { currentState ->
                     currentState.copy(
                         isLoading = false,
-                        error = e.message ?: context.getString(R.string.err_save_transaction)
+                        error = context.getString(R.string.err_save_transaction)
                     )
                 }
             }
@@ -805,8 +806,7 @@ constructor(
     }
 
     fun updateSubscriptionNextPaymentDate(dateMillis: Long) {
-        val instant = Instant.ofEpochMilli(dateMillis)
-        val localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate()
+        val localDate = pickerDate(dateMillis)
 
         _subscriptionUiState.update { currentState ->
             currentState.copy(nextPaymentDate = localDate)
@@ -944,7 +944,7 @@ constructor(
                 _subscriptionUiState.update { currentState ->
                     currentState.copy(
                         isLoading = false,
-                        error = e.message ?: context.getString(R.string.err_save_subscription)
+                        error = context.getString(R.string.err_save_subscription)
                     )
                 }
             } finally {

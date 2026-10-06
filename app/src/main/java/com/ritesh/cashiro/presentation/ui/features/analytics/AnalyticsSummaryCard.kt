@@ -52,6 +52,8 @@ fun AnalyticsSummaryCard(
     topCategoryPercentage: Float,
     currency: String,
     isLoading: Boolean = false,
+    // Shown beside the total, never added to it
+    incomeAmount: BigDecimal? = null,
 ) {
     val alpha by animateFloatAsState(
         targetValue = if (isLoading) 0.5f else 1f,
@@ -82,11 +84,10 @@ fun AnalyticsSummaryCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.total_uppercase),
+                        text = stringResource(if (incomeAmount != null) R.string.analytics_spent else R.string.total_uppercase),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -102,6 +103,13 @@ fun AnalyticsSummaryCard(
                             iterations = Int.MAX_VALUE
                         )
                     )
+                    incomeAmount?.let {
+                        Text(
+                            text = stringResource(R.string.analytics_income_beside, CurrencyFormatter.formatCurrency(it, currency)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = com.ritesh.cashiro.presentation.ui.theme.moneyColors.income
+                        )
+                    }
                 }
                 // Transaction Count Box
                 Box(
@@ -157,8 +165,7 @@ fun AnalyticsSummaryCard(
                             text = stringResource(R.string.average),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            letterSpacing = 1.sp
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                         Row(verticalAlignment = Alignment.Bottom) {
                             Text(

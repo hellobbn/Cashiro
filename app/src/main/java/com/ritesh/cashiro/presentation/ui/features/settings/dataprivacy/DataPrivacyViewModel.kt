@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy
 
+import com.ritesh.cashiro.R
+
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -38,21 +40,21 @@ class DataPrivacyViewModel @Inject constructor(
     fun exportBackup(config: BackupConfiguration) {
         viewModelScope.launch {
             try {
-                _uiState.update { it.copy(importExportMessage = "Creating backup...") }
+                _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_backup_creating)) }
                 when (val result = backupExporter.exportBackup(config)) {
                     is ExportResult.Success -> {
                         _uiState.update { it.copy(
                             exportedBackupFile = result.file,
-                            importExportMessage = "Backup created successfully! Choose where to save it."
+                            importExportMessage = context.getString(R.string.msg_backup_created)
                         ) }
                     }
                     is ExportResult.Error -> {
-                        _uiState.update { it.copy(importExportMessage = "Export failed: ${result.message}") }
+                        _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_export_failed, result.message)) }
                     }
                     else -> {}
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(importExportMessage = "Export error: ${e.message}") }
+                _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_export_failed, e.message.orEmpty())) }
             }
         }
     }
@@ -71,12 +73,12 @@ class DataPrivacyViewModel @Inject constructor(
                         file.delete()
                     }
                     _uiState.update { it.copy(
-                        importExportMessage = "Backup saved successfully!",
+                        importExportMessage = context.getString(R.string.msg_backup_saved),
                         exportedBackupFile = null
                     ) }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(importExportMessage = "Failed to save backup: ${e.message}") }
+                _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_backup_save_failed, e.message.orEmpty())) }
             }
         }
     }
@@ -84,17 +86,17 @@ class DataPrivacyViewModel @Inject constructor(
     fun importBackup(uri: Uri) {
         viewModelScope.launch {
             try {
-                _uiState.update { it.copy(importExportMessage = "Importing backup...") }
+                _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_importing)) }
                 when (val result = backupImporter.importBackup(uri, ImportStrategy.MERGE)) {
                     is ImportResult.Success -> {
-                        _uiState.update { it.copy(importExportMessage = "Import successful! Imported ${result.importedTransactions} transactions, ${result.importedCategories} categories.") }
+                        _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_import_done, result.importedTransactions, result.importedCategories)) }
                     }
                     is ImportResult.Error -> {
-                        _uiState.update { it.copy(importExportMessage = "Import failed: ${result.message}") }
+                        _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_import_failed, result.message)) }
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(importExportMessage = "Import error: ${e.message}") }
+                _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_import_failed, e.message.orEmpty())) }
             }
         }
     }
@@ -102,21 +104,17 @@ class DataPrivacyViewModel @Inject constructor(
     fun importCashew(uri: Uri) {
         viewModelScope.launch {
             try {
-                _uiState.update { it.copy(importExportMessage = "Importing from Cashew...") }
+                _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_importing)) }
                 when (val result = cashewImporter.importCashew(uri)) {
                     is ImportResult.Success -> {
-                        val attachmentSuffix = if (result.importedAttachments > 0 || result.failedAttachments > 0) {
-                            ", ${result.importedAttachments} attachments" +
-                                (if (result.failedAttachments > 0) " (${result.failedAttachments} failed)" else "")
-                        } else ""
-                        _uiState.update { it.copy(importExportMessage = "Cashew import successful! Imported ${result.importedTransactions} transactions, ${result.importedCategories} categories$attachmentSuffix.") }
+                        _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_cashew_import_done, result.importedTransactions, result.importedCategories, result.importedAttachments, result.failedAttachments)) }
                     }
                     is ImportResult.Error -> {
-                        _uiState.update { it.copy(importExportMessage = "Cashew import failed: ${result.message}") }
+                        _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_import_failed, result.message)) }
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(importExportMessage = "Cashew import error: ${e.message}") }
+                _uiState.update { it.copy(importExportMessage = context.getString(R.string.msg_import_failed, e.message.orEmpty())) }
             }
         }
     }

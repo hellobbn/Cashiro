@@ -32,7 +32,33 @@ object DateFormats {
     fun dayTime(date: TemporalAccessor, locale: Locale = Locale.getDefault()): String =
         DateTimeFormatter.ofPattern(if (zh(locale)) "M月d日 HH:mm" else "MMM d, HH:mm", locale).format(date)
 
+    /** For code that takes a formatter: 9月1日 / Sep 1 */
+    fun monthDayFormatter(locale: Locale = Locale.getDefault()): DateTimeFormatter =
+        DateTimeFormatter.ofPattern(if (zh(locale)) "M月d日" else "MMM d", locale)
+
+    /** 2025年9月1日 / Sep 1, 2025 */
+    fun fullDateFormatter(locale: Locale = Locale.getDefault()): DateTimeFormatter =
+        DateTimeFormatter.ofPattern(if (zh(locale)) "yyyy年M月d日" else "MMM d, yyyy", locale)
+
+    /** 9月 / Sep */
+    fun monthFormatter(locale: Locale = Locale.getDefault()): DateTimeFormatter =
+        DateTimeFormatter.ofPattern(if (zh(locale)) "M月" else "MMM", locale)
+
+    /** 25年9月 / Sep 25 */
+    fun shortYearMonthFormatter(locale: Locale = Locale.getDefault()): DateTimeFormatter =
+        DateTimeFormatter.ofPattern(if (zh(locale)) "yy年M月" else "MMM yy", locale)
+
     /** 14:30 */
     fun time(date: TemporalAccessor, locale: Locale = Locale.getDefault()): String =
         DateTimeFormatter.ofPattern("HH:mm", locale).format(date)
 }
+
+/**
+ * Material date pickers work in UTC midnights. Hand them a day this way and read their
+ * choice back with [pickerDate], or a device west of UTC shows and saves the day before.
+ */
+fun LocalDate.toPickerMillis(): Long =
+    atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli()
+
+fun pickerDate(millis: Long): LocalDate =
+    java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneOffset.UTC).toLocalDate()

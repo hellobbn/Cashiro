@@ -162,7 +162,7 @@ fun CategorySelectionSheet(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No categories found",
+                    text = stringResource(R.string.no_categories_found),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

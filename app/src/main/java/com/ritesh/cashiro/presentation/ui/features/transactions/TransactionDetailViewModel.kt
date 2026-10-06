@@ -223,7 +223,7 @@ class TransactionDetailViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        markAsLoanError = e.localizedMessage ?: "Failed to link loan"
+                        markAsLoanError = context.getString(R.string.msg_link_loan_failed)
                     )
                 }
             }
@@ -259,7 +259,7 @@ class TransactionDetailViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         showUnmarkLoanConfirm = false,
-                        markAsLoanError = e.localizedMessage ?: "Failed to unlink loan"
+                        markAsLoanError = context.getString(R.string.msg_unlink_loan_failed)
                     )
                 }
             }
@@ -488,7 +488,7 @@ class TransactionDetailViewModel @Inject constructor(
                 toUpdate.forEach { transactionRepository.updateTransaction(it) }
                 _uiState.update { it.copy(showMatchPreviewSheet = false) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to update transactions: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_update_failed, e.message.orEmpty())) }
             }
         }
     }
@@ -504,7 +504,7 @@ class TransactionDetailViewModel @Inject constructor(
             _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(amount = amount), errorMessage = null) }
             refreshReceivedAmount()
         } else if (amountStr.isNotEmpty()) {
-            _uiState.update { it.copy(errorMessage = "Amount must be a positive number") }
+            _uiState.update { it.copy(errorMessage = context.getString(R.string.err_amount_positive)) }
         }
     }
 
@@ -784,7 +784,7 @@ class TransactionDetailViewModel @Inject constructor(
                 }
                 findLinkedSubscription(normalizedTransaction) // Refresh linked subscription
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to save changes: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_update_failed, e.message.orEmpty())) }
             } finally {
                 _uiState.update { it.copy(isSaving = false) }
             }
@@ -802,7 +802,7 @@ class TransactionDetailViewModel @Inject constructor(
     }
 
     private fun validateMerchantName(name: String) {
-        _uiState.update { it.copy(errorMessage = if (name.isBlank()) "Merchant name is required" else null) }
+        _uiState.update { it.copy(errorMessage = if (name.isBlank()) context.getString(R.string.msg_merchant_required) else null) }
     }
 
     /**
@@ -840,7 +840,7 @@ class TransactionDetailViewModel @Inject constructor(
                     transactionRepository.deleteTransaction(txn)
                     _uiState.update { it.copy(deleteSuccess = true) }
                 } catch (e: Exception) {
-                    _uiState.update { it.copy(errorMessage = "Failed to delete transaction") }
+                    _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_delete_failed)) }
                 } finally {
                     _uiState.update { it.copy(isDeleting = false) }
                 }
@@ -900,7 +900,7 @@ class TransactionDetailViewModel @Inject constructor(
                     )
                     _uiState.update { it.copy(duplicateSuccess = true) }
                 } catch (e: Exception) {
-                    _uiState.update { it.copy(errorMessage = "Failed to duplicate transaction") }
+                    _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_duplicate_failed)) }
                 }
             }
         }

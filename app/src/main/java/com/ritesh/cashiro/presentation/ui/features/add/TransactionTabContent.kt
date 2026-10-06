@@ -2,6 +2,11 @@
 
 package com.ritesh.cashiro.presentation.ui.features.add
 
+import com.ritesh.cashiro.utils.DateFormats
+
+import com.ritesh.cashiro.utils.pickerDate
+import com.ritesh.cashiro.utils.toPickerMillis
+
 import com.ritesh.cashiro.data.repository.LocalAccountHoldings
 import com.ritesh.cashiro.presentation.ui.components.AddCurrencyConfirmation
 import com.ritesh.cashiro.presentation.ui.components.AccountCurrencyChoice
@@ -321,7 +326,7 @@ fun TransactionTabContent(
                         Spacer(Modifier.size(8.dp))
 
                         val dateLabel =
-                            uiState.date.format(DateTimeFormatter.ofPattern("dd MMMM"))
+                            uiState.date.format(DateFormats.monthDayFormatter())
                         val yearLabel =
                             uiState.date.format(DateTimeFormatter.ofPattern("yyyy"))
                         Column(
@@ -362,10 +367,8 @@ fun TransactionTabContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.End
                     ) {
-                        val hour = if (uiState.date.hour % 12 == 0) 12 else uiState.date.hour % 12
+                        val hour = uiState.date.hour
                         val minute = uiState.date.minute
-                        val amPm = if (uiState.date.hour < 12) stringResource(R.string.am_lbl) else stringResource(R.string.pm_lbl)
-
                         Box(modifier = Modifier
                             .padding(5.dp)
                             .background(
@@ -407,15 +410,6 @@ fun TransactionTabContent(
                                 modifier = Modifier.padding(5.dp)
                             )
                         }
-
-                        Box(modifier = Modifier.padding(5.dp)) {
-                            Text(
-                                text = amPm,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
                     }
                 }
             }
@@ -455,7 +449,7 @@ fun TransactionTabContent(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = uiState.dueDate?.format(DateTimeFormatter.ofPattern("dd MMMM, yyyy"))
+                                text = uiState.dueDate?.format(DateFormats.fullDateFormatter())
                                     ?: stringResource(R.string.no_due_date),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (uiState.dueDate != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -482,19 +476,14 @@ fun TransactionTabContent(
 
                 if (showDueDatePicker) {
                     val dueDatePickerState = rememberDatePickerState(
-                        initialSelectedDateMillis = (uiState.dueDate ?: java.time.LocalDateTime.now())
-                            .atZone(java.time.ZoneId.systemDefault())
-                            .toInstant()
-                            .toEpochMilli()
+                        initialSelectedDateMillis = (uiState.dueDate ?: java.time.LocalDateTime.now()).toLocalDate().toPickerMillis()
                     )
                     DatePicker(
                         onDismiss = { showDueDatePicker = false },
                         onConfirm = {
                             dueDatePickerState.selectedDateMillis?.let { millis ->
                                 viewModel.updateTransactionDueDate(
-                                    java.time.Instant.ofEpochMilli(millis)
-                                        .atZone(java.time.ZoneId.systemDefault())
-                                        .toLocalDateTime()
+                                    pickerDate(millis).atStartOfDay()
                                 )
                             }
                             showDueDatePicker = false
@@ -1381,7 +1370,8 @@ fun TransactionTabContent(
         val timePickerState =
             rememberTimePickerState(
                 initialHour = uiState.date.hour,
-                initialMinute = uiState.date.minute
+                initialMinute = uiState.date.minute,
+                is24Hour = true
             )
 
         TimePicker(

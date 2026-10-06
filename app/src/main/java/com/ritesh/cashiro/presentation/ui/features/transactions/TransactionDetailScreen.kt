@@ -2,6 +2,9 @@
 
 package com.ritesh.cashiro.presentation.ui.features.transactions
 
+import com.ritesh.cashiro.utils.pickerDate
+import com.ritesh.cashiro.utils.toPickerMillis
+
 import com.ritesh.cashiro.presentation.ui.theme.transactionTypeColor
 import com.ritesh.cashiro.presentation.ui.theme.isAppInDarkTheme
 import com.ritesh.cashiro.presentation.ui.components.TooltipIconButton
@@ -368,16 +371,13 @@ fun SharedTransitionScope.TransactionDetailScreen(
     // Custom Billing Cycle End Date Picker
     if (showCustomEndDatePicker && isEditMode) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = (uiState.customCycleEndDate ?: LocalDate.now())
-                .atStartOfDay()
-                .toInstant(java.time.ZoneOffset.UTC)
-                .toEpochMilli()
+            initialSelectedDateMillis = (uiState.customCycleEndDate ?: LocalDate.now()).toPickerMillis()
         )
         DatePicker(
             onDismiss = { showCustomEndDatePicker = false },
             onConfirm = {
                 datePickerState.selectedDateMillis?.let { millis ->
-                    val localDate = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                    val localDate = pickerDate(millis)
                     transactionDetailViewModel.updateSubscriptionCustomCycleEndDate(localDate)
                 }
                 showCustomEndDatePicker = false
@@ -2060,10 +2060,8 @@ private fun DateTimeField(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {
-                val hour = if (dateTime.hour % 12 == 0) 12 else dateTime.hour % 12
+                val hour = dateTime.hour
                 val minute = dateTime.minute
-                val amPm = if (dateTime.hour < 12) stringResource(R.string.am_lbl) else stringResource(R.string.pm_lbl)
-
                 Box(modifier = Modifier
                     .padding(5.dp)
                     .background(
@@ -2105,15 +2103,6 @@ private fun DateTimeField(
                         modifier = Modifier.padding(5.dp)
                     )
                 }
-
-                Box(modifier = Modifier.padding(5.dp)) {
-                    Text(
-                        text = amPm,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
             }
         }
     }
@@ -2121,15 +2110,13 @@ private fun DateTimeField(
     // Date Picker Dialog
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = dateTime.toLocalDate().toEpochDay() * 24 * 60 * 60 * 1000
+            initialSelectedDateMillis = dateTime.toLocalDate().toPickerMillis()
         )
         DatePicker(
             onDismiss = { showDatePicker = false },
             onConfirm = {
                 datePickerState.selectedDateMillis?.let { millis ->
-                    val newDate = Instant.ofEpochMilli(millis)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
+                    val newDate = pickerDate(millis)
                     onDateTimeChange(
                         dateTime.withYear(newDate.year)
                             .withMonth(newDate.monthValue)
@@ -2148,7 +2135,8 @@ private fun DateTimeField(
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState(
             initialHour = dateTime.hour,
-            initialMinute = dateTime.minute
+            initialMinute = dateTime.minute,
+            is24Hour = true
         )
         TimePicker(
             onDismiss = { showTimePicker = false },
@@ -2311,10 +2299,8 @@ private fun TransactionReceipt(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.End
                             ) {
-                                val hour = if (dateTime.hour % 12 == 0) 12 else dateTime.hour % 12
+                                val hour = dateTime.hour
                                 val minute = dateTime.minute
-                                val amPm = if (dateTime.hour < 12) stringResource(R.string.am_lbl) else stringResource(R.string.pm_lbl)
-
                                 Box(modifier = Modifier
                                     .padding(5.dp)
                                     .background(
@@ -2354,15 +2340,6 @@ private fun TransactionReceipt(
                                         style = MaterialTheme.typography.bodyLarge,
                                         lineHeight = 16.sp,
                                         modifier = Modifier.padding(5.dp)
-                                    )
-                                }
-
-                                Box(modifier = Modifier.padding(5.dp)) {
-                                    Text(
-                                        text = amPm,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        style = MaterialTheme.typography.bodyMedium,
                                     )
                                 }
                             }

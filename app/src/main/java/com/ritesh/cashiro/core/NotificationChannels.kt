@@ -8,5 +8,4 @@ package com.ritesh.cashiro.core
  */
 object NotificationChannels {
     const val REMINDER_CHANNEL_ID = "transaction_notifications"
-    const val REMINDER_CHANNEL_NAME = "Transaction Notifications"
 }

@@ -1,5 +1,11 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.ui.res.stringResource
+
+import com.ritesh.cashiro.R
+
+import com.ritesh.cashiro.utils.DateFormats
+
 import androidx.compose.ui.graphics.Path
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
@@ -94,7 +100,7 @@ fun BalanceChart(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Balance Trend",
+                    text = stringResource(R.string.balance_trend),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium
@@ -232,7 +238,7 @@ fun BalanceChart(
                     // First (oldest) date on the left
                     Text(
                         text = smoothedHistory.first().timestamp.format(
-                            DateTimeFormatter.ofPattern("MMM d")
+                            DateFormats.monthDayFormatter()
                         ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface
@@ -242,7 +248,7 @@ fun BalanceChart(
                         // Last (newest) date on the right
                         Text(
                             text = smoothedHistory.last().timestamp.format(
-                                DateTimeFormatter.ofPattern("MMM d")
+                                DateFormats.monthDayFormatter()
                             ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurface

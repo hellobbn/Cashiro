@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.data.ai
 
+import com.ritesh.cashiro.R
+
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -36,6 +38,18 @@ import kotlinx.serialization.json.jsonPrimitive
 data class AiAttachment(val name: String, val mimeType: String, val bytes: ByteArray) {
     val isPdf get() = mimeType == "application/pdf" || name.endsWith(".pdf", ignoreCase = true)
     val isImage get() = mimeType.startsWith("image/")
+    /** Spreadsheets, documents and archives: binary formats the model cannot be handed as text. */
+    val isUnsupported get() = TEXT_EXTENSIONS.none { name.endsWith(".$it", ignoreCase = true) } && (
+        mimeType.startsWith("application/vnd.") || mimeType == "application/msword" ||
+        mimeType == "application/zip" ||
+        UNSUPPORTED_EXTENSIONS.any { name.endsWith(".$it", ignoreCase = true) }
+    )
+
+    private companion object {
+        // Some phones label CSV files as Excel
+        val TEXT_EXTENSIONS = listOf("csv", "tsv", "txt", "json")
+        val UNSUPPORTED_EXTENSIONS = listOf("xlsx", "xls", "docx", "doc", "numbers", "pages", "key", "zip", "rar", "7z")
+    }
 }
 
 class PdfPasswordRequired(val name: String) : Exception("$name is password-protected")
@@ -56,7 +70,7 @@ class AiAttachmentReader @Inject constructor(@ApplicationContext private val con
                     val read = input.read(buffer)
                     if (read < 0) break
                     out.write(buffer, 0, read)
-                    if (out.size() > MAX_FILE_BYTES) throw AiException("$name is larger than 20 MB")
+                    if (out.size() > MAX_FILE_BYTES) throw AiException("$name is larger than 20 MB", R.string.ai_err_too_large, listOf(name))
                 }
                 out.toByteArray()
             } ?: return@mapNotNull null
@@ -69,6 +83,9 @@ class AiAttachmentReader @Inject constructor(@ApplicationContext private val con
         withContext(Dispatchers.Default) {
             attachments.flatMap { a ->
                 when {
+                    a.isUnsupported -> throw AiException(
+                        "${a.name} cannot be read", R.string.ai_err_unsupported, listOf(a.name)
+                    )
                     a.isPdf -> listOf(pdf(a, passwords[a.name]))
                     a.isImage -> image(a)
                     else -> listOf(AiPart.Text("File ${a.name}:\n" + decodeText(a.bytes)))
@@ -101,12 +118,12 @@ class AiAttachmentReader @Inject constructor(@ApplicationContext private val con
     private fun image(a: AiAttachment): List<AiPart> {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(a.bytes, 0, a.bytes.size, bounds)
-        if (bounds.outWidth <= 0) throw AiException("${a.name} is not a readable image")
+        if (bounds.outWidth <= 0) throw AiException("${a.name} is not a readable image", R.string.ai_err_bad_image, listOf(a.name))
         val decoder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             BitmapRegionDecoder.newInstance(a.bytes, 0, a.bytes.size)
         } else {
             @Suppress("DEPRECATION") BitmapRegionDecoder.newInstance(a.bytes, 0, a.bytes.size, false)
-        } ?: throw AiException("${a.name} is not a readable image")
+        } ?: throw AiException("${a.name} is not a readable image", R.string.ai_err_bad_image, listOf(a.name))
         try {
             val width = bounds.outWidth
             val tileHeight = width * 2
@@ -114,7 +131,7 @@ class AiAttachmentReader @Inject constructor(@ApplicationContext private val con
             val tops = generateSequence(0) { it + tileHeight - overlap }
                 .takeWhile { it == 0 || it < bounds.outHeight - overlap }
                 .take(MAX_TILES + 1).toList()
-            if (tops.size > MAX_TILES) throw AiException("${a.name} is too long; share it in parts")
+            if (tops.size > MAX_TILES) throw AiException("${a.name} is too long; share it in parts", R.string.ai_err_too_long, listOf(a.name))
             return tops.map { top ->
                 val rect = Rect(0, top, width, minOf(bounds.outHeight, top + tileHeight))
                 val options = BitmapFactory.Options().apply {
@@ -187,7 +204,12 @@ sealed interface AiStep {
 }
 
 /** The result of one AI session: the proposed changes and the model's closing note. */
-data class AiProposal(val changes: List<LedgerChange>, val summary: String)
+data class AiProposal(
+    val changes: List<LedgerChange>,
+    val summary: String,
+    // The model was still at work when the turn limit stopped it: the list may be incomplete
+    val stoppedAtLimit: Boolean = false
+)
 
 /** Runs the model over the user's files and request until it has proposed everything it means to. */
 class AiLedgerSession @Inject constructor(
@@ -197,7 +219,7 @@ class AiLedgerSession @Inject constructor(
 ) {
     suspend fun run(parts: List<AiPart>, request: String, onStep: (AiStep) -> Unit = {}): AiProposal {
         val config = settings.config.value
-        if (!config.isConfigured) throw AiException("Set up an AI provider first.")
+        if (!config.isConfigured) throw AiException("Set up an AI provider first.", R.string.ai_err_not_configured)
         val context = tools.context()
         val conversation = AiConversation(config, systemPrompt(tools.describe(context)), tools.tools)
         val ask = request.trim().ifEmpty { DEFAULT_REQUEST }
@@ -217,7 +239,7 @@ class AiLedgerSession @Inject constructor(
                 )
             )
             if (reply.calls.isEmpty()) {
-                if (reply.truncated) throw AiException("The answer was cut off. Try fewer pages at a time.")
+                if (reply.truncated) throw AiException("The answer was cut off. Try fewer pages at a time.", R.string.ai_err_truncated)
                 return AiProposal(queue.toList(), reply.text.trim())
             }
             val finish = reply.calls.firstOrNull { it.name == LedgerTools.FINISH }
@@ -237,7 +259,7 @@ class AiLedgerSession @Inject constructor(
             }
             chat.addToolResults(conversation, results + listOfNotNull(finishResult))
         }
-        return AiProposal(queue.toList(), "")
+        return AiProposal(queue.toList(), "", stoppedAtLimit = true)
     }
 
     private fun step(call: AiToolCall, result: AiToolResult, queued: List<LedgerChange>): AiStep =
@@ -300,8 +322,8 @@ class AiLedgerSession @Inject constructor(
         $ledger
     """.trimIndent()
 
-    private companion object {
+    companion object {
         const val MAX_TURNS = 16
-        const val DEFAULT_REQUEST = "Record the transactions in these files."
+        private const val DEFAULT_REQUEST = "Record the transactions in these files."
     }
 }

@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.presentation.ui.features.ai
 
+import com.ritesh.cashiro.data.ai.aiMessage
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
 import android.net.Uri
 import android.os.SystemClock
 import androidx.lifecycle.ViewModel
@@ -37,7 +40,10 @@ import kotlinx.coroutines.launch
  * the screen being closed.
  */
 @Singleton
-class AiShareInbox @Inject constructor(private val reader: AiAttachmentReader) {
+class AiShareInbox @Inject constructor(
+    private val reader: AiAttachmentReader,
+    @ApplicationContext private val context: Context
+) {
     private val _attachments = MutableStateFlow<List<AiAttachment>>(emptyList())
     val attachments: StateFlow<List<AiAttachment>> = _attachments.asStateFlow()
 
@@ -54,7 +60,7 @@ class AiShareInbox @Inject constructor(private val reader: AiAttachmentReader) {
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            _error.value = e.message ?: e.javaClass.simpleName
+            _error.value = e.aiMessage(context)
         }
     }
 
@@ -108,6 +114,8 @@ data class AiAssistantUiState(
     val phase: AiPhase = AiPhase.Compose,
     val review: List<ReviewItem> = emptyList(),
     val summary: String = "",
+    // The run hit its turn limit, so the proposals may be incomplete
+    val stoppedAtLimit: Boolean = false,
     val error: String? = null,
     // A PDF that needs its password before it can be read
     val passwordFor: String? = null,
@@ -126,7 +134,8 @@ class AiAssistantViewModel @Inject constructor(
     private val tools: LedgerTools,
     private val inbox: AiShareInbox,
     private val chat: AiChat,
-    lookupsSource: TransactionLookupsSource
+    lookupsSource: TransactionLookupsSource,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _state = MutableStateFlow(AiAssistantUiState(config = settings.config.value))
 
@@ -169,7 +178,7 @@ class AiAssistantViewModel @Inject constructor(
             val result = try {
                 ModelListState(models = chat.listModels(config))
             } catch (e: AiException) {
-                ModelListState(error = e.message)
+                ModelListState(error = e.aiMessage(context))
             }
             _state.update { it.copy(models = result) }
         }
@@ -208,6 +217,7 @@ class AiAssistantViewModel @Inject constructor(
                         phase = AiPhase.Review,
                         lastRun = (it.phase as? AiPhase.Running)?.copy(finishedAt = SystemClock.elapsedRealtime()),
                         summary = proposal.summary,
+                        stoppedAtLimit = proposal.stoppedAtLimit,
                         // Likely duplicates start left out
                         review = proposal.changes.map { change ->
                             ReviewItem(change, included = (change as? LedgerChange.Add)?.draft?.possibleDuplicate == null)
@@ -217,12 +227,12 @@ class AiAssistantViewModel @Inject constructor(
             } catch (e: PdfPasswordRequired) {
                 _state.update { it.copy(phase = AiPhase.Compose, passwordFor = e.name) }
             } catch (e: AiException) {
-                _state.update { it.copy(phase = AiPhase.Compose, error = e.message) }
+                _state.update { it.copy(phase = AiPhase.Compose, error = e.aiMessage(context)) }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 _state.update { it.copy(phase = AiPhase.Compose) }
                 throw e
             } catch (e: Exception) {
-                _state.update { it.copy(phase = AiPhase.Compose, error = e.message ?: e.javaClass.simpleName) }
+                _state.update { it.copy(phase = AiPhase.Compose, error = e.aiMessage(context)) }
             }
         }
     }
@@ -268,7 +278,7 @@ class AiAssistantViewModel @Inject constructor(
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: e.javaClass.simpleName) }
+                _state.update { it.copy(error = e.aiMessage(context)) }
             } finally {
                 _state.update { it.copy(busy = false) }
             }
@@ -286,7 +296,7 @@ class AiAssistantViewModel @Inject constructor(
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: e.javaClass.simpleName) }
+                _state.update { it.copy(error = e.aiMessage(context)) }
             } finally {
                 _state.update { it.copy(busy = false) }
             }

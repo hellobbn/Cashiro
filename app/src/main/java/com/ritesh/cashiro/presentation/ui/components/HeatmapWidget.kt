@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.utils.DateFormats
+
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.CornerRadius
@@ -61,7 +63,7 @@ fun HeatmapWidget(
         
         while (current <= endDate) {
             if (current.monthValue != lastMonth) {
-                val formatter = DateTimeFormatter.ofPattern("MMM")
+                val formatter = DateFormats.monthFormatter()
                 allMonthStarts.add(weekIndex to current.format(formatter))
                 lastMonth = current.monthValue
             }

@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.utils.DateFormats
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -172,7 +174,7 @@ fun CustomBillingCycleCard(
 
                 // End Date Selection
                 val endDateLabel = endDate?.format(
-                    DateTimeFormatter.ofPattern("dd MMM yyyy")
+                    DateFormats.fullDateFormatter()
                 ) ?: "Forever"
 
                 Surface(

@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
+import com.ritesh.cashiro.R
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.database.entity.BudgetEntity
@@ -87,10 +89,10 @@ class BudgetHistoryViewModel @Inject constructor(
                         )
                     }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, error = "Budget not found") }
+                    _uiState.update { it.copy(isLoading = false, error = context.getString(R.string.msg_budget_not_found)) }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Failed to load history") }
+                _uiState.update { it.copy(isLoading = false, error = context.getString(R.string.msg_history_load_failed)) }
             }
         }
     }

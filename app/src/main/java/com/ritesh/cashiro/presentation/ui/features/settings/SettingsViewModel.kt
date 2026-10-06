@@ -149,11 +149,9 @@ class SettingsViewModel @Inject constructor(
             // Ensure channel exists
             val channel = NotificationChannel(
                 NotificationChannels.REMINDER_CHANNEL_ID,
-                NotificationChannels.REMINDER_CHANNEL_NAME,
+                context.getString(R.string.reminder_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Notifications for new transactions"
-            }
+            )
             notificationManager.createNotificationChannel(channel)
 
             // Create intent to open app

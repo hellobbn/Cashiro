@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.analytics
 
+import com.ritesh.cashiro.utils.DateFormats
+
 import com.ritesh.cashiro.presentation.ui.theme.MotionDurations
 
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -96,9 +98,9 @@ fun SpendingLineChart(
             val date = it.timestamp
             when {
                 isYearly -> date.format(DateTimeFormatter.ofPattern("yyyy"))
-                isMonthly && spansMultipleYears -> date.format(DateTimeFormatter.ofPattern("MMM yy"))
-                isMonthly -> date.format(DateTimeFormatter.ofPattern("MMM"))
-                else -> date.format(DateTimeFormatter.ofPattern("dd MMM"))
+                isMonthly && spansMultipleYears -> date.format(DateFormats.shortYearMonthFormatter())
+                isMonthly -> date.format(DateFormats.monthFormatter())
+                else -> date.format(DateFormats.monthDayFormatter())
             }
         }
     }
@@ -219,9 +221,9 @@ fun SpendingBarChart(
         data.map { point ->
             val label = when {
                 isYearly -> point.timestamp.format(DateTimeFormatter.ofPattern("yyyy"))
-                isMonthly && spansMultipleYears -> point.timestamp.format(DateTimeFormatter.ofPattern("MMM yy"))
-                isMonthly -> point.timestamp.format(DateTimeFormatter.ofPattern("MMM"))
-                else -> point.timestamp.format(DateTimeFormatter.ofPattern("dd MMM"))
+                isMonthly && spansMultipleYears -> point.timestamp.format(DateFormats.shortYearMonthFormatter())
+                isMonthly -> point.timestamp.format(DateFormats.monthFormatter())
+                else -> point.timestamp.format(DateFormats.monthDayFormatter())
             }
             Bars(
                 label = label,
@@ -503,7 +505,7 @@ fun SpendingHeatmap(
         
         while (current <= endDate) {
             if (current.monthValue != lastMonth) {
-                val formatter = DateTimeFormatter.ofPattern("MMM")
+                val formatter = DateFormats.monthFormatter()
                 allMonthStarts.add(weekIndex to current.format(formatter))
                 lastMonth = current.monthValue
             }

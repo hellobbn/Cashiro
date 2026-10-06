@@ -2,6 +2,7 @@
 
 package com.ritesh.cashiro.presentation.ui.features.ai
 
+import com.ritesh.cashiro.data.ai.AiLedgerSession
 import androidx.compose.material3.IconButtonDefaults
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -140,12 +141,34 @@ fun AiAssistantScreen(
         viewModel.addFiles(uris)
     }
 
+    // Leaving an unsaved review asks first: the results would otherwise be lost
+    var confirmDiscard by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val unsavedReview = state.phase is AiPhase.Review && state.review.isNotEmpty()
+    val leave = { if (unsavedReview) confirmDiscard = onNavigateBack else onNavigateBack() }
+
     // Back from a review or a running request returns to the request first
     BackHandler(enabled = state.phase !is AiPhase.Compose) {
         when (state.phase) {
             is AiPhase.Running -> viewModel.cancel()
+            AiPhase.Review -> if (unsavedReview) confirmDiscard = viewModel::startOver else viewModel.startOver()
             else -> viewModel.startOver()
         }
+    }
+    confirmDiscard?.let { discard ->
+        AlertDialog(
+            onDismissRequest = { confirmDiscard = null },
+            title = { Text(stringResource(R.string.ai_discard_title)) },
+            text = { Text(stringResource(R.string.ai_discard_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDiscard = null
+                    discard()
+                }) { Text(stringResource(R.string.ai_discard)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDiscard = null }) { Text(stringResource(R.string.ai_cancel)) }
+            }
+        )
     }
 
     // Saving ends in a snackbar with Undo, as deleting a transaction does elsewhere
@@ -171,7 +194,7 @@ fun AiAssistantScreen(
                 scrollBehaviorLarge = scrollBehavior,
                 hazeState = hazeState,
                 hasBackButton = true,
-                navigationContent = { NavigationContent(onNavigateBack) }
+                navigationContent = { NavigationContent(leave) }
             )
         },
         bottomBar = {
@@ -241,6 +264,15 @@ fun AiAssistantScreen(
                     header?.let {
                         item(key = "summary") {
                             Text(it, style = if (saved) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    if (!saved && state.stoppedAtLimit) {
+                        item(key = "turn_limit") {
+                            Text(
+                                stringResource(R.string.ai_turn_limit, AiLedgerSession.MAX_TURNS),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
                         }
                     }
                     if (state.review.isEmpty()) {
@@ -444,11 +476,12 @@ private fun ProviderForm(
             ) { Text(stringResource(p.labelRes), maxLines = 1) }
         }
     }
-    if (preset == AiPreset.CUSTOM) {
+    // Claude keeps its address editable for a proxy or relay
+    if (preset != AiPreset.OPENROUTER) {
         OutlinedTextField(
             value = baseUrl, onValueChange = { baseUrl = it }, singleLine = true,
             label = { Text(stringResource(R.string.ai_base_url)) },
-            placeholder = { Text("https://api.deepseek.com/v1") },
+            placeholder = { Text(if (preset == AiPreset.CLAUDE) AiProtocol.ANTHROPIC.defaultBaseUrl else "https://api.deepseek.com/v1") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             modifier = Modifier.fillMaxWidth()
         )
