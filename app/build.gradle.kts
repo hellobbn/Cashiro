@@ -67,23 +67,6 @@ android {
         }
     }
     signingConfigs {
-        getByName("debug") {
-            // CI must supply the persistent, debug-only identity. Local IDE builds
-            // may still use their own default debug key unless explicitly required.
-            val names = listOf("DEBUG_STORE_FILE", "DEBUG_STORE_PASSWORD", "DEBUG_KEY_ALIAS", "DEBUG_KEY_PASSWORD")
-            val values = names.associateWith { providers.environmentVariable(it).orNull }
-            val configured = values.values.any { !it.isNullOrBlank() }
-            if (configured || project.hasProperty("requireDebugSigning")) {
-                val missing = names.filter { values[it].isNullOrBlank() }
-                check(missing.isEmpty()) { "Missing persistent debug signing settings: ${missing.joinToString()}" }
-                val keyFile = rootProject.file(values.getValue("DEBUG_STORE_FILE")!!)
-                check(keyFile.isFile) { "Persistent debug keystore does not exist" }
-                storeFile = keyFile
-                storePassword = values.getValue("DEBUG_STORE_PASSWORD")
-                keyAlias = values.getValue("DEBUG_KEY_ALIAS")
-                keyPassword = values.getValue("DEBUG_KEY_PASSWORD")
-            }
-        }
         create("release") {
             val localPropertiesFile = rootProject.file("local.properties")
             if (localPropertiesFile.exists()) {
@@ -124,10 +107,8 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "UPDATE_CHANNEL", "\"debug\"")
-            applicationIdSuffix = ".debug"
             // "-debug+<short sha>" (see androidComponents below)
             versionNameSuffix = gitSha().let { if (it == "unknown") "-debug" else "-debug+$it" }
-            manifestPlaceholders["appLabel"] = "Cashiro Debug"
             if (slimDebug) {
                 // The CI build people install day to day: not debuggable, so ART compiles it
                 // ahead of time with the Baseline Profile like a release (a debuggable app
@@ -159,7 +140,6 @@ android {
             initWith(getByName("release"))
             matchingFallbacks += "release"
             versionNameSuffix = "-testing"
-            manifestPlaceholders["appLabel"] = "Cashiro Testing"
             buildConfigField("String", "UPDATE_CHANNEL", "\"testing\"")
             signingConfig = signingConfigs.getByName("release")
         }
@@ -224,7 +204,8 @@ android {
 androidComponents {
     // Every debug build carries its commit: the commit count as versionCode, so the installer
     // and Settings show which build is installed, and "+<short sha>" after "-debug" in the
-    // versionName. The debug app has its own applicationId, so this never meets release codes.
+    // versionName. Debug, testing and release are one app (same applicationId and signer), so a
+    // debug or testing build installs over the others; see docs/publish-channels.md.
     onVariants(selector().withBuildType("debug")) { variant ->
         val count = gitCommitCount()
         if (count > 0) variant.outputs.forEach { it.versionCode.set(count) }
