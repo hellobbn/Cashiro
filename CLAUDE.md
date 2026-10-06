@@ -9,9 +9,9 @@ PennyWise AI.
 The fork is for personal, mostly **manual** bookkeeping: accounts, categories,
 budgets, and a Chinese / cross-border institution catalog. Upstream's SMS import
 has been removed entirely: the `parser-core` module, its settings and, in migration 69→70, the
-columns it filled (a subscription's notes, once kept in `sms_body`, are now `notes`). Do not
-bring SMS import back unless explicitly requested. (Lend/borrow can still open the messaging
-app to send someone a reminder; that is unrelated.)
+columns it filled (a subscription's notes, once kept in `sms_body`, are now `notes`). The lend/borrow
+SMS reminder button is gone too (call, WhatsApp and Telegram remain). Do not bring SMS back
+unless explicitly requested.
 
 ## Identifiers
 

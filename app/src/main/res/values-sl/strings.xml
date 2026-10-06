@@ -370,7 +370,6 @@
     <string name="license_disclaimer_software">PROGRAMSKA OPREMA JE PRISPEVA PONUDENA "TAKŠNA, KOT JE", BREZ KAKRŠNEKOLI JAMSTVA, IZRECNEGA ALI IMPLICITNEGA, VKLJUČNO, A NE OMEJENO NA JAMSTVA O PRIMERNOSTI ZA PRODAJO, PRIMERNOST ZA DOLOČEN NAMEN IN NEKRŠENJE. AVTORJI ALI IMETNIKI AVTORSKIH PRAVIC NE BODO V NIKAKRŠNEM PRIMERU ODGOVORNI ZA KAKRŠENKOLI TERJEVANJI, ŠKODO ALI DRUGO ODGOVORNOST, NEGLEDE NA TO, ALI GRE ZA POGODBNI POSTOPEK, TORTO ALI DRUGAČE, KI IZHAJA IZ, IZ ALI V POVEZAVI S PROGRAMSKO OPREMO ALI UPORABO ALI DRUGAČNIMI POSLOVANJI S PROGRAMSKO OPREMO.</string>
     <string name="license_disclaimer_rates">Tečaji, prikazani v tej aplikaciji, so namenjeni le za informativne namene in jih ne bi smeli uporabljati za investicijske odločitve. Ti tečaji so ocenjeni in morda ne odražajo dejanskih tečajev. Z uporabo te aplikacije priznate, da razumete in sprejemate te omejitve ter prevzemate polno odgovornost za vse odločitve, sprejete na podlagi informacij, predstavljenih v aplikaciji.</string>
     <string name="powered_by">Poganja Kotlin Compose</string>
-    <string name="sms_title">SMS</string>
     <string name="ok">V redu</string>
     <string name="history">Zgodovina</string>
     <string name="type_credit_card">Kreditna kartica</string>

@@ -372,7 +372,6 @@
     <string name="license_disclaimer_software">该软件按“原样”提供，不附带任何形式的明示或暗示保证，包括但不限于适销性、特定用途适用性及非侵权的保证。在任何情况下，作者或版权持有人均不对因使用该软件或与该软件的使用或其他交易相关的任何索赔、损害或其他责任承担责任，无论是在合同诉讼、侵权或其他情况下。</string>
     <string name="license_disclaimer_rates">此应用程序中显示的汇率仅供参考，不应用于投资决策。这些汇率为估算值，可能不反映实际汇率。使用本应用程序即表示您了解并接受这些限制，并且对于基于应用程序提供的信息所作的任何决策承担全部责任。</string>
     <string name="powered_by">由 Kotlin Compose 提供支持</string>
-    <string name="sms_title">短信</string>
     <string name="ok">确定</string>
     <string name="history">历史</string>
     <string name="type_credit_card">信用卡</string>

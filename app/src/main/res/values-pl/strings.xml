@@ -370,7 +370,6 @@
     <string name="license_disclaimer_software">POŁUDNIOWY JEST PRZEWIDZIANY „JAKO IS”, BEZ GWARANCJI JAKIEGO, WYKONYWANIA LUB WSTĘPOWANIA, W TYM BUDŻETU NIEOBJĘTEGO GWARANCJĄ MOŻLIWOŚCI, PRZYSZŁOŚĆ DO SZCZEGÓLNEGO CELU I NIEPRZEZNACZENIA. W PRZYPADKU NIEZALEŻNOŚCI POSTANOWIENIA LUB OGRANICZENIA W PRZYPADKU KAPITAŁU DLA KAPITAŁU, ZATRUDNIENIA LUB INNYCH ODPOWIEDZIALNOŚCI NA DZIAŁANIE ZAMÓWIENIA TORA LUB TRÓJNOŚĆ, POMIĘDZYNARODOWA, Z LUB W ODNIESIENIU DO POŁUDNIOWEGO LUB STOSOWANIA LUB INNYCH POCHODZEŃ W DZIEDZINIE POŁUDNIOWYM</string>
     <string name="license_disclaimer_rates">Kursy wymiany wyświetlane w tej aplikacji służą wyłącznie celom informacyjnym i nie powinny być używane do podejmowania decyzji inwestycyjnych. Stawki te są szacunkami i mogą nie odzwierciedlać rzeczywistych stawek. Używając tej aplikacji, potwierdzają Państwo, że rozumieją Państwo i akceptują te ograniczenia oraz że przyjmują Państwo pełną odpowiedzialność za decyzje podejmowane na podstawie informacji dostarczonych w aplikacji.</string>
     <string name="powered_by">Zasilany przez Kotlin Compose</string>
-    <string name="sms_title">SMS-y</string>
     <string name="ok">OK</string>
     <string name="history">Historia</string>
     <string name="type_credit_card">Karta kredytowa</string>

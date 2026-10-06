@@ -370,7 +370,6 @@
     <string name="license_disclaimer_software">EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN NINGUNA GARANTÍA DE NINGÚN TIPO, EXPRESA O IMPLÍCITA, INCLUYENDO PERO NO LIMITÁNDOSE A LAS GARANTÍAS DE COMERCIABILIDAD, APTITUD PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN. EN NINGÚN CASO LOS AUTORES O TITULARES DE LOS DERECHOS DE AUTOR SERÁN RESPONSABLES POR CUALQUIER RECLAMO, DAÑOS U OTRA RESPONSABILIDAD, YA SEA EN UNA ACCIÓN CONTRACTUAL, AGRAVIO O DE OTRO TIPO, QUE SURJA DE, FUERA O EN CONEXIÓN CON EL SOFTWARE O EL USO U OTRO TIPO DE TRATO CON EL SOFTWARE.</string>
     <string name="license_disclaimer_rates">Los tipos de cambio mostrados dentro de esta aplicación son solo con fines informativos y no deben utilizarse para decisiones de inversión. Estos tipos son estimaciones y pueden no reflejar los tipos reales. Al utilizar esta aplicación, usted reconoce que entiende y acepta estas limitaciones y que asume plena responsabilidad por cualquier decisión tomada basándose en la información proporcionada dentro de la aplicación.</string>
     <string name="powered_by">Desarrollado con Kotlin Compose</string>
-    <string name="sms_title">SMS</string>
     <string name="ok">Aceptar</string>
     <string name="history">Historial</string>
     <string name="type_credit_card">Tarjeta de crédito</string>

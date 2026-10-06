@@ -406,7 +406,6 @@
     </plurals>
     <!-- Rules Screen -->
     <!-- SMS Screen -->
-    <string name="sms_title">SMS</string>
     <!-- Unrecognized SMS Screen -->
     <!-- Webhooks Settings & Screen -->
     <string name="ok">OK</string>

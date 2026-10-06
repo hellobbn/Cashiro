@@ -370,7 +370,6 @@
     <string name="license_disclaimer_software">PROQRAM “OLDUĞU KİMİ” VERİLİR, HEÇ BİR ZƏMANƏT OLMADAN, AÇIQ VƏ YA ÖZÜNDƏN MƏN QOYA BİLƏCƏYİ QALIQ OLMADAN, İSTİFADƏCİLİK, MÜƏYYƏN BİR MƏQSƏDƏ UYĞUNLUQ VƏ İNTİGHAL ETMƏMƏ ZƏMANƏTLƏRİ DAXİL OLMAQLA, AMMA ONLARLA MƏHDUDLAŞMAMAYARAQ. HEÇ BİR HALDA MÜƏLLİFLƏR VƏ YA MÜƏLLİF HÜQUQLARININ SAHİBLƏRİ MÜQAVİLƏ, ZƏRƏR VƏ YA BAŞQA MƏSULİYYƏTDƏN, KONTRAKT, QISAÇI VƏ YA BAŞQA QANUN VERİLMƏSİNƏ BAĞLI OLSUN OLSUN, PROQRAMLA ƏLAQƏLİ VƏ YA ONUN İSTİFADƏSİ VƏ YA BAŞQA ƏMƏLİYYATLARLA ƏLAQƏLİ OLAR.</string>
     <string name="license_disclaimer_rates">Bu tətbiqdə göstərilən valyuta məzənnələri yalnız məlumat məqsədləri üçün nəzərdə tutulub və investisiya qərarları üçün istifadə edilməməlidir. Bu məzənnələr təxminidir və faktiki məzənnələri əks etdirməyə bilər. Bu tətbiqdən istifadə etməklə siz bu məhdudiyyətləri başa düşdüyünüzü və qəbul etdiyinizi təsdiqləyirsiniz və tətbiqdəkı məlumatlara əsaslanaraq verilən hər hansı qərarlara görə tam məsuliyyəti üzərinizə götürürsünüz.</string>
     <string name="powered_by">Kotlin Compose tərəfindən işlədilir</string>
-    <string name="sms_title">SMS</string>
     <string name="ok">OK</string>
     <string name="history">Tarixçə</string>
     <string name="type_credit_card">Kredit Kartı</string>

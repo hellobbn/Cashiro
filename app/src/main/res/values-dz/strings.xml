@@ -370,7 +370,6 @@
     <string name="license_disclaimer_software">THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</string>
     <string name="license_disclaimer_rates">The exchange rates displayed within this app are for informational purposes only and should not be used for investment decisions. These rates are estimates and may not reflect actual rates. By using this app, you acknowledge that you understand and accept these limitations and that you assume full responsibility for any decisions made based on the information provided within the app.</string>
     <string name="powered_by">Powered by Kotlin Compose</string>
-    <string name="sms_title">SMS</string>
     <string name="ok">OK</string>
     <string name="history">History</string>
     <string name="type_credit_card">Credit Card</string>
