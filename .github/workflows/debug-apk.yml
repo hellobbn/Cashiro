@@ -17,6 +17,8 @@ jobs:
   build-debug:
     name: Build and publish debug APK
     runs-on: ubuntu-latest
+    # The release key lives in the KEYSTORE environment; only main builds use it
+    environment: ${{ github.ref == 'refs/heads/main' && 'KEYSTORE' || '' }}
     timeout-minutes: 45
 
     steps:
