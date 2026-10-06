@@ -180,6 +180,9 @@ data class Transactions(
 @Serializable object DataPrivacy
 @Serializable object CloudBackup
 
+/** Settings → Sync: multi-device sync through Firebase (docs/sync.md) */
+@Serializable object CloudSync
+
 
 @Serializable object NotificationSettings
 

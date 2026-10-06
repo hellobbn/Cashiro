@@ -107,6 +107,7 @@ import com.ritesh.cashiro.presentation.ui.features.settings.appearance.ThemeView
 import com.ritesh.cashiro.presentation.ui.features.settings.applock.AppLockScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy.DataPrivacyScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.cloudbackup.BackupSyncScreen
+import com.ritesh.cashiro.presentation.ui.features.settings.sync.SyncScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.notifications.NotificationScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.quicktemplates.QuickTemplatesScreen
 import com.ritesh.cashiro.presentation.ui.features.ai.AiAssistantScreen
@@ -325,6 +326,7 @@ fun CashiroNavHost(
                         onNavigateToLendBorrow = { navController.safeNavigate(LendBorrow()) },
                         onNavigateToDataPrivacy = { navController.safeNavigate(DataPrivacy) },
                         onNavigateToCloudBackup = { navController.safeNavigate(CloudBackup) },
+                        onNavigateToSync = { navController.safeNavigate(CloudSync) },
                         onNavigateToAbout = { navController.safeNavigate(About) },
                         onNavigateToCurrency = { navController.safeNavigate(CurrencySettings) },
                         blurEffects = themeUiState.blurEffects
@@ -387,6 +389,17 @@ fun CashiroNavHost(
                         onNavigateToAccounts = { navController.safeNavigate(ManageAccounts) },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
+                }
+
+                composable<CloudSync>(
+                    enterTransition = CashiroTransitions.horizontalSlideEnter,
+                    exitTransition = CashiroTransitions.horizontalSlideExit,
+                    popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
+                    popExitTransition = CashiroTransitions.horizontalSlidePopExit
+                ) {
+                    ReadableWidth {
+                    SyncScreen(onNavigateBack = { navController.safePopBackStack() })
                     }
                 }
 

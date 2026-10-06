@@ -1,0 +1,502 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
+package com.ritesh.cashiro.presentation.ui.features.settings.sync
+
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.CloudUpload
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.HourglassEmpty
+import androidx.compose.material.icons.rounded.Merge
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ritesh.cashiro.R
+import com.ritesh.cashiro.data.sync.SyncManager
+import com.ritesh.cashiro.data.sync.SyncManager.Stage
+import com.ritesh.cashiro.data.sync.SyncProblem
+import com.ritesh.cashiro.presentation.ui.components.CashiroDialogDefaults
+import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
+import com.ritesh.cashiro.presentation.ui.components.DialogConfirmButton
+import com.ritesh.cashiro.presentation.ui.components.DialogDismissButton
+import com.ritesh.cashiro.presentation.ui.components.ListItem
+import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
+import com.ritesh.cashiro.presentation.ui.components.SectionHeader
+import com.ritesh.cashiro.presentation.ui.components.TooltipIconButton
+import com.ritesh.cashiro.presentation.ui.components.toShape
+import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.theme.Dimensions
+import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import com.ritesh.cashiro.utils.DateFormats
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import java.time.Instant
+import java.time.ZoneId
+
+private const val MIN_PASSPHRASE = 8
+
+/**
+ * Settings → Sync: Google sign-in, the sync passphrase, the first-sync choice and the status
+ * (docs/sync.md). The F-Droid build only says sync is unavailable.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SyncScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: SyncViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val wrongPassphrase by viewModel.wrongPassphrase.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val snackbar = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = remember { HazeState() }
+    var showChoice by rememberSaveable { mutableStateOf(true) }
+    var confirmSignOut by rememberSaveable { mutableStateOf(false) }
+
+    val synced = stringResource(R.string.sync_done)
+    val failed = stringResource(R.string.sync_failed)
+    val signInFailed = stringResource(R.string.sync_sign_in_failed)
+    val merged = stringResource(R.string.sync_merged)
+    val replacedFormat = stringResource(R.string.sync_replaced)
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            snackbar.showSnackbar(
+                when (message) {
+                    SyncMessage.Synced -> synced
+                    SyncMessage.Failed -> failed
+                    SyncMessage.SignInFailed -> signInFailed
+                    SyncMessage.Merged -> merged
+                    is SyncMessage.Replaced -> replacedFormat.format(message.backupName)
+                }
+            )
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbar) },
+        topBar = {
+            CustomTitleTopAppBar(
+                title = stringResource(R.string.sync_title),
+                scrollBehaviorSmall = scrollBehaviorSmall,
+                scrollBehaviorLarge = scrollBehavior,
+                hazeState = hazeState,
+                hasBackButton = true,
+                navigationContent = { NavigationContent(onNavigateBack) }
+            )
+        }
+    ) { paddingValues ->
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeSource(state = hazeState)
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        start = Dimensions.Padding.content,
+                        end = Dimensions.Padding.content,
+                        top = Dimensions.Padding.content + paddingValues.calculateTopPadding(),
+                        bottom = Dimensions.Padding.content + paddingValues.calculateBottomPadding()
+                    ),
+                verticalArrangement = Arrangement.spacedBy(Spacing.md)
+            ) {
+                Text(
+                    text = stringResource(R.string.sync_intro),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = Spacing.md)
+                )
+                when (state.stage) {
+                    Stage.UNAVAILABLE -> Row(
+                        icon = Icons.Rounded.CloudOff,
+                        title = stringResource(R.string.sync_unavailable_title),
+                        supporting = stringResource(R.string.sync_unavailable_body),
+                        position = ListItemPosition.Single
+                    )
+                    Stage.SIGNED_OUT -> Button(
+                        onClick = { context.findActivity()?.let(viewModel::signIn) },
+                        enabled = !state.busy,
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (state.busy) LoadingIndicator(Modifier.size(24.dp), color = LocalContentColor.current)
+                        else Text(stringResource(R.string.sync_sign_in))
+                    }
+                    else -> {
+                        SectionHeader(title = stringResource(R.string.sync_account), modifier = Modifier.padding(start = Spacing.md))
+                        ListItem(
+                            headline = { Text(state.email ?: stringResource(R.string.sync_signed_in_as)) },
+                            supporting = { Text(stringResource(R.string.sync_signed_in_as)) },
+                            leading = { RowIcon(Icons.Rounded.AccountCircle) },
+                            trailing = {
+                                TextButton(onClick = { confirmSignOut = true }, enabled = !state.busy, shapes = ButtonDefaults.shapes()) {
+                                    Text(stringResource(R.string.sync_sign_out))
+                                }
+                            },
+                            shape = ListItemPosition.Single.toShape(),
+                            padding = PaddingValues(0.dp)
+                        )
+                        when (state.stage) {
+                            Stage.PASSPHRASE -> PassphraseSection(
+                                state = state,
+                                wrong = wrongPassphrase,
+                                onEdit = viewModel::clearWrongPassphrase,
+                                onSubmit = { viewModel.submitPassphrase(it) }
+                            )
+                            Stage.CHOICE -> {
+                                Row(
+                                    icon = Icons.Rounded.Merge,
+                                    title = stringResource(R.string.sync_choice_pending),
+                                    supporting = stringResource(R.string.sync_choice_body),
+                                    position = ListItemPosition.Single,
+                                    onClick = { showChoice = true }
+                                )
+                                if (showChoice && !state.busy) {
+                                    ChoiceDialog(
+                                        onMerge = { showChoice = false; viewModel.merge() },
+                                        onReplace = { showChoice = false; viewModel.replaceLocal() },
+                                        onDismiss = { showChoice = false }
+                                    )
+                                }
+                                if (state.busy) BusyRow()
+                            }
+                            else -> StatusSection(state, onSyncNow = { viewModel.syncNow() })
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (confirmSignOut) {
+        AlertDialog(
+            onDismissRequest = { confirmSignOut = false },
+            containerColor = CashiroDialogDefaults.containerColor,
+            title = { Text(stringResource(R.string.sync_sign_out_confirm_title)) },
+            text = { Text(stringResource(R.string.sync_sign_out_confirm_body)) },
+            confirmButton = {
+                DialogConfirmButton(stringResource(R.string.sync_sign_out), onClick = {
+                    confirmSignOut = false
+                    viewModel.signOut()
+                })
+            },
+            dismissButton = { DialogDismissButton(stringResource(R.string.cancel), onClick = { confirmSignOut = false }) }
+        )
+    }
+}
+
+@Composable
+private fun PassphraseSection(
+    state: SyncManager.State,
+    wrong: Boolean,
+    onEdit: () -> Unit,
+    onSubmit: (String) -> Unit,
+) {
+    val creating = state.passphraseExists == false
+    if (state.passphraseExists == null) {
+        BusyRow(stringResource(R.string.sync_checking))
+        return
+    }
+    var passphrase by rememberSaveable { mutableStateOf("") }
+    var repeat by rememberSaveable { mutableStateOf("") }
+    var visible by rememberSaveable { mutableStateOf(false) }
+    val tooShort = creating && passphrase.isNotEmpty() && passphrase.length < MIN_PASSPHRASE
+    val mismatch = creating && repeat.isNotEmpty() && repeat != passphrase
+    val ready = passphrase.isNotEmpty() && (!creating || (passphrase.length >= MIN_PASSPHRASE && repeat == passphrase))
+    val transformation = if (visible) VisualTransformation.None else PasswordVisualTransformation()
+
+    SectionHeader(
+        title = stringResource(if (creating) R.string.sync_passphrase_create_title else R.string.sync_passphrase_enter_title),
+        modifier = Modifier.padding(start = Spacing.md)
+    )
+    Text(
+        text = stringResource(if (creating) R.string.sync_passphrase_create_body else R.string.sync_passphrase_enter_body),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = Spacing.md)
+    )
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.padding(Spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Rounded.WarningAmber, contentDescription = null)
+            Text(stringResource(R.string.sync_passphrase_warning), style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+    OutlinedTextField(
+        value = passphrase,
+        onValueChange = { passphrase = it; onEdit() },
+        label = { Text(stringResource(R.string.sync_passphrase)) },
+        singleLine = true,
+        visualTransformation = transformation,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = if (creating) ImeAction.Next else ImeAction.Done),
+        isError = wrong || tooShort,
+        supportingText = when {
+            wrong -> { { Text(stringResource(R.string.sync_passphrase_wrong)) } }
+            tooShort -> { { Text(stringResource(R.string.sync_passphrase_too_short, MIN_PASSPHRASE)) } }
+            else -> null
+        },
+        trailingIcon = {
+            TooltipIconButton(
+                icon = if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                label = stringResource(if (visible) R.string.sync_passphrase_hide else R.string.sync_passphrase_show),
+                onClick = { visible = !visible }
+            )
+        },
+        enabled = !state.busy,
+        modifier = Modifier.fillMaxWidth()
+    )
+    if (creating) {
+        OutlinedTextField(
+            value = repeat,
+            onValueChange = { repeat = it },
+            label = { Text(stringResource(R.string.sync_passphrase_confirm)) },
+            singleLine = true,
+            visualTransformation = transformation,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            isError = mismatch,
+            supportingText = if (mismatch) { { Text(stringResource(R.string.sync_passphrase_mismatch)) } } else null,
+            enabled = !state.busy,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+    Button(
+        onClick = { onSubmit(passphrase) },
+        enabled = ready && !state.busy,
+        shapes = ButtonDefaults.shapes(),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        if (state.busy) LoadingIndicator(Modifier.size(24.dp), color = LocalContentColor.current)
+        else Text(stringResource(if (creating) R.string.sync_passphrase_set else R.string.sync_passphrase_unlock))
+    }
+}
+
+@Composable
+private fun StatusSection(state: SyncManager.State, onSyncNow: () -> Unit) {
+    SectionHeader(title = stringResource(R.string.sync_status), modifier = Modifier.padding(start = Spacing.md))
+    val problem = state.problem
+    val rows = buildList<@Composable (ListItemPosition) -> Unit> {
+        add { position ->
+            Row(
+                icon = Icons.Rounded.Schedule,
+                title = stringResource(R.string.sync_last_synced),
+                supporting = if (state.lastSyncAt > 0) {
+                    DateFormats.dayTime(Instant.ofEpochMilli(state.lastSyncAt).atZone(ZoneId.systemDefault()))
+                } else stringResource(R.string.sync_never),
+                position = position
+            )
+        }
+        add { position ->
+            Row(
+                icon = Icons.Rounded.CloudUpload,
+                title = stringResource(R.string.sync_pending),
+                supporting = state.pending.toString(),
+                position = position
+            )
+        }
+        if (state.held > 0) add { position ->
+            Row(
+                icon = Icons.Rounded.HourglassEmpty,
+                title = stringResource(R.string.sync_waiting, state.held),
+                supporting = stringResource(R.string.sync_waiting_body),
+                position = position
+            )
+        }
+        if (problem != null) add { position ->
+            Row(
+                icon = Icons.Rounded.ErrorOutline,
+                title = stringResource(R.string.sync_problem_title),
+                supporting = stringResource(
+                    when (problem) {
+                        SyncProblem.NETWORK -> R.string.sync_problem_network
+                        SyncProblem.PERMISSION -> R.string.sync_problem_permission
+                        SyncProblem.UNREADABLE -> R.string.sync_problem_unreadable
+                        SyncProblem.NEWER_VERSION -> R.string.sync_problem_newer
+                        SyncProblem.OTHER -> R.string.sync_problem_other
+                    }
+                ),
+                position = position,
+                error = true
+            )
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(1.5.dp)) {
+        rows.forEachIndexed { index, row -> row(ListItemPosition.from(index, rows.size)) }
+    }
+    Spacer(Modifier.height(Spacing.sm))
+    Button(
+        onClick = onSyncNow,
+        enabled = !state.busy,
+        shapes = ButtonDefaults.shapes(),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        if (state.busy) LoadingIndicator(Modifier.size(24.dp), color = LocalContentColor.current)
+        else {
+            Icon(Icons.Rounded.Sync, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.sync_now))
+        }
+    }
+}
+
+@Composable
+private fun ChoiceDialog(onMerge: () -> Unit, onReplace: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = CashiroDialogDefaults.containerColor,
+        title = { Text(stringResource(R.string.sync_choice_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(1.5.dp)) {
+                Text(
+                    stringResource(R.string.sync_choice_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = Spacing.md)
+                )
+                Row(
+                    icon = Icons.Rounded.Merge,
+                    title = stringResource(R.string.sync_choice_merge),
+                    supporting = stringResource(R.string.sync_choice_merge_body),
+                    position = ListItemPosition.Top,
+                    onClick = onMerge
+                )
+                Row(
+                    icon = Icons.Rounded.CloudDownload,
+                    title = stringResource(R.string.sync_choice_replace),
+                    supporting = stringResource(R.string.sync_choice_replace_body),
+                    position = ListItemPosition.Bottom,
+                    onClick = onReplace
+                )
+            }
+        },
+        confirmButton = { DialogDismissButton(stringResource(R.string.sync_choice_later), onClick = onDismiss) }
+    )
+}
+
+@Composable
+private fun BusyRow(text: String? = null) {
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier.fillMaxWidth().padding(Spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.md, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        LoadingIndicator(Modifier.size(32.dp))
+        if (text != null) Text(text, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+private fun Row(
+    icon: ImageVector,
+    title: String,
+    supporting: String,
+    position: ListItemPosition,
+    onClick: (() -> Unit)? = null,
+    error: Boolean = false,
+) {
+    ListItem(
+        headline = { Text(title) },
+        supporting = {
+            Text(supporting, color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+        },
+        leading = { RowIcon(icon, error) },
+        onClick = onClick,
+        shape = position.toShape(),
+        padding = PaddingValues(0.dp)
+    )
+}
+
+@Composable
+private fun RowIcon(icon: ImageVector, error: Boolean = false) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .background(
+                if (error) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
+                CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = if (error) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
+}
+
+/** Credential Manager shows its sheet over an Activity. */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}

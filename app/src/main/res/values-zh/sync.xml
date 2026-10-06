@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设置 → 同步（docs/sync.md） -->
+<resources>
+    <string name="sync_title">同步</string>
+    <string name="sync_subtitle">多台设备共用同一份账本，端到端加密</string>
+    <string name="sync_intro">登录同一账号的设备会保持同一份账本。记录在上传前就在本机用同步密码加密，只有你的设备能读取。附件、商户图标、设置、AI 密钥和券商连接都不会上传。</string>
+    <string name="sync_unavailable_title">此版本不支持同步</string>
+    <string name="sync_unavailable_body">F-Droid 版本不含 Google 服务。如需同步，请安装标准版本；也可以在「备份与同步」中用备份文件迁移数据。</string>
+    <string name="sync_sign_in">使用 Google 账号登录</string>
+    <string name="sync_sign_in_failed">Google 登录失败</string>
+    <string name="sync_account">账号</string>
+    <string name="sync_signed_in_as">已登录 Google 账号</string>
+    <string name="sync_sign_out">退出登录</string>
+    <string name="sync_sign_out_confirm_title">退出同步账号？</string>
+    <string name="sync_sign_out_confirm_body">本机将停止同步。本机数据会保留，云端数据也仍在你的账号中。</string>
+    <string name="sync_checking">正在检查账号…</string>
+    <string name="sync_passphrase_create_title">设置同步密码</string>
+    <string name="sync_passphrase_create_body">其他设备开启同步时需要输入这个密码。密码本身不会上传。</string>
+    <string name="sync_passphrase_enter_title">输入同步密码</string>
+    <string name="sync_passphrase_enter_body">请输入你在其他设备上设置的同步密码。</string>
+    <string name="sync_passphrase_warning">忘记同步密码后，任何人都无法读取云端数据，包括你自己。本机数据不受影响。</string>
+    <string name="sync_passphrase">同步密码</string>
+    <string name="sync_passphrase_confirm">再次输入密码</string>
+    <string name="sync_passphrase_too_short">至少需要 %1$d 个字符</string>
+    <string name="sync_passphrase_mismatch">两次输入的密码不一致</string>
+    <string name="sync_passphrase_wrong">同步密码不正确</string>
+    <string name="sync_passphrase_show">显示密码</string>
+    <string name="sync_passphrase_hide">隐藏密码</string>
+    <string name="sync_passphrase_set">设置并开始同步</string>
+    <string name="sync_passphrase_unlock">解锁并开始同步</string>
+    <string name="sync_choice_title">两边都有数据</string>
+    <string name="sync_choice_body">本机和云端都有记录，要如何开始同步？</string>
+    <string name="sync_choice_pending">选择同步方式</string>
+    <string name="sync_choice_merge">合并两边</string>
+    <string name="sync_choice_merge_body">全部保留。两边都有的记录（例如名称和尾号相同的账户）只保留一份。</string>
+    <string name="sync_choice_replace">使用云端数据</string>
+    <string name="sync_choice_replace_body">用云端数据替换本机记录。替换前会先在应用内保存一份本机备份。</string>
+    <string name="sync_choice_later">暂不</string>
+    <string name="sync_status">状态</string>
+    <string name="sync_last_synced">上次同步</string>
+    <string name="sync_never">尚未同步</string>
+    <string name="sync_pending">待上传的更改</string>
+    <string name="sync_waiting">暂缓写入：%1$d 条</string>
+    <string name="sync_waiting_body">这些记录比它们所属的数据先到，所属数据到达后会自动写入。</string>
+    <string name="sync_problem_title">上次同步未完成</string>
+    <string name="sync_problem_network">无法连接服务器，联网后会自动重试。</string>
+    <string name="sync_problem_permission">服务器拒绝访问，请退出登录后重新登录。</string>
+    <string name="sync_problem_unreadable">部分记录无法解密：它们是用另一个同步密码写入的。</string>
+    <string name="sync_problem_newer">部分记录来自更新版本的 Cashiro，请更新应用后再读取。</string>
+    <string name="sync_problem_other">出了点问题，请稍后重试。</string>
+    <string name="sync_now">立即同步</string>
+    <string name="sync_done">同步完成</string>
+    <string name="sync_failed">同步失败，联网后会自动重试。</string>
+    <string name="sync_merged">已合并，同步已开启。</string>
+    <string name="sync_replaced">已换成云端数据。本机备份已保存为 %1$s</string>
+</resources>

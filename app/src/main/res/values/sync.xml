@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings → Sync (docs/sync.md) -->
+<resources>
+    <string name="sync_title">Sync</string>
+    <string name="sync_subtitle">The same ledger on all your devices, end-to-end encrypted</string>
+    <string name="sync_intro">Devices signed in to the same account keep the same ledger. Records are encrypted on this device with your sync passphrase before they are uploaded, so only your devices can read them. Attachments, merchant icons, settings, AI keys and brokerage connections are not uploaded.</string>
+    <string name="sync_unavailable_title">Not available in this build</string>
+    <string name="sync_unavailable_body">The F-Droid build contains no Google services. To sync, install the standard build. You can still move data with a backup file under Backup &amp; Sync.</string>
+    <string name="sync_sign_in">Sign in with Google</string>
+    <string name="sync_sign_in_failed">Google sign-in failed</string>
+    <string name="sync_account">Account</string>
+    <string name="sync_signed_in_as">Signed in with Google</string>
+    <string name="sync_sign_out">Sign out</string>
+    <string name="sync_sign_out_confirm_title">Sign out of sync?</string>
+    <string name="sync_sign_out_confirm_body">This device stops syncing. Its data stays here, and the cloud copy stays in your account.</string>
+    <string name="sync_checking">Checking your account…</string>
+    <string name="sync_passphrase_create_title">Set a sync passphrase</string>
+    <string name="sync_passphrase_create_body">Your other devices ask for it when they turn on sync. The passphrase itself is never uploaded.</string>
+    <string name="sync_passphrase_enter_title">Enter your sync passphrase</string>
+    <string name="sync_passphrase_enter_body">Use the passphrase you set on your other device.</string>
+    <string name="sync_passphrase_warning">If you forget this passphrase, nobody can read the cloud copy, not even you. The data on this device is not affected.</string>
+    <string name="sync_passphrase">Sync passphrase</string>
+    <string name="sync_passphrase_confirm">Repeat the passphrase</string>
+    <string name="sync_passphrase_too_short">Use at least %1$d characters</string>
+    <string name="sync_passphrase_mismatch">The passphrases do not match</string>
+    <string name="sync_passphrase_wrong">Wrong passphrase</string>
+    <string name="sync_passphrase_show">Show passphrase</string>
+    <string name="sync_passphrase_hide">Hide passphrase</string>
+    <string name="sync_passphrase_set">Set and start syncing</string>
+    <string name="sync_passphrase_unlock">Unlock and start syncing</string>
+    <string name="sync_choice_title">Both have data</string>
+    <string name="sync_choice_body">This device and the cloud both hold records. How should syncing start?</string>
+    <string name="sync_choice_pending">Choose how to start syncing</string>
+    <string name="sync_choice_merge">Merge both</string>
+    <string name="sync_choice_merge_body">Keep everything. A record both sides have, such as an account with the same name and last 4 digits, is kept once.</string>
+    <string name="sync_choice_replace">Use the cloud copy</string>
+    <string name="sync_choice_replace_body">Replace this device\'s records with the cloud\'s. A backup of them is saved in the app first.</string>
+    <string name="sync_choice_later">Not now</string>
+    <string name="sync_status">Status</string>
+    <string name="sync_last_synced">Last synced</string>
+    <string name="sync_never">Not yet</string>
+    <string name="sync_pending">Changes waiting to upload</string>
+    <string name="sync_waiting">Records on hold: %1$d</string>
+    <string name="sync_waiting_body">They arrived before the records they belong to and are written once those arrive.</string>
+    <string name="sync_problem_title">Last sync did not finish</string>
+    <string name="sync_problem_network">Could not reach the server. Sync retries when the device is online.</string>
+    <string name="sync_problem_permission">The server refused access. Sign out and sign in again.</string>
+    <string name="sync_problem_unreadable">Some records could not be decrypted: they were written with a different passphrase.</string>
+    <string name="sync_problem_newer">Some records come from a newer version of Cashiro. Update the app to read them.</string>
+    <string name="sync_problem_other">Something went wrong. Try again later.</string>
+    <string name="sync_now">Sync now</string>
+    <string name="sync_done">Synced</string>
+    <string name="sync_failed">Sync failed. It retries when the device is online.</string>
+    <string name="sync_merged">Merged. Syncing is on.</string>
+    <string name="sync_replaced">Replaced with the cloud copy. This device\'s backup is saved as %1$s</string>
+</resources>
