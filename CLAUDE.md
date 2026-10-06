@@ -23,7 +23,7 @@ breaks updates of already-installed builds.
 | Gradle project | `cashiro-beta` |
 | App namespace / applicationId | `com.ritesh.cashiro` |
 | App source root | `app/src/main/java/com/ritesh/cashiro/` |
-| Room schema path | `app/schemas/com.ritesh.cashiro.data.database.CashiroDatabase/` (database version 70) |
+| Room schema path | `app/schemas/com.ritesh.cashiro.data.database.CashiroDatabase/` (database version 71) |
 | Historical Room schema paths | `app/schemas/com.pennywiseai.tracker.data.database.PennyWiseDatabase/`, `app/schemas/com.ritesh.cashiro.data.database.PennyWiseDatabase/` |
 | Version name | `2.1.63` |
 | Version code | `97` |
@@ -38,11 +38,18 @@ ones, and `MigrationChainTest` opens every exported schema at the current versio
 a new version needs its schema exported and its migration added there. First-run seeding is in
 `data/database/DatabaseCallback.kt`.
 
+Multi-device sync, phase 1 (local only, no Firebase yet): synced tables carry `sync_id` and
+`sync_updated_at`. SQLite triggers (`SyncTriggers`) fill them in and queue every change in
+`sync_outbox`. Every database builder, tests included, adds `SyncTriggers.Callback`. A new
+synced table needs the two columns, its index and an entry in `SyncTriggers.TABLES`. See
+`docs/sync.md`.
+
 ## Important Documents
 
 - **Architecture**: `/docs/architecture.md`
 - **Design System**: `/docs/design.md`
 - **Chinese experience**: `/docs/chinese-experience.md`
+- **Sync**: `/docs/sync.md`
 - **Validation**: `/docs/validation/chinese-experience/README.md`
 
 ## Key Technical Decisions

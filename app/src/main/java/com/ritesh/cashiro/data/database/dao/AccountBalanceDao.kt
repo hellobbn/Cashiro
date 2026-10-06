@@ -26,7 +26,7 @@ const val SOURCE_OPENING_BALANCE = "OPENING_BALANCE"
 /** Columns of [AccountBalanceEntity] for an account: its balance row joined with the account's own details. */
 private const val ACCOUNT_ROW = "SELECT ab.id, a.icon_res_id, a.icon_name, a.name AS bank_name, a.last4 AS account_last4, " +
     "ab.balance, ab.timestamp, ab.transaction_id, a.credit_limit, a.is_credit_card, ab.source_type, " +
-    "ab.created_at, ab.currency, a.is_wallet, a.color, a.is_sample, a.id AS account_id " +
+    "ab.created_at, ab.currency, a.is_wallet, a.color, a.is_sample, a.id AS account_id, ab.sync_id, ab.sync_updated_at " +
     "FROM accounts a JOIN account_balances ab ON ab.account_id = a.id AND ab.currency = a.main_currency"
 
 private const val POCKET_BALANCES = "SELECT ac.account_id AS accountId, ac.currency AS currency, " +
@@ -512,7 +512,9 @@ abstract class AccountBalanceDao {
             ab1.icon_name,
             ab1.is_wallet,
             ab1.color,
-            ab1.is_sample
+            ab1.is_sample,
+            ab1.sync_id,
+            ab1.sync_updated_at
         FROM account_balances ab1
         INNER JOIN (
             SELECT bank_name, account_last4, MAX(timestamp) as max_timestamp

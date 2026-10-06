@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 @Entity(
         tableName = "transactions",
         indices = [
+                Index(value = ["sync_id"]),
                 Index(value = ["transaction_hash"], unique = true),
                 // Every list, Home widget, Analytics and budget query filters on these two.
                 Index(value = ["is_deleted", "date_time"])
@@ -48,7 +49,10 @@ data class TransactionEntity(
         @ColumnInfo(name = "reference") val reference: String? = null,
         @ColumnInfo(name = "billing_cycle") val billingCycle: String? = null,
         @ColumnInfo(name = "attachments", defaultValue = "") val attachments: String = "",
-        @ColumnInfo(name = "is_sample", defaultValue = "0") val isSample: Boolean = false
+        @ColumnInfo(name = "is_sample", defaultValue = "0") val isSample: Boolean = false,
+        // Sync identity and last local change (epoch millis), kept by SyncTriggers; see docs/sync.md
+        @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String = "",
+        @ColumnInfo(name = "sync_updated_at", defaultValue = "0") val syncUpdatedAt: Long = 0
 )
 
 enum class TransactionType(@StringRes val labelRes: Int) {

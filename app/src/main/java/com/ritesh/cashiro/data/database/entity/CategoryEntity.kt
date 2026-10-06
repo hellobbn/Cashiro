@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 
 @Entity(
     tableName = "categories",
-    indices = [Index(value = ["name"], unique = true)]
+    indices = [Index(value = ["sync_id"]), Index(value = ["name"], unique = true)]
 )
 data class CategoryEntity(
     @PrimaryKey(autoGenerate = true)
@@ -59,5 +59,8 @@ data class CategoryEntity(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     
     @ColumnInfo(name = "updated_at")
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
+    // Sync identity and last local change (epoch millis), kept by SyncTriggers; see docs/sync.md
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String = "",
+    @ColumnInfo(name = "sync_updated_at", defaultValue = "0") val syncUpdatedAt: Long = 0
 )

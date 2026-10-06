@@ -22,6 +22,7 @@ import java.time.LocalDateTime
         )
     ],
     indices = [
+        Index(value = ["sync_id"]),
         Index(value = ["person_id"]),
         Index(value = ["type"]),
         Index(value = ["date"])
@@ -78,7 +79,10 @@ data class LendBorrowTransactionEntity(
     val merchant: String? = null,
 
     @ColumnInfo(name = "attachments", defaultValue = "'[]'")
-    val attachments: List<String> = emptyList()
+    val attachments: List<String> = emptyList(),
+    // Sync identity and last local change (epoch millis), kept by SyncTriggers; see docs/sync.md
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String = "",
+    @ColumnInfo(name = "sync_updated_at", defaultValue = "0") val syncUpdatedAt: Long = 0
 )
 
 enum class LendBorrowType {

@@ -28,7 +28,9 @@ fun CategoryEntity.sanitize(): CategoryEntity {
         defaultIconName = defaultIconName,
         defaultDescription = defaultDescription,
         createdAt = createdAt ?: LocalDateTime.now(),
-        updatedAt = updatedAt ?: LocalDateTime.now()
+        updatedAt = updatedAt ?: LocalDateTime.now(),
+        syncId = syncId ?: "",
+        syncUpdatedAt = syncUpdatedAt
     )
 }
 
@@ -46,7 +48,9 @@ fun SubcategoryEntity.sanitize(): SubcategoryEntity {
         defaultIconName = defaultIconName,
         defaultColor = defaultColor,
         createdAt = createdAt ?: LocalDateTime.now(),
-        updatedAt = updatedAt ?: LocalDateTime.now()
+        updatedAt = updatedAt ?: LocalDateTime.now(),
+        syncId = syncId ?: "",
+        syncUpdatedAt = syncUpdatedAt
     )
 }
 
@@ -77,7 +81,9 @@ fun TransactionEntity.sanitize(): TransactionEntity {
         toCurrency = toCurrency,
         billingCycle = billingCycle,
         attachments = attachments ?: "",
-        isSample = isSample
+        isSample = isSample,
+        syncId = syncId ?: "",
+        syncUpdatedAt = syncUpdatedAt
     )
 }
 
@@ -95,7 +101,9 @@ fun CardEntity.sanitize(): CardEntity {
         createdAt = createdAt ?: LocalDateTime.now(),
         updatedAt = updatedAt ?: LocalDateTime.now(),
         currency = currency ?: "CNY",
-        isSample = isSample
+        isSample = isSample,
+        syncId = syncId ?: "",
+        syncUpdatedAt = syncUpdatedAt
     )
 }
 
@@ -115,7 +123,9 @@ fun SubscriptionEntity.sanitize(): SubscriptionEntity {
         currency = currency ?: "CNY",
         billingCycle = billingCycle,
         lastPaidDate = lastPaidDate,
-        isSample = isSample
+        isSample = isSample,
+        syncId = syncId ?: "",
+        syncUpdatedAt = syncUpdatedAt
     )
 }
 
@@ -137,7 +147,9 @@ fun BudgetEntity.sanitize(): BudgetEntity {
         budgetType = budgetType ?: BudgetType.EXPENSE,
         accountIds = accountIds ?: emptyList(),
         color = color ?: "#4CAF50",
-        isSample = isSample
+        isSample = isSample,
+        syncId = syncId ?: "",
+        syncUpdatedAt = syncUpdatedAt
     )
 }
 
@@ -160,6 +172,8 @@ fun AccountBalanceEntity.sanitize(): AccountBalanceEntity {
         isWallet = isWallet,
         color = color ?: "#33B5E5",
         isSample = isSample,
-        accountId = accountId
+        accountId = accountId,
+        syncId = syncId ?: "",
+        syncUpdatedAt = syncUpdatedAt
     )
 }

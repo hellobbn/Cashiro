@@ -11,6 +11,7 @@ import com.ritesh.cashiro.data.brokerage.BrokerageRepository
 import com.ritesh.cashiro.data.brokerage.BrokerageStore
 import com.ritesh.cashiro.data.brokerage.SavedBrokerConnection
 import com.ritesh.cashiro.data.database.CashiroDatabase
+import com.ritesh.cashiro.data.database.SyncTriggers
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.LendBorrowPersonEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,7 +45,7 @@ class BackupMergeTest {
     }
 
     private fun database() = Room.inMemoryDatabaseBuilder(context, CashiroDatabase::class.java)
-        .allowMainThreadQueries().build().also { databases += it }
+        .addCallback(SyncTriggers.Callback).allowMainThreadQueries().build().also { databases += it }
 
     @After fun tearDown() = databases.forEach { it.close() }
 
@@ -109,6 +111,104 @@ class BackupMergeTest {
         assertTrue(importer(db).importBackup(backupOf(db), ImportStrategy.MERGE) is ImportResult.Success)
         assertEquals(before, db.counts())
         assertEquals(latest, db.accountBalanceDao().getAllBalances().first().maxBy { it.timestamp }.balance)
+    }
+
+    private suspend fun CashiroDatabase.syncIds() = mapOf(
+        "transactions" to transactionDao().getAllTransactions().first().map { it.syncId }.toSet(),
+        "balances" to accountBalanceDao().getAllBalances().first().map { it.syncId }.toSet(),
+        "accounts" to accountDao().getAccounts().map { it.syncId }.toSet(),
+        "people" to lendBorrowDao().getAllPersons().first().map { it.syncId }.toSet()
+    )
+
+    @Test fun aFullRestoreKeepsTheSyncIds() = runTest {
+        val source = database().apply { fill() }
+        val target = database()
+        assertTrue(importer(target).importBackup(backupOf(source), ImportStrategy.REPLACE_ALL) is ImportResult.Success)
+        val ids = source.syncIds()
+        assertTrue(ids.values.flatten().all { it.length == 32 })
+        assertEquals(ids, target.syncIds())
+        // A restore queues every record it wrote
+        val queued = target.syncDao().pending().filter { it.op == "UPSERT" }.map { it.syncId }.toSet()
+        assertTrue(queued.containsAll(ids.values.flatten()))
+    }
+
+    @Test fun aRecordEditedElsewhereIsMergedIntoItselfBySyncId() = runTest {
+        val source = database().apply { fill() }
+        val target = database()
+        importer(target).importBackup(backupOf(source), ImportStrategy.REPLACE_ALL)
+
+        // Edited on the source: its hash changes, its sync id does not
+        val edited = source.transactionDao().getAllTransactions().first().first { it.transactionHash == "hash-1" }
+        source.transactionDao().updateTransaction(
+            edited.copy(merchantName = "Market", transactionHash = "hash-1-edited", updatedAt = edited.updatedAt.plusDays(1))
+        )
+        val before = target.counts()
+        assertTrue(importer(target).importBackup(backupOf(source), ImportStrategy.MERGE) is ImportResult.Success)
+        assertEquals(before, target.counts())
+        val merged = target.transactionDao().getAllTransactions().first().single { it.syncId == edited.syncId }
+        assertEquals("Market", merged.merchantName)
+    }
+
+    @Test fun mergingABackupFromAnotherDeviceNeverCollidesOnSyncIds() = runTest {
+        val source = database().apply { fill() }
+        val backup = backupOf(source)
+        // The target holds the backup's person under another name: merged by name, the backup's
+        // person is new here, but its sync id is taken
+        val target = database()
+        importer(target).importBackup(backup, ImportStrategy.REPLACE_ALL)
+        val alex = target.lendBorrowDao().getAllPersonsSync().single()
+        target.lendBorrowDao().updatePerson(alex.copy(name = "Sam"))
+        assertTrue(importer(target).importBackup(backup, ImportStrategy.MERGE) is ImportResult.Success)
+        val people = target.lendBorrowDao().getAllPersonsSync().associateBy { it.name }
+        assertEquals(setOf("Sam", "Alex"), people.keys)
+        assertEquals(alex.syncId, people.getValue("Sam").syncId)
+        assertNotEquals(alex.syncId, people.getValue("Alex").syncId)
+        assertEquals(32, people.getValue("Alex").syncId.length)
+    }
+
+    /** The backup at [uri] as an app without sync ids wrote it. */
+    private fun withoutSyncFields(uri: Uri): Uri {
+        fun strip(value: Any?): Any? = when (value) {
+            is org.json.JSONObject -> value.apply {
+                remove("syncId"); remove("syncUpdatedAt")
+                keys().asSequence().toList().forEach { strip(opt(it)) }
+            }
+            is org.json.JSONArray -> value.apply { (0 until length()).forEach { strip(opt(it)) } }
+            else -> value
+        }
+        val out = java.io.File(context.cacheDir, "old-backup.zip")
+        java.util.zip.ZipInputStream(java.io.File(uri.path!!).inputStream()).use { zip ->
+            java.util.zip.ZipOutputStream(out.outputStream()).use { dest ->
+                generateSequence { zip.nextEntry }.forEach { entry ->
+                    var bytes = zip.readBytes()
+                    if (entry.name == "backup.json") {
+                        val json = org.json.JSONObject(String(bytes, Charsets.UTF_8))
+                        strip(json)
+                        bytes = json.toString().toByteArray(Charsets.UTF_8)
+                        assertTrue("syncId" !in String(bytes))
+                    }
+                    dest.putNextEntry(java.util.zip.ZipEntry(entry.name))
+                    dest.write(bytes)
+                    dest.closeEntry()
+                }
+            }
+        }
+        return Uri.fromFile(out)
+    }
+
+    @Test fun aBackupWithoutSyncIdsStillImports() = runTest {
+        val source = database().apply { fill() }
+        val old = withoutSyncFields(backupOf(source))
+        listOf(ImportStrategy.REPLACE_ALL, ImportStrategy.MERGE).forEach { strategy ->
+            val target = database()
+            val result = importer(target).importBackup(old, strategy)
+            assertTrue("$strategy: $result", result is ImportResult.Success)
+            assertEquals(source.counts(), target.counts())
+            val ids = target.syncIds().values.flatten()
+            assertTrue(ids.all { it.length == 32 })
+            // Fresh ids, not the source's
+            assertTrue(ids.none { it in source.syncIds().values.flatten() })
+        }
     }
 
     private fun entries(uri: Uri): Set<String> = java.util.zip.ZipInputStream(java.io.File(uri.path!!).inputStream()).use { zip ->

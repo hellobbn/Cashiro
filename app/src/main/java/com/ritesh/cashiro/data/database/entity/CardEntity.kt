@@ -16,6 +16,7 @@ import java.time.LocalDateTime
 @Entity(
     tableName = "cards",
     indices = [
+        Index(value = ["sync_id"]),
         Index(value = ["bank_name", "card_last4"], unique = true),
         Index(value = ["card_last4"]),
         Index(value = ["account_last4"])
@@ -62,7 +63,10 @@ data class CardEntity(
     val currency: String = "CNY",
     
     @ColumnInfo(name = "is_sample", defaultValue = "0")
-    val isSample: Boolean = false
+    val isSample: Boolean = false,
+    // Sync identity and last local change (epoch millis), kept by SyncTriggers; see docs/sync.md
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String = "",
+    @ColumnInfo(name = "sync_updated_at", defaultValue = "0") val syncUpdatedAt: Long = 0
 )
 
 enum class CardType {

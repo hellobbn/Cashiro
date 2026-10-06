@@ -43,9 +43,11 @@ com.ritesh.cashiro
 
 ### Data
 
-- **Database**: `CashiroDatabase` (version 70).
+- **Database**: `CashiroDatabase` (version 71).
   - Migrations are in `data/database/Migrations.kt`, listed by `CashiroDatabase.MIGRATIONS`.
   - First-run seeding is in `DatabaseCallback.kt`.
+  - Sync groundwork: synced tables carry `sync_id` / `sync_updated_at`, and SQLite triggers
+    (`SyncTriggers`) queue every change in `sync_outbox`. See [sync.md](sync.md).
 - **Accounts**:
   - An account is a row in `accounts` and holds one or more currencies in `account_currencies`.
   - Balance history is `account_balances`, one row per change, per currency ("pocket").
