@@ -370,7 +370,7 @@ class AddTransactionUseCaseTest {
         dao.seedBalance(AccountBalanceEntity(bankName = testBank, accountLast4 = testLast4,
             balance = BigDecimal("100"), timestamp = baseTime.minusDays(1), sourceType = "MANUAL"))
         useCase.execute(BigDecimal("840"), "Subscription payment", "Other", TransactionType.EXPENSE,
-            baseTime, bankName = testBank, accountLast4 = testLast4)
+            baseTime, bankName = testBank, accountLast4 = testLast4, currency = "CNY")
         val txn = transactionDao!!.insertedTransactions.last()
         assertEquals(BigDecimal("-740"), dao.getLatestBalance(testBank, testLast4)!!.balance)
         // The repository must use the persisted amount, not an obsolete UI copy.
@@ -389,12 +389,12 @@ class AddTransactionUseCaseTest {
         dao.seedBalance(AccountBalanceEntity(bankName = testBank, accountLast4 = testLast4,
             balance = BigDecimal("100"), timestamp = baseTime.minusDays(1), sourceType = "MANUAL"))
         useCase.execute(BigDecimal("840"), "Before", "Other", TransactionType.EXPENSE,
-            baseTime, bankName = testBank, accountLast4 = testLast4)
+            baseTime, bankName = testBank, accountLast4 = testLast4, currency = "CNY")
         val first = transactionDao!!.insertedTransactions.last()
         dao.seedBalance(AccountBalanceEntity(bankName = testBank, accountLast4 = testLast4,
             balance = BigDecimal("5000"), timestamp = baseTime.plusDays(1), sourceType = "BALANCE_CALIBRATION"))
         useCase.execute(BigDecimal("420"), "After", "Other", TransactionType.EXPENSE,
-            baseTime.plusDays(2), bankName = testBank, accountLast4 = testLast4)
+            baseTime.plusDays(2), bankName = testBank, accountLast4 = testLast4, currency = "CNY")
         val second = transactionDao!!.insertedTransactions.last()
         repo.deleteTransaction(first)
         assertEquals(BigDecimal("4580"), dao.getLatestBalance(testBank, testLast4)!!.balance)
@@ -416,10 +416,10 @@ class AddTransactionUseCaseTest {
         }
         useCase.execute(BigDecimal("200"), "Transfer", "Transfer", TransactionType.TRANSFER,
             baseTime, bankName = testBank, accountLast4 = testLast4,
-            targetAccountBankName = testBank, targetAccountLast4 = "5678")
+            targetAccountBankName = testBank, targetAccountLast4 = "5678", currency = "CNY")
         val transfer = transactionDao!!.insertedTransactions.last()
         useCase.execute(BigDecimal("30"), "Lunch", "Food", TransactionType.EXPENSE,
-            baseTime.plusDays(1), bankName = testBank, accountLast4 = "5678")
+            baseTime.plusDays(1), bankName = testBank, accountLast4 = "5678", currency = "CNY")
         repo.deleteTransaction(transfer)
         assertEquals(BigDecimal("100"), dao.getLatestBalance(testBank, testLast4)!!.balance)
         assertEquals(BigDecimal("20"), dao.getLatestBalance(testBank, "5678")!!.balance)
@@ -448,7 +448,7 @@ class AddTransactionUseCaseTest {
         val dao = FakeAccountBalanceDao()
         val (useCase, repo) = createUseCaseWithRepo(dao)
         useCase.execute(BigDecimal("840"), "First", "Other", TransactionType.EXPENSE,
-            baseTime, bankName = testBank, accountLast4 = testLast4)
+            baseTime, bankName = testBank, accountLast4 = testLast4, currency = "CNY")
         val txn = transactionDao!!.insertedTransactions.last()
         assertEquals(BigDecimal("-840"), dao.getLatestBalance(testBank, testLast4)!!.balance)
         repo.deleteTransaction(txn, hardDelete = true)

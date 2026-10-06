@@ -223,7 +223,7 @@ class AccountBalanceRepository @Inject constructor(
         timestamp: LocalDateTime,
         smsSource: String? = null,
         sourceType: String? = null,
-        currency: String = "INR"
+        currency: String
     ): Long {
         val latest = getLatestBalance(bankName, accountLast4)
         val balanceEntity = AccountBalanceEntity(

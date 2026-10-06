@@ -22,7 +22,7 @@ constructor(private val subscriptionRepository: SubscriptionRepository) {
         bankName: String? = null,
         autoRenewal: Boolean = true,
         paymentReminder: Boolean = true,
-        currency: String = "INR",
+        currency: String,
         notes: String? = null,
         lastPaidDate: LocalDate? = null
     ): Long {

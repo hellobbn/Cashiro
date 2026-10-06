@@ -536,7 +536,8 @@ constructor(
                                         balance = card.lastBalance!!,
                                         timestamp = card.lastBalanceDate ?: LocalDateTime.now(),
                                         smsSource = card.lastBalanceSource,
-                                        sourceType = "CARD_LINK"
+                                        sourceType = "CARD_LINK",
+                                        currency = card.currency
                                 )
                         Log.d(
                                 "ManageAccountsViewModel",
@@ -544,9 +545,7 @@ constructor(
                         )
 
                         // Show success message with balance
-                        val message =
-                                "Card linked successfully. Balance updated to ${CurrencyFormatter.formatCurrency(card.lastBalance)}"
-                        _uiState.update { it.copy(successMessage = message) }
+                        _uiState.update { it.copy(successMessage = context.getString(R.string.msg_card_linked)) }
                     } catch (e: Exception) {
                         Log.e(
                                 "ManageAccountsViewModel",

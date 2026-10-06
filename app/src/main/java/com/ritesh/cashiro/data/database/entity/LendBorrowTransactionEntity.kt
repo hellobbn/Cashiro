@@ -45,7 +45,7 @@ data class LendBorrowTransactionEntity(
     val amount: BigDecimal,
 
     @ColumnInfo(name = "currency", defaultValue = "'INR'")
-    val currency: String = "INR",
+    val currency: String = "CNY",
 
     @ColumnInfo(name = "title")
     val title: String,

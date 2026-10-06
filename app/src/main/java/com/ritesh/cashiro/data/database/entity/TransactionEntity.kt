@@ -36,7 +36,7 @@ data class TransactionEntity(
         @ColumnInfo(name = "is_deleted", defaultValue = "0") val isDeleted: Boolean = false,
         @ColumnInfo(name = "created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
         @ColumnInfo(name = "updated_at") val updatedAt: LocalDateTime = LocalDateTime.now(),
-        @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "INR",
+        @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "CNY",
         @ColumnInfo(name = "from_account") val fromAccount: String? = null,
         @ColumnInfo(name = "to_account") val toAccount: String? = null,
         // Transfers between accounts in different currencies: what reached the target account,

@@ -253,7 +253,7 @@ fun AnalyticsSummaryCardPreview() {
                 averageAmount = BigDecimal("1946"),
                 topCategory = "Miscellaneous",
                 topCategoryPercentage = 92f,
-                currency = "INR"
+                currency = "CNY"
             )
         }
     }
