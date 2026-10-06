@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.domain.usecase
 
+import com.ritesh.cashiro.data.repository.applyBalanceMoves
+import com.ritesh.cashiro.data.repository.balanceMoves
 import com.ritesh.cashiro.utils.SubscriptionUtils
 
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
@@ -96,63 +98,24 @@ constructor(
         // A duplicate hash is ignored (-1): nothing was added, so no balance moves
         if (transactionId <= 0L) return@write transactionId
 
-        // Update account balances based on transaction type
+        // Move the balances the way an edit would (see balanceMoves)
         if (bankName != null && accountLast4 != null) {
-            when (type) {
-                TransactionType.TRANSFER -> {
-                    // Transfer: subtract from source, add to target
-                    if (targetAccountBankName != null && targetAccountLast4 != null) {
-                        accountBalanceRepository.insertTransactionBalance(
-                            bankName = bankName,
-                            accountLast4 = accountLast4,
-                            amount = amount,
-                            transactionType = TransactionType.EXPENSE,
-                            explicitBalance = null,
-                            timestamp = date,
-                            transactionId = transactionId,
-                            creditLimit = null,
-                            isCreditCard = false,
-                            smsSource = null,
-                            currency = currency
-                        )
-                        accountBalanceRepository.insertTransactionBalance(
-                            bankName = targetAccountBankName,
-                            accountLast4 = targetAccountLast4,
-                            amount = targetAmount ?: amount,
-                            transactionType = TransactionType.INCOME,
-                            explicitBalance = null,
-                            timestamp = date,
-                            transactionId = transactionId,
-                            creditLimit = null,
-                            isCreditCard = false,
-                            smsSource = null,
-                            currency = toCurrency ?: currency
-                        )
-                    }
-                }
-                TransactionType.BALANCE_UPDATE -> {
-                    // Balance update already comes with its own balance, no adjustment needed
-                }
-                else -> {
-                    // INCOME, EXPENSE, CREDIT, INVESTMENT:
-                    // Use insertTransactionBalance which correctly:
-                    // (1) finds the balance AT the transaction date (not the latest),
-                    // (2) computes the new balance relative to that point, and
-                    // (3) recalculates all subsequent balance entries to propagate the change forward.
-                    accountBalanceRepository.insertTransactionBalance(
-                        bankName = bankName,
-                        accountLast4 = accountLast4,
-                        amount = amount,
-                        transactionType = type,
-                        explicitBalance = null,
-                        timestamp = date,
-                        transactionId = transactionId,
-                        creditLimit = null,
-                        isCreditCard = false,
-                        smsSource = null,
-                        currency = currency
-                    )
-                }
+            val target = if (targetAccountBankName != null && targetAccountLast4 != null) targetAccountBankName to targetAccountLast4 else null
+            val moves = balanceMoves(transaction.copy(id = transactionId), bankName to accountLast4, target, toCurrency)
+            applyBalanceMoves(moves, transactionId, date) { move, id, at ->
+                accountBalanceRepository.insertTransactionBalance(
+                    bankName = move.bankName,
+                    accountLast4 = move.accountLast4,
+                    amount = move.amount,
+                    transactionType = move.type,
+                    explicitBalance = move.reportedBalance,
+                    timestamp = at,
+                    transactionId = id,
+                    creditLimit = null,
+                    isCreditCard = false,
+                    smsSource = null,
+                    currency = move.currency
+                )
             }
         }
 

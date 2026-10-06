@@ -1015,7 +1015,8 @@ private fun AccountsListDetail(
                 account = paneAccount,
                 navController = navController,
                 animatedContentScope = animatedContentScope,
-                onClose = { paneAccount = null }
+                onClose = { paneAccount = null },
+                onRenamed = { paneAccount = it }
             )
         }
     }

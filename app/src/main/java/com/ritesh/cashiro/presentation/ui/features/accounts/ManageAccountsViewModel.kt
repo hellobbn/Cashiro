@@ -659,7 +659,9 @@ constructor(
             newColorHex: String,
             newCurrency: String? = null,
             addedCurrencies: Map<String, BigDecimal> = emptyMap(),
-            cardDates: com.ritesh.cashiro.domain.model.CardDates = com.ritesh.cashiro.domain.model.CardDates()
+            cardDates: com.ritesh.cashiro.domain.model.CardDates = com.ritesh.cashiro.domain.model.CardDates(),
+            // Called once everything is saved, e.g. to open the renamed account
+            onSaved: () -> Unit = {}
     ) {
         viewModelScope.launch {
             try {
@@ -713,7 +715,7 @@ constructor(
                 }
 
                 _uiState.update { it.copy(successMessage = context.getString(R.string.msg_account_updated)) }
-
+                onSaved()
 
                 delay(3000)
                 _uiState.update { it.copy(successMessage = null) }

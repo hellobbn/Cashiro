@@ -101,7 +101,9 @@ fun SharedTransitionScope.AccountDetailScreen(
     accountDetailViewModel: AccountDetailViewModel = hiltViewModel(),
     animatedContentScope: AnimatedVisibilityScope? = null,
     // In a detail pane, back closes the pane instead of leaving the screen
-    onNavigateBack: (() -> Unit)? = null
+    onNavigateBack: (() -> Unit)? = null,
+    // After a rename the page shows the account under its new name; by default it reopens itself
+    onRenamed: ((String) -> Unit)? = null
 ) {
     val uiState by accountDetailViewModel.uiState.collectAsState()
     val selectedDateRange by accountDetailViewModel.selectedDateRange.collectAsState()
@@ -231,8 +233,15 @@ fun SharedTransitionScope.AccountDetailScreen(
                             cardDates = uiState.cardDates,
                             viewModel = manageViewModel,
                             onDismiss = { showEdit = false },
-                            // The page is the account's by name: after a rename or delete it is gone
-                            onGone = { onNavigateBack?.invoke() ?: navController.safePopBackStack() }
+                            onGone = { onNavigateBack?.invoke() ?: navController.safePopBackStack() },
+                            // The page is the account's by name: a renamed account opens again under the new one
+                            onRenamed = { newName ->
+                                onRenamed?.invoke(newName) ?: navController.safeNavigate(
+                                    com.ritesh.cashiro.presentation.navigation.AccountDetail(newName, balance.accountLast4)
+                                ) {
+                                    popUpTo<com.ritesh.cashiro.presentation.navigation.AccountDetail> { inclusive = true }
+                                }
+                            }
                         )
                     }
                     if (showCalibration) {
@@ -541,7 +550,8 @@ private fun AccountEditSheet(
     cardDates: com.ritesh.cashiro.domain.model.CardDates,
     viewModel: ManageAccountsViewModel,
     onDismiss: () -> Unit,
-    onGone: () -> Unit
+    onGone: () -> Unit,
+    onRenamed: (String) -> Unit
 ) {
     val accounts by viewModel.uiState.collectAsStateWithLifecycle()
     val defaultCurrency by viewModel.defaultCurrencyForNewAccounts.collectAsStateWithLifecycle()
@@ -577,10 +587,10 @@ private fun AccountEditSheet(
                     newColorHex = color,
                     newCurrency = currency,
                     addedCurrencies = addedCurrencies,
-                    cardDates = cardDates
+                    cardDates = cardDates,
+                    onSaved = { if (bankName != account.bankName) onRenamed(bankName) }
                 )
                 onDismiss()
-                if (bankName != account.bankName) onGone()
             }
         )
     }
