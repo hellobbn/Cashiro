@@ -269,7 +269,7 @@ fun TransactionItem(
     // Build subtitle parts
     val recurringStr = stringResource(R.string.recurring)
     val balanceAfterStr = balanceAfter?.let { balance ->
-        stringResource(R.string.balance_after_format, CurrencyFormatter.formatCurrency(balance, balanceCurrency ?: "INR"))
+        stringResource(R.string.balance_after_format, CurrencyFormatter.formatCurrency(balance, balanceCurrency ?: transaction?.currency ?: "CNY"))
     }
     val (subtitleParts, subtitleFinal) = remember(
         subtitleOverride,
@@ -393,7 +393,7 @@ fun TransactionItem(
                         balanceAfter?.let { balance ->
                             TagSeparator()
                             SubtitleTag(
-                                text = stringResource(R.string.balance_after_format, CurrencyFormatter.formatCurrency(balance, balanceCurrency ?: "INR")),
+                                text = stringResource(R.string.balance_after_format, CurrencyFormatter.formatCurrency(balance, balanceCurrency ?: transaction?.currency ?: "CNY")),
                                 color = MaterialTheme.colorScheme.secondary
                             )
                             needsSeparator = true

@@ -36,7 +36,7 @@ constructor(
             isRecurring: Boolean = false,
             bankName: String? = null,
             accountLast4: String? = null,
-            currency: String = "INR",
+            currency: String,
             sourceAccountId: Long? = null,
             targetAccountBankName: String? = null,
             targetAccountLast4: String? = null,
