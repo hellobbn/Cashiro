@@ -1720,7 +1720,8 @@ private fun EditableExtractedInfoCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
-                    val billingCycles = listOf(stringResource(R.string.weekly_recurring), stringResource(R.string.monthly_recurring), stringResource(R.string.quarterly_recurring), stringResource(R.string.semi_annual_recurring), stringResource(R.string.annual_recurring), stringResource(R.string.custom_recurring))
+                    // Stored as keys, shown translated
+                    val billingCycles = com.ritesh.cashiro.utils.SubscriptionUtils.CYCLE_KEYS
                     
                     ExposedDropdownMenuBox(
                         expanded = showBillingCycleMenu,
@@ -1728,7 +1729,7 @@ private fun EditableExtractedInfoCard(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         TextField(
-                            value = transaction.billingCycle ?: "Monthly",
+                            value = com.ritesh.cashiro.presentation.ui.components.billingCycleLabel(transaction.billingCycle),
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(stringResource(R.string.billing_cycle), fontWeight = FontWeight.SemiBold) },
@@ -1793,7 +1794,7 @@ private fun EditableExtractedInfoCard(
                                 val isLastItem = index == billingCycles.lastIndex
                                 val isMiddleItem = !isFirstItem && !isLastItem
                                 DropdownMenuItem(
-                                    text = { Text(cycle) },
+                                    text = { Text(com.ritesh.cashiro.presentation.ui.components.billingCycleLabel(cycle)) },
                                     onClick = {
                                         viewModel.updateBillingCycle(cycle)
                                         onBillingCycleMenuChange(false)

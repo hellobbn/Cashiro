@@ -298,15 +298,17 @@ private fun HistoryRecordItem(
                     )
                     Text(
                         text = balance.timestamp.format(
-                            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+                            DateTimeFormatter.ofPattern(
+                                if (java.util.Locale.getDefault().language == "zh") "yyyy年M月d日 HH:mm" else "MMM d, yyyy HH:mm"
+                            )
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                if (editingId != balance.id && !isOnlyRecord &&
-                    balance.sourceType !in setOf("BALANCE_CALIBRATION", "OPENING_BALANCE")) {
+                // Rows a transaction wrote are its effect: they change with the transaction
+                if (editingId != balance.id && !isOnlyRecord && balance.transactionId == null) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
@@ -403,7 +405,7 @@ private fun HistoryRecordItem(
 
                     // Source Badge
                     val (sourceIcon, sourceText, sourceColor) = when (balance.sourceType) {
-                        "TRANSACTION" -> Triple(Icons.Rounded.SwapHoriz, stringResource(R.string.source_transaction), MaterialTheme.colorScheme.tertiary)
+                        "TRANSACTION", "TRANSACTION_CALCULATED", "TRANSACTION_SMS_BALANCE" -> Triple(Icons.Rounded.SwapHoriz, stringResource(R.string.source_transaction), MaterialTheme.colorScheme.tertiary)
                         "SMS_BALANCE" -> Triple(Iconax.Messages, stringResource(R.string.source_sms), MaterialTheme.colorScheme.secondary)
                         "CARD_LINK" -> Triple(Iconax.Card, stringResource(R.string.source_card_link), MaterialTheme.colorScheme.primary)
                         "BALANCE_CALIBRATION" -> Triple(Iconax.Edit2, stringResource(R.string.balance_calibration), MaterialTheme.colorScheme.primary)

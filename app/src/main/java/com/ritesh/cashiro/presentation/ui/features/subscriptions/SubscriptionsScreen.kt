@@ -628,7 +628,7 @@ private fun SwipeableSubscriptionItem(
 
                                 // Billing Cycle Tag
                                 SubtitleTag(
-                                    text = SubscriptionUtils.formatBillingCycle(subscription.billingCycle),
+                                    text = com.ritesh.cashiro.presentation.ui.components.billingCycleLabel(subscription.billingCycle),
                                     color = MaterialTheme.colorScheme.tertiary
                                 )
 
@@ -836,7 +836,7 @@ private fun PaymentStatusBottomSheet(
                         } else {
                             subscription.currency
                         }
-                        val cycleSubtitle = SubscriptionUtils.cycleSubtitle(
+                        val cycleSubtitle = com.ritesh.cashiro.presentation.ui.components.billingCycleSubtitle(
                             amount = displayAmount,
                             currency = displayCurrency,
                             billingCycle = subscription.billingCycle
