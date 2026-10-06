@@ -11,7 +11,6 @@ import org.json.JSONObject
 import com.ritesh.cashiro.data.database.CashiroDatabase
 import com.ritesh.cashiro.data.database.entity.*
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
-import com.ritesh.cashiro.data.repository.WebhookRepository
 import com.ritesh.cashiro.data.preferences.AppFont
 import com.ritesh.cashiro.data.preferences.ThemeStyle
 import com.ritesh.cashiro.data.preferences.AccentColor
@@ -36,7 +35,6 @@ class BackupImporter @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: CashiroDatabase,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val webhookRepository: WebhookRepository,
     private val brokerageRepository: BrokerageRepository,
     private val merchantIconStore: MerchantIconStore
 ) {
@@ -56,15 +54,6 @@ class BackupImporter @Inject constructor(
         strategy: ImportStrategy = ImportStrategy.MERGE,
         restoreOnboardingCompletion: Boolean = true
     ): ImportResult = withContext(Dispatchers.IO) {
-        importBackup(uri, strategy, SelectiveImportFilter.ALL, restoreOnboardingCompletion)
-    }
-
-    suspend fun importBackup(
-        uri: Uri,
-        strategy: ImportStrategy,
-        filter: SelectiveImportFilter,
-        restoreOnboardingCompletion: Boolean = true
-    ): ImportResult = withContext(Dispatchers.IO) {
         try {
             // Read and parse the backup file
             val (backup, extras) = readBackupFile(uri)
@@ -79,7 +68,6 @@ class BackupImporter @Inject constructor(
             val result = when (strategy) {
                 ImportStrategy.REPLACE_ALL -> replaceAllData(backup, restoreOnboardingCompletion)
                 ImportStrategy.MERGE -> mergeData(backup, restoreOnboardingCompletion)
-                ImportStrategy.SELECTIVE -> selectiveImport(backup, filter, restoreOnboardingCompletion)
             }
             // Brokerage connections are only added, never replaced: a failure here leaves the ledger import intact
             if (result is ImportResult.Success && extras.brokerage != null) {
@@ -216,14 +204,10 @@ class BackupImporter @Inject constructor(
                 database.cardDao().deleteAllCards()
                 database.accountBalanceDao().deleteAllBalances()
                 database.subscriptionDao().deleteAllSubscriptions()
-                database.merchantMappingDao().deleteAllMappings()
-                database.merchantMappingDao().deleteAllMappings()
                 database.budgetDao().deleteAllBudgets()
                 database.subcategoryDao().getAllSubcategories().first().forEach { 
                     database.subcategoryDao().deleteSubcategory(it)
                 }
-                database.ruleDao().deleteAllRules()
-                database.ruleApplicationDao().deleteAllApplications()
                 database.exchangeRateDao().deleteAllRates()
                 database.lendBorrowDao().deleteAllTransactions()
                 database.lendBorrowDao().deleteAllPersons()
@@ -254,10 +238,6 @@ class BackupImporter @Inject constructor(
                     database.subscriptionDao().insertSubscription(subscription.sanitize())
                 }
                 
-                backup.database.merchantMappings.forEach { mapping ->
-                    database.merchantMappingDao().insertMapping(mapping)
-                }
-                
                 backup.database.exchangeRates.forEach { rate ->
                     database.exchangeRateDao().insertExchangeRate(rate)
                 }
@@ -272,21 +252,6 @@ class BackupImporter @Inject constructor(
                 
                 backup.database.subcategories.forEach { subcategory ->
                     database.subcategoryDao().insertSubcategory(subcategory.sanitize())
-                }
-
-                backup.database.rules.forEach { rule ->
-                    database.ruleDao().insertRule(rule)
-                }
-
-                backup.database.ruleApplications.forEach { app ->
-                    database.ruleApplicationDao().insertApplication(app)
-                }
-
-                if (backup.database.webhookProfiles.isNotEmpty()) {
-                    val baseCurrency = userPreferencesRepository.baseCurrency.first()
-                    backup.database.webhookProfiles.forEach { profile ->
-                        webhookRepository.saveProfile(profile.toDraft(baseCurrency))
-                    }
                 }
 
                 backup.database.lendBorrowPersons.forEach { person ->
@@ -367,7 +332,7 @@ class BackupImporter @Inject constructor(
                     }
                 }
                 
-                // Mapping to track OldTransactionID -> NewTransactionID for rule applications
+                // Backup transaction id -> its id here, for balance rows and loans
                 val transactionIdMap = mutableMapOf<Long, Long>()
                 // Backup transactions that are new here: only their balance rows come along
                 val insertedTransactions = mutableSetOf<Long>()
@@ -415,27 +380,11 @@ class BackupImporter @Inject constructor(
                     }
                 }
                 
-                // Import rules (merge by name/ID)
-                backup.database.rules.forEach { rule ->
-                    database.ruleDao().insertRule(rule)
-                }
-
-                // Import rule applications
-                backup.database.ruleApplications.forEach { app ->
-                    val newTxId = transactionIdMap[app.transactionId.toLongOrNull() ?: -1L]
-                    if (newTxId != null) {
-                        val newApp = app.copy(transactionId = newTxId.toString())
-                        database.ruleApplicationDao().insertApplication(newApp)
-                    }
-                }
-                
                 // Import other entities with duplicate checking
                 importCardsWithMerge(backup.database.cards)
                 importAccountBalancesWithMerge(backup.database, transactionIdMap, insertedTransactions, accountsBefore)
                 importSubscriptionsWithMerge(backup.database.subscriptions)
-                importMerchantMappingsWithMerge(backup.database.merchantMappings)
                 importBudgetsWithMerge(backup.database.budgets, backup.database.budgetCategoryLimits)
-                importWebhookProfilesWithMerge(backup.database.webhookProfiles)
                 importExchangeRatesWithMerge(backup.database.exchangeRates)
 
                 importLendBorrowWithMerge(backup.database, transactionIdMap)
@@ -456,149 +405,6 @@ class BackupImporter @Inject constructor(
         }
     }
     
-    /**
-     * Selective import: merge only the entity types selected in [filter].
-     */
-    private suspend fun selectiveImport(
-        backup: CashiroBackup,
-        filter: SelectiveImportFilter,
-        restoreOnboardingCompletion: Boolean
-    ): ImportResult {
-        var importedTransactions = 0
-        var importedCategories = 0
-        var skippedDuplicates = 0
-
-        return database.withTransaction {
-            try {
-                // Without its balances, a backup's accounts are not brought in: transactions find
-                // the accounts already here by name
-                val accountsBefore = existingAccountKeys()
-                val accountIds = if (filter.includeAccountBalances) importAccounts(backup.database, keepIds = false) else emptyMap()
-                val insertedTransactions = mutableSetOf<Long>()
-                val existingTransactionsMap = database.transactionDao()
-                    .getAllTransactions().first()
-                    .associateBy { it.transactionHash }
-
-                val existingCategories = database.categoryDao()
-                    .getAllCategories().first()
-                    .map { it.name }
-                    .toSet()
-
-                val categoryIdMap = mutableMapOf<Long, Long>()
-
-                if (filter.includeCategories) {
-                    backup.database.categories.forEach { category ->
-                        val sanitizedCategory = category.sanitize()
-                        val existingCategory = database.categoryDao().getCategoryByName(sanitizedCategory.name)
-                        if (existingCategory == null) {
-                            val newCategory = sanitizedCategory.copy(id = 0)
-                            val newId = database.categoryDao().insertCategory(newCategory)
-                            categoryIdMap[sanitizedCategory.id] = newId
-                            importedCategories++
-                        } else {
-                            categoryIdMap[sanitizedCategory.id] = existingCategory.id
-                        }
-                    }
-                }
-
-                if (filter.includeSubcategories) {
-                    backup.database.subcategories.forEach { subcategory ->
-                        val sanitizedSubcategory = subcategory.sanitize()
-                        val newCategoryId = categoryIdMap[sanitizedSubcategory.categoryId] ?: return@forEach
-                        val existingSubcategories = database.subcategoryDao()
-                            .getSubcategoriesByCategoryId(newCategoryId).first()
-                        val alreadyExists = existingSubcategories.any { it.name == sanitizedSubcategory.name }
-                        if (!alreadyExists) {
-                            val newSubcategory = sanitizedSubcategory.copy(id = 0, categoryId = newCategoryId)
-                            database.subcategoryDao().insertSubcategory(newSubcategory)
-                        }
-                    }
-                }
-
-                val transactionIdMap = mutableMapOf<Long, Long>()
-
-                if (filter.includeTransactions) {
-                    backup.database.transactions.forEach { backupTxn ->
-                        val sanitizedTxn = backupTxn.sanitize().withAccounts(accountIds)
-                        val existingTxn = existingTransactionsMap[sanitizedTxn.transactionHash]
-                        if (existingTxn == null) {
-                            val newTransaction = sanitizedTxn.copy(id = 0)
-                            val newId = database.transactionDao().insertTransaction(newTransaction)
-                            transactionIdMap[sanitizedTxn.id] = newId
-                            if (newId > 0) insertedTransactions += sanitizedTxn.id
-                            importedTransactions++
-                        } else {
-                            transactionIdMap[sanitizedTxn.id] = existingTxn.id
-                            val shouldUpdate = when {
-                                sanitizedTxn.updatedAt.isAfter(existingTxn.updatedAt) -> true
-                                sanitizedTxn.updatedAt.isAfter(sanitizedTxn.dateTime) &&
-                                        !existingTxn.updatedAt.isAfter(existingTxn.dateTime) -> true
-                                else -> false
-                            }
-                            if (shouldUpdate) {
-                                val updatedTxn = sanitizedTxn.copy(id = existingTxn.id)
-                                database.transactionDao().updateTransaction(updatedTxn)
-                                importedTransactions++
-                            } else {
-                                skippedDuplicates++
-                            }
-                        }
-                    }
-                }
-
-                if (filter.includeRules) {
-                    backup.database.rules.forEach { rule ->
-                        database.ruleDao().insertRule(rule)
-                    }
-                }
-
-                if (filter.includeRuleApplications) {
-                    backup.database.ruleApplications.forEach { app ->
-                        val newTxId = transactionIdMap[app.transactionId.toLongOrNull() ?: -1L]
-                        if (newTxId != null) {
-                            val newApp = app.copy(transactionId = newTxId.toString())
-                            database.ruleApplicationDao().insertApplication(newApp)
-                        }
-                    }
-                }
-
-                if (filter.includeCards) {
-                    importCardsWithMerge(backup.database.cards)
-                }
-                if (filter.includeAccountBalances) {
-                    importAccountBalancesWithMerge(backup.database, transactionIdMap, insertedTransactions, accountsBefore)
-                }
-                if (filter.includeSubscriptions) {
-                    importSubscriptionsWithMerge(backup.database.subscriptions)
-                }
-                if (filter.includeMerchantMappings) {
-                    importMerchantMappingsWithMerge(backup.database.merchantMappings)
-                }
-                if (filter.includeBudgets) {
-                    importBudgetsWithMerge(backup.database.budgets, backup.database.budgetCategoryLimits)
-                }
-                if (filter.includeWebhookProfiles) {
-                    importWebhookProfilesWithMerge(backup.database.webhookProfiles)
-                }
-                if (filter.includeExchangeRates) {
-                    importExchangeRatesWithMerge(backup.database.exchangeRates)
-                }
-                if (filter.includePreferences) {
-                    importPreferences(backup.preferences, restoreOnboardingCompletion)
-                }
-                database.accountBalanceDao().linkTransactionsToAccounts()
-
-                ImportResult.Success(
-                    importedTransactions = importedTransactions,
-                    importedCategories = importedCategories,
-                    skippedDuplicates = skippedDuplicates
-                )
-            } catch (e: Exception) {
-                throw e
-            }
-        }
-    }
-
     /**
      * Import cards with duplicate checking
      */
@@ -705,16 +511,6 @@ class BackupImporter @Inject constructor(
     }
     
     /**
-     * Import merchant mappings with merge
-     */
-    private suspend fun importMerchantMappingsWithMerge(mappings: List<MerchantMappingEntity>) {
-        mappings.forEach { mapping ->
-            // Merchant mappings use merchant name as primary key, so just insert/replace
-            database.merchantMappingDao().insertMapping(mapping)
-        }
-    }
-
-    /**
      * Import budgets with merge and ID remapping
      */
     private suspend fun importBudgetsWithMerge(
@@ -754,53 +550,12 @@ class BackupImporter @Inject constructor(
         }
     }
 
-    private suspend fun importWebhookProfilesWithMerge(profiles: List<WebhookProfileBackup>) {
-        if (profiles.isEmpty()) return
-        val baseCurrency = userPreferencesRepository.baseCurrency.first()
-        profiles.forEach { profile ->
-            val existing = database.webhookProfileDao().getProfileById(profile.id)
-            if (existing == null) {
-                webhookRepository.saveProfile(profile.toDraft(baseCurrency))
-            }
-        }
-    }
-
     private suspend fun importExchangeRatesWithMerge(rates: List<ExchangeRateEntity>) {
         rates.forEach { rate ->
             database.exchangeRateDao().insertExchangeRate(rate)
         }
     }
 
-    private fun parseRangePreset(value: String): WebhookRangePreset =
-        runCatching { WebhookRangePreset.valueOf(value) }
-            .getOrElse { WebhookRangePreset.SINCE_LAST_SUCCESS }
-
-    private fun parseLocalDateTime(value: String?): java.time.LocalDateTime? =
-        value?.let { runCatching { java.time.LocalDateTime.parse(it) }.getOrNull() }
-
-    // Currency is no longer part of the backup model — derive from the importing user's own
-    // baseCurrency preference, same as the runtime sync path does. Caller passes it in so we
-    // don't re-read DataStore once per profile when restoring multiple webhooks.
-    private fun WebhookProfileBackup.toDraft(currency: String): com.ritesh.cashiro.data.webhook.WebhookProfileDraft =
-        com.ritesh.cashiro.data.webhook.WebhookProfileDraft(
-            id = id,
-            name = name,
-            url = url,
-            enabled = enabled,
-            dataTypes = dataTypes
-                .mapNotNull {
-                    runCatching {
-                        com.ritesh.cashiro.data.database.entity.WebhookDataType.valueOf(it)
-                    }.getOrNull()
-                }
-                .toSet(),
-            rangePreset = parseRangePreset(rangePreset),
-            customStart = parseLocalDateTime(customStart),
-            customEnd = parseLocalDateTime(customEnd),
-            currency = currency,
-            headers = headers
-        )
-    
     /**
      * Import user preferences
      */
@@ -823,7 +578,6 @@ class BackupImporter @Inject constructor(
         
         // Developer preferences
         userPreferencesRepository.updateDeveloperMode(preferences.developer.isDeveloperModeEnabled)
-        userPreferencesRepository.setWebhookModeEnabled(preferences.developer.isWebhookModeEnabled)
         userPreferencesRepository.setTokenInfoEnabled(preferences.developer.isTokenInfoEnabled)
         preferences.developer.systemPrompt?.let {
             userPreferencesRepository.updateSystemPrompt(it)

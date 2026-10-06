@@ -2,7 +2,6 @@ package com.ritesh.cashiro.data.backup
 
 import com.google.gson.annotations.SerializedName
 import com.ritesh.cashiro.data.database.entity.*
-import com.ritesh.cashiro.data.webhook.WebhookHeader
 import java.time.LocalDateTime
 
 /**
@@ -73,9 +72,6 @@ data class BackupStatistics(
     @SerializedName("total_subcategories")
     val totalSubcategories: Int = 0,
 
-    @SerializedName("total_rules")
-    val totalRules: Int = 0,
-
     @SerializedName("date_range")
     val dateRange: DateRange?
 )
@@ -110,9 +106,6 @@ data class DatabaseSnapshot(
     @SerializedName("subscriptions")
     val subscriptions: List<SubscriptionEntity>,
     
-    @SerializedName("merchant_mappings")
-    val merchantMappings: List<MerchantMappingEntity>,
-    
     @SerializedName("budgets")
     val budgets: List<BudgetEntity> = emptyList(),
 
@@ -121,15 +114,6 @@ data class DatabaseSnapshot(
     
     @SerializedName("subcategories")
     val subcategories: List<SubcategoryEntity> = emptyList(),
-
-    @SerializedName("rules")
-    val rules: List<RuleEntity> = emptyList(),
-
-    @SerializedName("rule_applications")
-    val ruleApplications: List<RuleApplicationEntity> = emptyList(),
-
-    @SerializedName("webhook_profiles")
-    val webhookProfiles: List<WebhookProfileBackup> = emptyList(),
 
     @SerializedName("exchange_rates")
     val exchangeRates: List<ExchangeRateEntity> = emptyList(),
@@ -146,29 +130,6 @@ data class DatabaseSnapshot(
 
     @SerializedName("lend_borrow_transactions")
     val lendBorrowTransactions: List<LendBorrowTransactionEntity> = emptyList()
-)
-
-data class WebhookProfileBackup(
-    @SerializedName("id")
-    val id: String,
-    @SerializedName("name")
-    val name: String,
-    @SerializedName("url")
-    val url: String,
-    @SerializedName("enabled")
-    val enabled: Boolean,
-    @SerializedName("data_types")
-    val dataTypes: List<String>,
-    @SerializedName("range_preset")
-    val rangePreset: String,
-    // Stored as ISO-8601 strings rather than LocalDateTime because Gson has no built-in
-    // TypeAdapter for java.time and would reflect on the class's internal fields.
-    @SerializedName("custom_start")
-    val customStart: String? = null,
-    @SerializedName("custom_end")
-    val customEnd: String? = null,
-    @SerializedName("headers")
-    val headers: List<WebhookHeader> = emptyList()
 )
 
 /**
@@ -284,8 +245,6 @@ data class SmsPreferences(
 data class DeveloperPreferences(
     @SerializedName("is_developer_mode_enabled")
     val isDeveloperModeEnabled: Boolean,
-    @SerializedName("is_webhook_mode_enabled")
-    val isWebhookModeEnabled: Boolean = false,
     @SerializedName("is_token_info_enabled")
     val isTokenInfoEnabled: Boolean = false,
     @SerializedName("system_prompt")
@@ -358,24 +317,13 @@ sealed class ExportResult {
  */
 enum class ImportStrategy {
     REPLACE_ALL,    // Replace all existing data
-    MERGE,          // Merge with existing data (skip duplicates)
-    SELECTIVE       // User selects what to import
-}
-
-/**
- * Privacy level for export
- */
-enum class ExportPrivacy {
-    FULL,          // Export everything as-is
-    MASKED,        // Mask sensitive data like account numbers
-    ANONYMOUS      // Remove merchant names and descriptions
+    MERGE           // Merge with existing data (skip duplicates)
 }
 
 /**
  * Configuration for backup export
  */
 data class BackupConfiguration(
-    val privacy: ExportPrivacy = ExportPrivacy.FULL,
     val includeTransactionalData: Boolean = true,
     val includeProfileData: Boolean = true,
     val includeBudgets: Boolean = true,
@@ -383,28 +331,3 @@ data class BackupConfiguration(
     // Brokerage connections with their tokens; off unless the user asks or the file is encrypted
     val includeBrokerageCredentials: Boolean = false
 )
-
-/**
- * Filter specifying which entity types to include during a SELECTIVE import.
- * All flags default to `true`, meaning import everything.
- */
-data class SelectiveImportFilter(
-    val includeTransactions: Boolean = true,
-    val includeCategories: Boolean = true,
-    val includeSubcategories: Boolean = true,
-    val includeCards: Boolean = true,
-    val includeAccountBalances: Boolean = true,
-    val includeSubscriptions: Boolean = true,
-    val includeMerchantMappings: Boolean = true,
-    val includeBudgets: Boolean = true,
-    val includeRules: Boolean = true,
-    val includeRuleApplications: Boolean = true,
-    val includeWebhookProfiles: Boolean = true,
-    val includeExchangeRates: Boolean = true,
-    val includePreferences: Boolean = true
-) {
-    companion object {
-        /** Import everything — identical to MERGE behaviour. */
-        val ALL = SelectiveImportFilter()
-    }
-}

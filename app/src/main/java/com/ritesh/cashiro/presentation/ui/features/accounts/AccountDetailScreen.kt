@@ -170,7 +170,7 @@ fun SharedTransitionScope.AccountDetailScreen(
                         modifier = Modifier.padding(horizontal = Dimensions.Padding.content),
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
-                        AccountCard(account = balance, showMoreOptions = false)
+                        AccountCard(account = balance)
                         if (balance.isCreditCard) {
                             CardBillPanel(uiState.cardStatus, balance.currency, onSetDates = { showEdit = true })
                         }

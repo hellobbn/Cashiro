@@ -144,8 +144,6 @@ class TransactionRepository @Inject constructor(
 
     suspend fun deleteAllTransactions() = transactionDao.deleteAllTransactions()
 
-    suspend fun deleteSampleTransactions() = transactionDao.deleteSampleTransactions()
-
     // Helper method to check if transaction exists by hash
     suspend fun getTransactionByHash(transactionHash: String): TransactionEntity? =
             transactionDao.getTransactionByHash(transactionHash)
@@ -177,10 +175,6 @@ class TransactionRepository @Inject constructor(
 
     suspend fun updateCategoryAndSubcategoryForMerchantContains(merchantName: String, newCategory: String, newSubcategory: String?) {
         transactionDao.updateCategoryAndSubcategoryForMerchantContains(merchantName, newCategory, newSubcategory)
-    }
-
-    suspend fun getOtherTransactionCountForMerchant(merchantName: String, excludeId: Long): Int {
-        return transactionDao.getTransactionCountForMerchant(merchantName, excludeId)
     }
 
     /** Returns non-deleted transactions whose merchant name contains the given keyword, excluding one id. */
@@ -220,10 +214,6 @@ class TransactionRepository @Inject constructor(
         }
     }
 
-    fun getCurrentMonthTotal(): Flow<BigDecimal> {
-        return getCurrentMonthBreakdown().map { it.total }
-    }
-
     fun getLastMonthBreakdown(): Flow<MonthlyBreakdown> {
         val now = LocalDate.now()
         val dayOfMonth = now.dayOfMonth
@@ -247,10 +237,6 @@ class TransactionRepository @Inject constructor(
         }
     }
 
-    fun getLastMonthTotal(): Flow<BigDecimal> {
-        return getLastMonthBreakdown().map { it.total }
-    }
-
     // Currency-grouped breakdown methods
     /** This month to date, by currency. */
     fun getCurrentMonthBreakdownByCurrency(today: LocalDate = LocalDate.now()): Flow<Map<String, MonthlyBreakdown>> =
@@ -261,10 +247,6 @@ class TransactionRepository @Inject constructor(
         val lastMonth = YearMonth.from(today).minusMonths(1)
         return breakdownBetween(lastMonth.atDay(1).atStartOfDay(), lastMonth.atEndOfMonth().atTime(LocalTime.MAX))
     }
-
-    /** This year to date, by currency. */
-    fun getCurrentYearBreakdownByCurrency(today: LocalDate = LocalDate.now()): Flow<Map<String, MonthlyBreakdown>> =
-        breakdownBetween(today.withDayOfYear(1).atStartOfDay(), today.atTime(LocalTime.MAX))
 
     /**
      * Income and spending between two times, by currency. Loans are neither: lending is not
@@ -312,13 +294,6 @@ class TransactionRepository @Inject constructor(
         val startDate = LocalDateTime.of(2000, 1, 1, 0, 0)
         val endDate = LocalDateTime.now().plusYears(10)
         return transactionDao.getTransactionsBetweenDatesList(startDate, endDate)
-    }
-
-    suspend fun getUncategorizedTransactions(): List<TransactionEntity> {
-        // Get all transactions without a category or with "Others" category
-        return getAllTransactionsList().filter { transaction ->
-            transaction.category.isNullOrBlank() || transaction.category == "Others"
-        }
     }
 
     suspend fun updateAccountForTransactions(

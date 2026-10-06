@@ -33,8 +33,6 @@ import com.ritesh.cashiro.presentation.ui.features.settings.SettingsViewModel
 import com.ritesh.cashiro.presentation.ui.features.settings.appearance.ThemeViewModel
 import com.ritesh.cashiro.presentation.ui.features.settings.applock.AppLockViewModel
 import com.ritesh.cashiro.presentation.ui.features.settings.notifications.NotificationViewModel
-import com.ritesh.cashiro.presentation.ui.features.settings.rules.RulesViewModel
-import com.ritesh.cashiro.presentation.ui.features.spotlight.SpotlightViewModel
 import com.ritesh.cashiro.presentation.ui.features.subscriptions.SubscriptionsViewModel
 import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionDetailViewModel
 import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsViewModel

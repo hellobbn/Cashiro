@@ -149,15 +149,6 @@
         </provider>
 
         <receiver
-            android:name=".receiver.NotificationActionReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.ritesh.cashiro.ACTION_DELETE_TRANSACTION" />
-                <action android:name="com.ritesh.cashiro.ACTION_CONFIRM_TRANSACTION" />
-            </intent-filter>
-        </receiver>
-
-        <receiver
             android:name=".receiver.ReminderReceiver"
             android:exported="false" />
 
@@ -168,10 +159,6 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-
-        <receiver
-            android:name=".receiver.WebhookSyncAlarmReceiver"
-            android:exported="false" />
 
         <!-- Home-screen widget: add button and quick templates -->
         <receiver

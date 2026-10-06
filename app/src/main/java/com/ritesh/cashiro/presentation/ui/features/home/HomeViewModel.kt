@@ -14,8 +14,6 @@ import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.utils.sumOfBigDecimal
 import com.ritesh.cashiro.data.database.entity.TransactionType
-import com.ritesh.cashiro.data.manager.InAppReviewManager
-import com.ritesh.cashiro.data.manager.InAppUpdateManager
 import com.ritesh.cashiro.data.preferences.HomeWidget
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
@@ -26,7 +24,6 @@ import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.repository.SubscriptionRepository
 import com.ritesh.cashiro.data.brokerage.BrokerageRepository
 import com.ritesh.cashiro.data.repository.TransactionRepository
-import com.ritesh.cashiro.domain.usecase.excludingHidden
 import com.ritesh.cashiro.domain.usecase.netWorthIn
 import com.ritesh.cashiro.domain.usecase.owedAcrossCurrencies
 import com.ritesh.cashiro.presentation.ui.features.accounts.investmentSnapshotsOrEmpty
@@ -65,8 +62,6 @@ class HomeViewModel @Inject constructor(
     private val accountBalanceRepository: AccountBalanceRepository,
     private val currencyConversionService: CurrencyConversionService,
     private val currencyRepository: CurrencyRepository,
-    private val inAppUpdateManager: InAppUpdateManager,
-    private val inAppReviewManager: InAppReviewManager,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val categoryRepository: CategoryRepository,
     private val subcategoryRepository: SubcategoryRepository,
@@ -77,7 +72,6 @@ class HomeViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val sharedPrefs = context.getSharedPreferences("account_prefs", Context.MODE_PRIVATE)
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -113,8 +107,6 @@ class HomeViewModel @Inject constructor(
     private var currentMonthBreakdownMap: Map<String, TransactionRepository.MonthlyBreakdown> =
         emptyMap()
     private var lastMonthBreakdownMap: Map<String, TransactionRepository.MonthlyBreakdown> =
-        emptyMap()
-    private var currentYearBreakdownMap: Map<String, TransactionRepository.MonthlyBreakdown> =
         emptyMap()
 
     private val baseCurrency = currencyRepository.effectiveBaseCurrencyCode
@@ -236,15 +228,7 @@ class HomeViewModel @Inject constructor(
                 currencyConversionService.rateChangeTrigger,
                 brokerageRepository.connections
             ) { allBalances, selectedCurrency, _, connections ->
-                // Get hidden accounts from SharedPreferences
-                val hiddenAccounts =
-                    sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
-
-                // Filter out hidden accounts
-                val balances = allBalances.filter { account ->
-                    val key = "${account.bankName}_${account.accountLast4}"
-                    !hiddenAccounts.contains(key)
-                }
+                val balances = allBalances
                 // Keep zero-balance accounts discoverable in the grouped account list.
                 val regularAccounts =
                     balances.filter { !it.isCreditCard }
@@ -320,17 +304,6 @@ class HomeViewModel @Inject constructor(
                 currencyConversionService.rateChangeTrigger
             ) { breakdownByCurrency, selectedCurrency, _ ->
                 updateBreakdownForSelectedCurrency(breakdownByCurrency, period = FinancialPeriod.LAST_MONTH, selectedCurrency = selectedCurrency)
-            }.flowOn(Dispatchers.Default).collectLatest { }
-        }
-
-        viewModelScope.launch {
-            // Load current year breakdown by currency
-            combine(
-                today.flatMapLatest { transactionRepository.getCurrentYearBreakdownByCurrency(it) },
-                selectedCurrencyCombined,
-                currencyConversionService.rateChangeTrigger
-            ) { breakdownByCurrency, selectedCurrency, _ ->
-                updateBreakdownForSelectedCurrency(breakdownByCurrency, period = FinancialPeriod.CURRENT_YEAR, selectedCurrency = selectedCurrency)
             }.flowOn(Dispatchers.Default).collectLatest { }
         }
 
@@ -471,78 +444,11 @@ class HomeViewModel @Inject constructor(
 
     }
 
-    private fun calculateMonthlyChange() {
-        val currentExpenses = _uiState.value.currentMonthExpenses
-        val lastExpenses = _uiState.value.lastMonthExpenses
-        val currentTotal = _uiState.value.currentMonthTotal
-        val lastTotal = _uiState.value.lastMonthTotal
-
-        // Calculate expense change for simple comparison
-        val expenseChange = currentExpenses - lastExpenses
-        val totalChange = currentTotal - lastTotal
-
-        val monthlyChangePercent = if (lastTotal != BigDecimal.ZERO) {
-            ((totalChange.toDouble() / lastTotal.toDouble()) * 100).toInt()
-        } else if (totalChange != BigDecimal.ZERO) {
-            100 // Assume 100% growth if starting from zero
-        } else {
-            0
-        }
-
-        _uiState.value = _uiState.value.copy(
-            monthlyChange = totalChange,
-            monthlyChangePercent = monthlyChangePercent
-        )
-    }
-
-    fun refreshHiddenAccounts() {
-        viewModelScope.launch {
-            // Force re-read of hidden accounts from SharedPreferences
-            val hiddenAccounts =
-                sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
-
-            // Re-fetch all accounts and filter
-            accountBalanceRepository.getAllLatestBalances().first().let { allBalances: List<AccountBalanceEntity> ->
-                val visibleBalances: List<AccountBalanceEntity> = allBalances.excludingHidden(hiddenAccounts)
-
-                // Keep zero-balance accounts discoverable in the grouped account list.
-                val regularAccounts: List<AccountBalanceEntity> =
-                    visibleBalances.filter { !it.isCreditCard }
-                val creditCards: List<AccountBalanceEntity> = visibleBalances.filter { it.isCreditCard }
-
-                val selectedCurrency = _uiState.value.selectedCurrency
-
-                // Update UI state
-                _uiState.value = _uiState.value.copy(
-                    accountBalances = regularAccounts,
-                    creditCards = creditCards,
-                    // Same rule as the steady-state path: converted, and credit cards are debt.
-                    totalBalance = visibleBalances.netWorthIn(
-                        selectedCurrency,
-                        currencyConversionService,
-                        investmentSnapshots = brokerageRepository.connections.value.investmentSnapshotsOrEmpty(),
-                        pockets = accountBalanceRepository.pocketBalances()
-                    ),
-                    totalAvailableCredit = creditCards.sumOfBigDecimal { card: AccountBalanceEntity ->
-                        // Available = Credit Limit - Outstanding Balance
-                        (card.creditLimit ?: BigDecimal.ZERO) - card.balance
-                    }
-                )
-            }
-        }
-    }
-
     fun refreshAccountBalances() {
         viewModelScope.launch {
             // Force refresh the account balances by fetching once (prevents memory leaks)
             val allBalances = accountBalanceRepository.getAllLatestBalances().first()
-            val hiddenAccounts = sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
-
-            // Filter out hidden accounts
-            val balances = allBalances.filter { account ->
-                val key = "${account.bankName}_${account.accountLast4}"
-                !hiddenAccounts.contains(key)
-            }
+            val balances = allBalances
             val regularAccounts = balances.filter { !it.isCreditCard }
             val creditCards = balances.filter { it.isCreditCard }
 
@@ -596,29 +502,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun showBreakdownDialog() {
-        _uiState.value = _uiState.value.copy(showBreakdownDialog = true)
-    }
-
-    fun hideBreakdownDialog() {
-        _uiState.value = _uiState.value.copy(showBreakdownDialog = false)
-    }
-
-    /**
-     * Checks for app updates using Google Play In-App Updates.
-     * Should be called with the current activity context.
-     * @param activity The activity context
-     * @param snackbarHostState Optional SnackbarHostState for showing restart prompt
-     * @param scope Optional CoroutineScope for launching the snackbar
-     */
-    fun checkForAppUpdate(
-        activity: ComponentActivity,
-        snackbarHostState: SnackbarHostState? = null,
-        scope: CoroutineScope? = null
-    ) {
-        inAppUpdateManager.checkForUpdate(activity, snackbarHostState, scope)
-    }
-
     fun deleteTransaction(transaction: TransactionEntity) {
         viewModelScope.launch {
             _deletedTransaction.value = transaction
@@ -645,18 +528,6 @@ class HomeViewModel @Inject constructor(
         _deletedTransaction.value = null
     }
 
-    /**
-     * Checks if eligible for in-app review and shows if appropriate.
-     * Should be called with the current activity context.
-     */
-    fun checkForInAppReview(activity: ComponentActivity) {
-        viewModelScope.launch {
-            // Get current transaction count as additional eligibility factor
-            val transactionCount = transactionRepository.countVisibleTransactions()
-            inAppReviewManager.checkAndShowReviewIfEligible(activity, transactionCount)
-        }
-    }
-
     fun selectCurrency(currency: String) {
         _selectedCurrency.value = currency
     }
@@ -670,12 +541,11 @@ class HomeViewModel @Inject constructor(
         when (period) {
             FinancialPeriod.CURRENT_MONTH -> currentMonthBreakdownMap = breakdownByCurrency
             FinancialPeriod.LAST_MONTH -> lastMonthBreakdownMap = breakdownByCurrency
-            FinancialPeriod.CURRENT_YEAR -> currentYearBreakdownMap = breakdownByCurrency
         }
 
         // Update available currencies from all stored data and include the effective base currency
         val effectiveCurrency = currencyRepository.effectiveBaseCurrencyCode.first()
-        val allCurrencies = (currentMonthBreakdownMap.keys + lastMonthBreakdownMap.keys + currentYearBreakdownMap.keys + effectiveCurrency).distinct()
+        val allCurrencies = (currentMonthBreakdownMap.keys + lastMonthBreakdownMap.keys + effectiveCurrency).distinct()
         val availableCurrencies = allCurrencies.sortedWith { a, b ->
             when {
                 a == b -> 0
@@ -715,27 +585,20 @@ class HomeViewModel @Inject constructor(
         // Calculate aggregated breakdown across all currencies by converting to selected currency
         val currentBreakdown = calculateAggregatedBreakdown(selectedCurrency, currentMonthBreakdownMap)
         val lastBreakdown = calculateAggregatedBreakdown(selectedCurrency, lastMonthBreakdownMap)
-        val currentYearBreakdown = calculateAggregatedBreakdown(selectedCurrency, currentYearBreakdownMap)
 
         _uiState.value = _uiState.value.copy(
-            currentMonthTotal = currentBreakdown.total,
-            currentYearTotal = currentYearBreakdown.total,
             currentMonthIncome = currentBreakdown.income,
             currentMonthExpenses = currentBreakdown.expenses,
-            currentYearExpenses = currentYearBreakdown.expenses,
-            lastMonthTotal = lastBreakdown.total,
             lastMonthIncome = lastBreakdown.income,
             lastMonthExpenses = lastBreakdown.expenses,
             selectedCurrency = selectedCurrency,
             availableCurrencies = availableCurrencies
         )
-        calculateMonthlyChange()
     }
 
     private enum class FinancialPeriod {
         CURRENT_MONTH,
-        LAST_MONTH,
-        CURRENT_YEAR
+        LAST_MONTH
     }
 
     fun toggleBannerImage() {
@@ -770,10 +633,5 @@ class HomeViewModel @Inject constructor(
             kotlinx.coroutines.delay(500)
             userPreferencesRepository.updateHomeWidgetsOrder(widgets)
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        inAppUpdateManager.cleanup()
     }
 }

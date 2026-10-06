@@ -28,5 +28,4 @@ buildCache {
 
 rootProject.name = "cashiro-beta"
 include(":app")
-include(":parser-core")
 include(":benchmark")

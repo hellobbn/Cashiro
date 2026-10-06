@@ -158,12 +158,10 @@ data class Transactions(
 
 @Serializable object Faq
 
-@Serializable object Rules
 @Serializable object QuickTemplates
 
 @Serializable object AiAssistant
 
-@Serializable data class CreateRule(val ruleId: String? = null)
 
 @Serializable object Appearance
 
@@ -184,8 +182,6 @@ data class Transactions(
 
 
 @Serializable object NotificationSettings
-@Serializable object Webhooks
-@Serializable data class WebhookEditor(val profileId: String? = null)
 
 @Serializable data class Budgets(val sharedElementPrefix: Long? = null)
 
@@ -198,7 +194,6 @@ data class Transactions(
 
 @Serializable data class BudgetHistory(val budgetId: Long)
 
-@Serializable object DeveloperOptions
 
 @Serializable data class AddAccount(val category: String? = null)
 

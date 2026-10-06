@@ -110,7 +110,6 @@ fun SubscriptionEntity.sanitize(): SubscriptionEntity {
         nextPaymentDate = nextPaymentDate,
         state = state ?: SubscriptionState.ACTIVE,
         bankName = bankName,
-        umn = umn,
         category = category,
         subcategory = subcategory,
         smsBody = smsBody,

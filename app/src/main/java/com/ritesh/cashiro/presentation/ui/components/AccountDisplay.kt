@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
-import com.ritesh.cashiro.domain.usecase.hiddenAccountKey
+import com.ritesh.cashiro.domain.usecase.accountKey
 import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory
 import com.ritesh.cashiro.presentation.ui.features.accounts.category
@@ -92,12 +92,12 @@ fun List<AccountBalanceEntity>.groupedForDisplay(mainKey: String?): List<Pair<Ac
 
 /** Accounts of the same bank adjacent; the main account and its bank first, then by name. */
 fun List<AccountBalanceEntity>.sortedForDisplay(mainKey: String?): List<AccountBalanceEntity> {
-    val mainInstitution = firstOrNull { it.hiddenAccountKey() == mainKey }?.institutionKey()
+    val mainInstitution = firstOrNull { it.accountKey() == mainKey }?.institutionKey()
     return sortedWith(
         compareBy<AccountBalanceEntity>(
             { it.institutionKey() != mainInstitution },
             { it.institutionKey() },
-            { it.hiddenAccountKey() != mainKey },
+            { it.accountKey() != mainKey },
             { it.bankName.lowercase() },
             { it.accountLast4 }
         )

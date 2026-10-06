@@ -132,7 +132,6 @@ fun ManageAccountsScreen(
     category: AccountCategory? = null,
 ) {
     val uiState by manageAccountsViewModel.uiState.collectAsStateWithLifecycle()
-    var showHiddenAccounts by rememberSaveable { mutableStateOf(false) }
 
     var walletsExpanded by rememberSaveable { mutableStateOf(false) }
     var banksExpanded by rememberSaveable { mutableStateOf(false) }
@@ -144,8 +143,8 @@ fun ManageAccountsScreen(
         uiState.accounts.filter { category == null || it.category() == category }
     }
     val holdings = com.ritesh.cashiro.data.repository.LocalAccountHoldings.current
-    val sections = remember(categoryAccounts, uiState.hiddenAccounts, uiState.mainAccountKey, holdings) {
-        buildAccountSections(categoryAccounts, uiState.hiddenAccounts, uiState.mainAccountKey, holdings)
+    val sections = remember(categoryAccounts, uiState.mainAccountKey, holdings) {
+        buildAccountSections(categoryAccounts, uiState.mainAccountKey, holdings)
     }
     val walletSection = sections.visible[0]
     val bankSection = sections.visible[1]
@@ -157,8 +156,6 @@ fun ManageAccountsScreen(
     val visibleInvestments = investmentSection.visibleAccounts(category != null || investmentsExpanded)
     val showBrokerageLinks = category == null || category == AccountCategory.INVESTMENTS
     val showInvestmentRows = category != null || investmentsExpanded
-    val hiddenRegularAccounts = remember(sections) { sections.hidden.filter { !it.isCreditCard } }
-    val hiddenCreditCards = remember(sections) { sections.hidden.filter { it.isCreditCard } }
     val allRegularAccounts = remember(uiState.accounts) {
         uiState.accounts.filter { !it.isCreditCard && !it.isWallet }
     }
@@ -388,83 +385,6 @@ fun ManageAccountsScreen(
                         }
                     }
 
-                    // Hidden Accounts Section
-                    if (hiddenRegularAccounts.isNotEmpty() || hiddenCreditCards.isNotEmpty()
-                    ) {
-                        item {
-                            Spacer(modifier = Modifier.height(Spacing.md))
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        onClick = { showHiddenAccounts = !showHiddenAccounts },
-                                        indication = ripple(),
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(Dimensions.Padding.content),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-                                    ) {
-                                        Icon(
-                                            Iconax.EyeSlash,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.hidden_accounts_count, hiddenRegularAccounts.size + hiddenCreditCards.size),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Icon(
-                                        if (showHiddenAccounts)
-                                            Icons.Rounded.ExpandLess
-                                        else
-                                            Icons.Rounded.ExpandMore,
-                                        contentDescription = if (showHiddenAccounts) stringResource(R.string.collapse) else stringResource(R.string.expand),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                        if (showHiddenAccounts) {
-                            // Hidden Bank Accounts
-                            items(hiddenRegularAccounts, key = { it.listKey() }, contentType = { "bank_account" }) { account ->
-                                AccountItem(
-                                    account = account,
-                                    linkedCards = uiState.linkedCards[
-                                        account.accountLast4] ?: emptyList(),
-                                    onUnlinkCard = { cardId -> manageAccountsViewModel.unlinkCard(cardId) },
-                                    isMain = uiState.mainAccountKey == "${account.bankName}_${account.accountLast4}",
-                                    onAccountClick = {
-                                        onNavigateToAccountDetail(account.bankName, account.accountLast4)
-                                    },
-                                )
-                            }
-                            // Hidden Credit Cards
-                            items(hiddenCreditCards, key = { it.listKey() }, contentType = { "credit_account" }) { card ->
-                                CreditCardItem(
-                                    card = card,
-                                    isMain = uiState.mainAccountKey == "${card.bankName}_${card.accountLast4}",
-                                    onAccountClick = {
-                                        onNavigateToAccountDetail(card.bankName, card.accountLast4)
-                                    },
-                                )
-                            }
-                        }
-                    }
                     item { Spacer(modifier = Modifier.height(100.dp)) }
                 }
             }

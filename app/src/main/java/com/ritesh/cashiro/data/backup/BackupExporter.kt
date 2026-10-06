@@ -10,7 +10,6 @@ import com.ritesh.cashiro.data.icons.MerchantIconStore
 import org.json.JSONObject
 import com.ritesh.cashiro.data.database.CashiroDatabase
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
-import com.ritesh.cashiro.data.repository.WebhookRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import java.io.File
@@ -33,7 +32,6 @@ class BackupExporter @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: CashiroDatabase,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val webhookRepository: WebhookRepository,
     private val brokerageRepository: BrokerageRepository,
     private val merchantIconStore: MerchantIconStore
 ) {
@@ -77,7 +75,7 @@ class BackupExporter @Inject constructor(
                 zipOut.closeEntry()
 
                 // Write Attachments
-                if (config.privacy == ExportPrivacy.FULL && config.includeTransactionalData) {
+                if (config.includeTransactionalData) {
                     val filesDir = context.filesDir
                     // Collect all unique attachment paths across both regular and
                     // lend/borrow transactions. Lend/borrow attachments are stored
@@ -190,31 +188,10 @@ class BackupExporter @Inject constructor(
         val accounts = if (config.includeTransactionalData) database.accountDao().getAccounts() else emptyList()
         val accountCurrencies = if (config.includeTransactionalData) database.accountDao().getAllCurrencies() else emptyList()
         val subscriptions = if (config.includeBudgets) database.subscriptionDao().getAllSubscriptions().first() else emptyList()
-        val merchantMappings = if (config.includeProfileData) database.merchantMappingDao().getAllMappings().first() else emptyList()
         val budgets = if (config.includeBudgets) database.budgetDao().getAllBudgets().first() else emptyList()
         val budgetCategoryLimits = if (config.includeBudgets) database.budgetDao().getAllCategoryLimits().first() else emptyList()
         val subcategories = if (config.includeProfileData) database.subcategoryDao().getAllSubcategories().first() else emptyList()
-        val rules = if (config.includeAppPreferences) database.ruleDao().getAllRules().first() else emptyList()
         val exchangeRates = if (config.includeAppPreferences) database.exchangeRateDao().getAllRates().first() else emptyList()
-        val ruleApplications = if (config.includeTransactionalData) database.ruleApplicationDao().getRecentApplications(1000).first() else emptyList() // Limit to recent apps for backup size
-        val webhookProfiles = if (config.includeAppPreferences) {
-            database.webhookProfileDao().getAllProfiles().first().map { profile ->
-                WebhookProfileBackup(
-                    id = profile.id,
-                    name = profile.name,
-                    url = profile.url,
-                    enabled = profile.enabled,
-                    dataTypes = profile.dataTypes,
-                    rangePreset = profile.rangePreset.name,
-                    customStart = profile.customStart?.toString(),
-                    customEnd = profile.customEnd?.toString(),
-                    headers = com.ritesh.cashiro.data.repository.WebhookHeaderEncoder.sanitizeForExport(
-                        webhookRepository.decodeHeaders(profile.headersJson)
-                    )
-                )
-            }
-        } else emptyList()
-        
         // Get preferences from repository
         val prefs = userPreferencesRepository.userPreferences.first()
         val systemPrompt = userPreferencesRepository.getSystemPrompt().first()
@@ -233,21 +210,6 @@ class BackupExporter @Inject constructor(
             )
         } else null
         
-        // Apply privacy settings if needed
-        val finalTransactions = when (config.privacy) {
-            ExportPrivacy.FULL -> transactions
-            ExportPrivacy.MASKED -> transactions.map { it.copy(
-                smsBody = "[REDACTED]",
-                accountNumber = it.accountNumber?.takeLast(4)?.let { "****$it" }
-            )}
-            ExportPrivacy.ANONYMOUS -> transactions.map { it.copy(
-                merchantName = "Merchant",
-                description = null,
-                smsBody = "[REDACTED]",
-                accountNumber = "****"
-            )}
-        }
-        
         val lendBorrowPersons = if (config.includeTransactionalData) database.lendBorrowDao().getAllPersons().first() else emptyList()
         val lendBorrowTransactions = if (config.includeTransactionalData) database.lendBorrowDao().getAllTransactions().first() else emptyList()
 
@@ -264,23 +226,18 @@ class BackupExporter @Inject constructor(
                     totalCards = cards.size,
                     totalSubscriptions = subscriptions.size,
                     totalSubcategories = subcategories.size,
-                    totalRules = rules.size,
                     dateRange = dateRange
                 )
             ),
             database = DatabaseSnapshot(
-                transactions = finalTransactions,
+                transactions = transactions,
                 categories = categories,
                 cards = cards,
                 accountBalances = accountBalances,
                 subscriptions = subscriptions,
-                merchantMappings = merchantMappings,
                 budgets = budgets,
                 budgetCategoryLimits = budgetCategoryLimits,
                 subcategories = subcategories,
-                rules = rules,
-                ruleApplications = ruleApplications,
-                webhookProfiles = webhookProfiles,
                 exchangeRates = exchangeRates,
                 accounts = accounts,
                 accountCurrencies = accountCurrencies,
@@ -306,7 +263,6 @@ class BackupExporter @Inject constructor(
                 ),
                 developer = DeveloperPreferences(
                     isDeveloperModeEnabled = prefs.isDeveloperModeEnabled,
-                    isWebhookModeEnabled = prefs.isWebhookModeEnabled,
                     isTokenInfoEnabled = prefs.isTokenInfoEnabled,
                     systemPrompt = systemPrompt
                 ),

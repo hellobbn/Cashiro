@@ -18,8 +18,6 @@ import com.ritesh.cashiro.data.service.AttachmentService
 import com.ritesh.cashiro.domain.model.PersonCategory
 import com.ritesh.cashiro.domain.usecase.AddEditLendBorrowPersonUseCase
 import com.ritesh.cashiro.domain.usecase.netWorthIn
-import com.ritesh.cashiro.domain.usecase.hiddenAccountKeys
-import com.ritesh.cashiro.domain.usecase.excludingHidden
 import com.ritesh.cashiro.presentation.ui.features.accounts.investmentSnapshotsOrEmpty
 import com.ritesh.cashiro.domain.usecase.GetLendBorrowPersonsUseCase
 import com.ritesh.cashiro.utils.ImageUtils
@@ -111,10 +109,9 @@ constructor(
             currencyConversionService.rateChangeTrigger,
             brokerageRepository.connections
         ) { allBalances, baseCurrency, _, connections ->
-            // Must match the home screen exactly: hidden accounts excluded, credit-card
-            // balances treated as debt, and complete brokerage snapshots included.
+            // Must match the home screen exactly: credit-card balances treated as debt,
+            // and complete brokerage snapshots included.
             allBalances
-                .excludingHidden(context.hiddenAccountKeys())
                 .netWorthIn(
                     baseCurrency,
                     currencyConversionService,

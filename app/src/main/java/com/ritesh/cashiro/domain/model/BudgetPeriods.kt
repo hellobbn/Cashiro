@@ -2,7 +2,6 @@ package com.ritesh.cashiro.domain.model
 
 import com.ritesh.cashiro.data.database.entity.BudgetEntity
 import com.ritesh.cashiro.data.database.entity.BudgetPeriod
-import com.ritesh.cashiro.data.database.entity.BudgetTrackType
 import com.ritesh.cashiro.data.database.entity.BudgetType
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
@@ -83,7 +82,6 @@ object BudgetPeriods {
             BudgetType.SAVINGS -> transaction.transactionType == TransactionType.INCOME
         }
         if (!typeMatches) return false
-        if (budget.trackType == BudgetTrackType.ADDED_ONLY && !transaction.smsBody.isNullOrBlank()) return false
         if (budget.accountIds.isNotEmpty()) {
             // Exactly the chosen accounts: an entry with no account is in none of them
             val bank = transaction.bankName ?: return false

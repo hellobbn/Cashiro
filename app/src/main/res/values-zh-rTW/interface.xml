@@ -4,7 +4,6 @@
     <string name="settings_group_finances">財務管理</string>
     <string name="settings_group_automation">自動化與通知</string>
     <string name="settings_group_app">關於應用</string>
-    <string name="type_current_account">活期帳戶</string>
     <string name="type_bank_account">銀行帳戶</string>
     <string name="type_investment_account">投資帳戶</string>
 
@@ -345,8 +344,8 @@
     <string name="msg_account_update_failed">更新帳戶失敗：%1$s</string>
     <string name="msg_currencies_fallback">無法載入幣別，已顯示內建清單</string>
     <string name="no_categories_found">沒有找到分類</string>
-    <string name="tap_anywhere_dismiss">輕觸任意處關閉</string>
     <string name="no_date">無日期</string>
     <string name="no_analytics_data">暫無資料</string>
     <string name="no_analytics_hint">試試其他篩選條件，或先記幾筆帳</string>
+    <string name="msg_account_deleted">帳戶已刪除</string>
 </resources>

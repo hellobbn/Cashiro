@@ -16,9 +16,6 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import com.ritesh.cashiro.data.webhook.WebhookScheduledTime
-import com.ritesh.cashiro.data.webhook.WebhookSettings
-import com.ritesh.cashiro.data.webhook.WebhookSyncMode
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import com.ritesh.cashiro.data.model.CustomCurrency
@@ -79,7 +76,6 @@ constructor(@ApplicationContext private val context: Context) {
         val SCAN_NEW_TRANSACTIONS_ALERT_TIME = longPreferencesKey("scan_new_transactions_alert_time")
         val UPCOMING_NOTIFICATIONS_ENABLED = booleanPreferencesKey("upcoming_notifications_enabled")
         val DISABLED_SUBSCRIPTION_NOTIFICATION_IDS = androidx.datastore.preferences.core.stringSetPreferencesKey("disabled_subscription_notification_ids")
-        val TEST_NOTIFICATION_ALERTS_ENABLED = booleanPreferencesKey("test_notification_alerts_enabled")
         val SHOW_BANNER_IMAGE = booleanPreferencesKey("show_banner_image")
         val APP_FONT = stringPreferencesKey("app_font")
         
@@ -87,18 +83,7 @@ constructor(@ApplicationContext private val context: Context) {
         val HOME_WIDGETS_ORDER = stringPreferencesKey("home_widgets_order")
         val HIDDEN_HOME_WIDGETS = androidx.datastore.preferences.core.stringSetPreferencesKey("hidden_home_widgets")
         val BLUR_EFFECTS = booleanPreferencesKey("blur_effects")
-        val IS_SAMPLE_DATA_SEEDED = booleanPreferencesKey("is_sample_data_seeded")
         val APP_ICON = stringPreferencesKey("app_icon")
-        val WEBHOOK_SYNC_MODE = stringPreferencesKey("webhook_sync_mode")
-        val WEBHOOK_INTERVAL_HOURS = intPreferencesKey("webhook_interval_hours")
-        val WEBHOOK_SCHEDULE_HOUR = intPreferencesKey("webhook_schedule_hour")
-        val WEBHOOK_SCHEDULE_MINUTE = intPreferencesKey("webhook_schedule_minute")
-        val WEBHOOK_SCHEDULED_TIMES_JSON = stringPreferencesKey("webhook_scheduled_times_json")
-        // Snapshot of WebhookScheduledTime.id values that were last successfully armed with
-        // AlarmManager. Read on the next applyScheduling() so deleted times can have their
-        // PendingIntents cancelled even though they're no longer present in the active settings.
-        val WEBHOOK_LAST_SCHEDULED_IDS = androidx.datastore.preferences.core.stringSetPreferencesKey("webhook_last_scheduled_ids")
-        val WEBHOOK_MODE_ENABLED = booleanPreferencesKey("webhook_mode_enabled")
         val TOKEN_INFO_ENABLED = booleanPreferencesKey("token_info_enabled")
     }
 
@@ -111,8 +96,6 @@ constructor(@ApplicationContext private val context: Context) {
                 hasSkippedSmsPermission =
                     preferences[PreferencesKeys.HAS_SKIPPED_SMS_PERMISSION] ?: false,
                 isDeveloperModeEnabled = preferences[PreferencesKeys.DEVELOPER_MODE_ENABLED]
-                    ?: false,
-                isWebhookModeEnabled = preferences[PreferencesKeys.WEBHOOK_MODE_ENABLED]
                     ?: false,
                 isTokenInfoEnabled = preferences[PreferencesKeys.TOKEN_INFO_ENABLED]
                     ?: false,
@@ -154,7 +137,6 @@ constructor(@ApplicationContext private val context: Context) {
                     AccentColor.BLUE
                 },
                 blurEffects = preferences[PreferencesKeys.BLUR_EFFECTS] ?: false,
-                isSampleDataSeeded = preferences[PreferencesKeys.IS_SAMPLE_DATA_SEEDED] ?: false,
                 appIcon = try {
                     AppIcon.valueOf(
                         preferences[PreferencesKeys.APP_ICON] ?: AppIcon.ORIGINAL.name
@@ -220,40 +202,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    val webhookSettings: Flow<WebhookSettings> =
-        context.dataStore.data.map { preferences ->
-            val storedMode = preferences[PreferencesKeys.WEBHOOK_SYNC_MODE]
-            val syncMode = WebhookSyncMode.entries.firstOrNull { it.name == storedMode }
-                ?: WebhookSyncMode.INTERVAL
-
-            val timesJson = preferences[PreferencesKeys.WEBHOOK_SCHEDULED_TIMES_JSON]
-            val scheduledTimes: List<WebhookScheduledTime> = if (timesJson != null) {
-                runCatching {
-                    Json.decodeFromString<List<WebhookScheduledTime>>(timesJson)
-                }.getOrElse { defaultScheduledTimes() }
-            } else {
-                // Migrate from legacy single hour/minute keys
-                val legacyHour = preferences[PreferencesKeys.WEBHOOK_SCHEDULE_HOUR]
-                val legacyMinute = preferences[PreferencesKeys.WEBHOOK_SCHEDULE_MINUTE]
-                if (legacyHour != null) {
-                    listOf(WebhookScheduledTime(hour = legacyHour, minute = legacyMinute ?: 0))
-                } else {
-                    defaultScheduledTimes()
-                }
-            }
-
-            WebhookSettings(
-                syncMode = syncMode,
-                intervalHours = preferences[PreferencesKeys.WEBHOOK_INTERVAL_HOURS] ?: 6,
-                scheduledTimes = scheduledTimes
-            )
-        }
-
-    private fun defaultScheduledTimes(): List<WebhookScheduledTime> = listOf(
-        WebhookScheduledTime(hour = 8, minute = 0),
-        WebhookScheduledTime(hour = 21, minute = 0)
-    )
-
     suspend fun updateBaseCurrency(currency: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.BASE_CURRENCY] = currency
@@ -289,24 +237,6 @@ constructor(@ApplicationContext private val context: Context) {
             } else {
                 preferences[PreferencesKeys.DEFAULT_CURRENCY_CODE] = code
             }
-        }
-    }
-
-    suspend fun updateWebhookSettings(settings: WebhookSettings) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.WEBHOOK_SYNC_MODE] = settings.syncMode.name
-            preferences[PreferencesKeys.WEBHOOK_INTERVAL_HOURS] = settings.intervalHours
-            preferences[PreferencesKeys.WEBHOOK_SCHEDULED_TIMES_JSON] =
-                Json.encodeToString(settings.scheduledTimes)
-        }
-    }
-
-    val webhookLastScheduledIds: Flow<Set<String>> =
-        context.dataStore.data.map { it[PreferencesKeys.WEBHOOK_LAST_SCHEDULED_IDS].orEmpty() }
-
-    suspend fun setWebhookLastScheduledIds(ids: Set<String>) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.WEBHOOK_LAST_SCHEDULED_IDS] = ids
         }
     }
 
@@ -361,17 +291,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    val isWebhookModeEnabled: Flow<Boolean> =
-        context.dataStore.data.map { preferences ->
-            preferences[PreferencesKeys.WEBHOOK_MODE_ENABLED] ?: false
-        }
-
-    suspend fun setWebhookModeEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.WEBHOOK_MODE_ENABLED] = enabled
-        }
-    }
-
     val isTokenInfoEnabled: Flow<Boolean> =
         context.dataStore.data.map { preferences ->
             preferences[PreferencesKeys.TOKEN_INFO_ENABLED] ?: false
@@ -409,30 +328,10 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    suspend fun getSmsScanMonths(): Int {
-        return context.dataStore
-                .data
-                .map { preferences -> preferences[PreferencesKeys.SMS_SCAN_MONTHS] ?: 3 }
-                .first()
-    }
-
     val smsScanAllTime: Flow<Boolean> =
             context.dataStore.data.map { preferences ->
                 preferences[PreferencesKeys.SMS_SCAN_ALL_TIME] ?: true
             }
-
-    suspend fun updateSmsScanAllTime(allTime: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.SMS_SCAN_ALL_TIME] = allTime
-        }
-    }
-
-    suspend fun getSmsScanAllTime(): Boolean {
-        return context.dataStore
-                .data
-                .map { preferences -> preferences[PreferencesKeys.SMS_SCAN_ALL_TIME] ?: true }
-                .first()
-    }
 
     suspend fun setLastScanTimestamp(timestamp: Long) {
         context.dataStore.edit { preferences ->
@@ -459,13 +358,6 @@ constructor(@ApplicationContext private val context: Context) {
                     preferences[PreferencesKeys.HAS_SHOWN_REVIEW_PROMPT] ?: false
                 }
                 .first()
-    }
-
-    suspend fun markReviewPromptShown() {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.HAS_SHOWN_REVIEW_PROMPT] = true
-            preferences[PreferencesKeys.LAST_REVIEW_PROMPT_TIME] = System.currentTimeMillis()
-        }
     }
 
     // Flow methods for backup/restore
@@ -529,12 +421,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    suspend fun updateHasShownReviewPrompt(shown: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.HAS_SHOWN_REVIEW_PROMPT] = shown
-        }
-    }
-
     suspend fun updateLastReviewPromptTime(timestamp: Long) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_REVIEW_PROMPT_TIME] = timestamp
@@ -570,12 +456,6 @@ constructor(@ApplicationContext private val context: Context) {
             context.dataStore.data.map { preferences ->
                 preferences[PreferencesKeys.APP_LOCK_TIMEOUT_MINUTES] ?: 1 // Default to 1 minute
             }
-
-    suspend fun setAppLockTimeoutMinutes(minutes: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.APP_LOCK_TIMEOUT_MINUTES] = minutes
-        }
-    }
 
     /**
      * Atomically updates timeout and authentication timestamp. This prevents immediate lock when
@@ -655,22 +535,10 @@ constructor(@ApplicationContext private val context: Context) {
             preferences[PreferencesKeys.SCAN_NEW_TRANSACTIONS_ENABLED] ?: true
         }
 
-    suspend fun setScanNewTransactionsEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.SCAN_NEW_TRANSACTIONS_ENABLED] = enabled
-        }
-    }
-
     val scanNewTransactionsAlertTime: Flow<Long> =
         context.dataStore.data.map { preferences ->
             preferences[PreferencesKeys.SCAN_NEW_TRANSACTIONS_ALERT_TIME] ?: 1200L // Default 20:00 (1200 minutes)
         }
-
-    suspend fun setScanNewTransactionsAlertTime(minutes: Long) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.SCAN_NEW_TRANSACTIONS_ALERT_TIME] = minutes
-        }
-    }
 
     val upcomingNotificationsEnabled: Flow<Boolean> =
         context.dataStore.data.map { preferences ->
@@ -696,17 +564,6 @@ constructor(@ApplicationContext private val context: Context) {
             } else {
                 preferences[PreferencesKeys.DISABLED_SUBSCRIPTION_NOTIFICATION_IDS] = current + id.toString()
             }
-        }
-    }
-
-    val isTestNotificationAlertsEnabled: Flow<Boolean> =
-        context.dataStore.data.map { preferences ->
-            preferences[PreferencesKeys.TEST_NOTIFICATION_ALERTS_ENABLED] ?: false
-        }
-
-    suspend fun setTestNotificationAlertsEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.TEST_NOTIFICATION_ALERTS_ENABLED] = enabled
         }
     }
 
@@ -762,17 +619,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    val isSampleDataSeeded: Flow<Boolean> =
-        context.dataStore.data.map { preferences ->
-            preferences[PreferencesKeys.IS_SAMPLE_DATA_SEEDED] ?: false
-        }
-
-    suspend fun setSampleDataSeeded(seeded: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.IS_SAMPLE_DATA_SEEDED] = seeded
-        }
-    }
-
     suspend fun updateAppIcon(icon: AppIcon) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_ICON] = icon.name
@@ -785,7 +631,6 @@ data class UserPreferences(
         val isDynamicColorEnabled: Boolean = true, // Default to dynamic colors
         val hasSkippedSmsPermission: Boolean = false,
         val isDeveloperModeEnabled: Boolean = false,
-        val isWebhookModeEnabled: Boolean = false,
         val isTokenInfoEnabled: Boolean = false,
         val hasShownScanTutorial: Boolean = false,
         val smsScanMonths: Int = 3, // Default to 3 months
@@ -801,7 +646,6 @@ data class UserPreferences(
         val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
         val accentColor: AccentColor = AccentColor.BLUE,
         val blurEffects: Boolean = false,
-        val isSampleDataSeeded: Boolean = false,
         val appIcon: AppIcon = AppIcon.ORIGINAL,
         // Currency Settings preferences
         val unifiedCurrencyEnabled: Boolean = false,

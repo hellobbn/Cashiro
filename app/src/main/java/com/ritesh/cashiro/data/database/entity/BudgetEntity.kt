@@ -74,8 +74,8 @@ enum class BudgetPeriod {
     YEARLY
 }
 
+/** Budgets count every transaction; the "manually added only" mode was removed (rows read as this). */
 enum class BudgetTrackType {
-    ADDED_ONLY,
     ALL_TRANSACTIONS
 }
 

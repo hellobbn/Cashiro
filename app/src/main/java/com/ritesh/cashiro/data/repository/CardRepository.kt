@@ -40,35 +40,7 @@ class CardRepository @Inject constructor(
     suspend fun getCardById(cardId: Long): CardEntity? {
         return cardDao.getCardById(cardId)
     }
-    
-    suspend fun findCard(cardLast4: String): CardEntity? {
-        // Return first matching card (in case of multiple banks with same last4)
-        val cards = cardDao.getCardsByLast4(cardLast4)
-        return cards.firstOrNull()
-    }
-    
-    suspend fun findOrCreateCard(
-        cardLast4: String,
-        bankName: String,
-        isCredit: Boolean = false
-    ): CardEntity {
-        val existingCard = cardDao.getCard(bankName, cardLast4)
-        if (existingCard != null) {
-            return existingCard
-        }
-        
-        // Create new card
-        val newCard = CardEntity(
-            cardLast4 = cardLast4,
-            cardType = if (isCredit) CardType.CREDIT else CardType.DEBIT,
-            bankName = bankName,
-            accountLast4 = null // Never self-reference - cards start unlinked
-        )
-        
-        val id = cardDao.insertCard(newCard)
-        return newCard.copy(id = id)
-    }
-    
+
     suspend fun getCardsForAccount(accountLast4: String): List<CardEntity> {
         return cardDao.getCardsForAccount(accountLast4)
     }
@@ -76,15 +48,7 @@ class CardRepository @Inject constructor(
     fun getCardsForAccountFlow(accountLast4: String): Flow<List<CardEntity>> {
         return cardDao.getCardsForAccountFlow(accountLast4)
     }
-    
-    suspend fun getOrphanedDebitCards(): List<CardEntity> {
-        return cardDao.getOrphanedCards(CardType.DEBIT)
-    }
-    
-    suspend fun getOrphanedCreditCards(): List<CardEntity> {
-        return cardDao.getOrphanedCards(CardType.CREDIT)
-    }
-    
+
     fun getAllActiveCards(): Flow<List<CardEntity>> {
         return cardDao.getAllActiveCards()
     }
@@ -115,57 +79,6 @@ class CardRepository @Inject constructor(
     
     suspend fun getBankCards(bankName: String, cardType: CardType): List<CardEntity> {
         return cardDao.getBankCards(bankName, cardType)
-    }
-    
-    /**
-     * Determines the target account for a transaction based on card type.
-     * For debit cards, returns the linked account.
-     * For credit cards or orphaned cards, returns the card's own number.
-     */
-    suspend fun getTargetAccount(cardLast4: String, bankName: String): String {
-        val card = getCard(bankName, cardLast4)
-        
-        return when {
-            card == null -> cardLast4 // Unknown card, use as-is
-            card.cardType == CardType.DEBIT && card.accountLast4 != null -> card.accountLast4
-            else -> cardLast4 // Credit card or orphaned debit card
-        }
-    }
-    
-    /**
-     * Updates the last known balance for a card from a transaction.
-     * This is used to track balance for unlinked cards.
-     */
-    suspend fun updateCardBalance(
-        cardId: Long,
-        balance: BigDecimal?,
-        source: String?,
-        date: LocalDateTime = LocalDateTime.now()
-    ) {
-        val card = cardDao.getCardById(cardId)
-        android.util.Log.d("CardRepository", """
-            Updating balance for card $cardId:
-            - Card found: ${card != null}
-            - New balance: $balance
-            - Previous balance: ${card?.lastBalance}
-        """.trimIndent())
-        
-        if (card != null) {
-            val updatedCard = card.copy(
-                lastBalance = balance,
-                lastBalanceSource = source?.take(200),  // Limit source length
-                lastBalanceDate = date,
-                updatedAt = LocalDateTime.now()
-            )
-            cardDao.updateCard(updatedCard)
-            android.util.Log.d("CardRepository", "Card balance updated successfully")
-        } else {
-            android.util.Log.e("CardRepository", "Card not found for ID: $cardId")
-        }
-    }
-
-    suspend fun deleteSampleCards() {
-        cardDao.deleteSampleCards()
     }
 
     suspend fun deleteAllCards() {

@@ -17,15 +17,9 @@ import com.ritesh.cashiro.data.database.dao.BudgetDao
 import com.ritesh.cashiro.data.database.dao.CardDao
 import com.ritesh.cashiro.data.database.dao.CategoryDao
 import com.ritesh.cashiro.data.database.dao.ExchangeRateDao
-import com.ritesh.cashiro.data.database.dao.MerchantMappingDao
-import com.ritesh.cashiro.data.database.dao.RuleApplicationDao
-import com.ritesh.cashiro.data.database.dao.RuleDao
 import com.ritesh.cashiro.data.database.dao.SubcategoryDao
 import com.ritesh.cashiro.data.database.dao.SubscriptionDao
 import com.ritesh.cashiro.data.database.dao.TransactionDao
-import com.ritesh.cashiro.data.database.dao.WebhookCursorDao
-import com.ritesh.cashiro.data.database.dao.WebhookLogDao
-import com.ritesh.cashiro.data.database.dao.WebhookProfileDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -85,7 +79,8 @@ object DatabaseModule {
                     CashiroDatabase.MIGRATION_64_65,
                     CashiroDatabase.MIGRATION_65_66,
                     CashiroDatabase.MIGRATION_66_67,
-                    CashiroDatabase.MIGRATION_67_68
+                    CashiroDatabase.MIGRATION_67_68,
+                    CashiroDatabase.MIGRATION_68_69
                 )
 
                 // Enable auto-migrations
@@ -94,9 +89,6 @@ object DatabaseModule {
                 // Add callback to seed default data on first creation
                 .addCallback(DatabaseCallback(context))
                 .build()
-
-        // Set the singleton instance so BroadcastReceivers can access it
-        CashiroDatabase.setInstance(database)
 
         return database
     }
@@ -128,18 +120,6 @@ object DatabaseModule {
     @Singleton
     fun provideSubscriptionDao(database: CashiroDatabase): SubscriptionDao {
         return database.subscriptionDao()
-    }
-
-    /**
-     * Provides the MerchantMappingDao from the database.
-     *
-     * @param database The CashiroDatabase instance
-     * @return MerchantMappingDao for accessing merchant mapping data
-     */
-    @Provides
-    @Singleton
-    fun provideMerchantMappingDao(database: CashiroDatabase): MerchantMappingDao {
-        return database.merchantMappingDao()
     }
 
     /**
@@ -179,30 +159,6 @@ object DatabaseModule {
     }
 
     /**
-     * Provides the RuleDao from the database.
-     *
-     * @param database The CashiroDatabase instance
-     * @return RuleDao for accessing rule data
-     */
-    @Provides
-    @Singleton
-    fun provideRuleDao(database: CashiroDatabase): RuleDao {
-        return database.ruleDao()
-    }
-
-    /**
-     * Provides the RuleApplicationDao from the database.
-     *
-     * @param database The CashiroDatabase instance
-     * @return RuleApplicationDao for accessing rule application data
-     */
-    @Provides
-    @Singleton
-    fun provideRuleApplicationDao(database: CashiroDatabase): RuleApplicationDao {
-        return database.ruleApplicationDao()
-    }
-
-    /**
      * Provides the ExchangeRateDao from the database.
      *
      * @param database The CashiroDatabase instance
@@ -224,24 +180,6 @@ object DatabaseModule {
     @Singleton
     fun provideBudgetDao(database: CashiroDatabase): BudgetDao {
         return database.budgetDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideWebhookProfileDao(database: CashiroDatabase): WebhookProfileDao {
-        return database.webhookProfileDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideWebhookLogDao(database: CashiroDatabase): WebhookLogDao {
-        return database.webhookLogDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideWebhookCursorDao(database: CashiroDatabase): WebhookCursorDao {
-        return database.webhookCursorDao()
     }
 
     @Provides

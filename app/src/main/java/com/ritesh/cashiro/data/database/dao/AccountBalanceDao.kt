@@ -496,17 +496,6 @@ abstract class AccountBalanceDao {
         deleteAllAccountRows()
     }
 
-    @Query("DELETE FROM account_balances WHERE is_sample = 1")
-    abstract suspend fun deleteSampleBalanceRows()
-
-    @Query("DELETE FROM accounts WHERE is_sample = 1")
-    abstract suspend fun deleteSampleAccountRows()
-
-    @Transaction
-    open suspend fun deleteSampleBalances() {
-        deleteSampleBalanceRows()
-        deleteSampleAccountRows()
-    }
     
     @Query("""
         SELECT DISTINCT 

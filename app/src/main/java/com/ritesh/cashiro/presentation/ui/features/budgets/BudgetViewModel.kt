@@ -9,7 +9,6 @@ import com.ritesh.cashiro.data.repository.BudgetRepository
 import com.ritesh.cashiro.data.repository.CategoryLimitWithSpending
 import com.ritesh.cashiro.data.database.dao.AccountBalanceDao
 import com.ritesh.cashiro.data.database.entity.BudgetPeriod
-import com.ritesh.cashiro.data.database.entity.BudgetTrackType
 import com.ritesh.cashiro.data.database.entity.BudgetType
 import com.ritesh.cashiro.data.repository.CurrencyRepository
 import com.ritesh.cashiro.data.repository.LendBorrowRepository
@@ -336,10 +335,6 @@ class BudgetViewModel @Inject constructor(
                 endDate = newEndDate
             )
         }
-    }
-
-    fun updateTrackType(trackType: BudgetTrackType) {
-        _editBudgetState.update { it.copy(trackType = trackType) }
     }
 
     fun updateBudgetType(budgetType: BudgetType) {

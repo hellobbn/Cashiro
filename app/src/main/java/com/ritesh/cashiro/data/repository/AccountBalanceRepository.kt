@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
-import com.ritesh.parser.core.ParsedTransaction
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.ritesh.cashiro.utils.IconResolutionUtils
 import javax.inject.Inject
@@ -132,18 +131,6 @@ class AccountBalanceRepository @Inject constructor(
         return if (matches.size == 1) matches.first() else accountLast4
     }
 
-    suspend fun resolveEntityAccountNumber(
-        entity: TransactionEntity,
-        parsedTransaction: ParsedTransaction
-    ): TransactionEntity {
-        if (!parsedTransaction.isFromCard && entity.bankName != null && entity.accountNumber != null) {
-            return entity.copy(
-                accountNumber = resolveAccountLast4(entity.bankName, entity.accountNumber)
-            )
-        }
-        return entity
-    }
-
     fun getLatestBalanceFlow(bankName: String, accountLast4: String): Flow<AccountBalanceEntity?> {
         return accountBalanceDao.getLatestBalanceFlow(bankName, accountLast4)
     }
@@ -183,34 +170,6 @@ class AccountBalanceRepository @Inject constructor(
 
     suspend fun deleteBalance(balance: AccountBalanceEntity) {
         accountBalanceDao.deleteBalance(balance)
-    }
-
-    suspend fun insertBalanceFromTransaction(
-        bankName: String?,
-        accountLast4: String?,
-        balance: BigDecimal?,
-        creditLimit: BigDecimal? = null,
-        timestamp: LocalDateTime,
-        transactionId: Long?,
-        isCreditCard: Boolean = false
-    ) {
-        if (bankName != null && accountLast4 != null && (balance != null || creditLimit != null)) {
-            val latest = getLatestBalance(bankName, accountLast4)
-            val balanceEntity = AccountBalanceEntity(
-                bankName = bankName,
-                accountLast4 = accountLast4,
-                balance = balance ?: BigDecimal.ZERO,
-                timestamp = timestamp,
-                transactionId = transactionId,
-                creditLimit = creditLimit ?: latest?.creditLimit,
-                isCreditCard = isCreditCard || (latest?.isCreditCard ?: false),
-                iconResId = latest?.iconResId ?: 0,
-                iconName = latest?.iconName ?: "",
-                isWallet = latest?.isWallet ?: false,
-                color = latest?.color ?: "#33B5E5"
-            )
-            insertBalance(balanceEntity)
-        }
     }
 
     /**
@@ -256,7 +215,6 @@ class AccountBalanceRepository @Inject constructor(
             currency = currency
         )
     }
-
 
     suspend fun insertBalanceUpdate(
         bankName: String,
@@ -313,10 +271,6 @@ class AccountBalanceRepository @Inject constructor(
 
     suspend fun deleteAllBalances() {
         accountBalanceDao.deleteAllBalances()
-    }
-
-    suspend fun deleteSampleBalances() {
-        accountBalanceDao.deleteSampleBalances()
     }
 
     suspend fun getAccountByLast4(accountLast4: String): AccountBalanceEntity? {

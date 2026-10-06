@@ -1,7 +1,6 @@
 package com.ritesh.cashiro.utils
 
 import com.ritesh.cashiro.data.currency.model.CurrencySymbols
-import com.ritesh.parser.core.bank.BankParserFactory
 import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import java.math.BigDecimal
 import java.text.DecimalFormat
@@ -164,28 +163,7 @@ object CurrencyFormatter {
         return CurrencySymbols.getSymbol(currencyCode)
     }
 
-    /**
-     * Gets the base currency for a bank using the BankParserFactory
-     * Returns CNY as default for unknown banks
-     */
-    fun getBankBaseCurrency(bankName: String?): String {
-        if (bankName == null) return "CNY"
-        // Unqualified legacy identities keep their historical parser currency. Regional
-        // picker titles (for example AMEX US and HSBC HK) are deliberately explicit.
-        val legacyIdentity = bankName.trim().lowercase(Locale.ROOT) in setOf(
-            "amex", "american express", "citi", "citibank", "citi bank", "dbs", "dbs bank", "hsbc", "hsbc bank"
-        )
-        if (legacyIdentity) {
-            return runCatching { BankParserFactory.getParser(bankName)?.getCurrency() }.getOrNull() ?: "INR"
-        }
-        InstitutionCatalog.find(bankName)?.let { return it.currency }
-
-        // Try to find a parser that can handle this bank name
-        return try {
-            val parser = BankParserFactory.getParser(bankName)
-            parser?.getCurrency() ?: "CNY"
-        } catch (e: Exception) {
-            "CNY"
-        }
-    }
+    /** The currency an institution's accounts usually hold, from [InstitutionCatalog]; CNY otherwise. */
+    fun getBankBaseCurrency(bankName: String?): String =
+        bankName?.let { InstitutionCatalog.find(it)?.currency } ?: "CNY"
 }

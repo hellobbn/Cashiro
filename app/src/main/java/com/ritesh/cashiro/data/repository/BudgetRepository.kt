@@ -4,7 +4,6 @@ import com.ritesh.cashiro.data.database.dao.BudgetDao
 import com.ritesh.cashiro.data.database.dao.TransactionDao
 import com.ritesh.cashiro.data.database.entity.BudgetCategoryLimitEntity
 import com.ritesh.cashiro.data.database.entity.BudgetEntity
-import com.ritesh.cashiro.data.database.entity.BudgetTrackType
 import com.ritesh.cashiro.data.database.entity.BudgetType
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
@@ -98,26 +97,6 @@ class BudgetRepository @Inject constructor(
         return budgetDao.getActiveBudgetsForMonth(year, month)
     }
 
-    suspend fun createBudget(
-        name: String,
-        amount: BigDecimal,
-        year: Int,
-        month: Int,
-        currency: String = "INR"
-    ): Long {
-        val budget = BudgetEntity(
-            name = name,
-            amount = amount,
-            year = year,
-            month = month,
-            currency = currency,
-            isActive = true,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
-        return budgetDao.insertBudget(budget)
-    }
-
     suspend fun insertBudget(budget: BudgetEntity): Long {
         return budgetDao.insertBudget(budget)
     }
@@ -128,10 +107,6 @@ class BudgetRepository @Inject constructor(
 
     suspend fun deleteBudget(budgetId: Long) {
         budgetDao.deleteBudget(budgetId)
-    }
-
-    suspend fun deleteSampleBudgets() {
-        budgetDao.deleteSampleBudgets()
     }
 
     suspend fun deleteAllBudgets() {
@@ -308,18 +283,6 @@ class BudgetRepository @Inject constructor(
             daysRemaining = daysRemaining,
             daysInMonth = totalDays
         )
-    }
-
-    suspend fun getCategoryLimitsWithSpending(budgetId: Long): List<CategoryLimitWithSpending> {
-        val budget = budgetDao.getBudgetById(budgetId) ?: return emptyList()
-        val budgetWithSpending = getBudgetWithSpending(budget)
-
-        return budgetWithSpending.categoryLimits.map { limit ->
-            CategoryLimitWithSpending(
-                limit = limit,
-                currentSpending = budgetWithSpending.categorySpending[limit.categoryName] ?: BigDecimal.ZERO
-            )
-        }
     }
 
     fun getTransactionsForBudget(budget: BudgetEntity): Flow<List<TransactionEntity>> {

@@ -13,10 +13,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LendBorrowDao {
 
-    // Person queries
-    @Query("SELECT * FROM lend_borrow_persons WHERE is_archived = 0 ORDER BY name ASC")
-    fun getActivePersons(): Flow<List<LendBorrowPersonEntity>>
-
     @Query("SELECT * FROM lend_borrow_persons ORDER BY name ASC")
     fun getAllPersons(): Flow<List<LendBorrowPersonEntity>>
 
@@ -66,9 +62,6 @@ interface LendBorrowDao {
 
     @Query("DELETE FROM lend_borrow_transactions WHERE id = :id")
     suspend fun deleteTransactionById(id: Long)
-
-    @Query("DELETE FROM lend_borrow_transactions WHERE person_id = :personId")
-    suspend fun deleteAllTransactionsForPerson(personId: Long)
 
     @Query("DELETE FROM lend_borrow_transactions")
     suspend fun deleteAllTransactions()

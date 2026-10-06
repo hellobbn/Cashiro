@@ -43,14 +43,11 @@ class AccountRenamer @Inject constructor(
                     )
                 }
         }
-        // Hidden and main account are kept by key in preferences
+        // The default account is kept by key in preferences
         val prefs = context.getSharedPreferences("account_prefs", Context.MODE_PRIVATE)
         val oldKey = "${oldBankName}_$accountLast4"
         val newKey = "${newBankName}_$accountLast4"
         prefs.edit {
-            prefs.getStringSet("hidden_accounts", null)?.takeIf { oldKey in it }?.let { hidden ->
-                putStringSet("hidden_accounts", hidden - oldKey + newKey)
-            }
             if (prefs.getString("main_account", null) == oldKey) putString("main_account", newKey)
         }
     }

@@ -586,7 +586,6 @@ class AccountBalanceRepositoryTest {
 
         override suspend fun deleteAllBalances() = Unit
 
-        override suspend fun deleteSampleBalances() = Unit
 
         override fun getCurrentMonthLatestBalances(): Flow<List<AccountBalanceEntity>> = flowOf(emptyList())
 
@@ -660,8 +659,6 @@ class AccountBalanceRepositoryTest {
         override fun observeAccountRows(): Flow<List<com.ritesh.cashiro.data.database.entity.AccountEntity>> = flowOf(emptyList())
         override suspend fun deleteCurrencyRows(accountId: Long, currency: String) = Unit
         override suspend fun deleteCurrencyRow(accountId: Long, currency: String) = Unit
-        override suspend fun deleteSampleBalanceRows() = Unit
-        override suspend fun deleteSampleAccountRows() = Unit
         override suspend fun deleteBalanceRowsOf(bankName: String, accountLast4: String): Int = 0
         override suspend fun deleteAccountRow(bankName: String, accountLast4: String) = Unit
         override suspend fun renameBalanceRows(oldBankName: String, accountLast4: String, newBankName: String): Int = 0

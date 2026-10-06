@@ -4,28 +4,19 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.R
 
 val SNProFontFamily = FontFamily(
     Font(R.font.sn_pro_regular, FontWeight.Normal),
-    Font(R.font.sn_pro_italic, FontWeight.Normal, FontStyle.Italic),
     Font(R.font.sn_pro_medium, FontWeight.Medium),
-    Font(R.font.sn_pro_medium_italic, FontWeight.Medium, FontStyle.Italic),
     Font(R.font.sn_pro_semibold, FontWeight.SemiBold),
-    Font(R.font.sn_pro_semibold_italic, FontWeight.SemiBold, FontStyle.Italic),
     Font(R.font.sn_pro_bold, FontWeight.Bold),
-    Font(R.font.sn_pro_bold_italic, FontWeight.Bold, FontStyle.Italic),
     Font(R.font.sn_pro_extrabold, FontWeight.ExtraBold),
-    Font(R.font.sn_pro_extrabold_italic, FontWeight.ExtraBold, FontStyle.Italic),
     Font(R.font.sn_pro_black, FontWeight.Black),
-    Font(R.font.sn_pro_black_italic, FontWeight.Black, FontStyle.Italic),
     Font(R.font.sn_pro_light, FontWeight.Light),
-    Font(R.font.sn_pro_light_italic, FontWeight.Light, FontStyle.Italic),
     Font(R.font.sn_pro_extralight, FontWeight.ExtraLight),
-    Font(R.font.sn_pro_extralight_italic, FontWeight.ExtraLight, FontStyle.Italic),
 )
 
 // Set of Material typography styles following Material 3 guidelines

@@ -51,10 +51,7 @@ class ChineseCurrencyDefaultsTest {
     }
 
     @Test
-    fun `regional bank identities do not reinterpret legacy bank currencies`() {
-        assertEquals("INR", CurrencyFormatter.getBankBaseCurrency("AMEX"))
-        assertEquals("INR", CurrencyFormatter.getBankBaseCurrency("DBS"))
-        assertEquals("INR", CurrencyFormatter.getBankBaseCurrency("HSBC"))
+    fun `institutions give their region's currency`() {
         assertEquals("USD", CurrencyFormatter.getBankBaseCurrency("AMEX US"))
         assertEquals("HKD", CurrencyFormatter.getBankBaseCurrency("HSBC HK"))
         assertEquals("SGD", CurrencyFormatter.getBankBaseCurrency("DBS Singapore"))

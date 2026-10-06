@@ -36,9 +36,6 @@ interface BudgetDao {
     @Query("DELETE FROM budgets")
     suspend fun deleteAllBudgets()
 
-    @Query("DELETE FROM budgets WHERE is_sample = 1")
-    suspend fun deleteSampleBudgets()
-
     // Category limit operations
     @Query("SELECT * FROM budget_category_limits")
     fun getAllCategoryLimits(): Flow<List<BudgetCategoryLimitEntity>>
@@ -52,9 +49,6 @@ interface BudgetDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategoryLimit(limit: BudgetCategoryLimitEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCategoryLimits(limits: List<BudgetCategoryLimitEntity>)
-
     @Update
     suspend fun updateCategoryLimit(limit: BudgetCategoryLimitEntity)
 
@@ -64,6 +58,4 @@ interface BudgetDao {
     @Query("DELETE FROM budget_category_limits WHERE budget_id = :budgetId")
     suspend fun deleteCategoryLimitsForBudget(budgetId: Long)
 
-    @Query("DELETE FROM budget_category_limits WHERE budget_id = :budgetId AND category_name = :categoryName")
-    suspend fun deleteCategoryLimitByName(budgetId: Long, categoryName: String)
 }

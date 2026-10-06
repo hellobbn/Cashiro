@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ritesh.cashiro.data.database.entity.BudgetTrackType
 import com.ritesh.cashiro.data.database.entity.BudgetType
 import com.ritesh.cashiro.presentation.ui.icons.Box2
 import com.ritesh.cashiro.presentation.ui.icons.Folder2
@@ -63,45 +62,6 @@ fun BudgetTypeSelectionSheet(
             description = stringResource(R.string.expense_budget_desc),
             icon = Iconax.ReceiptItem,
             onClick = { onTypeSelected(BudgetType.EXPENSE) }
-        )
-    }
-}
-
-@Composable
-fun BudgetTrackTypeSelectionSheet(
-    onTrackTypeSelected: (BudgetTrackType) -> Unit,
-    onDismiss: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Spacing.md)
-            .padding(bottom = Spacing.xl),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(R.string.select_tracking_mode),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = Spacing.md)
-        )
-
-        SelectionCard(
-            title = stringResource(R.string.added_only),
-            description = stringResource(R.string.added_only_desc),
-            example = stringResource(R.string.added_only_example),
-            icon = Iconax.Folder2,
-            onClick = { onTrackTypeSelected(BudgetTrackType.ADDED_ONLY) }
-        )
-
-        Spacer(modifier = Modifier.height(Spacing.md))
-
-        SelectionCard(
-            title = stringResource(R.string.all_transactions),
-            description = stringResource(R.string.all_transactions_desc),
-            example = stringResource(R.string.all_transactions_example),
-            icon = Iconax.Box2,
-            onClick = { onTrackTypeSelected(BudgetTrackType.ALL_TRANSACTIONS) }
         )
     }
 }

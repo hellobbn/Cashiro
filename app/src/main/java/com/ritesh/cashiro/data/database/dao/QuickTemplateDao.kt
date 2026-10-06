@@ -29,9 +29,6 @@ interface QuickTemplateDao {
     @Query("DELETE FROM quick_templates WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    @Query("DELETE FROM quick_templates")
-    suspend fun deleteAll()
-
     @Query("UPDATE quick_templates SET bank_name = :newBankName WHERE bank_name = :oldBankName AND account_last4 = :accountLast4")
     suspend fun renameAccountBank(oldBankName: String, accountLast4: String, newBankName: String): Int
 }

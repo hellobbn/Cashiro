@@ -385,13 +385,6 @@ class CurrencyConversionService @Inject constructor(
     }
 
     /**
-     * Get the base currency for the app
-     */
-    private suspend fun getBaseCurrency(): String {
-        return userPreferencesRepository.baseCurrency.first()
-    }
-
-    /**
      * Fetch exchange rate from API and cache it
      */
     private suspend fun fetchAndCacheRate(fromCurrency: String, toCurrency: String): BigDecimal? {
@@ -478,24 +471,6 @@ class CurrencyConversionService @Inject constructor(
     }
 
     /**
-     * Get information about rate freshness for debugging
-     */
-    suspend fun getRateFreshnessInfo(): RateFreshnessInfo {
-        val currentTime = LocalDateTime.now()
-        val usdRates = exchangeRateDao.getExchangeRatesForCurrency("USD", currentTime)
-        val latestRate = exchangeRateDao.getLatestRate()
-
-        return RateFreshnessInfo(
-            hasValidUsdRates = usdRates.isNotEmpty(),
-            validUsdRatesCount = usdRates.size,
-            latestUpdateTime = latestRate?.updatedAt,
-            latestExpiryTime = usdRates.maxByOrNull { it.expiresAt }?.expiresAt,
-            isStale = areOverallRatesStale(),
-            currentTime = currentTime
-        )
-    }
-
-    /**
      * Update cache with new rate
      */
     private fun updateCache(key: String, rate: BigDecimal) {
@@ -515,39 +490,10 @@ class CurrencyConversionService @Inject constructor(
     }
 
     /**
-     * Clear expired rates from database
-     */
-    suspend fun cleanupExpiredRates() {
-        val expiryTime = LocalDateTime.now().minusDays(7) // Keep rates for 7 days
-        exchangeRateDao.deleteExpiredRates(expiryTime)
-    }
-
-    /**
      * Get all available currencies with exchange rates
      */
     suspend fun getAvailableCurrencies(): List<String> {
         return exchangeRateDao.getAvailableCurrencies()
-    }
-
-    /**
-     * Convert multiple amounts to base currency
-     */
-    suspend fun convertToBaseCurrency(
-        transactions: List<TransactionData>,
-        baseCurrency: String
-    ): Map<String, BigDecimal> {
-        val convertedAmounts = mutableMapOf<String, BigDecimal>()
-
-        transactions.forEach { transaction ->
-            val convertedAmount = convertAmount(
-                amount = transaction.amount,
-                fromCurrency = transaction.currency,
-                toCurrency = baseCurrency
-            )
-            convertedAmounts[transaction.id] = convertedAmount
-        }
-
-        return convertedAmounts
     }
 
     data class TransactionData(

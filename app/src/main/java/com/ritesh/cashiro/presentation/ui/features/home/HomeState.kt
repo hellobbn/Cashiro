@@ -12,19 +12,10 @@ import com.ritesh.cashiro.presentation.ui.components.BalancePoint
 import java.math.BigDecimal
 
 data class HomeUiState(
-    val currentMonthTotal: BigDecimal = BigDecimal.ZERO,
-    val currentYearTotal: BigDecimal = BigDecimal.ZERO,
     val currentMonthIncome: BigDecimal = BigDecimal.ZERO,
     val currentMonthExpenses: BigDecimal = BigDecimal.ZERO,
-    val currentYearExpenses: BigDecimal = BigDecimal.ZERO,
-    val currentMonthCreditCard: BigDecimal = BigDecimal.ZERO,
-    val currentMonthTransfer: BigDecimal = BigDecimal.ZERO,
-    val currentMonthInvestment: BigDecimal = BigDecimal.ZERO,
-    val lastMonthTotal: BigDecimal = BigDecimal.ZERO,
     val lastMonthIncome: BigDecimal = BigDecimal.ZERO,
     val lastMonthExpenses: BigDecimal = BigDecimal.ZERO,
-    val monthlyChange: BigDecimal = BigDecimal.ZERO,
-    val monthlyChangePercent: Int = 0,
     val recentTransactions: List<TransactionEntity> = emptyList(),
     val upcomingSubscriptions: List<SubscriptionEntity> = emptyList(),
     val upcomingSubscriptionsTotal: BigDecimal = BigDecimal.ZERO,
@@ -36,7 +27,6 @@ data class HomeUiState(
     val selectedCurrency: String = "CNY",
     val availableCurrencies: List<String> = emptyList(),
     val isLoading: Boolean = true,
-    val showBreakdownDialog: Boolean = false,
     val userName: String = "User",
     val profileImageUri: Uri? = null,
     val profileBackgroundColor: Color = Color.Transparent,

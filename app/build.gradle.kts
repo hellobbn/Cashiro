@@ -253,7 +253,6 @@ ksp {
 }
 
 dependencies {
-    implementation(project(":parser-core"))
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -295,10 +294,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
-    "standardImplementation"(libs.app.update)
-    "standardImplementation"(libs.app.update.ktx)
-    "standardImplementation"(libs.review)
-    "standardImplementation"(libs.review.ktx)
     testImplementation(libs.junit)
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.robolectric)

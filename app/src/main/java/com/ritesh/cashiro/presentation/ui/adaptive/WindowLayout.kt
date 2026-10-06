@@ -60,17 +60,3 @@ fun ReadableWidth(content: @Composable () -> Unit) {
     }
 }
 
-/**
- * Two panes side by side when there is room for both ([minWidth] of content), else [single].
- * Decided from the space actually given, so a rail or split screen is accounted for.
- */
-@Composable
-fun TwoPaneOrSingle(
-    minWidth: Dp = 600.dp,
-    single: @Composable () -> Unit,
-    twoPane: @Composable () -> Unit
-) {
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        if (maxWidth >= minWidth) twoPane() else single()
-    }
-}

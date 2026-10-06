@@ -25,7 +25,7 @@ class WalletSectionTest {
     private fun render(names: List<String>, kind: AccountSectionKind = AccountSectionKind.WALLETS) {
         val group = buildAccountSections(names.map { name ->
             AccountBalanceEntity(bankName = name, accountLast4 = "wallet", balance = BigDecimal.TEN, timestamp = LocalDateTime.of(2026, 9, 7, 12, 0), isWallet = kind == AccountSectionKind.WALLETS, isCreditCard = kind == AccountSectionKind.CREDIT_CARDS, currency = "CNY")
-        }, emptySet()).visible.first { it.kind == kind }
+        }).visible.first { it.kind == kind }
         rule.setContent {
             val context = LocalContext.current
             val title = context.getString(when (kind) {

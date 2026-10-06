@@ -28,8 +28,6 @@ interface SubscriptionDao {
     @Query("SELECT * FROM subscriptions WHERE merchant_name = :merchantName AND state = 'HIDDEN' LIMIT 1")
     suspend fun getHiddenSubscriptionByMerchant(merchantName: String): SubscriptionEntity?
     
-    @Query("SELECT * FROM subscriptions WHERE umn = :umn LIMIT 1")
-    suspend fun getSubscriptionByUmn(umn: String): SubscriptionEntity?
     
     @Query("SELECT * FROM subscriptions WHERE merchant_name = :merchantName AND amount = :amount AND next_payment_date = :paymentDate LIMIT 1")
     suspend fun getSubscriptionByMerchantAmountAndDate(
@@ -71,8 +69,6 @@ interface SubscriptionDao {
     @Query("SELECT * FROM subscriptions WHERE state = :state ORDER BY next_payment_date ASC")
     suspend fun getSubscriptionsByStateList(state: SubscriptionState): List<SubscriptionEntity>
     
-    @Query("DELETE FROM subscriptions WHERE is_sample = 1")
-    suspend fun deleteSampleSubscriptions()
 
     @Query("DELETE FROM subscriptions")
     suspend fun deleteAllSubscriptions()

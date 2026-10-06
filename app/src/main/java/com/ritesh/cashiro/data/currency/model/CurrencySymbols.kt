@@ -60,13 +60,4 @@ object CurrencySymbols {
         return customSymbols[code] ?: symbols[code] ?: code
     }
 
-    fun getSymbolWithCode(currencyCode: String): String {
-        val symbol = getSymbol(currencyCode)
-        val code = currencyCode.uppercase(Locale.ROOT)
-        return if (symbol == code) {
-            code
-        } else {
-            "$symbol - $code"
-        }
-    }
 }
