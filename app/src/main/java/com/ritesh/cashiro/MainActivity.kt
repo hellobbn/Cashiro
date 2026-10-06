@@ -107,8 +107,9 @@ class MainActivity : AppCompatActivity() {
 //            window.isStatusBarContrastEnforced = false
         }
 
-        // Handle intent if activity is launched from notification or shortcut/tile
-        handleIntent(intent)
+        // Handle the launch intent once: a recreated activity (rotation, fold, theme) carries the
+        // same intent, and handling it again would reopen screens and copy shared files again
+        if (savedInstanceState == null) handleIntent(intent)
 
         // Schedule daily reminders
         lifecycleScope.launch {

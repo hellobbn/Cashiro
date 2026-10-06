@@ -4,6 +4,8 @@ import com.ritesh.cashiro.data.database.dao.TransactionDao
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import java.math.BigDecimal
+import java.time.YearMonth
+import java.time.LocalTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -250,82 +252,34 @@ class TransactionRepository @Inject constructor(
     }
 
     // Currency-grouped breakdown methods
-    fun getCurrentMonthBreakdownByCurrency(): Flow<Map<String, MonthlyBreakdown>> {
-        val now = LocalDate.now()
-        val startDate = now.withDayOfMonth(1).atStartOfDay()
-        val endDate = now.atTime(23, 59, 59)
+    /** This month to date, by currency. */
+    fun getCurrentMonthBreakdownByCurrency(today: LocalDate = LocalDate.now()): Flow<Map<String, MonthlyBreakdown>> =
+        breakdownBetween(today.withDayOfMonth(1).atStartOfDay(), today.atTime(LocalTime.MAX))
 
-        return transactionDao.getTransactionsBetweenDates(startDate, endDate).map { transactions ->
-            transactions.groupBy { it.currency }.mapValues { (_, currencyTransactions) ->
-                val income =
-                        currencyTransactions
-                                .filter { it.transactionType == TransactionType.INCOME || it.transactionType == TransactionType.BORROWED }
-                                .fold(BigDecimal.ZERO) { acc, transaction ->
-                                    acc + transaction.amount
-                                }
-                val expenses =
-                        currencyTransactions
-                                .filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.LENT }
-                                .fold(BigDecimal.ZERO) { acc, transaction ->
-                                    acc + transaction.amount
-                                }
+    /** All of last month, by currency. */
+    fun getLastMonthBreakdownByCurrency(today: LocalDate = LocalDate.now()): Flow<Map<String, MonthlyBreakdown>> {
+        val lastMonth = YearMonth.from(today).minusMonths(1)
+        return breakdownBetween(lastMonth.atDay(1).atStartOfDay(), lastMonth.atEndOfMonth().atTime(LocalTime.MAX))
+    }
+
+    /** This year to date, by currency. */
+    fun getCurrentYearBreakdownByCurrency(today: LocalDate = LocalDate.now()): Flow<Map<String, MonthlyBreakdown>> =
+        breakdownBetween(today.withDayOfYear(1).atStartOfDay(), today.atTime(LocalTime.MAX))
+
+    /**
+     * Income and spending between two times, by currency. Loans are neither: lending is not
+     * spending and borrowing is not income; card purchases (CREDIT) are spending.
+     */
+    private fun breakdownBetween(start: LocalDateTime, end: LocalDateTime): Flow<Map<String, MonthlyBreakdown>> =
+        transactionDao.getTransactionsBetweenDates(start, end).map { transactions ->
+            transactions.groupBy { it.currency }.mapValues { (_, rows) ->
+                val income = rows.filter { it.transactionType == TransactionType.INCOME }
+                    .fold(BigDecimal.ZERO) { acc, t -> acc + t.amount }
+                val expenses = rows.filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.CREDIT }
+                    .fold(BigDecimal.ZERO) { acc, t -> acc + t.amount }
                 MonthlyBreakdown(total = income - expenses, income = income, expenses = expenses)
             }
         }
-    }
-
-    fun getLastMonthBreakdownByCurrency(): Flow<Map<String, MonthlyBreakdown>> {
-        val now = LocalDate.now()
-        val dayOfMonth = now.dayOfMonth
-        val lastMonth = now.minusMonths(1)
-
-        // Compare same period: if today is 10th, compare 1st-10th of last month
-        val startDate = lastMonth.withDayOfMonth(1).atStartOfDay()
-        val lastMonthMaxDay = min(dayOfMonth, lastMonth.lengthOfMonth())
-        val endDate = lastMonth.withDayOfMonth(lastMonthMaxDay).atTime(23, 59, 59)
-
-        return transactionDao.getTransactionsBetweenDates(startDate, endDate).map { transactions ->
-            transactions.groupBy { it.currency }.mapValues { (_, currencyTransactions) ->
-                val income =
-                        currencyTransactions
-                                .filter { it.transactionType == TransactionType.INCOME || it.transactionType == TransactionType.BORROWED }
-                                .fold(BigDecimal.ZERO) { acc, transaction ->
-                                    acc + transaction.amount
-                                }
-                val expenses =
-                        currencyTransactions
-                                .filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.LENT }
-                                .fold(BigDecimal.ZERO) { acc, transaction ->
-                                    acc + transaction.amount
-                                }
-                MonthlyBreakdown(total = income - expenses, income = income, expenses = expenses)
-            }
-        }
-    }
-
-    fun getCurrentYearBreakdownByCurrency(): Flow<Map<String, MonthlyBreakdown>> {
-        val now = LocalDate.now()
-        val startDate = now.withDayOfYear(1).atStartOfDay()
-        val endDate = now.atTime(23, 59, 59)
-
-        return transactionDao.getTransactionsBetweenDates(startDate, endDate).map { transactions ->
-            transactions.groupBy { it.currency }.mapValues { (_, currencyTransactions) ->
-                val income =
-                    currencyTransactions
-                        .filter { it.transactionType == TransactionType.INCOME || it.transactionType == TransactionType.BORROWED }
-                        .fold(BigDecimal.ZERO) { acc, transaction ->
-                            acc + transaction.amount
-                        }
-                val expenses =
-                    currencyTransactions
-                        .filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.LENT }
-                        .fold(BigDecimal.ZERO) { acc, transaction ->
-                            acc + transaction.amount
-                        }
-                MonthlyBreakdown(total = income - expenses, income = income, expenses = expenses)
-            }
-        }
-    }
 
     fun getRecentTransactions(limit: Int = 5): Flow<List<TransactionEntity>> =
             transactionDao.getRecentVisibleTransactions(limit)

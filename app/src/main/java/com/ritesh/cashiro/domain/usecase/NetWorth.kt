@@ -104,3 +104,38 @@ private suspend fun Map<String, BigDecimal>.convertedTotal(
     }
     return total
 }
+
+/**
+ * Net worth at the end of each day from [from] to [to]: every currency of every account at its
+ * latest balance by that day (carried forward on days without a row; what a card owes is
+ * subtracted), each converted at [rates] (currency → rate into the target, today's). Days before
+ * the first balance are left out.
+ */
+fun netWorthByDay(
+    rows: List<AccountBalanceEntity>,
+    from: java.time.LocalDate,
+    to: java.time.LocalDate,
+    rates: Map<String, BigDecimal>,
+    isCard: (AccountBalanceEntity) -> Boolean = { it.isCreditCard }
+): List<Pair<java.time.LocalDate, BigDecimal>> {
+    val sorted = rows.sortedWith(compareBy({ it.timestamp }, { it.id }))
+    val latest = HashMap<String, AccountBalanceEntity>()
+    var next = 0
+    val days = mutableListOf<Pair<java.time.LocalDate, BigDecimal>>()
+    var day = from
+    while (!day.isAfter(to)) {
+        while (next < sorted.size && !sorted[next].timestamp.toLocalDate().isAfter(day)) {
+            val row = sorted[next++]
+            latest["${row.accountId ?: "${row.bankName}_${row.accountLast4}"}|${row.currency}"] = row
+        }
+        if (latest.isNotEmpty()) {
+            val total = latest.values.fold(BigDecimal.ZERO) { sum, row ->
+                val value = row.balance.multiply(rates[row.currency] ?: BigDecimal.ONE)
+                if (isCard(row)) sum - value else sum + value
+            }
+            days += day to total
+        }
+        day = day.plusDays(1)
+    }
+    return days
+}
