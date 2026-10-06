@@ -582,7 +582,7 @@ fun AddEditLendBorrowTransactionSheet(
 
                     Box(modifier = Modifier.fillMaxWidth()) {
                         TextField(
-                            value = selectedCategory?.name ?: "",
+                            value = com.ritesh.cashiro.presentation.common.categoryName(selectedCategory?.name),
                             onValueChange = {},
                             label = {
                                 Text(

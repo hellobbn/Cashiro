@@ -282,14 +282,14 @@ fun BatchEditTransactionsBottomSheet(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = selectedCategory?.name ?: stringResource(R.string.batch_edit_select_category),
+                                    text = selectedCategory?.name?.let { com.ritesh.cashiro.presentation.common.categoryName(it) } ?: stringResource(R.string.batch_edit_select_category),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = if (selectedCategory != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 if (selectedSubcategory != null) {
                                     Text(
-                                        text = selectedSubcategory?.name ?: "",
+                                        text = com.ritesh.cashiro.presentation.common.categoryName(selectedSubcategory?.name),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )

@@ -357,7 +357,7 @@ fun TransactionItem(
                     categoryEntity?.let { category ->
                         TagSeparator()
                         SubtitleTag(
-                            text = category.name,
+                            text = com.ritesh.cashiro.presentation.common.categoryName(category.name),
                             color = try {
                                 Color(category.color.toColorInt())
                             } catch (e: Exception) {

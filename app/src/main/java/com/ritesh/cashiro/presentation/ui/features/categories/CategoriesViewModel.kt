@@ -66,9 +66,9 @@ constructor(
             categories
         } else {
             categories.filter { category ->
-                val categoryMatches = category.name.contains(query, ignoreCase = true)
+                val categoryMatches = com.ritesh.cashiro.presentation.common.CategoryNames.matches(category.name, query)
                 val subcategoriesMatch = subcategoriesMap[category.id]?.any {
-                    it.name.contains(query, ignoreCase = true)
+                    com.ritesh.cashiro.presentation.common.CategoryNames.matches(it.name, query)
                 } == true
                 categoryMatches || subcategoriesMatch
             }

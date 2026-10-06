@@ -287,7 +287,7 @@ fun EditBudgetSheet(
                     editingCategoryLimit = null
                     pendingCategoryName = null
                 },
-                title = stringResource(R.string.set_limit_for_format, categoryName)
+                title = stringResource(R.string.set_limit_for_format, com.ritesh.cashiro.presentation.common.categoryName(categoryName))
             )
         }
     }
@@ -386,7 +386,7 @@ fun EditBudgetSheet(
                             icon = {},
                             label = { 
                                 Text(
-                                    period.name.lowercase().titlecaseFirst(),
+                                    stringResource(period.labelRes()),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.bodySmall
@@ -792,7 +792,7 @@ private fun CategoryLimitItem(
             
             Column {
                 Text(
-                    text = categoryName,
+                    text = com.ritesh.cashiro.presentation.common.categoryName(categoryName),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -1090,4 +1090,13 @@ private fun AccountMultiSelectionSheet(
             }
         }
     }
+}
+
+/** What the period chips call each [BudgetPeriod]. */
+internal fun BudgetPeriod.labelRes(): Int = when (this) {
+    BudgetPeriod.CUSTOM -> R.string.budget_period_custom
+    BudgetPeriod.DAILY -> R.string.budget_period_daily
+    BudgetPeriod.WEEKLY -> R.string.budget_period_weekly
+    BudgetPeriod.MONTHLY -> R.string.budget_period_monthly
+    BudgetPeriod.YEARLY -> R.string.budget_period_yearly
 }

@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.ripple
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -144,11 +146,8 @@ fun SharedTransitionScope.BudgetCard(
                 
                 // Budget Name
                 Text(
-                    text = budget.name.uppercase(),
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        letterSpacing = 2.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
+                    text = com.ritesh.cashiro.presentation.ui.features.budgets.budgetDisplayName(budget.name, budget.periodType),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -167,7 +166,7 @@ fun SharedTransitionScope.BudgetCard(
                 ) {
                     Icon(
                         imageVector = Iconax.History,
-                        contentDescription = "More options",
+                        contentDescription = stringResource(R.string.history),
                         modifier = Modifier.size(14.dp)
                     )
                 }
@@ -183,7 +182,7 @@ fun SharedTransitionScope.BudgetCard(
             ) {
                 Column {
                     Text(
-                        text = if (isSavings) "DAILY GOAL REMAINING" else "DAILY BUDGET LEFT",
+                        text = stringResource(if (isSavings) R.string.daily_goal_remaining else R.string.daily_budget_left),
                         style = MaterialTheme.typography.labelSmall.copy(
                             letterSpacing = 0.5.sp,
                             fontWeight = FontWeight.Medium
@@ -217,7 +216,7 @@ fun SharedTransitionScope.BudgetCard(
 
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = if (isSavings) "SAVED / GOAL" else "SPEND / LIMIT",
+                        text = stringResource(if (isSavings) R.string.saved_goal else R.string.spend_limit),
                         style = MaterialTheme.typography.labelSmall.copy(
                             letterSpacing = 0.5.sp,
                             fontWeight = FontWeight.Medium
@@ -288,7 +287,7 @@ fun SharedTransitionScope.BudgetCard(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "${budgetWithSpending.daysRemaining} Days remaining",
+                text = stringResource(R.string.days_remaining_format, budgetWithSpending.daysRemaining),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                 modifier = Modifier.align(Alignment.CenterHorizontally)

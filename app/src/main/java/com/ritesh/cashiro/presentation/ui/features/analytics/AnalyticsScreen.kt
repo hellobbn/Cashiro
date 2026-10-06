@@ -780,7 +780,7 @@ fun SharedTransitionScope.CategoryProgressItem(
                 Spacer(modifier = Modifier.width(Spacing.sm))
                 Column {
                     Text(
-                        text = name,
+                        text = com.ritesh.cashiro.presentation.common.categoryName(name),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,

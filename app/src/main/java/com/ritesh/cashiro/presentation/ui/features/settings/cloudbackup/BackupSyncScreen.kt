@@ -1277,8 +1277,13 @@ fun SnapshotListItem(
     onRestore: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()) }
-    val timeStr = dateFormat.format(Date(snapshot.lastModified))
+    val timeStr = remember(snapshot.lastModified) {
+        com.ritesh.cashiro.utils.DateFormats.fullDate(
+            java.time.Instant.ofEpochMilli(snapshot.lastModified).atZone(java.time.ZoneId.systemDefault())
+        ) + " " + com.ritesh.cashiro.utils.DateFormats.time(
+            java.time.Instant.ofEpochMilli(snapshot.lastModified).atZone(java.time.ZoneId.systemDefault())
+        )
+    }
     val sizeMb = stringResource(R.string.size_mb_format, snapshot.size / (1024f * 1024f))
 
     ListItem(

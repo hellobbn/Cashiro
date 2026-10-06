@@ -96,7 +96,7 @@ private fun SubcategoryChip(
 
         // Name
         Text(
-                text = subcategory.name,
+                text = com.ritesh.cashiro.presentation.common.categoryName(subcategory.name),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

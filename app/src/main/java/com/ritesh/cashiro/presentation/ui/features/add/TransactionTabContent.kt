@@ -764,7 +764,7 @@ fun TransactionTabContent(
                     // Category Selection with full rounded corners
                     val categoryInteractionSource = remember { MutableInteractionSource() }
                     TextField(
-                        value = uiState.category,
+                        value = com.ritesh.cashiro.presentation.common.categoryName(uiState.category),
                         onValueChange = {},
                         label = { Text(stringResource(R.string.category_label), fontWeight = FontWeight.SemiBold) },
                         readOnly = true,
@@ -841,7 +841,7 @@ fun TransactionTabContent(
                     // Category Selection
                     val categoryInteractionSource = remember { MutableInteractionSource() }
                     TextField(
-                        value = uiState.category,
+                        value = com.ritesh.cashiro.presentation.common.categoryName(uiState.category),
                         onValueChange = {},
                         label = { Text(stringResource(R.string.category_label), fontWeight = FontWeight.SemiBold) },
                         readOnly = true,
@@ -909,7 +909,7 @@ fun TransactionTabContent(
                     if (uiState.subcategory != null) {
                         Spacer(modifier = Modifier.height(Spacing.md))
                         TextField(
-                            value = uiState.subcategory ?: stringResource(R.string.none_label),
+                            value = uiState.subcategory?.let { com.ritesh.cashiro.presentation.common.categoryName(it) } ?: stringResource(R.string.none_label),
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(stringResource(R.string.subcategory_label)) },
@@ -982,7 +982,7 @@ fun TransactionTabContent(
             if (uiState.transactionType == TransactionType.TRANSFER && uiState.subcategory != null) {
                 Spacer(modifier = Modifier.height(Spacing.md))
                 TextField(
-                    value = uiState.subcategory ?: stringResource(R.string.none_label),
+                    value = uiState.subcategory?.let { com.ritesh.cashiro.presentation.common.categoryName(it) } ?: stringResource(R.string.none_label),
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(R.string.subcategory_label)) },

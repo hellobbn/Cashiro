@@ -57,9 +57,9 @@ fun CategorySelectionSheet(
             categories
         } else {
             categories.filter { category ->
-                val categoryMatches = category.name.contains(searchQuery.text, ignoreCase = true)
+                val categoryMatches = com.ritesh.cashiro.presentation.common.CategoryNames.matches(category.name, searchQuery.text)
                 val subcategoriesMatch = subcategoriesMap[category.id]?.any {
-                    it.name.contains(searchQuery.text, ignoreCase = true)
+                    com.ritesh.cashiro.presentation.common.CategoryNames.matches(it.name, searchQuery.text)
                 } == true
                 categoryMatches || subcategoriesMatch
             }
@@ -73,7 +73,7 @@ fun CategorySelectionSheet(
         if (searchQuery.text.isNotBlank()) {
             filteredCategories.forEach { category ->
                 val hasMatchingSubcategory = subcategoriesMap[category.id]?.any {
-                    it.name.contains(searchQuery.text, ignoreCase = true)
+                    com.ritesh.cashiro.presentation.common.CategoryNames.matches(it.name, searchQuery.text)
                 } == true
                 if (hasMatchingSubcategory) {
                     expandedStates[category.id] = true
@@ -148,7 +148,7 @@ fun CategorySelectionSheet(
                     recent.forEach { category ->
                         AssistChip(
                             onClick = { onSelectionComplete(category, null) },
-                            label = { Text(category.name, maxLines = 1) },
+                            label = { Text(com.ritesh.cashiro.presentation.common.categoryName(category.name), maxLines = 1) },
                             leadingIcon = { CategoryIcon(category, 18.dp) }
                         )
                     }
@@ -188,11 +188,11 @@ fun CategorySelectionSheet(
                     
                     val displayedSubcategories = if (searchQuery.text.isNotBlank()) {
                         // When searching, show only matching subcategories OR all if category matches
-                        val categoryMatches = category.name.contains(searchQuery.text, ignoreCase = true)
+                        val categoryMatches = com.ritesh.cashiro.presentation.common.CategoryNames.matches(category.name, searchQuery.text)
                         if (categoryMatches) {
                             subs
                         } else {
-                            subs.filter { it.name.contains(searchQuery.text, ignoreCase = true) }
+                            subs.filter { com.ritesh.cashiro.presentation.common.CategoryNames.matches(it.name, searchQuery.text) }
                         }
                     } else if (isExpanded) {
                         subs

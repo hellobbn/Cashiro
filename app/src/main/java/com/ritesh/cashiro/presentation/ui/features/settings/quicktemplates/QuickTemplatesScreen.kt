@@ -233,7 +233,7 @@ private fun QuickTemplateRow(
                     if (template.prefillAmount) "" else " ($notPrefilled)"
             }
             Text(
-                text = listOfNotNull(template.category, template.subcategory, amountText).joinToString(" • "),
+                text = listOfNotNull(template.category?.let { com.ritesh.cashiro.presentation.common.CategoryNames.display(it) }, template.subcategory?.let { com.ritesh.cashiro.presentation.common.CategoryNames.display(it) }, amountText).joinToString(" • "),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,

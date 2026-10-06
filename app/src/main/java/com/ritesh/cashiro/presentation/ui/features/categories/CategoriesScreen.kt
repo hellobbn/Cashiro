@@ -357,9 +357,9 @@ fun CategoriesScreen(
                         ) { animatedCategory ->
                             val categorySubcategories = subcategories[animatedCategory.id] ?: emptyList()
                             val displayedSubs = if (searchQuery.isNotBlank()) {
-                                val catMatches = animatedCategory.name.contains(searchQuery, ignoreCase = true)
+                                val catMatches = com.ritesh.cashiro.presentation.common.CategoryNames.matches(animatedCategory.name, searchQuery)
                                 if (catMatches) categorySubcategories
-                                else categorySubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                                else categorySubcategories.filter { com.ritesh.cashiro.presentation.common.CategoryNames.matches(it.name, searchQuery) }
                             } else {
                                 categorySubcategories
                             }
@@ -392,9 +392,9 @@ fun CategoriesScreen(
                             key = { "expense-${it.id}" }) { category ->
                             val categorySubcategories = subcategories[category.id] ?: emptyList()
                             val displayedSubs = if (searchQuery.isNotBlank()) {
-                                val catMatches = category.name.contains(searchQuery, ignoreCase = true)
+                                val catMatches = com.ritesh.cashiro.presentation.common.CategoryNames.matches(category.name, searchQuery)
                                 if (catMatches) categorySubcategories
-                                else categorySubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                                else categorySubcategories.filter { com.ritesh.cashiro.presentation.common.CategoryNames.matches(it.name, searchQuery) }
                             } else {
                                 categorySubcategories
                             }
@@ -428,9 +428,9 @@ fun CategoriesScreen(
                             key = { "income-${it.id}" }) { category ->
                             val categorySubcategories = subcategories[category.id] ?: emptyList()
                             val displayedSubs = if (searchQuery.isNotBlank()) {
-                                val catMatches = category.name.contains(searchQuery, ignoreCase = true)
+                                val catMatches = com.ritesh.cashiro.presentation.common.CategoryNames.matches(category.name, searchQuery)
                                 if (catMatches) categorySubcategories
-                                else categorySubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                                else categorySubcategories.filter { com.ritesh.cashiro.presentation.common.CategoryNames.matches(it.name, searchQuery) }
                             } else {
                                 categorySubcategories
                             }

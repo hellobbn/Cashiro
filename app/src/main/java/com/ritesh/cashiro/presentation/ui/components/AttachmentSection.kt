@@ -228,7 +228,7 @@ private fun AttachmentPreviewItem(
     val context = LocalContext.current
     val isUrl = attachmentService.isUrl(attachmentPath)
     val isImage = !isUrl && attachmentService.isImage(attachmentPath)
-    val fileName = if (isUrl) "Link" else attachmentPath.substringAfterLast('/')
+    val fileName = if (isUrl) stringResource(R.string.attachment_link) else attachmentPath.substringAfterLast('/')
     val fileUri = if (isUrl) null else attachmentService.getAttachmentUri(attachmentPath)
     val isFileExists = isUrl || fileUri != null
 

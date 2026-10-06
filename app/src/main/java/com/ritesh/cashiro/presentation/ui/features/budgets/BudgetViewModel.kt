@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
+import com.ritesh.cashiro.domain.model.BudgetPeriods
 import com.ritesh.cashiro.R
 
 import androidx.lifecycle.ViewModel
@@ -264,14 +265,16 @@ class BudgetViewModel @Inject constructor(
     fun initEditBudget(budget: BudgetEntity) {
         viewModelScope.launch {
             val limits = budgetRepository.getCategoryLimitsForBudgetSync(budget.id)
+            // A repeating budget has rolled on: show (and keep, on save) the period it is in now
+            val window = if (budget.periodType == BudgetPeriod.CUSTOM) null else BudgetPeriods.current(budget)
             _editBudgetState.value = EditBudgetState(
                 budgetId = budget.id,
-                name = budget.name,
+                name = budgetDisplayName(budget.name, budget.periodType),
                 amount = budget.amount,
-                year = budget.year,
-                month = budget.month,
-                startDate = budget.startDate,
-                endDate = budget.endDate,
+                year = window?.start?.year ?: budget.year,
+                month = window?.start?.monthValue ?: budget.month,
+                startDate = window?.start?.atStartOfDay() ?: budget.startDate,
+                endDate = window?.end?.atTime(java.time.LocalTime.of(23, 59, 59)) ?: budget.endDate,
                 periodType = budget.periodType,
                 trackType = budget.trackType,
                 budgetType = budget.budgetType,

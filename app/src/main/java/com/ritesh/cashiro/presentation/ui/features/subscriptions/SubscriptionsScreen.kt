@@ -637,7 +637,7 @@ private fun SwipeableSubscriptionItem(
                                 // Category Tag
                                 categoryEntity?.let { category ->
                                     SubtitleTag(
-                                        text = category.name,
+                                        text = com.ritesh.cashiro.presentation.common.categoryName(category.name),
                                         color = try {
                                             Color(category.color.toColorInt())
                                         } catch (e: Exception) {

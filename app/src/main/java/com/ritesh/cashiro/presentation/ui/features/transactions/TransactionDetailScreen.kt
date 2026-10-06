@@ -1791,7 +1791,7 @@ private fun CategoryDropdown(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         TextField(
-            value = selectedCategory,
+            value = com.ritesh.cashiro.presentation.common.categoryName(selectedCategory),
             onValueChange = {},
             label = { Text(stringResource(R.string.category), fontWeight = FontWeight.SemiBold) },
             readOnly = true,
@@ -1855,7 +1855,7 @@ private fun CategoryDropdown(
         if (selectedSubcategory != null) {
             Spacer(modifier = Modifier.height(Spacing.md))
             TextField(
-                value = selectedSubcategory,
+                value = com.ritesh.cashiro.presentation.common.categoryName(selectedSubcategory),
                 onValueChange = {},
                 readOnly = true,
                 label = { Text(stringResource(R.string.subcategory)) },
@@ -2818,7 +2818,7 @@ private fun ReceiptInfoRow(
                                     icon()
                                 }
                                 Text(
-                                    text = value,
+                                    text = com.ritesh.cashiro.presentation.common.categoryName(value),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -2850,7 +2850,7 @@ private fun ReceiptInfoRow(
                                         subIcon()
                                     }
                                     Text(
-                                        text = subValue,
+                                        text = com.ritesh.cashiro.presentation.common.categoryName(subValue),
                                         style = MaterialTheme.typography.bodySmall,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -2892,7 +2892,7 @@ private fun ReceiptInfoRow(
                                     icon()
                                 }
                                 Text(
-                                    text = value,
+                                    text = com.ritesh.cashiro.presentation.common.categoryName(value),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -3178,7 +3178,7 @@ private fun MatchPreviewSheetContent(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = stringResource(R.string.matches_selected_format, selectedMatchIds.size, matchedTransactions.size, newCategory),
+                        text = stringResource(R.string.matches_selected_format, selectedMatchIds.size, matchedTransactions.size, com.ritesh.cashiro.presentation.common.categoryName(newCategory)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                     )
@@ -3307,7 +3307,7 @@ private fun MatchPreviewSheetContent(
                                         )
                                         if (!txn.category.isNullOrBlank()) {
                                             Text(
-                                                text = txn.category ?: "",
+                                                text = com.ritesh.cashiro.presentation.common.categoryName(txn.category),
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = MaterialTheme.colorScheme.primary
                                             )
@@ -3443,7 +3443,7 @@ private fun MatchPreviewSheetContent(
                                     )
                                     if (!txn.category.isNullOrBlank()) {
                                         Text(
-                                            text = txn.category ?: "",
+                                            text = com.ritesh.cashiro.presentation.common.categoryName(txn.category),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.secondary
                                         )

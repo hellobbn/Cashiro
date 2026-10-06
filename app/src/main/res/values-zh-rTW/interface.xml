@@ -143,7 +143,7 @@
         <item quantity="other">已讀取 %d 個檔案</item>
     </plurals>
     <plurals name="ai_step_images">
-        <item quantity="other">%d 張圖片</item>
+        <item quantity="other">長截圖分成 %d 段讀取</item>
     </plurals>
     <plurals name="ai_step_found">
         <item quantity="other">找到 %d 筆</item>
@@ -350,4 +350,19 @@
     <string name="msg_account_deleted">帳戶已刪除</string>
     <string name="show_notes">顯示備註</string>
     <string name="hide_notes">隱藏備註</string>
+    <string name="budget_period_custom">自訂</string>
+    <string name="budget_period_daily">每日</string>
+    <string name="budget_period_weekly">每週</string>
+    <string name="budget_period_monthly">每月</string>
+    <string name="budget_period_yearly">每年</string>
+    <string name="cycle_forever">永久</string>
+    <string name="view_less">收合</string>
+    <string name="view_more_count">再顯示 %1$d 項</string>
+    <string name="attachment_link">連結</string>
+    <string name="app_logo">應用程式圖示</string>
+    <string name="feedback_subject">Cashiro 意見回饋</string>
+    <string name="send_email">傳送郵件</string>
+    <string name="share_backup">分享備份</string>
+    <string name="backup_file_subject">Cashiro 備份</string>
+    <string name="settlement_title">結清</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.lendborrow
 
+import com.ritesh.cashiro.R
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -58,6 +59,7 @@ class PersonDetailViewModel @Inject constructor(
     private val currencyRepository: CurrencyRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
     private val categoryRepository: CategoryRepository,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     val attachmentService: AttachmentService
 ) : ViewModel() {
 
@@ -292,7 +294,7 @@ class PersonDetailViewModel @Inject constructor(
             settleLendBorrowUseCase.settle(
                 personId = personId,
                 amount = amount,
-                title = note.ifBlank { "Settlement" },
+                title = note.ifBlank { context.getString(R.string.settlement_title) },
                 isLentSettlement = isLentSettlement,
                 accountId = accountId
             )

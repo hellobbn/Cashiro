@@ -453,7 +453,7 @@ fun AppearanceScreen(
 
                 // App Logo Section
                 SectionHeader(
-                    title = "App Logo",
+                    title = stringResource(R.string.app_logo),
                     modifier = Modifier.padding(start = Spacing.xl, top = Spacing.md)
                 )
 

@@ -52,7 +52,7 @@ internal fun TransactionSummarySheet(
             SummaryField(stringResource(R.string.date), transaction.dateTime.format(
                 DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale)
             ))
-            transaction.category?.let { SummaryField(stringResource(R.string.category), it) }
+            transaction.category?.let { SummaryField(stringResource(R.string.category), com.ritesh.cashiro.presentation.common.categoryName(it)) }
             SummaryField(stringResource(R.string.account),
                 listOfNotNull(transaction.bankName, transaction.accountNumber).filter { it.isNotBlank() }.joinToString(" · "))
             transaction.description?.takeIf { it.isNotBlank() }?.let {

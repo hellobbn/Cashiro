@@ -215,9 +215,9 @@ fun AboutScreen(
                     onClick = {
                         val intent = Intent(Intent.ACTION_SENDTO).apply {
                             data = "mailto:modestcat0309@gmail.com".toUri()
-                            putExtra(Intent.EXTRA_SUBJECT, "Feedback for Cashiro")
+                            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.feedback_subject))
                         }
-                        context.startActivity(Intent.createChooser(intent, "Send Email"))
+                        context.startActivity(Intent.createChooser(intent, context.getString(R.string.send_email)))
                     },
                     position = ListItemPosition.Single,
                     leading = {
