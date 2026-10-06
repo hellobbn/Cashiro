@@ -1318,6 +1318,7 @@ fun ExportOptionsDialog(
     var includeBudgets by remember { mutableStateOf(true) }
     var includePreferences by remember { mutableStateOf(true) }
     var includeBrokerage by remember { mutableStateOf(false) }
+    var includeAiKey by remember { mutableStateOf(false) }
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     
     AlertDialog(
@@ -1344,6 +1345,14 @@ fun ExportOptionsDialog(
                         color = MaterialTheme.colorScheme.error
                     )
                 }
+                ExportCheckbox(stringResource(R.string.backup_ai_key), includeAiKey) { includeAiKey = it }
+                if (includeAiKey) {
+                    Text(
+                        stringResource(R.string.backup_ai_key_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         },
         confirmButton = {
@@ -1356,7 +1365,8 @@ fun ExportOptionsDialog(
                             includeProfileData = includeProfile,
                             includeBudgets = includeBudgets,
                             includeAppPreferences = includePreferences,
-                            includeBrokerageCredentials = includeBrokerage
+                            includeBrokerageCredentials = includeBrokerage,
+                            includeAiKey = includeAiKey
                         )
                     )
                 }

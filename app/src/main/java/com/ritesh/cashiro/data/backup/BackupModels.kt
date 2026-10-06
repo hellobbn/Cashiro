@@ -310,5 +310,7 @@ data class BackupConfiguration(
     val includeBudgets: Boolean = true,
     val includeAppPreferences: Boolean = true,
     // Brokerage connections with their tokens; off unless the user asks or the file is encrypted
-    val includeBrokerageCredentials: Boolean = false
+    val includeBrokerageCredentials: Boolean = false,
+    // The AI provider and its key; the same rule
+    val includeAiKey: Boolean = false
 )

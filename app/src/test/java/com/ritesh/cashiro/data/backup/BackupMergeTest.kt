@@ -4,6 +4,9 @@ import android.content.Context
 import android.net.Uri
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.ritesh.cashiro.data.ai.AiConfig
+import com.ritesh.cashiro.data.ai.AiProtocol
+import com.ritesh.cashiro.data.ai.AiSettings
 import com.ritesh.cashiro.data.brokerage.BrokerageRepository
 import com.ritesh.cashiro.data.brokerage.BrokerageStore
 import com.ritesh.cashiro.data.brokerage.SavedBrokerConnection
@@ -47,9 +50,10 @@ class BackupMergeTest {
     private val prefs = UserPreferencesRepository(context)
     private val brokerage = BrokerageRepository(MemoryStore(), emptySet()) { 0L }
     private val icons = MerchantIconStore(context)
+    private val ai = AiSettings(context)
 
-    private fun exporter(db: CashiroDatabase) = BackupExporter(context, db, prefs, brokerage, icons)
-    private fun importer(db: CashiroDatabase) = BackupImporter(context, db, prefs, brokerage, icons)
+    private fun exporter(db: CashiroDatabase, settings: AiSettings = ai) = BackupExporter(context, db, prefs, brokerage, icons, settings)
+    private fun importer(db: CashiroDatabase, settings: AiSettings = ai) = BackupImporter(context, db, prefs, brokerage, icons, settings)
 
     private suspend fun CashiroDatabase.fill() {
         accountBalanceDao().insertBalance(
@@ -79,8 +83,8 @@ class BackupMergeTest {
         lendBorrowDao().getAllPersons().first().size
     )
 
-    private suspend fun backupOf(db: CashiroDatabase): Uri {
-        val result = exporter(db).exportBackup()
+    private suspend fun backupOf(db: CashiroDatabase, config: BackupConfiguration = BackupConfiguration()): Uri {
+        val result = exporter(db).exportBackup(config)
         assertTrue("export failed: $result", result is ExportResult.Success)
         return Uri.fromFile((result as ExportResult.Success).file)
     }
@@ -105,5 +109,30 @@ class BackupMergeTest {
         assertTrue(importer(db).importBackup(backupOf(db), ImportStrategy.MERGE) is ImportResult.Success)
         assertEquals(before, db.counts())
         assertEquals(latest, db.accountBalanceDao().getAllBalances().first().maxBy { it.timestamp }.balance)
+    }
+
+    private fun entries(uri: Uri): Set<String> = java.util.zip.ZipInputStream(java.io.File(uri.path!!).inputStream()).use { zip ->
+        generateSequence { zip.nextEntry }.map { it.name }.toSet()
+    }
+
+    @Test fun theAiKeyIsInABackupOnlyWhenAskedFor() = runTest {
+        ai.save(AiConfig(AiProtocol.ANTHROPIC, AiProtocol.ANTHROPIC.defaultBaseUrl, "model", "sk-test"))
+        val db = database()
+        assertTrue(BackupExporter.AI_ENTRY !in entries(backupOf(db)))
+        assertTrue(BackupExporter.AI_ENTRY in entries(backupOf(db, BackupConfiguration(includeAiKey = true))))
+    }
+
+    @Test fun aRestoredKeyFillsAnEmptySettingButNeverReplacesOne() = runTest {
+        ai.save(AiConfig(AiProtocol.OPENAI_COMPATIBLE, "https://example.com/v1", "model", "sk-backup"))
+        val backup = backupOf(database(), BackupConfiguration(includeAiKey = true))
+
+        val empty = AiSettings(context).apply { save(AiConfig()) }
+        importer(database(), empty).importBackup(backup, ImportStrategy.MERGE)
+        assertEquals("sk-backup", empty.config.value.apiKey)
+        assertEquals(AiProtocol.OPENAI_COMPATIBLE, empty.config.value.protocol)
+
+        val own = AiSettings(context).apply { save(AiConfig(apiKey = "sk-mine")) }
+        importer(database(), own).importBackup(backup, ImportStrategy.MERGE)
+        assertEquals("sk-mine", own.config.value.apiKey)
     }
 }

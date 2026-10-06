@@ -67,6 +67,24 @@ class AiSettings @Inject constructor(@ApplicationContext private val context: Co
         _config.value = clean
     }
 
+    /** The provider, model and key for a backup the user chose to include them in; null when none is set. */
+    fun exportForBackup(): String? {
+        val c = config.value.takeIf { it.isConfigured } ?: return null
+        return org.json.JSONObject()
+            .put(KEY_PROTOCOL, c.protocol.name).put(KEY_BASE_URL, c.baseUrl)
+            .put(KEY_MODEL, c.model).put(KEY_API_KEY, c.apiKey)
+            .toString()
+    }
+
+    /** Takes a backup's provider and key, unless this device already has a key set. */
+    fun restoreFromBackup(json: String): Boolean {
+        if (config.value.apiKey.isNotBlank()) return false
+        val o = org.json.JSONObject(json)
+        val protocol = runCatching { AiProtocol.valueOf(o.getString(KEY_PROTOCOL)) }.getOrNull() ?: return false
+        save(AiConfig(protocol, o.optString(KEY_BASE_URL, protocol.defaultBaseUrl), o.optString(KEY_MODEL), o.optString(KEY_API_KEY)))
+        return true
+    }
+
     private fun load(): AiConfig {
         val protocol = prefs.getString(KEY_PROTOCOL, null)
             ?.let { name -> AiProtocol.entries.firstOrNull { it.name == name } } ?: AiProtocol.ANTHROPIC

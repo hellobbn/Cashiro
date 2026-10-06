@@ -63,7 +63,7 @@ Personal Chinese / cross-border manual accounts:
 - New installs default to CNY. Existing saved currencies are not overwritten.
 - Institution picker covers CN / HK / SG / US banks and brokers as **name and icon presets only**.
 - Choosing an institution does not add login or holdings sync.
-- A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; device sync never does.
+- A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; device sync never does. The AI provider and key (`ai.json`) follow the same rule, and a restore only fills an empty AI setting, never replaces a device's own key.
 - Prefer account UX, currency defaults, and imports over automation.
 - Removed, do not reintroduce without asking: Play in-app update/review, smart rules,
   webhooks, merchant mappings, Indian e-mandate subscriptions, sample data and the developer
@@ -172,6 +172,9 @@ client, no provider SDKs, to keep the app small.
   indicators, standard snackbars with Undo. Theme-aware colors come from `isAppInDarkTheme`, not
   `isSystemInDarkTheme()`.
 - Chinese UI should avoid awkward letter-spacing and should use `9月1日` style dates
+- Built-in category and subcategory names are stored in English; show them through
+  `categoryName()` / `CategoryNames.display` (`presentation/common/CategoryNames.kt`). Never
+  hard-code user-visible English in Kotlin: use string resources.
 
 ## Code Style Guidelines
 

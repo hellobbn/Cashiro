@@ -36,7 +36,8 @@ class BackupImporter @Inject constructor(
     private val database: CashiroDatabase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val brokerageRepository: BrokerageRepository,
-    private val merchantIconStore: MerchantIconStore
+    private val merchantIconStore: MerchantIconStore,
+    private val aiSettings: com.ritesh.cashiro.data.ai.AiSettings
 ) {
     
     private val gson = GsonBuilder()
@@ -77,6 +78,11 @@ class BackupImporter @Inject constructor(
                     Log.w("BackupImporter", "Brokerage connections not restored: ${e.javaClass.simpleName}")
                 }
             }
+            // The AI key only fills an empty setting: a device's own key is never replaced
+            if (result is ImportResult.Success && extras.ai != null) {
+                runCatching { aiSettings.restoreFromBackup(extras.ai) }
+                    .onFailure { Log.w("BackupImporter", "AI settings not restored: ${it.javaClass.simpleName}") }
+            }
             if (result is ImportResult.Success && extras.merchantIcons != null) {
                 try {
                     val index = JSONObject(extras.merchantIcons)
@@ -99,7 +105,7 @@ class BackupImporter @Inject constructor(
      * Read and parse backup file (ZIP or JSON)
      */
     /** What a backup zip carries besides backup.json, read before the import decides to use it. */
-    private data class BackupExtras(val brokerage: String? = null, val merchantIcons: String? = null)
+    private data class BackupExtras(val brokerage: String? = null, val merchantIcons: String? = null, val ai: String? = null)
 
     private suspend fun readBackupFile(uri: Uri): Pair<CashiroBackup, BackupExtras> {
         return withContext(Dispatchers.IO) {
@@ -109,6 +115,7 @@ class BackupImporter @Inject constructor(
                     val zipInput = ZipInputStream(inputStream)
                     var backup: CashiroBackup? = null
                     var brokerage: String? = null
+                    var ai: String? = null
                     var merchantIcons: String? = null
                     var entry = zipInput.nextEntry
 
@@ -125,6 +132,8 @@ class BackupImporter @Inject constructor(
                                 val bytes = zipInput.readBytes()
                                 val content = String(bytes, Charsets.UTF_8)
                                 backup = gson.fromJson(content, CashiroBackup::class.java)
+                            } else if (name == BackupExporter.AI_ENTRY) {
+                                ai = String(zipInput.readBytes(), Charsets.UTF_8)
                             } else if (name == BackupExporter.BROKERAGE_ENTRY) {
                                 brokerage = String(zipInput.readBytes(), Charsets.UTF_8)
                             } else if (name == BackupExporter.MERCHANT_ICON_INDEX) {
@@ -163,7 +172,7 @@ class BackupImporter @Inject constructor(
                             entry = zipInput.nextEntry
                         }
                         // If we found a backup.json, return it
-                        if (backup != null) return@withContext backup to BackupExtras(brokerage, merchantIcons)
+                        if (backup != null) return@withContext backup to BackupExtras(brokerage, merchantIcons, ai)
                     }
                 }
             } catch (e: Exception) {
