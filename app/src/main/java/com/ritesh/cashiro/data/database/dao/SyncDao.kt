@@ -1,8 +1,12 @@
 package com.ritesh.cashiro.data.database.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.ritesh.cashiro.data.database.entity.SyncInboxEntity
 import com.ritesh.cashiro.data.database.entity.SyncOutboxEntity
+import kotlinx.coroutines.flow.Flow
 
 /** The sync outbox and switch; see docs/sync.md. */
 @Dao
@@ -13,6 +17,35 @@ interface SyncDao {
 
     @Query("SELECT COUNT(*) FROM sync_outbox")
     suspend fun pendingCount(): Int
+
+    @Query("SELECT COUNT(*) FROM sync_outbox")
+    fun pendingCountFlow(): Flow<Int>
+
+    @Query("SELECT * FROM sync_outbox WHERE table_name = :tableName AND sync_id = :syncId")
+    suspend fun pendingEntry(tableName: String, syncId: String): SyncOutboxEntity?
+
+    /** Queues a change by hand (the triggers queue every ordinary one). Replaces the record's entry. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun queue(entry: SyncOutboxEntity)
+
+    @Query("DELETE FROM sync_outbox")
+    suspend fun clearOutbox()
+
+    /** Remote records waiting to be applied, oldest first. */
+    @Query("SELECT * FROM sync_inbox ORDER BY updated_seconds, updated_nanos, doc_id")
+    suspend fun inbox(): List<SyncInboxEntity>
+
+    @Query("SELECT COUNT(*) FROM sync_inbox")
+    fun inboxCountFlow(): Flow<Int>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun hold(entry: SyncInboxEntity)
+
+    @Query("DELETE FROM sync_inbox WHERE doc_id = :docId")
+    suspend fun release(docId: String)
+
+    @Query("DELETE FROM sync_inbox")
+    suspend fun clearInbox()
 
     /**
      * Removes an entry once it has been sent, unless the record changed again since it was read
