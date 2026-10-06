@@ -46,7 +46,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
-import java.net.URLEncoder
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -813,37 +812,6 @@ class TransactionDetailViewModel @Inject constructor(
             // Already has mixed case, keep as is
             trimmed
         }
-    }
-
-    fun getReportUrl(): String {
-        val txn = _uiState.value.transaction ?: return ""
-
-        val smsBody = txn.smsBody ?: "Transaction: ${txn.merchantName} - ${txn.amount}"
-        val sender = txn.smsSender ?: "Unknown Sender"
-        val bank = txn.bankName ?: "Manual"
-
-        val issueTitle = "[Parsing Issue] ${txn.merchantName} - ${txn.amount}"
-        val issueBody = """
-            ### Transaction Details
-            - **Merchant:** ${txn.merchantName}
-            - **Amount:** ${txn.amount} ${txn.currency}
-            - **Type:** ${txn.transactionType}
-            - **Bank:** $bank
-            - **Sender:** $sender
-            
-            ### Original SMS
-            ```
-            $smsBody
-            ```
-            
-            ### Expected Behavior
-            _Describe what was wrong (e.g., wrong category, wrong date, etc.)_
-        """.trimIndent()
-
-        val encodedTitle = URLEncoder.encode(issueTitle, "UTF-8")
-        val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
-
-        return "https://github.com/ritesh-kanwar/Cashiro/issues/new?title=$encodedTitle&body=$encodedBody"
     }
 
     fun showDeleteDialog() {

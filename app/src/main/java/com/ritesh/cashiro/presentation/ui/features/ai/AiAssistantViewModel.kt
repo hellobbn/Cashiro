@@ -127,6 +127,9 @@ class AiAssistantViewModel @Inject constructor(
     lookupsSource: TransactionLookupsSource
 ) : ViewModel() {
     private val _state = MutableStateFlow(AiAssistantUiState(config = settings.config.value))
+
+    /** False when the keystore is unusable: the key then lasts only until the app closes. */
+    val keyStoredSecurely: Boolean get() = settings.keyStoredSecurely
     val state: StateFlow<AiAssistantUiState> = _state.asStateFlow()
 
     // Categories and accounts, to show proposed transactions the way the lists do

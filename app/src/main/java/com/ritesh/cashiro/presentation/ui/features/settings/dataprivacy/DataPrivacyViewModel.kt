@@ -61,10 +61,14 @@ class DataPrivacyViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.value.exportedBackupFile?.let { file ->
-                    context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                        file.inputStream().use { inputStream ->
-                            inputStream.copyTo(outputStream)
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                            file.inputStream().use { inputStream ->
+                                inputStream.copyTo(outputStream)
+                            }
                         }
+                        // Saved where the user chose: no plain copy stays in the cache
+                        file.delete()
                     }
                     _uiState.update { it.copy(
                         importExportMessage = "Backup saved successfully!",

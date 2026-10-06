@@ -44,8 +44,13 @@ class AppLockRepository @Inject constructor(
         userPreferencesRepository.setAppLockTimeoutWithTimestamp(minutes)
     }
 
+    private companion object {
+        const val IMMEDIATE_GRACE_MS = 1_500L
+    }
+
     /**
-     * Update the last authentication timestamp to current time
+     * Update the last authentication timestamp to current time. Also called when the unlocked
+     * app goes to the background, so the timeout counts from leaving the app.
      */
     suspend fun updateAuthTimestamp() {
         userPreferencesRepository.setLastAuthTimestamp(System.currentTimeMillis())
@@ -62,8 +67,8 @@ class AppLockRepository @Inject constructor(
         val timeoutMinutes = userPreferencesRepository.getAppLockTimeoutMinutes()
         val lastAuthTimestamp = userPreferencesRepository.getLastAuthTimestamp()
 
-        // If timeout is 0, lock immediately
-        if (timeoutMinutes == 0) return true
+        // "Immediately": any time away, past a moment's grace for the settings change itself
+        if (timeoutMinutes == 0) return System.currentTimeMillis() - lastAuthTimestamp >= IMMEDIATE_GRACE_MS
 
         // If no authentication timestamp, lock the app
         if (lastAuthTimestamp == 0L) return true
@@ -86,8 +91,8 @@ class AppLockRepository @Inject constructor(
     ) { isEnabled, timeoutMinutes, lastAuthTimestamp ->
         if (!isEnabled) return@combine false
 
-        // If timeout is 0, lock immediately
-        if (timeoutMinutes == 0) return@combine true
+        // "Immediately": any time away, past a moment's grace for the settings change itself
+        if (timeoutMinutes == 0) return@combine System.currentTimeMillis() - lastAuthTimestamp >= IMMEDIATE_GRACE_MS
 
         // If no authentication timestamp, lock the app
         if (lastAuthTimestamp == 0L) return@combine true

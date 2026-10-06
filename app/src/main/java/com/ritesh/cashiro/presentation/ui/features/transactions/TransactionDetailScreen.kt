@@ -679,16 +679,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                 onDismissRequest = { showMoreMenu = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.report_issue)) },
-                                    onClick = {
-                                        showMoreMenu = false
-                                        val reportUrl = transactionDetailViewModel.getReportUrl()
-                                        val intent = Intent(Intent.ACTION_VIEW, reportUrl.toUri())
-                                        context.startActivity(intent)
-                                    },
-                                    leadingIcon = { Icon(Icons.Rounded.BugReport, contentDescription = null) }
-                                )
-                                DropdownMenuItem(
                                     text = { Text(stringResource(R.string.duplicate_transaction)) },
                                     onClick = {
                                         showMoreMenu = false

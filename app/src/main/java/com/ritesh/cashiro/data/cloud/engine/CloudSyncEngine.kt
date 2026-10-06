@@ -27,8 +27,25 @@ class CloudSyncEngine @Inject constructor(
     private val backupExporter: BackupExporter,
     private val backupImporter: BackupImporter,
     private val cloudBackupManager: CloudBackupManager,
-    private val cloudCredentialStore: CloudCredentialStore
+    private val cloudCredentialStore: CloudCredentialStore,
+    private val encryptionEngine: com.ritesh.cashiro.data.cloud.security.BackupEncryptionEngine
 ) {
+    /**
+     * With end-to-end encryption on, sync snapshots are encrypted like backups: the whole ledger
+     * must never sit in the sync folder in plain text. Null passphrase: encryption is off.
+     */
+    private fun passphrase(): String? =
+        if (cloudCredentialStore.isE2eEncryptionEnabled()) cloudCredentialStore.getE2ePassphrase() else null
+
+    /** The snapshot to upload: encrypted (".enc") when E2E is on, else the zip itself. */
+    private fun sealed(snapshot: File, passphrase: String?): File {
+        if (passphrase == null) return snapshot
+        val encrypted = File(context.cacheDir, "${snapshot.nameWithoutExtension}.enc")
+        val result = encryptionEngine.encryptFile(snapshot, encrypted, passphrase)
+        snapshot.delete()
+        return result.getOrNull() ?: throw IllegalStateException("Failed to encrypt the sync snapshot.")
+    }
+
 
     companion object {
         const val SYNC_FOLDER = "cashiro_sync"
@@ -43,8 +60,12 @@ class CloudSyncEngine @Inject constructor(
 
         try {
             val deviceId = cloudCredentialStore.getDeviceId()
-            val syncFileName = "sync-$deviceId.zip"
-            val remoteSyncPath = "$SYNC_FOLDER/$syncFileName"
+            val passphrase = passphrase()
+            if (passphrase != null && passphrase.isBlank()) {
+                return@withContext Result.failure(IllegalStateException("End-to-end encryption is on but no passphrase is set; set it before syncing."))
+            }
+            val extension = if (passphrase != null) "enc" else "zip"
+            val remoteSyncPath = "$SYNC_FOLDER/sync-$deviceId.$extension"
 
             progressListener?.invoke(10)
             // Step 1: Export local state snapshot and publish/upload to sync folder
@@ -54,7 +75,7 @@ class CloudSyncEngine @Inject constructor(
                 return@withContext Result.failure(Exception(errorMsg))
             }
 
-            val localSnapshotFile = exportResult.file
+            val localSnapshotFile = sealed(exportResult.file, passphrase)
             val uploadResult = provider.uploadFile(localSnapshotFile, remoteSyncPath, providerConfig) { upProg ->
                 progressListener?.invoke(10 + (upProg * 25 / 100))
             }
@@ -64,6 +85,9 @@ class CloudSyncEngine @Inject constructor(
             if (uploadResult.isFailure) {
                 return@withContext Result.failure(uploadResult.exceptionOrNull() ?: Exception("Failed to publish local sync state."))
             }
+
+            // A plain snapshot left from before encryption was turned on must not stay behind
+            if (passphrase != null) provider.deleteFile("$SYNC_FOLDER/sync-$deviceId.zip", providerConfig)
 
             progressListener?.invoke(40)
 
@@ -75,7 +99,7 @@ class CloudSyncEngine @Inject constructor(
 
             val allSyncFiles = listResult.getOrNull() ?: emptyList()
             val peerSyncFiles = allSyncFiles.filter {
-                it.name.startsWith("sync-") && it.name.endsWith(".zip") && !it.name.contains(deviceId)
+                it.name.startsWith("sync-") && (it.name.endsWith(".zip") || it.name.endsWith(".enc")) && !it.name.contains(deviceId)
             }
 
             var peersSynced = 0
@@ -88,15 +112,25 @@ class CloudSyncEngine @Inject constructor(
 
             // Step 3: Compare timestamps and merge new peer updates
             for ((index, peerFile) in peerSyncFiles.withIndex()) {
-                val peerId = peerFile.name.removePrefix("sync-").removeSuffix(".zip")
+                val peerId = peerFile.name.removePrefix("sync-").removeSuffix(".zip").removeSuffix(".enc")
                 val lastSyncedTime = cloudCredentialStore.getPeerLastSyncedTimestamp(peerId)
 
                 // If remote peer file is newer than when we last synced with this peer
                 if (peerFile.lastModified > lastSyncedTime) {
                     val peerDestFile = File(cacheDir, "peer_$peerId.zip")
                     val downResult = provider.downloadFile(peerFile.path, peerDestFile, providerConfig)
-                    if (downResult.isSuccess && peerDestFile.exists()) {
-                        val importResult = backupImporter.importBackup(Uri.fromFile(peerDestFile), ImportStrategy.MERGE)
+                    val importFile = if (downResult.isSuccess && peerDestFile.exists() &&
+                        (peerFile.name.endsWith(".enc") || encryptionEngine.isEncryptedBackup(peerDestFile))
+                    ) {
+                        // An encrypted peer needs the same passphrase; without it the peer is skipped
+                        val plain = File(cacheDir, "peer_$peerId.plain.zip")
+                        val ok = !passphrase.isNullOrBlank() &&
+                            encryptionEngine.decryptFile(peerDestFile, plain, passphrase).isSuccess && plain.exists()
+                        peerDestFile.delete()
+                        if (ok) plain else null
+                    } else peerDestFile.takeIf { downResult.isSuccess && it.exists() }
+                    if (importFile != null) {
+                        val importResult = backupImporter.importBackup(Uri.fromFile(importFile), ImportStrategy.MERGE)
                         if (importResult is ImportResult.Success) {
                             totalTransactionsImported += importResult.importedTransactions
                             totalCategoriesImported += importResult.importedCategories
@@ -106,7 +140,7 @@ class CloudSyncEngine @Inject constructor(
                             peersSynced++
                             cloudCredentialStore.setPeerLastSyncedTimestamp(peerId, peerFile.lastModified)
                         }
-                        peerDestFile.delete()
+                        importFile.delete()
                     }
                 }
                 val currentProgress = 40 + ((index + 1) * 45 / peerSyncFiles.size.coerceAtLeast(1))
@@ -117,8 +151,9 @@ class CloudSyncEngine @Inject constructor(
             if (anyChangesMerged) {
                 val updatedExport = backupExporter.exportBackup(BackupConfiguration())
                 if (updatedExport is ExportResult.Success) {
-                    provider.uploadFile(updatedExport.file, remoteSyncPath, providerConfig)
-                    if (updatedExport.file.exists()) updatedExport.file.delete()
+                    val sealedUpdate = sealed(updatedExport.file, passphrase)
+                    provider.uploadFile(sealedUpdate, remoteSyncPath, providerConfig)
+                    if (sealedUpdate.exists()) sealedUpdate.delete()
                 }
             }
 

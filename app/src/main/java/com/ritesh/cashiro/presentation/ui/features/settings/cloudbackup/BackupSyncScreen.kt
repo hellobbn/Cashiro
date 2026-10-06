@@ -173,6 +173,8 @@ fun BackupSyncScreen(
     var e2ePassphraseInput by remember { mutableStateOf("") }
     var restorePassphraseInput by remember { mutableStateOf("") }
     var snapshotToDelete by remember { mutableStateOf<CloudFileInfo?>(null) }
+    // Restoring replaces everything here, so it asks first
+    var snapshotToRestore by remember { mutableStateOf<CloudFileInfo?>(null) }
     var showExportDialog by remember { mutableStateOf(false) }
 
     // File launchers for Data Management
@@ -865,7 +867,7 @@ fun BackupSyncScreen(
                                             SnapshotListItem(
                                                 snapshot = snapshot,
                                                 position = pos,
-                                                onRestore = { viewModel.restoreSnapshot(snapshot) },
+                                                onRestore = { snapshotToRestore = snapshot },
                                                 onDelete = { snapshotToDelete = snapshot }
                                             )
                                         }
@@ -1144,6 +1146,26 @@ fun BackupSyncScreen(
                 )
             },
             containerColor = CashiroDialogDefaults.containerColor
+        )
+    }
+
+    snapshotToRestore?.let { snapshot ->
+        AlertDialog(
+            onDismissRequest = { snapshotToRestore = null },
+            title = { Text(stringResource(R.string.cloud_restore_confirm_title)) },
+            text = { Text(stringResource(R.string.cloud_restore_confirm_text, snapshot.name)) },
+            confirmButton = {
+                DialogConfirmButton(
+                    text = stringResource(R.string.cloud_restore_confirm),
+                    onClick = {
+                        viewModel.restoreSnapshot(snapshot)
+                        snapshotToRestore = null
+                    }
+                )
+            },
+            dismissButton = {
+                DialogDismissButton(text = stringResource(R.string.cancel), onClick = { snapshotToRestore = null })
+            }
         )
     }
 

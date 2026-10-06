@@ -56,6 +56,12 @@ class AppLockViewModel @Inject constructor(
         }
     }
 
+    /** The unlocked app went to the background: the timeout counts from now. */
+    fun onLeftApp() {
+        if (_uiState.value.isLocked) return
+        viewModelScope.launch { appLockRepository.updateAuthTimestamp() }
+    }
+
     /**
      * Called when authentication succeeds
      */

@@ -205,7 +205,7 @@ fun AiAssistantScreen(
             when (val phase = state.phase) {
                 AiPhase.Compose -> {
                     item(key = "provider") {
-                        ProviderCard(state.config, state.models, viewModel::loadModels, onSave = viewModel::saveConfig)
+                        ProviderCard(state.config, state.models, viewModel::loadModels, viewModel.keyStoredSecurely, onSave = viewModel::saveConfig)
                     }
                     item(key = "files") {
                         FilesSection(
@@ -335,6 +335,7 @@ private fun ProviderCard(
     config: AiConfig,
     models: ModelListState,
     onLoadModels: (AiConfig) -> Unit,
+    keyStoredSecurely: Boolean,
     onSave: (AiConfig) -> Unit
 ) {
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -365,6 +366,13 @@ private fun ProviderCard(
                     onSave(it)
                     editing = false
                 }
+            }
+            if (!keyStoredSecurely) {
+                Text(
+                    stringResource(R.string.ai_key_not_persisted),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
@@ -400,7 +408,8 @@ private fun ProviderForm(
     var preset by rememberSaveable { mutableStateOf(AiPreset.of(config)) }
     var baseUrl by rememberSaveable { mutableStateOf(config.baseUrl) }
     var model by rememberSaveable { mutableStateOf(config.model) }
-    var apiKey by rememberSaveable { mutableStateOf(config.apiKey) }
+    // Not saveable: the key must not land in the saved-state bundle
+    var apiKey by remember { mutableStateOf(config.apiKey) }
     var picking by remember { mutableStateOf(false) }
     val ready = apiKey.isNotBlank() && baseUrl.isNotBlank()
 

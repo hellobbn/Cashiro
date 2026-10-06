@@ -236,4 +236,8 @@
     <string name="card_next_statement">Next statement</string>
     <string name="card_due_on">Due %1$s</string>
     <string name="home_cards_due">%1$d accounts, due %2$s</string>
+    <string name="cloud_restore_confirm_title">Restore this backup?</string>
+    <string name="cloud_restore_confirm_text">Everything on this device is replaced by %1$s. A copy of the current data is kept on the device first.</string>
+    <string name="cloud_restore_confirm">Restore</string>
+    <string name="ai_key_not_persisted">This device can\'t store the key encrypted, so it is kept only until the app closes.</string>
 </resources>

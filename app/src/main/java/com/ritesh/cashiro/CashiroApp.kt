@@ -57,6 +57,9 @@ fun CashiroApp(
             if (event == Lifecycle.Event.ON_RESUME) {
                 appLockViewModel.refreshLockState()
             }
+            if (event == Lifecycle.Event.ON_STOP) {
+                appLockViewModel.onLeftApp()
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
@@ -72,32 +75,31 @@ fun CashiroApp(
 
     LaunchedEffect(appLockUiState.isLocked, appLockUiState.isLockEnabled) {
         if (appLockUiState.isLocked && appLockUiState.isLockEnabled) {
-            val currentRoute = navController.currentDestination?.route
-            if (currentRoute != AppLock::class.qualifiedName &&
-                currentRoute != Settings::class.qualifiedName) {
-                navController.navigate(AppLock) {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = false }
-                    launchSingleTop = true
-                }
+            // On top of whatever was open, so unlocking returns there
+            if (navController.currentDestination?.route != AppLock::class.qualifiedName) {
+                navController.navigate(AppLock) { launchSingleTop = true }
             }
         }
     }
     
-    LaunchedEffect(editTransactionId) {
+    // Screens opened from outside (notifications, shortcuts) wait until the app is unlocked
+    val lockedNow = appLockUiState.isLocked && appLockUiState.isLockEnabled
+    LaunchedEffect(editTransactionId, lockedNow, appLockUiState.isLoaded) {
+        if (!appLockUiState.isLoaded || lockedNow) return@LaunchedEffect
         editTransactionId?.let { transactionId ->
             navController.navigate(TransactionDetail(transactionId))
         }
     }
 
-    LaunchedEffect(addTransactionTab, addTransactionType, addTemplateId) {
+    LaunchedEffect(addTransactionTab, addTransactionType, addTemplateId, lockedNow, appLockUiState.isLoaded) {
+        if (!appLockUiState.isLoaded || lockedNow) return@LaunchedEffect
         addTransactionTab?.let { tab ->
             navController.navigate(AddTransaction(initialTab = tab, type = addTransactionType, templateId = addTemplateId))
             onAddComplete()
         }
     }
 
-    // Shared files wait in AiShareInbox until the lock state is known and the app is unlocked;
-    // opening earlier would be undone when the lock screen clears the back stack
+    // Shared files wait in AiShareInbox until the lock state is known and the app is unlocked
     val locked = appLockUiState.isLocked && appLockUiState.isLockEnabled
     LaunchedEffect(openAiAssistant, locked, appLockUiState.isLoaded) {
         if (openAiAssistant && appLockUiState.isLoaded && !locked) {
