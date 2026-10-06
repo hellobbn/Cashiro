@@ -7,9 +7,10 @@ Cashiro is an Android expense tracker. This repository is a personal fork of
 PennyWise AI.
 
 The fork is for personal, mostly **manual** bookkeeping: accounts, categories,
-budgets, and a Chinese / cross-border institution catalog. SMS parsing remains
-in the tree from upstream but is not the product direction here. Do not add
-Chinese bank SMS parsers unless explicitly requested.
+budgets, and a Chinese / cross-border institution catalog. Upstream's SMS parsing
+(the `parser-core` module) has been removed; old SMS-imported rows stay readable
+(an `sms_body` is still shown on their detail pages). Do not bring SMS parsing back
+unless explicitly requested.
 
 ## Identifiers
 
@@ -21,18 +22,20 @@ breaks updates of already-installed builds.
 | Gradle project | `cashiro-beta` |
 | App namespace / applicationId | `com.ritesh.cashiro` |
 | App source root | `app/src/main/java/com/ritesh/cashiro/` |
-| Parser module | `parser-core` |
-| Parser package | `com.ritesh.parser.core` |
-| Parser source root | `parser-core/src/main/kotlin/com/ritesh/parser/core/` |
-| Historical Room schema path | `app/schemas/com.pennywiseai.tracker.data.database.PennyWiseDatabase/` |
+| Room schema path | `app/schemas/com.ritesh.cashiro.data.database.CashiroDatabase/` (database version 69) |
+| Historical Room schema paths | `app/schemas/com.pennywiseai.tracker.data.database.PennyWiseDatabase/`, `app/schemas/com.ritesh.cashiro.data.database.PennyWiseDatabase/` |
 | Version name | `2.1.63` |
 | Version code | `97` |
 | Min SDK | 26 |
-| Compile / target SDK | 36 |
+| Compile SDK | 37 |
+| Target SDK | 36 |
 | License | AGPL-3.0 |
 
-Room schemas keep the old `com.pennywiseai.tracker` directory name from the
-PennyWise lineage. Leave that path alone.
+The historical schema directories keep the old PennyWise names. Leave those paths alone.
+Migrations live in `data/database/Migrations.kt`; `CashiroDatabase.MIGRATIONS` lists the manual
+ones, and `MigrationChainTest` opens every exported schema at the current version through them, so
+a new version needs its schema exported and its migration added there. First-run seeding is in
+`data/database/DatabaseCallback.kt`.
 
 ## Important Documents
 
@@ -48,9 +51,9 @@ PennyWise lineage. Leave that path alone.
 3. **State**: Unidirectional Data Flow with StateFlow
 4. **DI**: Hilt
 5. **Database**: Room
-6. **On-device model**: LiteRT-LM / MediaPipe (optional assistant)
-7. **Background**: WorkManager (upstream SMS scan; not the focus of this fork)
-8. **Flavors**: `standard` (default) and `fdroid`
+6. **AI**: cloud only, with the user's own key (see "AI bookkeeping")
+7. **Background**: WorkManager for scheduled cloud backups; AlarmManager for the daily reminder
+8. **Flavors**: `standard` (default) and `fdroid`; they share all code
 
 ## Current Direction
 
@@ -58,9 +61,17 @@ Personal Chinese / cross-border manual accounts:
 
 - New installs default to CNY. Existing saved currencies are not overwritten.
 - Institution picker covers CN / HK / SG / US banks and brokers as **name and icon presets only**.
-- Choosing an institution does not add SMS parsing, login, or holdings sync.
+- Choosing an institution does not add login or holdings sync.
 - A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; device sync never does.
-- Prefer account UX, currency defaults, and imports over SMS automation.
+- Prefer account UX, currency defaults, and imports over automation.
+- Removed, do not reintroduce without asking: Play in-app update/review, smart rules,
+  webhooks, merchant mappings, Indian e-mandate subscriptions, sample data and the developer
+  page, the "manually added only" budget mode, account hiding/merging, selective import and
+  masked export. Migration 68→69 dropped their tables; old backups that carry them still import.
+- Credit cards may have a statement day and a due day (`accounts.statement_day` / `due_day`);
+  the account page shows the bill (`cardStatus`): the statement less repayments since, overdue
+  until paid.
+- A transaction's balance effect is defined once (`balanceMoves`), used by adding and editing.
 - Merchant icons: a transaction shows the icon the user picked for its merchant name
   (`MerchantIconStore`, files in `filesDir/merchant_icons`, carried in backups), else a bundled
   brand logo (`BrandIcons`), else its subcategory or category icon. The picker opens from the icon on
@@ -175,7 +186,6 @@ client, no provider SDKs, to keep the app small.
 ```bash
 ./gradlew :app:assembleStandardDebug
 ./gradlew :app:testStandardDebugUnitTest
-./gradlew :parser-core:test
 ./gradlew :app:lintStandardDebug
 ```
 
@@ -184,7 +194,8 @@ Debug APKs:
 - `app/build/outputs/apk/standard/debug/app-standard-arm64-v8a-debug.apk`
 - `app/build/outputs/apk/standard/debug/app-standard-universal-debug.apk`
 
-CI publishes those to the rolling `debug-latest` GitHub Release on every `main` push.
+CI publishes those to the rolling `debug-latest` GitHub Release on every `main` push. The Tests
+workflow runs all app unit tests, debug lint and the F-Droid compile.
 
 ## Versioning
 
@@ -205,7 +216,6 @@ Bump `versionName` / `versionCode` in `app/build.gradle.kts` together.
 
 ```
 app/            Android application (namespace com.ritesh.cashiro)
-parser-core/    JVM bank-SMS parsers (package com.ritesh.parser.core)
 benchmark/      Macrobenchmark tests against app's `benchmark` build type
 ```
 
@@ -275,24 +285,6 @@ com.ritesh.cashiro
 ├── di            Hilt modules
 └── utils
 ```
-
-## Bank Parser Architecture
-
-Parsers live in `parser-core` so they stay free of Android dependencies.
-This fork does not prioritize new parsers.
-
-### If you must add a parser
-
-1. Add it under `parser-core/src/main/kotlin/com/ritesh/parser/core/bank/`
-2. Extend `BankParser`
-3. Implement `getBankName()`, `canHandle(sender)`, `parse(smsBody, sender, timestamp)`
-4. Override `extractAmount()` / `extractMerchant()` / `extractTransactionType()` as needed
-5. Register it in `BankParserFactory.parsers`
-6. Return `com.ritesh.parser.core.ParsedTransaction`
-7. Map into the app with `com.ritesh.cashiro.data.mapper.toEntity()`
-
-Parser tests must use the shared helpers in `ParserTestUtils`.
-See `docs/parser-test-standards.md`.
 
 ## Lint
 

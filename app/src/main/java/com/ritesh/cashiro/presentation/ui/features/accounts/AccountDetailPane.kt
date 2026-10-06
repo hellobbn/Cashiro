@@ -46,7 +46,8 @@ fun AccountDetailPane(
     account: PaneAccount?,
     navController: NavController,
     animatedContentScope: AnimatedVisibilityScope?,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onRenamed: (PaneAccount) -> Unit = {}
 ) {
     if (account == null) {
         Column(
@@ -88,7 +89,8 @@ fun AccountDetailPane(
                 accountLast4 = account.accountLast4,
                 accountDetailViewModel = viewModel,
                 animatedContentScope = animatedContentScope,
-                onNavigateBack = onClose
+                onNavigateBack = onClose,
+                onRenamed = { newName -> onRenamed(account.copy(bankName = newName)) }
             )
         }
     }

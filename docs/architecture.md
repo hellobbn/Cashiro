@@ -1,247 +1,89 @@
-# Cashiro Architecture Guide
+# Cashiro Architecture
 
-## Overview
-Cashiro follows modern Android architecture guidelines with MVVM pattern, Clean Architecture principles, and Unidirectional Data Flow (UDF).
+Cashiro is a single-module Android app (`app`, package `com.ritesh.cashiro`) for manual,
+multi-currency bookkeeping. It uses MVVM with unidirectional data flow: Room is the source of
+truth, repositories write to it, ViewModels expose `StateFlow`s, and Compose renders them.
 
-## Core Architectural Principles
+## Layers
 
-### 1. Separation of Concerns
-- UI components (Activities, Fragments, Composables) contain minimal logic
-- Business logic resides in ViewModels and Use Cases
-- Data operations handled by repositories
-
-### 2. Drive UI from Data Models
-- Persistent models survive configuration changes
-- Room database as single source of truth
-- StateFlow for reactive UI updates
-
-### 3. Single Source of Truth (SSOT)
-- All transaction data originates from Room database
-- Repositories centralize data mutations
-- Immutable data exposed to UI layer
-
-### 4. Unidirectional Data Flow (UDF)
-- State flows: Repository → ViewModel → UI
-- Events flow: UI → ViewModel → Repository
-- Predictable state management with StateFlow
-
-## Architecture Layers
-
-### UI Layer (Presentation)
-**Components:**
-- Jetpack Compose screens
-- ViewModels with StateFlow
-- UI state classes
-
-**Responsibilities:**
-- Render UI based on state
-- Handle user interactions
-- Navigate between screens
-
-**Key Classes:**
-```kotlin
-- HomeScreen.kt
-- TransactionListScreen.kt
-- HomeViewModel.kt
-- TransactionViewModel.kt
-- UiState data classes
+```
+com.ritesh.cashiro
+├── presentation   Compose screens, feature ViewModels, navigation, theme
+├── domain         Use cases and pure models (budget periods, card cycles, net worth)
+├── data           Room, repositories, preferences, backup, cloud, AI, brokerage, currency
+├── di             Hilt modules
+└── utils          Formatting (DateFormats, CurrencyFormatter) and small helpers
 ```
 
-### Domain Layer (Business Logic)
-**Components:**
-- Use Cases/Interactors
-- Domain models
-- Business rules
+### Presentation
 
-**Responsibilities:**
-- Complex business logic
-- Data transformation
-- Validation rules
+- One package per feature under `presentation/ui/features/`: home, transactions, add,
+  accounts, analytics, budgets, categories, subscriptions, lendborrow, investments, ai,
+  profile, onboarding and settings.
+- A ViewModel per screen exposes a UI state `StateFlow`. Screens send events back as
+  ViewModel calls.
+- Navigation: type-safe routes in `presentation/navigation/CashiroDestinations.kt`, hosted by
+  `CashiroNavHost`.
+- Adaptive layout in `presentation/ui/adaptive/WindowLayout.kt`:
+  - Below 600 dp: bottom bar.
+  - From 600 dp: navigation rail.
+  - From 720 dp: list-detail panes for transactions and accounts.
+- Shared Material 3 Expressive wrappers live in `presentation/ui/components` (see `docs/design.md`).
 
-**Key Classes:**
-```kotlin
-- ExtractTransactionUseCase.kt
-- CategorizeTransactionUseCase.kt
-- DetectSubscriptionUseCase.kt
-- Transaction domain model
-```
+### Domain
 
-### Data Layer (Data Sources)
-**Components:**
-- Repositories
-- Room DAOs
-- Data sources (SMS, AI)
-- Data models
+- Use cases that write the ledger:
+  - `AddTransactionUseCase`: one database transaction per add.
+  - `AddSubscriptionUseCase`.
+  - The lend/borrow use cases.
+- Pure models with their own unit tests:
+  - `BudgetPeriods` (rolling budget windows; `counts()` decides what a budget includes).
+  - `CardCycle` (statement and due dates).
+  - `netWorthByDay`.
 
-**Responsibilities:**
-- Abstract data sources
-- Cache management
-- Data synchronization
+### Data
 
-**Key Classes:**
-```kotlin
-- TransactionRepository.kt
-- TransactionDao.kt
-- SmsDataSource.kt
-- AICategorizationService.kt
-```
+- **Database**: `CashiroDatabase` (version 69).
+  - Migrations are in `data/database/Migrations.kt`, listed by `CashiroDatabase.MIGRATIONS`.
+  - First-run seeding is in `DatabaseCallback.kt`.
+- **Accounts**:
+  - An account is a row in `accounts` and holds one or more currencies in `account_currencies`.
+  - Balance history is `account_balances`, one row per change, per currency ("pocket").
+  - Transactions point at `account_id`, and transfers also at `to_account_id` / `to_currency`.
+- **Balance effects**:
+  - `balanceMoves` defines how a transaction moves balances, and `AddTransactionUseCase` and
+    `TransactionEditor` both use it. An edit undoes the old effect as a delete does, then
+    applies the new one.
+  - `AccountRenamer` and `CategoryRenamer` carry a rename to every table that refers to the
+    old name, in one transaction.
+- **Backup** (`data/backup`):
+  - A zip holding `backup.json` plus attachments, merchant icons and, optionally,
+    brokerage connections.
+  - A merge import adds only what is new: transactions by hash, and balance rows of new
+    transactions or new accounts.
+- **Cloud** (`data/cloud`): scheduled backups (WorkManager) and device sync, both end-to-end
+  encrypted when the user sets a passphrase.
+- **AI** (`data/ai`): cloud models with the user's key. `LedgerTools` only queues proposals;
+  nothing is written before the user saves the review.
+- **Brokerage** (`data/brokerage`): read-only IBKR Flex holdings, kept apart from the ledger
+  (`docs/brokerage-connections.md`).
 
-## Module Structure
-```
-app/
-├── src/main/java/com/pennywise/
-│   ├── ui/                    # UI Layer
-│   │   ├── screens/
-│   │   ├── components/
-│   │   ├── theme/
-│   │   └── navigation/
-│   ├── domain/                # Domain Layer
-│   │   ├── model/
-│   │   ├── usecase/
-│   │   └── repository/
-│   ├── data/                  # Data Layer
-│   │   ├── database/
-│   │   ├── repository/
-│   │   ├── source/
-│   │   └── mapper/
-│   └── di/                    # Dependency Injection
-│       └── modules/
-```
+## Conventions
 
-## Data Flow Example
-```
-User opens app
-    ↓
-HomeScreen observes HomeViewModel.uiState
-    ↓
-HomeViewModel calls GetTransactionsUseCase
-    ↓
-UseCase queries TransactionRepository
-    ↓
-Repository fetches from TransactionDao
-    ↓
-Data flows back up as StateFlow
-    ↓
-UI recomposes with new state
-```
+- Writes that touch several tables run in `database.withTransaction`.
+- Amounts are `BigDecimal`. Each transaction keeps its own currency, and conversion happens only
+  for display and totals (`CurrencyConversionService`).
+- Dates are shown through `DateFormats`, e.g. `9月1日` in Chinese.
+- Date pickers work in UTC midnights: use `toPickerMillis()` / `pickerDate()`.
+- User-visible text is in string resources. `values`, `values-zh` and `values-zh-rTW` are
+  maintained.
 
-## Key Technologies
+## Testing
 
-### Dependency Injection
-- **Hilt** for compile-time DI
-- Scoped components (@Singleton, @ViewModelScoped)
-- Module-based provision
-
-### Asynchronous Programming
-- **Kotlin Coroutines** for async operations
-- **Flow** for reactive streams
-- **StateFlow** for UI state
-
-### State Management
-```kotlin
-data class HomeUiState(
-    val transactions: List<Transaction> = emptyList(),
-    val monthlyTotal: Double = 0.0,
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
-
-class HomeViewModel @Inject constructor(
-    private val getTransactionsUseCase: GetTransactionsUseCase
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
-}
-```
-
-### Navigation
-- **Navigation Compose** for type-safe navigation
-- Single Activity architecture
-- Deep linking support
-
-## Testing Strategy
-
-### Unit Tests
-- ViewModels with mock repositories
-- Use cases with mock data sources
-- Repository logic testing
-
-### UI Tests
-- Compose testing framework
-- Screenshot tests
-- Navigation tests
-
-### Integration Tests
-- Room database migrations
-- SMS parsing accuracy
-- AI categorization
-
-## Performance Considerations
-
-### Memory Management
-- LazyColumn for large lists
-- Image loading with Coil
-- Proper coroutine scope management
-
-### Database Optimization
-- Indexed queries
-- Batch operations
-- Background processing with WorkManager
-
-### UI Performance
-- Recomposition optimization
-- State hoisting
-- Derivable state calculations
-
-## Security & Privacy
-
-### Data Protection
-- On-device processing only
-- No network calls without consent
-- Encrypted preferences with DataStore
-
-### Permissions
-- Runtime permission requests
-- Minimal permission scope
-- Clear permission rationale
-
-## Best Practices
-
-### Code Organization
-- Feature-based packaging
-- Clear layer boundaries
-- Interface-based dependencies
-
-### Error Handling
-- Sealed classes for results
-- Graceful degradation
-- User-friendly error messages
-
-### Code Style
-- Kotlin coding conventions
-- Consistent naming patterns
-- Immutable data structures
-
-## Migration & Evolution
-
-### Database Migrations
-- Room auto-migrations
-- Fallback strategies
-- Data integrity checks
-
-### Feature Flags
-- Gradual rollout support
-- A/B testing capability
-- Remote configuration ready
-
-## Monitoring & Analytics
-
-### Performance Monitoring
-- App startup time
-- Frame rendering metrics
-- Memory usage tracking
-
-### Error Tracking
-- Crash reporting (opt-in)
-- Non-fatal error logging
-- User feedback integration
+- Unit tests run on the JVM (Robolectric with in-memory Room where a database is needed):
+  `./gradlew :app:testStandardDebugUnitTest`.
+- `MigrationChainTest` builds every exported schema and opens it at the current version.
+- `BackupMergeTest` checks that merging the same data twice adds nothing.
+- Performance is measured on a physical device with the `benchmark` module (see `CLAUDE.md` →
+  Performance).
+- CI (`.github/workflows/test.yml`) runs the unit tests, debug lint and the F-Droid compile.
