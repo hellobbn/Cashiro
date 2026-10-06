@@ -4,6 +4,7 @@ import com.ritesh.cashiro.data.repository.AccountHoldings
 import com.ritesh.cashiro.data.repository.byCurrency
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.presentation.ui.components.sortedForDisplay
+import com.ritesh.cashiro.data.brokerage.BrokerConnection
 import java.math.BigDecimal
 
 internal enum class AccountSectionKind { WALLETS, BANKS, CREDIT_CARDS, INVESTMENTS }
@@ -12,7 +13,9 @@ internal data class AccountSection(
     val kind: AccountSectionKind,
     val accounts: List<AccountBalanceEntity>,
     // Never add balances in different currencies or mix assets with card debt.
-    val totals: Map<String, BigDecimal>
+    val totals: Map<String, BigDecimal>,
+    // Connected brokerage accounts, counted in the investments summary but listed as connections
+    val linkedCount: Int = 0
 ) {
     val collapsedPreviewCount: Int
         get() = 0
@@ -54,4 +57,14 @@ internal fun buildAccountSections(
             })
         }
     )
+}
+
+/** Investments with the connected brokers' latest snapshots added, as Home's overview counts them. */
+internal fun AccountSection.withBrokerSnapshots(connections: List<BrokerConnection>): AccountSection {
+    if (connections.isEmpty()) return this
+    val merged = totals.toMutableMap()
+    connections.investmentSnapshotsOrEmpty().forEach { (currency, amount) ->
+        merged[currency] = (merged[currency] ?: BigDecimal.ZERO) + amount
+    }
+    return copy(totals = merged.toSortedMap(), linkedCount = connections.sumOf { it.accounts.size })
 }

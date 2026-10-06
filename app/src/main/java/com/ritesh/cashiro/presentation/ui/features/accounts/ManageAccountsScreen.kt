@@ -150,6 +150,10 @@ fun ManageAccountsScreen(
     val bankSection = sections.visible[1]
     val creditSection = sections.visible[2]
     val investmentSection = sections.visible[3]
+    val investmentSummary = remember(investmentSection, brokerageConnections, category) {
+        if (category == null || category == AccountCategory.INVESTMENTS) investmentSection.withBrokerSnapshots(brokerageConnections)
+        else investmentSection
+    }
     val wallets = walletSection.visibleAccounts(category != null || walletsExpanded)
     val visibleRegularAccounts = bankSection.visibleAccounts(category != null || banksExpanded)
     val visibleCreditCards = creditSection.visibleAccounts(category != null || creditCardsExpanded)
@@ -334,7 +338,7 @@ fun ManageAccountsScreen(
                     if (investmentSection.accounts.isNotEmpty() || (showBrokerageLinks && brokerageConnections.isNotEmpty())) {
                         item(key = "investment_summary", contentType = "section_summary") {
                             AccountSectionSummary(
-                                section = investmentSection,
+                                section = investmentSummary,
                                 expanded = investmentsExpanded,
                                 onToggle = if (category == null) ({ investmentsExpanded = !investmentsExpanded }) else null
                             )

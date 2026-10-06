@@ -59,7 +59,7 @@ internal fun AccountSectionSummary(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (onToggle != null) Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (onToggle != null) Text(stringResource(titleOverride ?: title), style = MaterialTheme.typography.titleLargeEmphasized, modifier = Modifier.weight(1f))
-                Text(stringResource(R.string.overview_count, section.accounts.size), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.overview_count, section.accounts.size + section.linkedCount), style = MaterialTheme.typography.bodyMedium)
                 if (onToggle != null) {
                     val toggleLabel = stringResource(if (expanded) R.string.account_section_collapse_all else R.string.account_section_expand_all, stringResource(title))
                     val toggleState = stringResource(if (expanded) R.string.account_section_expanded else R.string.account_section_collapsed)
@@ -89,7 +89,7 @@ internal fun AccountSectionSummary(
                     )
                 }
             }
-            if (section.kind == AccountSectionKind.CREDIT_CARDS) Text(stringResource(R.string.overview_deduction), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (section.linkedCount > 0) Text(stringResource(R.string.overview_snapshot_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
