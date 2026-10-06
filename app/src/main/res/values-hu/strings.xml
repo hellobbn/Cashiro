@@ -342,8 +342,6 @@
     <string name="about">Névjegy</string>
     <string name="cashiro_logo_cd">Cashiro Logó</string>
     <string name="version_format">Verzió %1$s, db-v%2$d</string>
-    <string name="developed_by">Fejlesztette: Ritesh</string>
-    <string name="lead_developer_cd">vezető fejlesztő</string>
     <string name="website">Weboldal</string>
     <string name="github">Github</string>
     <string name="discord">Discord</string>

@@ -342,8 +342,6 @@
     <string name="about">O aplikaciji</string>
     <string name="cashiro_logo_cd">Cashiro logotip</string>
     <string name="version_format">Različica %1$s, db-v%2$d</string>
-    <string name="developed_by">Razvil Ritesh</string>
-    <string name="lead_developer_cd">vodilni razvijalec</string>
     <string name="website">Spletna stran</string>
     <string name="github">Github</string>
     <string name="discord">Discord</string>

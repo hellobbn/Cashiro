@@ -342,8 +342,6 @@
     <string name="about">حول</string>
     <string name="cashiro_logo_cd">شعار كاشيرو</string>
     <string name="version_format">الإصدار %1$s، قاعدة البيانات v%2$d</string>
-    <string name="developed_by">تم التطوير بواسطة ريتيش</string>
-    <string name="lead_developer_cd">المطور الرئيسي</string>
     <string name="website">الموقع الإلكتروني</string>
     <string name="github">جيت هاب</string>
     <string name="discord">ديسكورد</string>

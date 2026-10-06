@@ -342,8 +342,6 @@
     <string name="about">ਬਾਰੇ</string>
     <string name="cashiro_logo_cd">ਕੈਸ਼ਿਰੋ ਲੋਗੋ</string>
     <string name="version_format">ਸੰਸਕਰਣ %1$s, db-v%2$d</string>
-    <string name="developed_by">ਡਵਲਪ ਕੀਤਾ ਰਿਤੇਸ਼ ਦੁਆਰਾ</string>
-    <string name="lead_developer_cd">ਮੁੱਖ ਡਵਲਪਰ</string>
     <string name="website">ਵੇਬਸਾਈਟ</string>
     <string name="github">ਗਿੱਥਬ</string>
     <string name="discord">ਡਿਸਕੋਰਡ</string>

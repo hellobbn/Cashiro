@@ -342,8 +342,6 @@
     <string name="about">སྐོར་ལས།</string>
     <string name="cashiro_logo_cd">ཁ་ཤི་རོ་ཡི་མཚོན་རྟགས།</string>
     <string name="version_format">ཐོན་རིམ་%1$s, db-v%2$d</string>
-    <string name="developed_by">Ritesh གིས་གསར་སྤེལ་བྱས་པ།</string>
-    <string name="lead_developer_cd">སྣེ་འཁྲིད་གསར་སྤེལ་བྱེད་མཁན།</string>
     <string name="website">དྲ་ཚིགས་</string>
     <string name="github">Github</string>
     <string name="discord">མི་མཐུན་པ།</string>

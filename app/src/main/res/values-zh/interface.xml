@@ -337,8 +337,6 @@
     <string name="view_more_count">再显示 %1$d 项</string>
     <string name="attachment_link">链接</string>
     <string name="app_logo">应用图标</string>
-    <string name="feedback_subject">Cashiro 反馈</string>
-    <string name="send_email">发送邮件</string>
     <string name="share_backup">分享备份</string>
     <string name="backup_file_subject">Cashiro 备份</string>
     <string name="settlement_title">结清</string>

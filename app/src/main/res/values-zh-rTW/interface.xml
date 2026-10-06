@@ -360,8 +360,6 @@
     <string name="view_more_count">再顯示 %1$d 項</string>
     <string name="attachment_link">連結</string>
     <string name="app_logo">應用程式圖示</string>
-    <string name="feedback_subject">Cashiro 意見回饋</string>
-    <string name="send_email">傳送郵件</string>
     <string name="share_backup">分享備份</string>
     <string name="backup_file_subject">Cashiro 備份</string>
     <string name="settlement_title">結清</string>

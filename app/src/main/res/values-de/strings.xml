@@ -342,8 +342,6 @@
     <string name="about">Über</string>
     <string name="cashiro_logo_cd">Cashiro-Logo</string>
     <string name="version_format">Version %1$s, db-v%2$d</string>
-    <string name="developed_by">Entwickelt von Ritesh</string>
-    <string name="lead_developer_cd">leitender Entwickler</string>
     <string name="website">Webseite</string>
     <string name="github">Github</string>
     <string name="discord">Discord</string>
