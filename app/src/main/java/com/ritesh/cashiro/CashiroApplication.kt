@@ -2,6 +2,7 @@ package com.ritesh.cashiro
 
 import android.app.Activity
 import android.app.Application
+import java.io.File
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -77,6 +78,10 @@ class CashiroApplication : Application(), Configuration.Provider {
         // Install crash handler first — must be before any other initialization
         com.ritesh.cashiro.utils.CrashHandler.install(this)
         registerActivityLifecycleCallbacks(AppLockLifecycleObserver())
+        // Exported or downloaded backups are plain copies of everything; none outlives a launch
+        applicationScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            listOf("backups", "cloud_restores", "peer_syncs").forEach { File(cacheDir, it).deleteRecursively() }
+        }
         // Hiding accounts was removed: bring back any hidden before
         getSharedPreferences("account_prefs", MODE_PRIVATE).edit().remove("hidden_accounts").apply()
         applicationScope.launch {

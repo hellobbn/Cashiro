@@ -227,4 +227,8 @@
     <string name="card_next_statement">下期账单日</string>
     <string name="card_due_on">%1$s 还款</string>
     <string name="home_cards_due">%1$d 个账户，%2$s还款</string>
+    <string name="cloud_restore_confirm_title">恢复这个备份？</string>
+    <string name="cloud_restore_confirm_text">本机所有数据会被 %1$s 替换。恢复前会先在本机保留一份当前数据。</string>
+    <string name="cloud_restore_confirm">恢复</string>
+    <string name="ai_key_not_persisted">本机无法加密保存 key，它只会保留到 App 关闭为止。</string>
 </resources>

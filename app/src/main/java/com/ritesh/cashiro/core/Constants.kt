@@ -37,6 +37,6 @@ object Constants {
         const val TERMS_OF_SERVICE_URL = "https://ritesh-kanwar.github.io/cashiro.showcase/terms"
         const val FAQ_URL = "https://ritesh-kanwar.github.io/cashiro.showcase/faq"
         const val GUIDE_URL = "https://ritesh-kanwar.github.io/cashiro.showcase/guides"
-        const val REPORT_BUG_URL = "https://github.com/ritesh-kanwar/Cashiro/issues/new/choose"
+        const val REPORT_BUG_URL = "https://github.com/hellobbn/Cashiro/issues/new"
     }
 }

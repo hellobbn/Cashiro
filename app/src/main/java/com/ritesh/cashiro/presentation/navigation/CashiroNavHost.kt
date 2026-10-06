@@ -210,9 +210,8 @@ fun CashiroNavHost(
                 ) {
                     AppLockScreen(
                         onUnlocked = {
-                            navController.safeNavigate(Home) {
-                                popUpTo(AppLock) { inclusive = true }
-                            }
+                            // Back to what was open; on a cold start that is Home under the lock
+                            if (!navController.popBackStack()) navController.safeNavigate(Home)
                         }
                     )
                 }

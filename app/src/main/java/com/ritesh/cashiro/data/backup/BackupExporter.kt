@@ -51,8 +51,8 @@ class BackupExporter @Inject constructor(
      */
     suspend fun exportBackup(
         config: BackupConfiguration = BackupConfiguration()
-    ): ExportResult {
-        return try {
+    ): ExportResult = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        try {
             // Collect all data
             var backup = createBackup(config)
             

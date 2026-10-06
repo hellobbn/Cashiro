@@ -194,6 +194,9 @@ class CloudBackupManager @Inject constructor(
                 }
             }
 
+            progressListener?.invoke(80)
+            // What is here now is kept locally before it is replaced
+            keepSafetyCopy()
             progressListener?.invoke(85)
             val importResult = backupImporter.importBackup(Uri.fromFile(importFile), ImportStrategy.REPLACE_ALL)
             progressListener?.invoke(100)
@@ -209,6 +212,20 @@ class CloudBackupManager @Inject constructor(
             Log.e("CloudBackupManager", "Restore error", e)
             Result.failure(e)
         }
+    }
+
+    /**
+     * Saves the current data to `files/pre_restore/` before a restore replaces it, keeping the
+     * last three such copies. They stay on the device only.
+     */
+    private suspend fun keepSafetyCopy() {
+        val export = backupExporter.exportBackup(BackupConfiguration())
+        if (export !is ExportResult.Success) throw IllegalStateException("Could not save the current data before restoring.")
+        val dir = File(context.filesDir, "pre_restore").apply { mkdirs() }
+        val copy = File(dir, "before-restore-${System.currentTimeMillis()}.zip")
+        export.file.copyTo(copy, overwrite = true)
+        export.file.delete()
+        dir.listFiles()?.sortedByDescending { it.lastModified() }?.drop(3)?.forEach { it.delete() }
     }
 
     /**

@@ -32,6 +32,10 @@ data class AiConfig(
 /** The cloud model to use, kept with the key in encrypted preferences. Nothing is sent until one is set. */
 @Singleton
 class AiSettings @Inject constructor(@ApplicationContext private val context: Context) {
+    // Whether the key can be kept encrypted; without the keystore it lives only until the app closes
+    var keyStoredSecurely = true
+        private set
+
     private val prefs: SharedPreferences by lazy {
         try {
             EncryptedSharedPreferences.create(
@@ -42,7 +46,8 @@ class AiSettings @Inject constructor(@ApplicationContext private val context: Co
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Exception) {
-            // Same fallback as CloudCredentialStore: app-private storage when the keystore is unusable
+            // The settings still persist, but the key is never written in plain text (see save)
+            keyStoredSecurely = false
             context.getSharedPreferences("cashiro_ai_prefs", Context.MODE_PRIVATE)
         }
     }
@@ -57,7 +62,7 @@ class AiSettings @Inject constructor(@ApplicationContext private val context: Co
             putString(KEY_PROTOCOL, clean.protocol.name)
             putString(KEY_BASE_URL, clean.baseUrl)
             putString(KEY_MODEL, clean.model)
-            putString(KEY_API_KEY, clean.apiKey)
+            if (keyStoredSecurely) putString(KEY_API_KEY, clean.apiKey) else remove(KEY_API_KEY)
         }
         _config.value = clean
     }
