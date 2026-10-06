@@ -23,7 +23,7 @@ breaks updates of already-installed builds.
 | Gradle project | `cashiro-beta` |
 | App namespace / applicationId | `com.ritesh.cashiro` |
 | App source root | `app/src/main/java/com/ritesh/cashiro/` |
-| Room schema path | `app/schemas/com.ritesh.cashiro.data.database.CashiroDatabase/` (database version 71) |
+| Room schema path | `app/schemas/com.ritesh.cashiro.data.database.CashiroDatabase/` (database version 72) |
 | Historical Room schema paths | `app/schemas/com.pennywiseai.tracker.data.database.PennyWiseDatabase/`, `app/schemas/com.ritesh.cashiro.data.database.PennyWiseDatabase/` |
 | Version name | `2.1.63` |
 | Version code | `97` |
@@ -38,11 +38,11 @@ ones, and `MigrationChainTest` opens every exported schema at the current versio
 a new version needs its schema exported and its migration added there. First-run seeding is in
 `data/database/DatabaseCallback.kt`.
 
-Multi-device sync, phase 1 (local only, no Firebase yet): synced tables carry `sync_id` and
-`sync_updated_at`. SQLite triggers (`SyncTriggers`) fill them in and queue every change in
-`sync_outbox`. Every database builder, tests included, adds `SyncTriggers.Callback`. A new
-synced table needs the two columns, its index and an entry in `SyncTriggers.TABLES`. See
-`docs/sync.md`.
+Multi-device sync: synced tables carry `sync_id` and `sync_updated_at`. SQLite triggers
+(`SyncTriggers`) fill them in and queue every change in `sync_outbox`. Every database builder,
+tests included, adds `SyncTriggers.Callback`. A new synced table needs the two columns, its index,
+an entry in `SyncTriggers.TABLES` and one in `SyncSchema.TABLES` (the wire protocol; a new column
+of a synced table needs a kind there too, `SyncSchemaTest` checks). See `docs/sync.md`.
 
 ## Important Documents
 
@@ -60,8 +60,9 @@ synced table needs the two columns, its index and an entry in `SyncTriggers.TABL
 4. **DI**: Hilt
 5. **Database**: Room
 6. **AI**: cloud only, with the user's own key (see "AI bookkeeping")
-7. **Background**: WorkManager for scheduled cloud backups; AlarmManager for the daily reminder
-8. **Flavors**: `standard` (default) and `fdroid`; they share all code
+7. **Background**: WorkManager for scheduled cloud backups and sync retries; AlarmManager for the daily reminder
+8. **Flavors**: `standard` (default) and `fdroid`; they share all code except sync's backend
+   (Firebase in `src/standard`, an unavailable stub in `src/fdroid`)
 
 ## Current Direction
 
@@ -72,6 +73,12 @@ Personal Chinese / cross-border manual accounts:
 - Choosing an institution does not add login or holdings sync.
 - A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; device sync never does. The AI provider and key (`ai.json`) follow the same rule, and a restore only fills an empty AI setting, never replaces a device's own key.
 - Prefer account UX, currency defaults, and imports over automation.
+- Sync (Settings → Sync, `docs/sync.md`): multi-device sync through Firebase Auth (Google
+  sign-in via Credential Manager) and Firestore, **standard flavor only** (F-Droid links no
+  Firebase), **end-to-end encrypted** with the user's sync passphrase (AES-256-GCM, PBKDF2). The
+  wire protocol in `docs/sync.md` is shared with an iOS client: change it only with a new `v`.
+  Remote changes are written verbatim with capture paused, never through the use cases.
+  Attachments, merchant icons, preferences, AI keys and brokerage data are not uploaded.
 - Removed, do not reintroduce without asking: Play in-app update/review, smart rules,
   webhooks, merchant mappings, Indian e-mandate subscriptions, sample data and the developer
   page, the "manually added only" budget mode, account hiding/merging, selective import and

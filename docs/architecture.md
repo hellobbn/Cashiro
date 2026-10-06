@@ -43,10 +43,10 @@ com.ritesh.cashiro
 
 ### Data
 
-- **Database**: `CashiroDatabase` (version 71).
+- **Database**: `CashiroDatabase` (version 72).
   - Migrations are in `data/database/Migrations.kt`, listed by `CashiroDatabase.MIGRATIONS`.
   - First-run seeding is in `DatabaseCallback.kt`.
-  - Sync groundwork: synced tables carry `sync_id` / `sync_updated_at`, and SQLite triggers
+  - Sync capture: synced tables carry `sync_id` / `sync_updated_at`, and SQLite triggers
     (`SyncTriggers`) queue every change in `sync_outbox`. See [sync.md](sync.md).
 - **Accounts**:
   - An account is a row in `accounts` and holds one or more currencies in `account_currencies`.
@@ -65,6 +65,13 @@ com.ritesh.cashiro
     transactions or new accounts.
 - **Cloud** (`data/cloud`): scheduled backups (WorkManager) and device sync, both end-to-end
   encrypted when the user sets a passphrase.
+- **Sync** (`data/sync`, [sync.md](sync.md)): multi-device sync, end-to-end encrypted.
+  - `SyncEngine` pushes the outbox to a `RemoteStore` and applies remote records in one
+    transaction per page with capture paused, copying balance rows verbatim (never through the
+    use cases). `SyncManager` decides when (debounced push, pull in the foreground, WorkManager
+    retries) and drives sign-in, the passphrase and the first sync.
+  - The backend is per flavor: `src/standard` implements `SyncBackend` with Firebase Auth,
+    Credential Manager and Firestore; `src/fdroid` binds an unavailable stub.
 - **AI** (`data/ai`): cloud models with the user's key. `LedgerTools` only queues proposals;
   nothing is written before the user saves the review.
 - **Brokerage** (`data/brokerage`): read-only IBKR Flex holdings, kept apart from the ledger
@@ -86,6 +93,8 @@ com.ritesh.cashiro
   `./gradlew :app:testStandardDebugUnitTest`.
 - `MigrationChainTest` builds every exported schema and opens it at the current version.
 - `BackupMergeTest` checks that merging the same data twice adds nothing.
+- `SyncEngineTest` syncs two in-memory databases through a fake `RemoteStore`; `SyncCryptoTest`
+  holds the protocol's encryption test vector.
 - Performance is measured on a physical device with the `benchmark` module (see `CLAUDE.md` →
   Performance).
 - CI (`.github/workflows/test.yml`) runs the unit tests, debug lint and the F-Droid compile.
