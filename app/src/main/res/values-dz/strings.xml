@@ -15,12 +15,7 @@
     <string name="lock_timeout_immediate">Lock immediately when app goes to background</string>
     <string name="lock_timeout_1min">Lock after 1 minute in background</string>
     <string name="lock_timeout_minutes">Lock after %1$d minutes in background</string>
-    <string name="backup_tab">Backup</string>
-    <string name="local_backup_section">Local Backup</string>
     <string name="export_data">Export Data</string>
-    <string name="export_data_sub">Backup your data to a file</string>
-    <string name="import_data">Import Data</string>
-    <string name="import_data_sub">Restore data from backup</string>
     <string name="immediately">Immediately</string>
     <string name="one_minute">1 minute</string>
     <string name="minutes_format">%1$d minutes</string>
@@ -557,9 +552,7 @@
     <string name="amount_i_owe_them">ངས་ཁོང་ཚོར་སྤྲོད་དགོས་པའི་ཐང་།</string>
     <string name="amount_they_owe_me">ཁོང་ཚོས་ང་ལ་སྤྲོད་དགོས་པའི་ཐང་།</string>
     <string name="auth_failed_format">ངོས་འཛིན་མ་ཐུབ། %1$s</string>
-    <string name="automatic_backup_schedule">རང་འགུལ་ཉར་ཚགས་གནས་སྐབས།</string>
     <string name="backup_retention_limit">ཉར་ཚགས་རྒྱུན་འཛིན་ཚད།</string>
-    <string name="backup_schedule">ཉར་ཚགས་གནས་སྐབས།</string>
     <string name="backup_sync_title">ཉར་ཚགས་དང་མཉམ་བསྒྲིག།</string>
     <string name="backup_uploaded_success">ཉར་ཚགས་ལེགས་འགྲུབ་ཀྱིས་ཡར་འདྲེན་བྱུང་།</string>
     <string name="call_person">འཕྲིན་བསྟན།</string>
@@ -576,7 +569,6 @@
     <string name="connection_failed_format">འབྲེལ་མཐུད་ཕམ། %1$s</string>
     <string name="connection_verified">འབྲེལ་མཐུད་ལེགས་འགྲུབ་ཀྱིས་ཚོད་ལྟ་བྱུང་།</string>
     <string name="contacts">འབྲེལ་ཐོ།</string>
-    <string name="create_backup">ཉར་ཚགས་གསར་བཟོ།</string>
     <string name="delete_cloud_snapshot_confirm">ཁྱེད་ཀྱིས་%1$s བཤོལ་དགོས་པ་ངེས་པ་ཡིན་ན། འདི་གིས་གནམ་གྲུབ་ཉར་ཚགས་སྒྲིམ་ཐོ་རྟག་ཏུ་མེད་པར་བཟོ་བཞིན་པ་ཡིན།</string>
     <string name="delete_cloud_snapshot_title">གནམ་གྲུབ་སྒྲིམ་ཐོ་བཤོལ་ན།</string>
     <string name="delete_multiple_persons_confirm">ད་ལྟའི་ལས་ཀ་ཕྱིར་ལོག་བྱེད་མི་ཐུབ། འདེམས་སྒྲིག་བྱས་པའི་མི་དང་དེ་དང་འབྲེལ་བའི་ཐོ་ཡོངས་རྟག་ཏུ་མེད་པར་འགྲོ་བཞིན་པ་དང་ཕྱིར་ལེན་མི་ཐུབ།</string>
@@ -585,7 +577,6 @@
     <string name="delete_person_confirm_title">མི་བཤོལ་ན།</string>
     <string name="delete_record">ཐོ་བཤོལ།</string>
     <string name="delete_snapshot">སྒྲིམ་ཐོ་བཤོལ།</string>
-    <string name="device_sync_failed">ལག་ཆས་མཉམ་བསྒྲིག་ཕམ།</string>
     <string name="downloading_snapshot">སྒྲིམ་ཐོ་ཕབ་ལེན་བྱེད་བཞིན་པ།...</string>
     <string name="due_date">དུས་ཚོད།</string>
     <string name="e2e_disabled_desc">གནམ་གྲུབ་ལ་ཡར་འདྲེན་མ་བྱེད་སྔོན་དུ་ཉར་ཚགས་གསང་སྦྱོར་བྱེད།</string>
@@ -595,7 +586,6 @@
     <string name="edit_record">ཐོ་བཅོས་སྒྱུར།</string>
     <string name="enable_and_save">ཉར་ཚགས།</string>
     <string name="encrypted_backup_title">གསང་སྦྱོར་བྱས་པའི་ཉར་ཚགས།</string>
-    <string name="encryption_and_automation">གསང་སྦྱོར་དང་རང་འགུལ་ལས་ཀ།</string>
     <string name="enter_passphrase_desc">AES-256-GCM ཀྱིས་མ་འོངས་པའི་གནམ་གྲུབ་ཉར་ཚགས་ཡོངས་གསང་སྦྱོར་བྱེད་པའི་ཆེད་དུ་བདེ་འཇགས་ཀྱི་གསང་ཚིག་ཞིག་ནང་འཇུག་བྱེད།</string>
     <string name="err_auth_failed_retry">ངོས་འཛིན་ཕམ། ཕྱིར་ཐོན་བྱས་ཏེ་ཡང་བསྐྱར་འབད་དང་།</string>
     <string name="err_network">དྲ་རྒྱ་ནོར་འཁྲུལ། ཁྱེད་ཀྱི་འབྲེལ་མཐུད་ཞིབ་བཤེར་བྱེད་དང་།</string>
@@ -639,7 +629,6 @@
     <string name="person_name">མིའི་མིང་། *</string>
     <string name="phone_number_optional">ཁ་བྱང་ཨང་། (དགོས་ངེས་མེད།)</string>
     <string name="provider_google_drive">Google Drive</string>
-    <string name="provider_local_only">སྒེར་གྱི་ལག་ཆས་ཁོ་ན།</string>
     <string name="provider_webdav">Nextcloud / WebDAV</string>
     <string name="record_options">ཐོའི་གདམ་ཁ།</string>
     <string name="reminder_message_format">ཚེ་རིང་། %1$s, ང་ཚོའི་%2$s ཐོའི་ཆ་འཕྲིན་སྐོར་གྱི་གྲོགས་རམ་སྙན་གསལ།</string>
@@ -649,10 +638,6 @@
     <string name="restoring_data_format">གྲངས་ཐོ་ཕྱིར་ལེན་བྱེད་བཞིན་པ།... %1$d%%</string>
     <string name="retention_limit">རྒྱུན་འཛིན་ཚད།</string>
     <string name="review">ཞིབ་བཤེར།</string>
-    <string name="schedule_daily">ཉིན་རེ།</string>
-    <string name="schedule_manual">ལག་གཏོང་ཁོ་ན།</string>
-    <string name="schedule_monthly">ཟླ་བ་རེ།</string>
-    <string name="schedule_weekly">བདུན་ཕྲག་རེ།</string>
     <string name="select_person">མི་འདེམས།</string>
     <string name="server_url_hint">Server URL (དཔེར་ན། https://cloud.example.com/remote.php/dav/files/user/)</string>
     <string name="settle_description">ཆུ་ཆགས་ཟིན་ཐོ།</string>
@@ -670,12 +655,7 @@
     <string name="snapshot_restored_success">སྒྲིམ་ཐོ་ལེགས་འགྲུབ་ཀྱིས་ཕྱིར་ལེན་བྱུང་།</string>
     <string name="snapshot_subtitle_format">%1$s • %2$s</string>
     <string name="starting_cloud_backup">གནམ་གྲུབ་ཉར་ཚགས་འགོ་འཛུགས་བཞིན་པ།...</string>
-    <string name="storage_provider">ཉར་ཚགས་མཁོ་སྤྲོད།</string>
     <string name="store_backups_local_desc">ཉར་ཚགས་ལག་ཆས་འདི་ནང་ཁོ་ནར་ཉར།</string>
-    <string name="sync_complete_format">མཉམ་བསྒྲིག་འགྲུབ་ཟིན། མཉམ་སྤྱོད་ལག་ཆས་%1$d མཉམ་བསྒྲིག་བྱས། %2$d ཐོ་ཡར་འདྲེན་བྱས།</string>
-    <string name="sync_devices">ལག་ཆས་མཉམ་བསྒྲིག།</string>
-    <string name="synchronizing_devices">ལག་ཆས་ཀུན་བར་མཉམ་བསྒྲིག་བྱེད་བཞིན་པ།...</string>
-    <string name="syncing_devices_format">ལག་ཆས་ཀུན་བར་མཉམ་བསྒྲིག་བྱེད་བཞིན་པ།... %1$d%%</string>
     <string name="telegram_cd">Telegram</string>
     <string name="test_connection">འབྲེལ་མཐུད་ཚོད་ལྟ།</string>
     <string name="total_borrowed">བུ་ལོན་པ།</string>

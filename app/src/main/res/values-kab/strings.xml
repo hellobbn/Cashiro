@@ -15,12 +15,7 @@
     <string name="lock_timeout_immediate">Lock immediately when app goes to background</string>
     <string name="lock_timeout_1min">Lock after 1 minute in background</string>
     <string name="lock_timeout_minutes">Lock after %1$d minutes in background</string>
-    <string name="backup_tab">Backup</string>
-    <string name="local_backup_section">Local Backup</string>
     <string name="export_data">Export Data</string>
-    <string name="export_data_sub">Backup your data to a file</string>
-    <string name="import_data">Import Data</string>
-    <string name="import_data_sub">Restore data from backup</string>
     <string name="immediately">Immediately</string>
     <string name="one_minute">1 minute</string>
     <string name="minutes_format">%1$d minutes</string>
@@ -557,9 +552,7 @@
     <string name="amount_i_owe_them">Asekkil ay xellseɣ i</string>
     <string name="amount_they_owe_me">Asekkil i d-xellseɣ</string>
     <string name="auth_failed_format">Uffir n usentel ur yeddi ara: %1$s</string>
-    <string name="automatic_backup_schedule">Aɣawas n usekles awurman</string>
     <string name="backup_retention_limit">Talast n usekles</string>
-    <string name="backup_schedule">Aɣawas n usekles</string>
     <string name="backup_sync_title">Asekles &amp; Amtawi</string>
     <string name="backup_uploaded_success">Asekles yuli s usefleh!</string>
     <string name="call_person">Sali</string>
@@ -576,7 +569,6 @@
     <string name="connection_failed_format">Tanekra texser: %1$s</string>
     <string name="connection_verified">Tanekra tewweḍ s usefleh!</string>
     <string name="contacts">Iseggiren n tussi</string>
-    <string name="create_backup">Rnu asekles</string>
     <string name="delete_cloud_snapshot_confirm">Tzemreḍ ad tekkseḍ %1$s? Wagi ad yekkes iwennit n usekles seg usekles-inek n usigna, s wudem ur ittwali ara.</string>
     <string name="delete_cloud_snapshot_title">Kkes iwennit n usigna?</string>
     <string name="delete_multiple_persons_confirm">Asiggez-agi ur d-ittuɣal ara. Imdanen yettwafrenen akked yirekkiḍen meṛṛa ad ttwakksen s wudem ur ittwali ara.</string>
@@ -585,7 +577,6 @@
     <string name="delete_person_confirm_title">Kkes amdan?</string>
     <string name="delete_record">Kkes asenked</string>
     <string name="delete_snapshot">Kkes iwennit</string>
-    <string name="device_sync_failed">Amtawi n umeẓlu yexser</string>
     <string name="downloading_snapshot">Asrus n iwennit...</string>
     <string name="due_date">Azemz n wallal</string>
     <string name="e2e_disabled_desc">Sekles iwenniten send ad ten-taliḍ ɣer usigna</string>
@@ -595,7 +586,6 @@
     <string name="edit_record">Ẓreg asenked</string>
     <string name="enable_and_save">Sekles</string>
     <string name="encrypted_backup_title">Asekles yesrusen</string>
-    <string name="encryption_and_automation">Asusru &amp; awurman</string>
     <string name="enter_passphrase_desc">Sekcem awal-uziṛ n tɣellist akken ad teskliseḍ akk irekkiḍen n usigna i d-iteddun s AES-256-GCM:</string>
     <string name="err_auth_failed_retry">Uffir n usentel yexser. Ma ulac aɣilif, ffeɣ sakin ɛreḍ i tikelt-nniḍen.</string>
     <string name="err_network">Tuccḍa n uẓeṭṭa. Sekcem ɣer tanekra-inek.</string>
@@ -639,7 +629,6 @@
     <string name="person_name">Isem n umdan *</string>
     <string name="phone_number_optional">Uṭṭun n tiliɣri (aferdisan)</string>
     <string name="provider_google_drive">Google Drive</string>
-    <string name="provider_local_only">Asebter kan</string>
     <string name="provider_webdav">Nextcloud / WebDAV</string>
     <string name="record_options">Izwiren n usenked</string>
     <string name="reminder_message_format">Azul %1$s, awekkil ɣef usenked-inek n %2$s.</string>
@@ -649,10 +638,6 @@
     <string name="restoring_data_format">Asenqed n isefka... %1$d%%</string>
     <string name="retention_limit">Talast n usekles</string>
     <string name="review">Sken</string>
-    <string name="schedule_daily">Ass almi</string>
-    <string name="schedule_manual">Usiwel kan</string>
-    <string name="schedule_monthly">Ayyur almi</string>
-    <string name="schedule_weekly">Ussan almi</string>
     <string name="select_person">Fren amdan</string>
     <string name="server_url_hint">URL n uqeddac (mtal. https://cloud.example.com/remote.php/dav/files/user/)</string>
     <string name="settle_description">Inag n tizelt</string>
@@ -670,12 +655,7 @@
     <string name="snapshot_restored_success">Iwennit yettwanṣeb s usefleh!</string>
     <string name="snapshot_subtitle_format">%1$s • %2$s</string>
     <string name="starting_cloud_backup">Asekles n usigna ibda...</string>
-    <string name="storage_provider">Amesɛad n usekles</string>
     <string name="store_backups_local_desc">Sekles irekkiḍen kan deg umeẓlu-agi</string>
-    <string name="sync_complete_format">Amtawi yemmut! Yettwanṭen s %1$d imeẓlu, iwennit n usnas %2$d yettwarnan.</string>
-    <string name="sync_devices">Amtawi n imeẓlu</string>
-    <string name="synchronizing_devices">Amtawi n imeẓlu yakk...</string>
-    <string name="syncing_devices_format">Amtawi n imeẓlu... %1$d%%</string>
     <string name="telegram_cd">Telegram</string>
     <string name="test_connection">Ɛreḍ tanekra</string>
     <string name="total_borrowed">Yellef</string>

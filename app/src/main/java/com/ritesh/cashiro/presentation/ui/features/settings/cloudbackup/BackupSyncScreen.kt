@@ -97,11 +97,16 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.ritesh.cashiro.data.sync.SyncManager
+import com.ritesh.cashiro.presentation.ui.components.TooltipIconButton
+import com.ritesh.cashiro.presentation.ui.features.settings.sync.SyncViewModel
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.backup.BackupConfiguration
-import com.ritesh.cashiro.data.cloud.BackupSchedule
 import com.ritesh.cashiro.data.cloud.CloudFileInfo
 import com.ritesh.cashiro.data.cloud.CloudProviderType
 import com.ritesh.cashiro.data.cloud.SyncStatus
@@ -149,12 +154,16 @@ import java.util.Locale
 fun BackupSyncScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAccounts: () -> Unit = {},
+    // Backup & sync → Firebase sync (the sync page)
+    onNavigateToFirebaseSync: () -> Unit = {},
     viewModel: BackupSyncViewModel = hiltViewModel(),
+    syncViewModel: SyncViewModel = hiltViewModel(),
     dataPrivacyViewModel: DataPrivacyViewModel = hiltViewModel(),
     blurEffects: Boolean
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val firebaseSync by syncViewModel.state.collectAsStateWithLifecycle()
     val dataPrivacyUiState by dataPrivacyViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -166,8 +175,6 @@ fun BackupSyncScreen(
     var webDavUser by remember(uiState.webDavConfig.username) { mutableStateOf(uiState.webDavConfig.username) }
     var webDavPass by remember(uiState.webDavConfig.passwordOrToken) { mutableStateOf(uiState.webDavConfig.passwordOrToken) }
 
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var showScheduleDialog by remember { mutableStateOf(false) }
     var showRetentionDialog by remember { mutableStateOf(false) }
     var showE2eDialog by remember { mutableStateOf(false) }
     var e2ePassphraseInput by remember { mutableStateOf("") }
@@ -232,16 +239,24 @@ fun BackupSyncScreen(
     val gDriveSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                viewModel.handleGoogleSignInResult(account)
-            } catch (e: ApiException) {
-                Log.e("BackupSyncScreen", "Google Sign-In failed code=${e.statusCode}", e)
+        // Read the result whatever the result code: a failed sign-in (DEVELOPER_ERROR 10,
+        // 12500…) also returns RESULT_CANCELED, with the error in the intent
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            viewModel.handleGoogleSignInResult(account)
+        } catch (e: ApiException) {
+            Log.e("BackupSyncScreen", "Google Sign-In failed code=${e.statusCode}", e)
+            // Only the user closing the picker stays quiet
+            if (e.statusCode != GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.signin_failed_code_format, e.statusCode))
                 }
+            }
+        } catch (e: Exception) {
+            Log.e("BackupSyncScreen", "Google Sign-In failed", e)
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.auth_failed_format, e.message ?: e.javaClass.simpleName))
             }
         }
     }
@@ -304,14 +319,12 @@ fun BackupSyncScreen(
             ) {
                 // Active Operation Progress Bar
                 AnimatedVisibility(
-                    visible = uiState.syncStatus is SyncStatus.Syncing ||
-                            uiState.syncStatus is SyncStatus.BackingUp ||
+                    visible = uiState.syncStatus is SyncStatus.BackingUp ||
                             uiState.syncStatus is SyncStatus.Restoring,
                     enter = fadeIn() + slideInVertically { it },
                     exit = fadeOut() + slideOutVertically { it }
                 ) {
                     when (val status = uiState.syncStatus) {
-                        is SyncStatus.Syncing -> OperationProgressCard(status.message)
                         is SyncStatus.BackingUp -> OperationProgressCard(status.message, status.progress)
                         is SyncStatus.Restoring -> OperationProgressCard(status.message, status.progress)
                         else -> {}
@@ -344,69 +357,53 @@ fun BackupSyncScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
 
-                // Backup / Restore Switcher
-                GenericTypeSwitcher(
-                    selectedIndex = selectedTab,
-                    onIndexChange = { selectedTab = it },
-                    options = listOf(
-                        stringResource(R.string.backup_tab),
-                        stringResource(R.string.restore)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = Spacing.sm)
+                // Seamless sync: Firebase (docs/sync.md), on its own page
+                SectionHeader(
+                    title = stringResource(R.string.seamless_sync_section),
+                    modifier = Modifier.padding(start = Spacing.md, top = Spacing.md)
                 )
+                FirebaseSyncEntry(state = firebaseSync, onClick = onNavigateToFirebaseSync)
 
-                AnimatedContent(
-                    targetState = selectedTab,
-                    transitionSpec = {
-                        slideInVertically { height -> height } + fadeIn() togetherWith
-                        slideOutVertically { height -> -height } + fadeOut()
-                    },
-                    contentAlignment = Alignment.TopStart,
-                    label = "backupRestoreContent"
-                ) { tab ->
-                    if (tab == 0) {
-                        // BACKUP TAB
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(Spacing.md),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-
-                            // Cloud Provider Selection Section
-                            SectionHeader(
-                                title = stringResource(R.string.storage_provider),
-                                modifier = Modifier.padding(start = Spacing.md, top = Spacing.md)
-                            )
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                            ) {
-                                ProviderOptionItem(
-                                    title = CloudProviderType.LOCAL_ONLY.getLocalizedDisplayName(),
-                                    subtitle = stringResource(R.string.store_backups_local_desc),
-                                    providerType = CloudProviderType.LOCAL_ONLY,
-                                    isSelected = uiState.activeProviderType == CloudProviderType.LOCAL_ONLY,
-                                    position = ListItemPosition.Top,
-                                    onClick = { viewModel.setActiveProviderType(CloudProviderType.LOCAL_ONLY) }
-                                )
-                                ProviderOptionItem(
-                                    title = CloudProviderType.WEBDAV.getLocalizedDisplayName(),
-                                    subtitle = stringResource(R.string.webdav_provider_desc),
-                                    providerType = CloudProviderType.WEBDAV,
-                                    isSelected = uiState.activeProviderType == CloudProviderType.WEBDAV,
-                                    position = ListItemPosition.Middle,
-                                    onClick = { viewModel.setActiveProviderType(CloudProviderType.WEBDAV) }
-                                )
-                                ProviderOptionItem(
-                                    title = CloudProviderType.GOOGLE_DRIVE.getLocalizedDisplayName(),
-                                    subtitle = stringResource(R.string.google_drive_provider_desc),
-                                    providerType = CloudProviderType.GOOGLE_DRIVE,
-                                    isSelected = uiState.activeProviderType == CloudProviderType.GOOGLE_DRIVE,
-                                    position = ListItemPosition.Bottom,
-                                    onClick = { viewModel.setActiveProviderType(CloudProviderType.GOOGLE_DRIVE) }
-                                )
-                            }
+                // Full backup: manual export and restore, to a file, Google Drive or WebDAV
+                SectionHeader(
+                    title = stringResource(R.string.full_backup_section),
+                    modifier = Modifier.padding(start = Spacing.md, top = Spacing.md)
+                )
+                Text(
+                    text = stringResource(R.string.full_backup_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = Spacing.md)
+                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                ) {
+                    ProviderOptionItem(
+                        title = CloudProviderType.LOCAL_ONLY.getLocalizedDisplayName(),
+                        subtitle = stringResource(R.string.store_backups_local_desc),
+                        providerType = CloudProviderType.LOCAL_ONLY,
+                        isSelected = uiState.activeProviderType == CloudProviderType.LOCAL_ONLY,
+                        position = ListItemPosition.Top,
+                        onClick = { viewModel.setActiveProviderType(CloudProviderType.LOCAL_ONLY) }
+                    )
+                    ProviderOptionItem(
+                        title = CloudProviderType.GOOGLE_DRIVE.getLocalizedDisplayName(),
+                        subtitle = stringResource(R.string.google_drive_provider_desc),
+                        providerType = CloudProviderType.GOOGLE_DRIVE,
+                        isSelected = uiState.activeProviderType == CloudProviderType.GOOGLE_DRIVE,
+                        position = ListItemPosition.Middle,
+                        onClick = { viewModel.setActiveProviderType(CloudProviderType.GOOGLE_DRIVE) }
+                    )
+                    ProviderOptionItem(
+                        title = CloudProviderType.WEBDAV.getLocalizedDisplayName(),
+                        subtitle = stringResource(R.string.webdav_provider_desc),
+                        providerType = CloudProviderType.WEBDAV,
+                        isSelected = uiState.activeProviderType == CloudProviderType.WEBDAV,
+                        position = ListItemPosition.Bottom,
+                        onClick = { viewModel.setActiveProviderType(CloudProviderType.WEBDAV) }
+                    )
+                }
 
                             // WebDAV Configuration Card
                             AnimatedVisibility(visible = uiState.activeProviderType == CloudProviderType.WEBDAV) {
@@ -634,56 +631,18 @@ fun BackupSyncScreen(
                                 }
                             }
 
-                            if (uiState.activeProviderType == CloudProviderType.LOCAL_ONLY) {
-                                SectionHeader(
-                                    title = stringResource(R.string.local_backup_section),
-                                    modifier = Modifier.padding(start = Spacing.md)
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                                ) {
-                                    // Export Data
-                                    ListItem(
-                                        headline = { Text(stringResource(R.string.export_data)) },
-                                        supporting = { Text(stringResource(R.string.export_data_sub)) },
-                                        leading = {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(48.dp)
-                                                    .background(yellow_light, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    Iconax.DirectboxSend,
-                                                    contentDescription = null,
-                                                    tint = yellow_dark
-                                                )
-                                            }
-                                        },
-                                        trailing = {
-                                            Icon(
-                                                Icons.Rounded.ChevronRight,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        },
-                                        onClick = { showExportDialog = true },
-                                        shape = ListItemPosition.Single.toShape(),
-                                        padding = PaddingValues(0.dp)
-                                    )
-                                }
-                            } else {
-                                // When Nextcloud/WebDAV or Google Drive is selected, show Encryption & Automation, Manual Actions, Cloud Snapshot sections
-                                // E2E Security & Schedules
-                                SectionHeader(
-                                    title = stringResource(R.string.encryption_and_automation),
-                                    modifier = Modifier.padding(start = Spacing.md)
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                                ) {
+
+                val cloud = uiState.activeProviderType != CloudProviderType.LOCAL_ONLY
+                if (cloud) {
+                    // End-to-end encryption of cloud backups, and how many are kept
+                    SectionHeader(
+                        title = stringResource(R.string.backup_security_section),
+                        modifier = Modifier.padding(start = Spacing.md)
+                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                    ) {
                                     PreferenceSwitch(
                                         title = stringResource(R.string.e2e_encryption),
                                         subtitle = if (uiState.isE2eEnabled) stringResource(R.string.e2e_enabled_desc) else stringResource(
@@ -714,35 +673,6 @@ fun BackupSyncScreen(
                                         },
                                         padding = PaddingValues(0.dp),
                                         isFirst = true
-                                    )
-
-                                    ListItem(
-                                        headline = { Text(stringResource(R.string.automatic_backup_schedule)) },
-                                        supporting = { Text(uiState.backupSchedule.getLocalizedDisplayName()) },
-                                        leading = {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(48.dp)
-                                                    .background(yellow_light, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    Icons.Default.CloudSync,
-                                                    contentDescription = null,
-                                                    tint = yellow_dark
-                                                )
-                                            }
-                                        },
-                                        trailing = {
-                                            Icon(
-                                                Icons.Default.ChevronRight,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        },
-                                        onClick = { showScheduleDialog = true },
-                                        shape = ListItemPosition.Middle.toShape(),
-                                        padding = PaddingValues(0.dp)
                                     )
 
                                     ListItem(
@@ -780,56 +710,71 @@ fun BackupSyncScreen(
                                         shape = ListItemPosition.Bottom.toShape(),
                                         padding = PaddingValues(0.dp)
                                     )
-                                }
+                    }
+                }
 
-                                // Manual Operations
-                                SectionHeader(
-                                    title = stringResource(R.string.manual_actions),
-                                    modifier = Modifier.padding(start = Spacing.md)
-                                )
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-                                ) {
-                                    Button(
-                                        shapes = ButtonDefaults.shapes(),
-                                        onClick = { viewModel.performManualBackup() },
-                                        modifier = Modifier.weight(1f),
-                                        enabled = uiState.syncStatus is SyncStatus.Idle
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Cloud,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.size(8.dp))
-                                        Text(stringResource(R.string.create_backup))
-                                    }
-                                    Button(
-                                        shapes = ButtonDefaults.shapes(),
-                                        onClick = { viewModel.performManualSync() },
-                                        modifier = Modifier.weight(1f),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                        ),
-                                        enabled = uiState.syncStatus is SyncStatus.Idle
-                                    ) {
-                                        Icon(
-                                            Icons.Default.CloudDone,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.size(8.dp))
-                                        Text(stringResource(R.string.sync_devices))
-                                    }
-                                }
+                // Manual actions only: nothing runs on a schedule
+                val place = uiState.activeProviderType.getLocalizedDisplayName()
+                val cloudReady = when (uiState.activeProviderType) {
+                    CloudProviderType.LOCAL_ONLY -> true
+                    CloudProviderType.GOOGLE_DRIVE -> uiState.isGoogleDriveSignedIn
+                    CloudProviderType.WEBDAV -> uiState.webDavConfig.isConfigured
+                }
+                val idle = uiState.syncStatus is SyncStatus.Idle
+                SectionHeader(
+                    title = stringResource(R.string.manual_actions),
+                    modifier = Modifier.padding(start = Spacing.md)
+                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                ) {
+                    ActionItem(
+                        title = stringResource(R.string.backup_export_to, place),
+                        subtitle = stringResource(if (cloud) R.string.backup_export_cloud_body else R.string.backup_export_local_body),
+                        icon = Iconax.DirectboxSend,
+                        container = yellow_light,
+                        tint = yellow_dark,
+                        position = ListItemPosition.Top,
+                        onClick = if (!cloudReady || !idle) null else ({
+                            if (cloud) viewModel.performManualBackup() else showExportDialog = true
+                        })
+                    )
+                    ActionItem(
+                        title = stringResource(R.string.backup_restore_from, place),
+                        subtitle = stringResource(if (cloud) R.string.backup_restore_cloud_body else R.string.backup_restore_local_body),
+                        icon = Iconax.DirectboxReceive,
+                        container = green_light,
+                        tint = green_dark,
+                        position = ListItemPosition.Middle,
+                        onClick = if (!cloudReady || !idle) null else ({
+                            if (cloud) viewModel.loadRemoteSnapshots() else importLauncher.launch("*/*")
+                        })
+                    )
+                    ActionItem(
+                        title = stringResource(R.string.import_cashew_backup),
+                        subtitle = stringResource(R.string.import_cashew_backup_sub),
+                        icon = Iconax.ImportArrow01,
+                        container = blue_light,
+                        tint = blue_dark,
+                        position = ListItemPosition.Bottom,
+                        onClick = { cashewImportLauncher.launch("*/*") }
+                    )
+                }
 
-                                // Remote Cloud Snapshots Section
-                                SectionHeader(
-                                    title = stringResource(R.string.cloud_snapshots),
-                                    modifier = Modifier.padding(start = Spacing.md)
-                                )
+                if (cloud && cloudReady) {
+                    // The backups in the chosen place, to restore or delete
+                    SectionHeader(
+                        title = stringResource(R.string.cloud_snapshots),
+                        modifier = Modifier.padding(start = Spacing.md),
+                        action = {
+                            TooltipIconButton(
+                                icon = Icons.Rounded.Refresh,
+                                label = stringResource(R.string.backup_refresh_list),
+                                onClick = { viewModel.loadRemoteSnapshots() }
+                            )
+                        }
+                    )
                                 if (uiState.isLoadingSnapshots) {
                                     Box(
                                         modifier = Modifier
@@ -873,121 +818,11 @@ fun BackupSyncScreen(
                                         }
                                     }
                                 }
-                            }
-                        }
-                    }
-
-                    if (tab == 1) {
-                    // RESTORE TAB
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                    ) {
-                        // Import Data
-                        ListItem(
-                            headline = { Text(stringResource(R.string.import_data)) },
-                            supporting = { Text(stringResource(R.string.import_data_sub)) },
-                            leading = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .background(green_light, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Iconax.DirectboxReceive,
-                                        contentDescription = null,
-                                        tint = green_dark
-                                    )
-                                }
-                            },
-                            trailing = {
-                                Icon(
-                                    Icons.Rounded.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = { importLauncher.launch("*/*") },
-                            shape = ListItemPosition.Top.toShape(),
-                            padding = PaddingValues(0.dp)
-                        )
-
-                        // Import from Cashew
-                        ListItem(
-                            headline = { Text(stringResource(R.string.import_cashew_backup)) },
-                            supporting = { Text(stringResource(R.string.import_cashew_backup_sub)) },
-                            leading = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .background(blue_light, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Iconax.ImportArrow01,
-                                        contentDescription = null,
-                                        tint = blue_dark
-                                    )
-                                }
-                            },
-                            trailing = {
-                                Icon(
-                                    Icons.Rounded.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = { cashewImportLauncher.launch("*/*") },
-                            shape = ListItemPosition.Bottom.toShape(),
-                            padding = PaddingValues(0.dp)
-                        )
-                    }
-                    }
                 }
 
                 Spacer(modifier = Modifier.size(Spacing.xl))
             }
         }
-    }
-
-    // Schedule Selection Dialog
-    if (showScheduleDialog) {
-        val schedules = BackupSchedule.values()
-        val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        AlertDialog(
-            onDismissRequest = { showScheduleDialog = false },
-            title = { Text(stringResource(R.string.backup_schedule)) },
-            text = {
-                Column {
-                    schedules.forEach { schedule ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .selectable(
-                                    selected = uiState.backupSchedule == schedule,
-                                    onClick = {
-                                        viewModel.setBackupSchedule(schedule)
-                                        showScheduleDialog = false
-                                    }
-                                ),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(selected = uiState.backupSchedule == schedule, onClick = null)
-                            Text(text = schedule.getLocalizedDisplayName(), modifier = Modifier.padding(start = 8.dp))
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                DialogDismissButton(
-                    text = stringResource(R.string.cancel),
-                    onClick = { showScheduleDialog = false }
-                )
-            },
-            containerColor = CashiroDialogDefaults.containerColor
-        )
     }
 
     // Retention Selection Dialog
@@ -1410,18 +1245,75 @@ fun ExportCheckbox(
 @Composable
 private fun CloudProviderType.getLocalizedDisplayName(): String {
     return when (this) {
-        CloudProviderType.LOCAL_ONLY -> stringResource(R.string.provider_local_only)
+        CloudProviderType.LOCAL_ONLY -> stringResource(R.string.provider_local_file)
         CloudProviderType.WEBDAV -> stringResource(R.string.provider_webdav)
         CloudProviderType.GOOGLE_DRIVE -> stringResource(R.string.provider_google_drive)
     }
 }
 
+/** The Firebase sync row: whether it is on, and as whom; opens the sync page. */
 @Composable
-private fun BackupSchedule.getLocalizedDisplayName(): String {
-    return when (this) {
-        BackupSchedule.MANUAL -> stringResource(R.string.schedule_manual)
-        BackupSchedule.DAILY -> stringResource(R.string.schedule_daily)
-        BackupSchedule.WEEKLY -> stringResource(R.string.schedule_weekly)
-        BackupSchedule.MONTHLY -> stringResource(R.string.schedule_monthly)
+private fun FirebaseSyncEntry(state: SyncManager.State, onClick: () -> Unit) {
+    val email = state.email.orEmpty()
+    val status = when (state.stage) {
+        SyncManager.Stage.UNAVAILABLE -> stringResource(R.string.sync_unavailable_title)
+        SyncManager.Stage.SIGNED_OUT -> stringResource(R.string.sync_entry_signed_out)
+        SyncManager.Stage.PASSPHRASE, SyncManager.Stage.CHOICE -> stringResource(R.string.sync_entry_setup, email)
+        SyncManager.Stage.ACTIVE ->
+            stringResource(if (state.paused) R.string.sync_entry_paused else R.string.sync_entry_on, email)
     }
+    ListItem(
+        headline = { Text(stringResource(R.string.sync_firebase_title)) },
+        supporting = { Text(status) },
+        leading = {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.CloudSync, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+            }
+        },
+        trailing = {
+            Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        },
+        onClick = onClick,
+        shape = ListItemPosition.Single.toShape(),
+        padding = PaddingValues(0.dp)
+    )
+}
+
+/** One manual action; without [onClick] (no provider set up, or busy) it shows but does nothing. */
+@Composable
+private fun ActionItem(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    container: Color,
+    tint: Color,
+    position: ListItemPosition,
+    onClick: (() -> Unit)?
+) {
+    val enabled = onClick != null
+    ListItem(
+        headline = {
+            Text(title, color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
+        },
+        supporting = { Text(subtitle) },
+        leading = {
+            Box(
+                modifier = Modifier.size(48.dp).background(container, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = tint)
+            }
+        },
+        trailing = {
+            Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        },
+        onClick = onClick,
+        shape = position.toShape(),
+        padding = PaddingValues(0.dp)
+    )
 }

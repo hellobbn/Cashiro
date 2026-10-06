@@ -5,14 +5,12 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import com.ritesh.cashiro.data.cloud.BackupSchedule
 import com.ritesh.cashiro.data.cloud.CloudProviderConfig
 import com.ritesh.cashiro.data.cloud.CloudProviderType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,9 +42,6 @@ class CloudCredentialStore @Inject constructor(
 
     private val _activeProviderTypeFlow = MutableStateFlow(getActiveProviderType())
     val activeProviderTypeFlow: StateFlow<CloudProviderType> = _activeProviderTypeFlow.asStateFlow()
-
-    private val _scheduleFlow = MutableStateFlow(getBackupSchedule())
-    val scheduleFlow: StateFlow<BackupSchedule> = _scheduleFlow.asStateFlow()
 
     private val _retentionFlow = MutableStateFlow(getRetentionLimit())
     val retentionFlow: StateFlow<Int> = _retentionFlow.asStateFlow()
@@ -115,21 +110,6 @@ class CloudCredentialStore @Inject constructor(
         }
     }
 
-    fun getBackupSchedule(): BackupSchedule {
-        val scheduleStr = prefs.getString(KEY_BACKUP_SCHEDULE, BackupSchedule.MANUAL.name)
-            ?: BackupSchedule.MANUAL.name
-        return try {
-            BackupSchedule.valueOf(scheduleStr)
-        } catch (e: Exception) {
-            BackupSchedule.MANUAL
-        }
-    }
-
-    fun setBackupSchedule(schedule: BackupSchedule) {
-        prefs.edit().putString(KEY_BACKUP_SCHEDULE, schedule.name).apply()
-        _scheduleFlow.value = schedule
-    }
-
     fun getRetentionLimit(): Int {
         return prefs.getInt(KEY_BACKUP_RETENTION, 10)
     }
@@ -156,15 +136,6 @@ class CloudCredentialStore @Inject constructor(
         prefs.edit().putString(KEY_E2E_PASSPHRASE, passphrase).apply()
     }
 
-    fun getDeviceId(): String {
-        var id = prefs.getString(KEY_DEVICE_ID, null)
-        if (id.isNullOrBlank()) {
-            id = UUID.randomUUID().toString()
-            prefs.edit().putString(KEY_DEVICE_ID, id).apply()
-        }
-        return id
-    }
-
     fun getLastBackupTimestamp(): Long {
         return prefs.getLong(KEY_LAST_BACKUP_TIMESTAMP, 0L)
     }
@@ -173,20 +144,15 @@ class CloudCredentialStore @Inject constructor(
         prefs.edit().putLong(KEY_LAST_BACKUP_TIMESTAMP, timestamp).apply()
     }
 
-    fun getLastSyncTimestamp(): Long {
-        return prefs.getLong(KEY_LAST_SYNC_TIMESTAMP, 0L)
-    }
-
-    fun setLastSyncTimestamp(timestamp: Long) {
-        prefs.edit().putLong(KEY_LAST_SYNC_TIMESTAMP, timestamp).apply()
-    }
-
-    fun getPeerLastSyncedTimestamp(peerId: String): Long {
-        return prefs.getLong(KEY_PEER_SYNC_PREFIX + peerId, 0L)
-    }
-
-    fun setPeerLastSyncedTimestamp(peerId: String, timestamp: Long) {
-        prefs.edit().putLong(KEY_PEER_SYNC_PREFIX + peerId, timestamp).apply()
+    /**
+     * Drops what the removed automatic schedule and Drive/WebDAV device sync kept here (replaced
+     * by manual backups and Firebase sync). Safe to call on every start.
+     */
+    fun forgetRemovedSyncSettings() {
+        val stale = prefs.all.keys.filter {
+            it == KEY_BACKUP_SCHEDULE || it == KEY_DEVICE_ID || it == KEY_LAST_SYNC_TIMESTAMP || it.startsWith(KEY_PEER_SYNC_PREFIX)
+        }
+        if (stale.isNotEmpty()) prefs.edit().apply { stale.forEach(::remove) }.apply()
     }
 
     companion object {
@@ -200,6 +166,7 @@ class CloudCredentialStore @Inject constructor(
         private const val KEY_GDRIVE_ENABLED = "gdrive_enabled"
 
         private const val KEY_ACTIVE_PROVIDER = "active_provider"
+        // Removed settings, only for forgetRemovedSyncSettings
         private const val KEY_BACKUP_SCHEDULE = "backup_schedule"
         private const val KEY_BACKUP_RETENTION = "backup_retention"
 

@@ -171,4 +171,19 @@ object SyncTriggers {
 /** Sync ids made in Kotlin, in the same form the triggers make them. */
 object SyncIds {
     fun newId(): String = java.util.UUID.randomUUID().toString().replace("-", "")
+
+    /**
+     * The fixed sync id of a built-in (seeded) category, the same on every device, so the defaults
+     * each device seeds are one record rather than copies (docs/sync.md, "Seeded categories"):
+     * the first 16 bytes of SHA-256 over `cashiro-seed:category:<default name>`, as lowercase hex.
+     */
+    fun seededCategory(defaultName: String): String = digest("cashiro-seed:category:$defaultName")
+
+    /** The same for a built-in subcategory: `cashiro-seed:subcategory:<category default name>/<default name>`. */
+    fun seededSubcategory(categoryDefaultName: String, defaultName: String): String =
+        digest("cashiro-seed:subcategory:$categoryDefaultName/$defaultName")
+
+    private fun digest(text: String): String =
+        java.security.MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8))
+            .take(16).joinToString("") { "%02x".format(it) }
 }

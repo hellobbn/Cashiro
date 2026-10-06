@@ -1628,3 +1628,22 @@ val MIGRATION_70_71 =
             SyncTriggers.install(db, tables)
         }
     }
+
+/**
+ * Phase 2 of sync (docs/sync.md): `sync_outbox.replaced_by` for the DELETE that resolves a
+ * duplicate, `sync_inbox` for remote records that wait for their parent, and fixed sync ids for
+ * the built-in categories and subcategories every device seeds.
+ */
+val MIGRATION_71_72 =
+    object : Migration(71, 72) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `sync_outbox` ADD COLUMN `replaced_by` TEXT")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `sync_inbox` (`doc_id` TEXT NOT NULL, `table_name` TEXT NOT NULL, " +
+                    "`sync_id` TEXT NOT NULL, `deleted` INTEGER NOT NULL, `payload` TEXT, `device_id` TEXT NOT NULL, " +
+                    "`version` INTEGER NOT NULL, `replaced_by` TEXT, `updated_seconds` INTEGER NOT NULL, " +
+                    "`updated_nanos` INTEGER NOT NULL, `waiting_for` TEXT NOT NULL, PRIMARY KEY(`doc_id`))"
+            )
+            SeededSyncIds.rekey(db)
+        }
+    }

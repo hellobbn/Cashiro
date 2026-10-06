@@ -135,6 +135,54 @@ class MigrationChainTest {
         }
     }
 
+    @Test fun version72GivesBuiltInCategoriesTheirFixedSyncIds() {
+        val name = "seeds.db"
+        create(name, 71)
+        val helper = FrameworkSQLiteOpenHelperFactory().create(
+            SupportSQLiteOpenHelper.Configuration.builder(context).name(name).callback(
+                object : SupportSQLiteOpenHelper.Callback(71) {
+                    override fun onCreate(db: SupportSQLiteDatabase) = Unit
+                    override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+                }
+            ).build()
+        )
+        helper.writableDatabase.apply {
+            SyncTriggers.install(this, SyncTriggers.TABLES)
+            // A built-in category renamed by the user, its subcategory, and one of the user's own
+            execSQL(
+                "INSERT INTO categories (name, color, is_system, is_income, display_order, default_name, created_at, updated_at) " +
+                    "VALUES ('吃饭', '#000000', 1, 0, 1, 'Food & Drinks', '2026-09-01T09:00', '2026-09-01T09:00')"
+            )
+            execSQL(
+                "INSERT INTO categories (name, color, is_system, is_income, display_order, created_at, updated_at) " +
+                    "VALUES ('Pets', '#000000', 0, 0, 2, '2026-09-01T09:00', '2026-09-01T09:00')"
+            )
+            execSQL(
+                "INSERT INTO subcategories (category_id, name, is_system, default_name, created_at, updated_at) " +
+                    "VALUES (1, 'Eating out', 1, 'Eating out', '2026-09-01T09:00', '2026-09-01T09:00')"
+            )
+        }
+        val queuedBefore = helper.writableDatabase.query("SELECT COUNT(*) FROM sync_outbox").use { it.moveToFirst(); it.getInt(0) }
+        assertEquals(3, queuedBefore)
+        helper.close()
+        val db = Room.databaseBuilder(context, CashiroDatabase::class.java, name)
+            .addMigrations(*CashiroDatabase.MIGRATIONS).addCallback(SyncTriggers.Callback).allowMainThreadQueries().build()
+        try {
+            val sql = db.openHelper.writableDatabase
+            fun id(query: String) = sql.query(query).use { it.moveToFirst(); it.getString(0) }
+            assertEquals(SyncIds.seededCategory("Food & Drinks"), id("SELECT sync_id FROM categories WHERE name = '吃饭'"))
+            assertEquals(SyncIds.seededSubcategory("Food & Drinks", "Eating out"), id("SELECT sync_id FROM subcategories"))
+            val own = id("SELECT sync_id FROM categories WHERE name = 'Pets'")
+            assertEquals(32, own.length)
+            // The old ids' queued upserts are gone; the user's own category stays queued
+            val queued = sql.query("SELECT sync_id FROM sync_outbox").use { c -> buildList { while (c.moveToNext()) add(c.getString(0)) } }
+            assertEquals(listOf(own), queued)
+        } finally {
+            db.close()
+            context.deleteDatabase(name)
+        }
+    }
+
     @Test fun aSubscriptionsNotesSurviveTheRenameOfTheirColumn() {
         val name = "notes.db"
         create(name, 69)

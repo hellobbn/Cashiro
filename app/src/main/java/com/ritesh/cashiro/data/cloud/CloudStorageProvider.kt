@@ -20,7 +20,7 @@ interface CloudStorageProvider {
     suspend fun testConnection(config: CloudProviderConfig): Result<Boolean>
 
     /**
-     * Ensure that a directory (e.g. cashiro_backups or cashiro_sync) exists on the remote storage
+     * Ensure that a directory (e.g. cashiro_backups) exists on the remote storage
      */
     suspend fun ensureDirectoryExists(folderPath: String, config: CloudProviderConfig): Result<Boolean>
 

@@ -85,6 +85,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.AddAccountScreen
+import com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory
 import com.ritesh.cashiro.presentation.ui.features.accounts.ManageAccountsScreen
 import com.ritesh.cashiro.presentation.ui.features.add.AddScreen
 import com.ritesh.cashiro.presentation.ui.features.analytics.AnalyticsScreen
@@ -107,6 +108,7 @@ import com.ritesh.cashiro.presentation.ui.features.settings.appearance.ThemeView
 import com.ritesh.cashiro.presentation.ui.features.settings.applock.AppLockScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy.DataPrivacyScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.cloudbackup.BackupSyncScreen
+import com.ritesh.cashiro.presentation.ui.features.settings.sync.SyncScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.notifications.NotificationScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.quicktemplates.QuickTemplatesScreen
 import com.ritesh.cashiro.presentation.ui.features.ai.AiAssistantScreen
@@ -230,7 +232,8 @@ fun CashiroNavHost(
                     ReadableWidth {
                     com.ritesh.cashiro.presentation.ui.features.investments.InvestmentsScreen(
                         onNavigateBack = { navController.popBackStack() },
-                        onManageManualAccounts = { navController.safeNavigate(AccountCategoryRoute("INVESTMENTS")) }
+                        onManageManualAccounts = { navController.safeNavigate(AccountCategoryRoute("INVESTMENTS")) },
+                        onAddInvestment = { navController.safeNavigate(AddAccount(AccountCategory.INVESTMENTS.name)) }
                     )
                     }
                 }
@@ -385,8 +388,20 @@ fun CashiroNavHost(
                     BackupSyncScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToAccounts = { navController.safeNavigate(ManageAccounts) },
+                        onNavigateToFirebaseSync = { navController.safeNavigate(CloudSync) },
                         blurEffects = themeUiState.blurEffects
                     )
+                    }
+                }
+
+                composable<CloudSync>(
+                    enterTransition = CashiroTransitions.horizontalSlideEnter,
+                    exitTransition = CashiroTransitions.horizontalSlideExit,
+                    popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
+                    popExitTransition = CashiroTransitions.horizontalSlidePopExit
+                ) {
+                    ReadableWidth {
+                    SyncScreen(onNavigateBack = { navController.safePopBackStack() })
                     }
                 }
 

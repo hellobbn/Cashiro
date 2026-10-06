@@ -160,6 +160,11 @@ fun ManageAccountsScreen(
     val visibleInvestments = investmentSection.visibleAccounts(category != null || investmentsExpanded)
     val showBrokerageLinks = category == null || category == AccountCategory.INVESTMENTS
     val showInvestmentRows = category != null || investmentsExpanded
+    // Add account with the Broker type: connect a broker, or add a manual broker account
+    val addBrokerAccount = {
+        manageAccountsViewModel.clearAccountSaveError()
+        onNavigateToAddAccount(AccountCategory.INVESTMENTS)
+    }
     val allRegularAccounts = remember(uiState.accounts) {
         uiState.accounts.filter { !it.isCreditCard && !it.isWallet }
     }
@@ -256,6 +261,13 @@ fun ManageAccountsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(Spacing.sm))
+                        if (category == null) {
+                            InvestmentsEmptySection(
+                                onAdd = addBrokerAccount,
+                                showTitle = false,
+                                modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                            )
+                        }
                     }
                 }
             } else {
@@ -335,7 +347,12 @@ fun ManageAccountsScreen(
 
 
 
-                    if (investmentSection.accounts.isNotEmpty() || (showBrokerageLinks && brokerageConnections.isNotEmpty())) {
+                    if (category == null && investmentSection.accounts.isEmpty() && brokerageConnections.isEmpty()) {
+                        // Always offered in the all-accounts view, so investments stay findable
+                        item(key = "investment_empty", contentType = "investment_empty") {
+                            InvestmentsEmptySection(onAdd = addBrokerAccount)
+                        }
+                    } else if (investmentSection.accounts.isNotEmpty() || (showBrokerageLinks && brokerageConnections.isNotEmpty())) {
                         item(key = "investment_summary", contentType = "section_summary") {
                             AccountSectionSummary(
                                 section = investmentSummary,
@@ -360,6 +377,9 @@ fun ManageAccountsScreen(
                                         connection = connection,
                                         onDisconnect = { disconnectingBrokerage = connection }
                                     )
+                                }
+                                item(key = "investment_add", contentType = "investment_empty") {
+                                    InvestmentsEmptySection(onAdd = addBrokerAccount, showTitle = false)
                                 }
                             }
                         }

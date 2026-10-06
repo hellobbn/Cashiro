@@ -108,24 +108,22 @@ import java.text.DateFormat
 import java.text.NumberFormat
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Read-only holdings and manual investment accounts. Adding one (manual, or a broker connection
+ * under "Broker auto-sync") happens in Add account with the Broker type: [onAddInvestment].
+ */
 @Composable
 fun InvestmentsScreen(
     onNavigateBack: () -> Unit,
     onManageManualAccounts: () -> Unit = {},
-    viewModel: InvestmentsViewModel = hiltViewModel(),
-    accountsViewModel: ManageAccountsViewModel = hiltViewModel()
+    onAddInvestment: () -> Unit = {},
+    viewModel: InvestmentsViewModel = hiltViewModel()
 ) {
     val connections by viewModel.connections.collectAsStateWithLifecycle()
     val manualAccounts by viewModel.manualAccounts.collectAsStateWithLifecycle()
     val busy by viewModel.busy.collectAsStateWithLifecycle()
     val loaded by viewModel.loaded.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
-    val accountState by accountsViewModel.uiState.collectAsStateWithLifecycle()
-    val defaultCurrency by accountsViewModel.defaultCurrencyForNewAccounts.collectAsStateWithLifecycle()
-    var showAddMenu by remember { mutableStateOf(false) }
-    var showAddAccount by remember { mutableStateOf(false) }
-    var connecting by remember { mutableStateOf(false) }
 
     InvestmentsContent(
         connections = connections,
@@ -133,96 +131,12 @@ fun InvestmentsScreen(
         loaded = loaded,
         error = error,
         onBack = onNavigateBack,
-        onAdd = { showAddMenu = true },
+        onAdd = onAddInvestment,
         onRefreshAll = viewModel::refreshAll,
         onRetry = viewModel::reload,
         manualAccounts = manualAccounts,
         onManageManualAccounts = onManageManualAccounts
     )
-    if (showAddMenu) {
-        CashiroModalBottomSheet(
-            onDismissRequest = { showAddMenu = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            Column(
-                modifier = Modifier.padding(Dimensions.Padding.content),
-                verticalArrangement = Arrangement.spacedBy(1.5.dp)
-            ) {
-                ListItem(
-                    modifier = Modifier.testTag("add_manual_investment"),
-                    headline = { Text(stringResource(R.string.investments_add_account), fontWeight = FontWeight.Medium) },
-                    leading = {
-                        Icon(Icons.Rounded.Add, contentDescription = null)
-                    },
-                    onClick = { showAddMenu = false; showAddAccount = true },
-                    shape = ListItemPosition.Top.toShape(),
-                    padding = PaddingValues(0.dp)
-                )
-                ListItem(
-                    modifier = Modifier
-                        .testTag("link_brokerage")
-                        .then(if (busy) Modifier.semantics { disabled() } else Modifier),
-                    headline = { Text(stringResource(R.string.investments_link_brokerage), fontWeight = FontWeight.Medium) },
-                    supporting = { Text(stringResource(R.string.investments_link_ibkr)) },
-                    leading = {
-                        Icon(Icons.AutoMirrored.Filled.ShowChart, contentDescription = null)
-                    },
-                    onClick = if (busy) null else ({
-                        showAddMenu = false
-                        viewModel.clearError()
-                        connecting = true
-                    }),
-                    shape = ListItemPosition.Bottom.toShape(),
-                    padding = PaddingValues(0.dp)
-                )
-            }
-        }
-    }
-    if (showAddAccount) {
-        CashiroModalBottomSheet(
-            onDismissRequest = { if (!accountState.isSavingAccount) showAddAccount = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            EditAccountSheet(
-                allAccounts = accountState.accounts,
-                defaultCurrency = defaultCurrency,
-                initialCategory = AccountCategory.INVESTMENTS,
-                isSaving = accountState.isSavingAccount,
-                saveError = accountState.accountSaveError,
-                onClearSaveError = accountsViewModel::clearAccountSaveError,
-                onDismiss = { if (!accountState.isSavingAccount) showAddAccount = false },
-                onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies, cardDates ->
-                    accountsViewModel.addAccount(
-                        bankName = bankName,
-                        balance = balance,
-                        accountLast4 = last4,
-                        iconResId = iconResId,
-                        iconName = iconName,
-                        colorHex = color,
-                        isCreditCard = isCC,
-                        isWallet = isWallet,
-                        creditLimit = limit,
-                        currency = currency,
-                        addedCurrencies = addedCurrencies,
-                        cardDates = cardDates,
-                        onSaved = { showAddAccount = false }
-                    )
-                }
-            )
-        }
-    }
-    if (connecting) {
-        IbkrConnectDialog(
-            busy = busy,
-            error = error,
-            onDismiss = { viewModel.cancelConnection(); connecting = false; viewModel.clearError() },
-            onConnect = { label, token, query -> viewModel.connect(label, token, query) { connecting = false } }
-        )
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalHazeApi::class)
@@ -705,7 +619,7 @@ internal fun IbkrConnectDialog(
 }
 
 @Composable
-private fun InvestmentError(error: BrokerageError) {
+internal fun InvestmentError(error: BrokerageError) {
     val resource = when (error) {
         BrokerageError.INVALID_CREDENTIALS -> R.string.investments_error_credentials
         BrokerageError.EXPIRED_CREDENTIALS -> R.string.investments_error_expired

@@ -9,4 +9,18 @@
     <string name="institution_region_us">美國</string>
     <string name="institution_no_results">找不到符合的機構。請改用其他名稱，或關閉列表後手動輸入帳戶。</string>
     <string name="institution_icons">銀行與券商</string>
+    <string name="institution_choose_broker">選擇券商</string>
+    <string name="type_broker">券商</string>
+    <string name="broker_name_label">券商名稱</string>
+    <string name="broker_name_required">請從清單中選擇券商，或在名稱中包含券商名，這樣帳戶才會計入投資。</string>
+    <string name="broker_auto_sync_title">連接券商自動同步</string>
+    <string name="broker_auto_sync_body">從券商唯讀同步持倉快照，不改動記帳餘額。</string>
+    <string name="broker_auto_sync_connected">已連接 · %1$s</string>
+    <string name="broker_auto_sync_not_connected">未連接</string>
+    <string name="broker_auto_sync_connect">連接</string>
+    <string name="broker_auto_sync_unsupported">目前版本還沒有這家券商的連接表單。</string>
+    <string name="broker_manual_title">手動記帳</string>
+    <string name="broker_manual_body">餘額由你自己記錄的記帳帳戶。</string>
+    <string name="accounts_investments_empty">連接券商或新增券商帳戶</string>
+    <string name="accounts_investments_empty_body">自動同步持倉，或手動記帳</string>
 </resources>

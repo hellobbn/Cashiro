@@ -23,10 +23,16 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
     override fun onCreate(db: SupportSQLiteDatabase) {
         super.onCreate(db)
         // Seed default categories and subcategories for new installations
-        CoroutineScope(Dispatchers.IO).launch { 
-            seedCategories(db, context)
-            seedSubcategories(db, context)
-        }
+        CoroutineScope(Dispatchers.IO).launch { seed(db) }
+    }
+
+    /**
+     * Writes the built-in categories and subcategories, each with its fixed sync id
+     * ([SyncIds.seededCategory]) so that every device seeds the same records (docs/sync.md).
+     */
+    fun seed(db: SupportSQLiteDatabase) {
+        seedCategories(db, context)
+        seedSubcategories(db, context)
     }
     private fun seedCategories(db: SupportSQLiteDatabase, context: Context) {
         val categories = listOf(
@@ -310,14 +316,15 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
                 INSERT OR IGNORE INTO categories (
                     name, color, icon_res_id, icon_name, description, is_system, is_income, display_order,
                     default_name, default_color, default_icon_res_id, default_icon_name, default_description,
-                    created_at, updated_at
+                    created_at, updated_at, sync_id
                 )
-                VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)
             """.trimIndent(),
                 arrayOf<Any>(
                     cat.name, cat.color, cat.iconResId, iconName, cat.description, 
                     if (cat.isIncome) 1 else 0, cat.displayOrder,
-                    cat.name, cat.color, cat.iconResId, iconName, cat.description
+                    cat.name, cat.color, cat.iconResId, iconName, cat.description,
+                    SyncIds.seededCategory(cat.name)
                 )
             )
         }
@@ -864,7 +871,7 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
 
     }
     private fun getCategoryId(db: SupportSQLiteDatabase, categoryName: String): Long {
-        val cursor = db.query("SELECT id FROM categories WHERE name = ?", arrayOf(categoryName))
+        val cursor = db.query("SELECT id FROM categories WHERE name = ?", arrayOf<Any>(categoryName))
         return if (cursor.moveToFirst()) {
             cursor.getLong(0).also { cursor.close() }
         } else {
@@ -881,16 +888,21 @@ class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
         color: String
     ) {
         val iconName = IconResolutionUtils.resIdToName(context, iconResId)
+        val categoryName = db.query("SELECT COALESCE(default_name, name) FROM categories WHERE id = ?", arrayOf<Any>(categoryId))
+            .use { if (it.moveToFirst()) it.getString(0) else null } ?: return
         db.execSQL(
             """
             INSERT OR IGNORE INTO subcategories (
                 category_id, name, icon_res_id, icon_name, color, is_system,
                 default_name, default_color, default_icon_res_id, default_icon_name,
-                created_at, updated_at
+                created_at, updated_at, sync_id
             )
-            VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)
         """.trimIndent(),
-            arrayOf<Any>(categoryId, name, iconResId, iconName, color, name, color, iconResId, iconName)
+            arrayOf<Any>(
+                categoryId, name, iconResId, iconName, color, name, color, iconResId, iconName,
+                SyncIds.seededSubcategory(categoryName, name)
+            )
         )
     }
     private data class CategoryData(

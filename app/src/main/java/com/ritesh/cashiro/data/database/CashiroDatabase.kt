@@ -58,9 +58,10 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
             com.ritesh.cashiro.data.database.entity.AccountEntity::class,
             com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity::class,
             com.ritesh.cashiro.data.database.entity.SyncOutboxEntity::class,
-            com.ritesh.cashiro.data.database.entity.SyncControlEntity::class
+            com.ritesh.cashiro.data.database.entity.SyncControlEntity::class,
+            com.ritesh.cashiro.data.database.entity.SyncInboxEntity::class
         ],
-        version = 71,
+        version = 72,
     exportSchema = true,
     autoMigrations =
         [
@@ -136,6 +137,7 @@ abstract class CashiroDatabase : RoomDatabase() {
             MIGRATION_67_68,
             MIGRATION_68_69,
             MIGRATION_70_71,
+            MIGRATION_71_72,
         )
     }
 }

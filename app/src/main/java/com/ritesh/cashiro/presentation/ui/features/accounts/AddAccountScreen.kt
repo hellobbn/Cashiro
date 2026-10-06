@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.features.investments.BrokerAutoSyncSection
 import dev.chrisbanes.haze.HazeState
 
 /**
@@ -31,6 +32,10 @@ import dev.chrisbanes.haze.HazeState
  * the sheet's nested-scroll and settle animation, so a fast fling that reached the end of the
  * form handed its velocity to the sheet and produced a visible jolt. A plain screen has no such
  * outer scroll participant. The form itself is the shared [EditAccountSheet] content.
+ *
+ * With [initialCategory] INVESTMENTS the Broker type is preselected, and the page offers
+ * "Broker auto-sync" (read-only holdings) above the manual form: every "connect a broker"
+ * action in the app opens this page.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,6 +84,7 @@ fun AddAccountScreen(
                     saveError = uiState.accountSaveError,
                     onClearSaveError = manageAccountsViewModel::clearAccountSaveError,
                     showHeading = false, // the top bar already shows the title
+                    brokerAutoSync = { BrokerAutoSyncSection() },
                     onDismiss = { if (!uiState.isSavingAccount) onNavigateBack() },
                     onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies, cardDates ->
                         manageAccountsViewModel.addAccount(

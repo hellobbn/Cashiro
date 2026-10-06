@@ -114,7 +114,6 @@ class SeedActivity : ComponentActivity() {
             putString("main_account", "${ACCOUNTS[0].first}_${ACCOUNTS[0].second}")
         }
         userPreferences.updateBaseCurrency(CURRENCY)
-        userPreferences.updateSkippedSmsPermission(true)
         userPreferences.markScanTutorialShown()
         marker.edit(commit = true) { putBoolean(MARKER_KEY, true) }
 

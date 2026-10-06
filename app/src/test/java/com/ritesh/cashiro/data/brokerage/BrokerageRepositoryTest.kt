@@ -38,6 +38,13 @@ class BrokerageRepositoryTest {
         assertFalse(repo.connections.value.toString().contains("PRIVATE_TOKEN"))
         assertFalse(credentials.toString().contains("PRIVATE_TOKEN"))
     }
+    @Test fun everyRegisteredProviderIsListedForAutoSync() {
+        val second = FakeProvider("another")
+        val listed = BrokerageRepository(store, setOf(provider, second)) { 1000L }.availableProviders
+        assertEquals(listOf("another", "fake"), listed.map { it.id })
+        // Without its own catalog entry, a provider is shown under its id
+        assertEquals("fake", provider.institutionId)
+    }
     @Test fun refreshReplacesInsteadOfAppendingHoldings() = runTest {
         repo.connect("fake", "Personal", credentials)
         provider.accounts = listOf(BrokerageAccount("TEST", "2026-09-05", emptyList()))

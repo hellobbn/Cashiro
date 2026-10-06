@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
@@ -35,25 +36,33 @@ import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 /** A dedicated account picker; custom names and the general icon picker remain available. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InstitutionPickerButton(onSelected: (Institution, String) -> Unit) {
+fun InstitutionPickerButton(
+    // Only brokers, for the Broker account type
+    brokersOnly: Boolean = false,
+    onSelected: (Institution, String) -> Unit
+) {
     var visible by rememberSaveable { mutableStateOf(false) }
     val language = LocalConfiguration.current.locales[0].language
+    val title = if (brokersOnly) R.string.institution_choose_broker else R.string.institution_choose
     OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { visible = true }, modifier = Modifier.fillMaxWidth()) {
-        Icon(Icons.Rounded.AccountBalance, contentDescription = null, modifier = Modifier.size(20.dp))
+        Icon(
+            if (brokersOnly) Icons.AutoMirrored.Rounded.ShowChart else Icons.Rounded.AccountBalance,
+            contentDescription = null, modifier = Modifier.size(20.dp)
+        )
         Spacer(Modifier.width(8.dp))
-        Text(stringResource(R.string.institution_choose))
+        Text(stringResource(title))
     }
     if (visible) {
         var query by rememberSaveable { mutableStateOf("") }
         var region by rememberSaveable { mutableStateOf<String?>(null) }
-        val results = remember(query, region) { InstitutionCatalog.search(query, region) }
+        val results = remember(query, region, brokersOnly) { InstitutionCatalog.search(query, region, brokersOnly) }
         CashiroModalBottomSheet(
             onDismissRequest = { visible = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
             Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
                 Text(
-                    stringResource(R.string.institution_choose),
+                    stringResource(title),
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(horizontal = 24.dp).semantics { heading() }
                 )

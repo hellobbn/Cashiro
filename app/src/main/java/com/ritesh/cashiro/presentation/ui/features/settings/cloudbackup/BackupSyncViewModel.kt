@@ -10,17 +10,14 @@ import kotlinx.coroutines.withContext
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.ritesh.cashiro.data.cloud.BackupSchedule
 import com.ritesh.cashiro.data.cloud.CloudFileInfo
 import com.ritesh.cashiro.data.cloud.CloudProviderConfig
 import com.ritesh.cashiro.data.cloud.CloudProviderType
 import com.ritesh.cashiro.data.cloud.SyncStatus
 import com.ritesh.cashiro.data.cloud.engine.CloudBackupManager
-import com.ritesh.cashiro.data.cloud.engine.CloudSyncEngine
 import com.ritesh.cashiro.data.cloud.providers.GoogleDriveStorageProvider
 import com.ritesh.cashiro.data.cloud.providers.WebDavStorageProvider
 import com.ritesh.cashiro.data.cloud.security.CloudCredentialStore
-import com.ritesh.cashiro.data.cloud.worker.CloudBackupWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +31,6 @@ import javax.inject.Inject
 class BackupSyncViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val cloudBackupManager: CloudBackupManager,
-    private val cloudSyncEngine: CloudSyncEngine,
     private val cloudCredentialStore: CloudCredentialStore,
     private val webDavProvider: WebDavStorageProvider,
     private val googleDriveProvider: GoogleDriveStorageProvider
@@ -45,12 +41,10 @@ class BackupSyncViewModel @Inject constructor(
             activeProviderType = cloudCredentialStore.getActiveProviderType(),
             webDavConfig = cloudCredentialStore.getWebDavConfig(),
             googleDriveConfig = cloudCredentialStore.getGoogleDriveConfig(),
-            backupSchedule = cloudCredentialStore.getBackupSchedule(),
             retentionLimit = cloudCredentialStore.getRetentionLimit(),
             isE2eEnabled = cloudCredentialStore.isE2eEncryptionEnabled(),
             e2ePassphrase = cloudCredentialStore.getE2ePassphrase(),
-            lastBackupTime = cloudCredentialStore.getLastBackupTimestamp(),
-            lastSyncTime = cloudCredentialStore.getLastSyncTimestamp()
+            lastBackupTime = cloudCredentialStore.getLastBackupTimestamp()
         )
     )
     val uiState: StateFlow<BackupSyncState> = _uiState.asStateFlow()
@@ -247,29 +241,6 @@ class BackupSyncViewModel @Inject constructor(
         }
     }
 
-    fun performManualSync() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(syncStatus = SyncStatus.Syncing(context.getString(R.string.synchronizing_devices))) }
-            val result = cloudSyncEngine.synchronize { progress ->
-                _uiState.update { it.copy(syncStatus = SyncStatus.Syncing(context.getString(R.string.syncing_devices_format, progress))) }
-            }
-            if (result.isSuccess) {
-                val syncData = result.getOrNull()!!
-                val lastTime = System.currentTimeMillis()
-                _uiState.update {
-                    it.copy(
-                        syncStatus = SyncStatus.Success(context.getString(R.string.sync_complete_format, syncData.peersSynced, syncData.importedTransactions)),
-                        lastSyncTime = lastTime
-                    )
-                }
-                loadRemoteSnapshots()
-            } else {
-                val errorMsg = result.exceptionOrNull()?.message ?: context.getString(R.string.device_sync_failed)
-                _uiState.update { it.copy(syncStatus = SyncStatus.Error(errorMsg)) }
-            }
-        }
-    }
-
     fun restoreSnapshot(fileInfo: CloudFileInfo) {
         val isEncrypted = fileInfo.name.endsWith(".enc")
         val storedPassphrase = cloudCredentialStore.getE2ePassphrase()
@@ -319,12 +290,6 @@ class BackupSyncViewModel @Inject constructor(
                 Log.e("CloudBackupVM", "Failed to delete remote snapshot ${fileInfo.name}")
             }
         }
-    }
-
-    fun setBackupSchedule(schedule: BackupSchedule) {
-        cloudCredentialStore.setBackupSchedule(schedule)
-        CloudBackupWorker.updateSchedule(context, schedule)
-        _uiState.update { it.copy(backupSchedule = schedule) }
     }
 
     fun setRetentionLimit(limit: Int) {

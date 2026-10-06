@@ -26,5 +26,5 @@
 
 ## IBKR 持仓
 
-首页新增「投资持仓」入口，可以使用自己的 IBKR Flex Token 和 Query ID 读取持仓报表。
-这与机构名称/图标预设分开；仅选择 IBKR 图标不会启用连接。配置与限制见 [券商连接说明](brokerage-connections.md)。
+在「添加账户 → 券商」的「连接券商自动同步」中，可以使用自己的 IBKR Flex Token 和 Query ID 读取持仓报表；
+首页「投资」入口显示只读持仓。这与机构名称/图标预设分开；仅选择 IBKR 图标不会启用连接。配置与限制见 [券商连接说明](brokerage-connections.md)。

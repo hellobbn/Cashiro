@@ -48,6 +48,10 @@ reorderable = "2.4.3"
 appcompatVersion = "1.7.1"
 securityCrypto = "1.1.0-alpha06"
 playServicesAuth = "21.3.0"
+# Sync (standard flavor only): Firebase Auth + Firestore, Google sign-in through Credential Manager
+firebaseBom = "34.19.0"
+credentials = "1.6.0"
+googleid = "1.2.1"
 [libraries]
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacro" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
@@ -116,6 +120,12 @@ androidx-compose-animation = { group = "androidx.compose.animation", name = "ani
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "pdfbox" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompatVersion" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-auth = { module = "com.google.firebase:firebase-auth" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
