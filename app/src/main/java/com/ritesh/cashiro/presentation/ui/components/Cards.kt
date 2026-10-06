@@ -59,58 +59,6 @@ fun CashiroCard(
 }
 
 /**
- * Summary card for displaying large amounts with optional subtitle
- * Used for: Month summary, Total subscriptions, etc.
- */
-@Composable
-fun SummaryCard(
-    title: String,
-    amount: String,
-    subtitle: String? = null,
-    modifier: Modifier = Modifier,
-    containerColor: CardColors = CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.primaryContainer
-    ),
-    amountColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    onClick: (() -> Unit)? = null
-) {
-    CashiroCard(
-        modifier = modifier.fillMaxWidth(),
-        colors = containerColor,
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.Padding.card),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = Dimensions.Alpha.subtitle)
-            )
-            Spacer(modifier = Modifier.height(Spacing.sm))
-            Text(
-                text = amount,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = amountColor
-            )
-            if (subtitle != null) {
-                Spacer(modifier = Modifier.height(Spacing.sm))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = Dimensions.Alpha.surface),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
-
-/**
  * List item card for transactions, subscriptions, etc.
  */
 @Composable

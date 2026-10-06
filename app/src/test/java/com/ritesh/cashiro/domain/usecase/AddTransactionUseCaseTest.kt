@@ -522,7 +522,6 @@ class AddTransactionUseCaseTest {
         override suspend fun deleteTransaction(transaction: TransactionEntity) = Unit
         override suspend fun deleteTransactionById(transactionId: Long) = Unit
         override suspend fun deleteAllTransactions() = Unit
-        override suspend fun deleteSampleTransactions() = Unit
         override suspend fun updateCategoryForMerchant(merchantName: String, newCategory: String) = Unit
         override suspend fun updateCategoryAndSubcategoryForMerchantContains(
             merchantName: String, newCategory: String, newSubcategory: String?
@@ -584,7 +583,6 @@ class AddTransactionUseCaseTest {
         override fun getUpcomingSubscriptions(date: java.time.LocalDate): Flow<List<com.ritesh.cashiro.data.database.entity.SubscriptionEntity>> = flowOf(emptyList())
         override suspend fun getActiveSubscriptionByMerchant(merchantName: String): com.ritesh.cashiro.data.database.entity.SubscriptionEntity? = null
         override suspend fun getHiddenSubscriptionByMerchant(merchantName: String): com.ritesh.cashiro.data.database.entity.SubscriptionEntity? = null
-        override suspend fun getSubscriptionByUmn(umn: String): com.ritesh.cashiro.data.database.entity.SubscriptionEntity? = null
         override suspend fun getSubscriptionByMerchantAmountAndDate(merchantName: String, amount: BigDecimal, paymentDate: java.time.LocalDate): com.ritesh.cashiro.data.database.entity.SubscriptionEntity? = null
         override suspend fun getSubscriptionByMerchantAndAmount(merchantName: String, amount: BigDecimal): com.ritesh.cashiro.data.database.entity.SubscriptionEntity? = null
         override suspend fun getSubscriptionById(id: Long): com.ritesh.cashiro.data.database.entity.SubscriptionEntity? = null
@@ -595,7 +593,6 @@ class AddTransactionUseCaseTest {
         override suspend fun deleteSubscription(subscription: com.ritesh.cashiro.data.database.entity.SubscriptionEntity) = Unit
         override suspend fun deleteSubscriptionById(id: Long) = Unit
         override suspend fun getSubscriptionsByStateList(state: com.ritesh.cashiro.data.database.entity.SubscriptionState): List<com.ritesh.cashiro.data.database.entity.SubscriptionEntity> = emptyList()
-        override suspend fun deleteSampleSubscriptions() = Unit
         override suspend fun deleteAllSubscriptions() = Unit
         override suspend fun renameBank(oldBankName: String, newBankName: String): Int = 0
     }
@@ -663,7 +660,6 @@ class AddTransactionUseCaseTest {
         override fun getAllLatestBalances(): Flow<List<AccountBalanceEntity>> = flowOf(emptyList())
         override fun getAllBalances(): Flow<List<AccountBalanceEntity>> = flowOf(emptyList())
         override suspend fun deleteAllBalances() = Unit
-        override suspend fun deleteSampleBalances() = Unit
         override fun getCurrentMonthLatestBalances(): Flow<List<AccountBalanceEntity>> = flowOf(emptyList())
         override fun getTotalBalance(): Flow<BigDecimal?> = flowOf(BigDecimal.ZERO)
         override fun getBalanceHistory(bankName: String, accountLast4: String, startDate: LocalDateTime, endDate: LocalDateTime): Flow<List<AccountBalanceEntity>> = flowOf(emptyList())
@@ -731,8 +727,6 @@ class AddTransactionUseCaseTest {
         override fun observeAccountRows(): Flow<List<com.ritesh.cashiro.data.database.entity.AccountEntity>> = flowOf(emptyList())
         override suspend fun deleteCurrencyRows(accountId: Long, currency: String) = Unit
         override suspend fun deleteCurrencyRow(accountId: Long, currency: String) = Unit
-        override suspend fun deleteSampleBalanceRows() = Unit
-        override suspend fun deleteSampleAccountRows() = Unit
         override suspend fun deleteBalanceRowsOf(bankName: String, accountLast4: String): Int = 0
         override suspend fun deleteAccountRow(bankName: String, accountLast4: String) = Unit
         override suspend fun renameBalanceRows(oldBankName: String, accountLast4: String, newBankName: String): Int = 0

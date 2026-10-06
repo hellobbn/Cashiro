@@ -60,29 +60,16 @@ import com.ritesh.cashiro.utils.CurrencyFormatter
 fun AccountCard(
     account: AccountBalanceEntity,
     modifier: Modifier = Modifier,
-    isHidden: Boolean = false,
-    showMoreOptions: Boolean = true,
     onClick: (() -> Unit)? = null,
-    isMain: Boolean = false,
-    onUpdateBalance: () -> Unit = {},
-    onEditAccount: () -> Unit = {},
-    onViewHistory: () -> Unit = {},
-    onToggleVisibility: () -> Unit = {},
-    onDeleteAccount: () -> Unit = {},
-    onSetAsMain: () -> Unit = {},
-    onMergeAccount: (() -> Unit)? = null,
     content: @Composable () -> Unit = {}
 ) {
-    var showMenu by remember { mutableStateOf(false) }
-
     Card(
         modifier = modifier
             .fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isHidden) MaterialTheme.colorScheme.surfaceVariant
-            else MaterialTheme.colorScheme.surfaceContainer
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = AccountCardElevation)
     ) {
@@ -115,168 +102,6 @@ fun AccountCard(
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (showMoreOptions) {
-                        Box {
-                            IconButton(
-                                onClick = { showMenu = true },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surface,
-                                    contentColor = MaterialTheme.colorScheme.onSurface
-                                ),
-                                shapes = IconButtonDefaults.shapes()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.MoreHoriz,
-                                    contentDescription = stringResource(R.string.more_options),
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = showMenu,
-                                onDismissRequest = { showMenu = false },
-                                shape = MaterialTheme.shapes.large,
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.update_balance)) },
-                                    leadingIcon = {
-                                        Icon(
-                                            Iconax.Balance,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    },
-                                    onClick = {
-                                        showMenu = false
-                                        onUpdateBalance()
-                                    },
-                                )
-
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.edit_details)) },
-                                    leadingIcon = {
-                                        Icon(
-                                            Iconax.Edit2,
-                                            contentDescription = null
-                                        )
-                                    },
-                                    onClick = {
-                                        showMenu = false
-                                        onEditAccount()
-                                    },
-                                )
-
-                                if (onMergeAccount != null) {
-                                    HorizontalDivider(
-                                        thickness = 1.5.dp,
-                                        color = MaterialTheme.colorScheme.surface
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.merge_account)) },
-                                        leadingIcon = {
-                                            Icon(
-                                                Iconax.HierarchySquare3,
-                                                contentDescription = null
-                                            )
-                                        },
-                                        onClick = {
-                                            showMenu = false
-                                            onMergeAccount()
-                                        },
-                                    )
-                                }
-
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.history)) },
-                                    leadingIcon = {
-                                        Icon(
-                                            Iconax.History,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    },
-                                    onClick = {
-                                        showMenu = false
-                                        onViewHistory()
-                                    },
-                                )
-
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface
-                                )
-                                DropdownMenuItem(
-text = {
-                                            Text(
-                                                if (isHidden) stringResource(R.string.show) else stringResource(R.string.hide)
-                                            )
-                                        },
-                                    leadingIcon = {
-                                        Icon(
-                                            if (isHidden)
-                                                Iconax.Eye
-                                            else
-                                                Iconax.EyeSlash,
-                                            contentDescription = null
-                                        )
-                                    },
-                                    onClick = {
-                                        showMenu = false
-                                        onToggleVisibility()
-                                    },
-                                )
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = MaterialTheme.colorScheme.surface
-                                )
-                                if (!isMain) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.set_as_main)) },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Rounded.Star,
-                                                contentDescription = null,
-                                                tint = Color(0xFFFFD700) // Gold
-                                            )
-                                        },
-                                        onClick = {
-                                            showMenu = false
-                                            onSetAsMain()
-                                        },
-                                    )
-                                    HorizontalDivider(
-                                        thickness = 1.5.dp,
-                                        color = MaterialTheme.colorScheme.surface
-                                    )
-                                }
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            stringResource(R.string.delete),
-                                            color = MaterialTheme.colorScheme.error
-                                        )
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Iconax.Bag,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    },
-                                    onClick = {
-                                        showMenu = false
-                                        onDeleteAccount()
-                                    },
-                                )
-                            }
-                        }
-                    }
                 }
 
                 // Balance: an account in several currencies shows their sum, then each currency
@@ -329,29 +154,6 @@ text = {
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                             ) {
-                                if (isMain) {
-                                    Surface(
-                                        shape = RoundedCornerShape(Spacing.xxl),
-                                        color = Color(0xFFFFD700).copy(alpha = 0.15f),
-                                        border = BorderStroke(
-                                            1.dp,
-                                            Color(0xFFFFD700).copy(alpha = 0.3f)
-                                        )
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(4.dp,),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.Star,
-                                                contentDescription = null,
-                                                tint = Color(0xFFFFD700),
-                                                modifier = Modifier.size(12.dp)
-                                            )
-                                        }
-                                    }
-                                }
 
                                 BrandIcon(
                                     merchantName = account.bankName,

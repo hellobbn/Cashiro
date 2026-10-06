@@ -182,8 +182,6 @@ interface TransactionDao {
 
     @Query("DELETE FROM transactions") suspend fun deleteAllTransactions()
     
-    @Query("DELETE FROM transactions WHERE is_sample = 1")
-    suspend fun deleteSampleTransactions()
 
     @Query("UPDATE transactions SET category = :newCategory WHERE merchant_name = :merchantName")
     suspend fun updateCategoryForMerchant(merchantName: String, newCategory: String)

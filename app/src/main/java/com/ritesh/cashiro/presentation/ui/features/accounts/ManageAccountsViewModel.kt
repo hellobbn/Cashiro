@@ -28,7 +28,6 @@ import androidx.core.content.edit
 
 data class ManageAccountsUiState(
     val accounts: List<AccountBalanceEntity> = emptyList(),
-    val hiddenAccounts: Set<String> = emptySet(),
     val balanceHistory: List<AccountBalanceEntity> = emptyList(),
     val linkedCards: Map<String, List<CardEntity>> = emptyMap(),
     val orphanedCards: List<CardEntity> = emptyList(),
@@ -93,7 +92,6 @@ constructor(
 
     init {
         loadAccounts()
-        loadHiddenAccounts()
         loadMainAccount()
         loadCards()
         initializeDefaultWallet()
@@ -179,11 +177,6 @@ constructor(
                 _uiState.update { it.copy(linkedCards = linkedCardsMap, orphanedCards = orphaned) }
             }
         }
-    }
-
-    private fun loadHiddenAccounts() {
-        val hidden = sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
-        _uiState.update { it.copy(hiddenAccounts = hidden) }
     }
 
     private fun loadMainAccount() {
@@ -459,28 +452,6 @@ constructor(
         }
     }
 
-    fun toggleAccountVisibility(bankName: String, accountLast4: String) {
-        val key = "${bankName}_${accountLast4}"
-        val hidden = _uiState.value.hiddenAccounts.toMutableSet()
-
-        if (hidden.contains(key)) {
-            hidden.remove(key)
-        } else {
-            hidden.add(key)
-        }
-
-        // Save to SharedPreferences
-        sharedPrefs.edit().putStringSet("hidden_accounts", hidden).apply()
-
-        // Update UI state
-        _uiState.update { it.copy(hiddenAccounts = hidden) }
-    }
-
-    fun isAccountHidden(bankName: String, accountLast4: String): Boolean {
-        val key = "${bankName}_${accountLast4}"
-        return _uiState.value.hiddenAccounts.contains(key)
-    }
-
     fun clearError() {
         _formState.update { it.copy(errorMessage = null) }
         _uiState.update { it.copy(errorMessage = null) }
@@ -649,13 +620,9 @@ constructor(
                 linkedCards.forEach { card -> cardRepository.unlinkCard(card.id) }
 
                 // Delete all balance records for this account
-                val deletedCount = accountBalanceRepository.deleteAccount(bankName, accountLast4)
+                accountBalanceRepository.deleteAccount(bankName, accountLast4)
 
-                // Remove from hidden accounts if present
                 val key = "${bankName}_${accountLast4}"
-                val hidden = _uiState.value.hiddenAccounts.toMutableSet()
-                hidden.remove(key)
-                sharedPrefs.edit().putStringSet("hidden_accounts", hidden).apply()
 
                 // Remove from main account if present
                 if (_uiState.value.mainAccountKey == key) {
@@ -664,10 +631,8 @@ constructor(
 
                 _uiState.update {
                     it.copy(
-                            hiddenAccounts = hidden,
                             mainAccountKey = if (it.mainAccountKey == key) null else it.mainAccountKey,
-                            successMessage =
-                                    "Account deleted successfully ($deletedCount balance records removed)"
+                            successMessage = context.getString(R.string.msg_account_deleted)
                     )
                 }
 
@@ -705,12 +670,11 @@ constructor(
                     ?: resolveDefaultCurrency()
 
                 // A new name moves everything that refers to the account: its transactions,
-                // balances, cards, templates, budgets and the hidden/main preferences
+                // balances, cards, templates, budgets and the default-account preference
                 if (newBankName != oldBankName) {
                     accountRenamer.rename(oldBankName, accountLast4, newBankName)
                     _uiState.update {
                         it.copy(
-                            hiddenAccounts = sharedPrefs.getStringSet("hidden_accounts", emptySet()).orEmpty(),
                             mainAccountKey = sharedPrefs.getString("main_account", null)
                         )
                     }
@@ -756,75 +720,6 @@ constructor(
                 _uiState.update { it.copy(successMessage = null) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorMessage = context.getString(R.string.msg_account_update_failed, e.message.orEmpty())) }
-            }
-        }
-    }
-
-    fun mergeAccounts(targetAccount: AccountBalanceEntity, sourceAccounts: List<AccountBalanceEntity>, newBalance: BigDecimal?
-    ) {
-        viewModelScope.launch {
-            try {
-                _uiState.update { it.copy(isLoading = true) }
-
-                //Reassign transactions
-                sourceAccounts.forEach { source ->
-                    transactionRepository.updateAccountForTransactions(
-                        oldBankName = source.bankName,
-                        oldAccountNumber = source.accountLast4,
-                        newBankName = targetAccount.bankName,newAccountNumber = targetAccount.accountLast4
-                    )
-                    // Transfers into the merged account now go into the target
-                    val from = source.accountId
-                    val into = targetAccount.accountId
-                    if (from != null && into != null && from != into) {
-                        transactionRepository.retargetTransfers(from, into, targetAccount.accountLast4)
-                    }
-                }
-
-                // Update target balance if requested
-                if (newBalance != null) {
-                    accountBalanceRepository.insertBalance(AccountBalanceEntity(
-                        bankName = targetAccount.bankName,
-                        accountLast4 = targetAccount.accountLast4,
-                        balance = newBalance,
-                        creditLimit = targetAccount.creditLimit,
-                        timestamp = LocalDateTime.now(),
-                        isCreditCard = targetAccount.isCreditCard,
-                        sourceType = "MERGE",
-                        iconResId = targetAccount.iconResId,
-                        iconName = targetAccount.iconName,
-                        currency = targetAccount.currency,
-                        color = targetAccount.color
-                    )
-                    )
-                }
-
-                // Delete source accounts
-                sourceAccounts.forEach { source ->
-                    // Unlink cards
-                    val linkedCards = _uiState.value.linkedCards[source.accountLast4] ?: emptyList()
-                    linkedCards.forEach { card -> cardRepository.unlinkCard(card.id) }
-
-                    // Delete account balances
-                    accountBalanceRepository.deleteAccount(source.bankName, source.accountLast4)
-                }
-
-                // Reload data
-                loadAccounts()
-                loadCards()
-
-                _uiState.update {
-                    it.copy(isLoading = false, successMessage = "Accounts merged successfully")
-                }
-                delay(3000)
-                _uiState.update { it.copy(successMessage = null) }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Failed to merge accounts: ${e.message}"
-                    )
-                }
             }
         }
     }

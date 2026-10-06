@@ -95,7 +95,7 @@ class AccountsMigrationTest {
         }
 
         val db = Room.databaseBuilder(context, CashiroDatabase::class.java, name)
-            .addMigrations(CashiroDatabase.MIGRATION_66_67, CashiroDatabase.MIGRATION_67_68)
+            .addMigrations(CashiroDatabase.MIGRATION_66_67, CashiroDatabase.MIGRATION_67_68, CashiroDatabase.MIGRATION_68_69)
             .allowMainThreadQueries()
             .build()
         try {

@@ -16,8 +16,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
-import com.ritesh.cashiro.domain.usecase.hiddenAccountKey
-import com.ritesh.cashiro.domain.usecase.hiddenAccountKeys
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 
 /**
@@ -36,10 +34,7 @@ fun AccountSelectionSheet(
 ) {
     val context = LocalContext.current
     val groups = remember(accounts, selectedAccount) {
-        val hidden = context.hiddenAccountKeys()
-        accounts
-            .filter { it.hiddenAccountKey() !in hidden || it.id == selectedAccount?.id }
-            .groupedForDisplay(context.mainAccountKey())
+        accounts.groupedForDisplay(context.mainAccountKey())
     }
 
     Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {

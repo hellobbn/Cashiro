@@ -87,13 +87,11 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCategories: () -> Unit = {},
     onNavigateToManageAccounts: () -> Unit = {},
-    onNavigateToRules: () -> Unit = {},
     onNavigateToQuickTemplates: () -> Unit = {},
     onNavigateToAiAssistant: () -> Unit = {},
     onNavigateToAppearance: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
-    onNavigateToWebhooks: () -> Unit = {},
     onNavigateToBudgets: () -> Unit = {},
     onNavigateToLendBorrow: () -> Unit = {},
     onNavigateToDataPrivacy: () -> Unit = {},
@@ -103,11 +101,9 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel(),
     blurEffects: Boolean
 ) {
-    val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val totalTransactionsCount by settingsViewModel.totalTransactions.collectAsStateWithLifecycle()
     val googleDriveEmail by settingsViewModel.googleDriveEmail.collectAsStateWithLifecycle()
     val userPreferences by settingsViewModel.userPreferences.collectAsStateWithLifecycle(initialValue = null)
-    val isWebhookModeEnabled = userPreferences?.isWebhookModeEnabled == true
     var showLanguageBottomSheet by remember { mutableStateOf(false) }
     val currentLanguageCode = remember(androidx.compose.ui.platform.LocalConfiguration.current) {
         val locales = AppCompatDelegate.getApplicationLocales()
@@ -598,51 +594,6 @@ fun SettingsScreen(
                         padding = PaddingValues(0.dp)
                     )
 
-                    // Smart Rules
-                    ListItem(
-                        headline = {
-                            Text(
-                                text = stringResource(R.string.smart_rules),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                        },
-                        supporting = {
-                            Text(
-                                text = stringResource(R.string.smart_rules_subtitle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        leading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.secondaryContainer,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Iconax.Fireworks7,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            }
-                        },
-                        trailing = {
-                            Icon(
-                                Icons.Rounded.ChevronRight,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        onClick = { onNavigateToRules() },
-                        shape = ListItemPosition.Middle.toShape(),
-                        padding = PaddingValues(0.dp)
-                    )
-
                     // Quick templates
                     ListItem(
                         headline = {
@@ -871,55 +822,9 @@ fun SettingsScreen(
                             )
                         },
                         onClick = { onNavigateToNotifications() },
-                        shape = if (isWebhookModeEnabled) ListItemPosition.Top.toShape()
-                            else ListItemPosition.Single.toShape(),
+                        shape = ListItemPosition.Single.toShape(),
                         padding = PaddingValues(0.dp)
                     )
-                    if (isWebhookModeEnabled) {
-                        ListItem(
-                            headline = {
-                                Text(
-                                    text = stringResource(R.string.webhooks),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            },
-                            supporting = {
-                                Text(
-                                    text = stringResource(R.string.webhooks_subtitle),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            leading = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.secondaryContainer,
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.Webhook,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-                            },
-                            trailing = {
-                                Icon(
-                                    Icons.Rounded.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = { onNavigateToWebhooks() },
-                            shape = ListItemPosition.Bottom.toShape(),
-                            padding = PaddingValues(0.dp)
-                        )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(Spacing.md))

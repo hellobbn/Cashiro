@@ -11,7 +11,6 @@
     <string name="update_later">稍后</string>
     <string name="update_check_desc">在 GitHub 上查找更新的安装包</string>
     <string name="update_channel">更新渠道</string>
-    <string name="update_channel_desc">选择要跟随的 GitHub 发布通道</string>
     <string name="update_channel_debug">调试</string>
     <string name="update_channel_testing">测试</string>
     <string name="update_channel_release">正式版</string>

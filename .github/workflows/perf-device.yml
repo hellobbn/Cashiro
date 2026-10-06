@@ -139,7 +139,7 @@ jobs:
           git log -1 --format='Baseline app/src/main from %h %s' "$SHA"
           # The baseline is the base commit's app/src/main built with everything else from
           # this branch, so both go into the cache key.
-          SETUP=$(git ls-files -s -- app parser-core gradle '*.gradle.kts' gradle.properties .github/workflows/perf-device.yml \
+          SETUP=$(git ls-files -s -- app gradle '*.gradle.kts' gradle.properties .github/workflows/perf-device.yml \
             | awk -F'\t' '$2 !~ /^app\/src\/main\//' | sha256sum | cut -c1-16)
           {
             echo "ref=$BASE_REF"

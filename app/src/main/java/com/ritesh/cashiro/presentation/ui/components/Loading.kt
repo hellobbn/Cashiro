@@ -21,19 +21,3 @@ fun LoadingCircle(modifier: Modifier = Modifier.fillMaxSize()) {
         polygons = LoadingIndicatorDefaults.IndeterminateIndicatorPolygons
     ) }
 }
-
-@SuppressLint("ModifierParameter")
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun LoadingLine(modifier: Modifier = Modifier.fillMaxWidth(), progress: Float? = null) {
-    if (progress != null) LinearWavyProgressIndicator(modifier = modifier, progress = { progress })
-    else LinearWavyProgressIndicator(modifier = modifier)
-}
-
-@SuppressLint("ModifierParameter")
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun LoadingCircularProgress(modifier: Modifier = Modifier.fillMaxWidth(), progress: Float? = null) {
-    if (progress != null) CircularWavyProgressIndicator(modifier = modifier, progress = { progress })
-    else CircularWavyProgressIndicator(modifier = modifier)
-}

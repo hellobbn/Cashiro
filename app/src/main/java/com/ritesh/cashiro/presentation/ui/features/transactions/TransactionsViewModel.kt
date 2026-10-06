@@ -26,7 +26,6 @@ import com.ritesh.cashiro.data.repository.CurrencyRepository
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.utils.CurrencyUtils
-import com.ritesh.cashiro.utils.DeviceEncryption
 import com.ritesh.cashiro.data.repository.LendBorrowRepository
 import com.ritesh.cashiro.domain.model.PersonInfo
 import dagger.hilt.android.lifecycle.HiltViewModel

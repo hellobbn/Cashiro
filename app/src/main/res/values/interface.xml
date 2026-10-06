@@ -4,7 +4,6 @@
     <string name="settings_group_finances">Money management</string>
     <string name="settings_group_automation">Automation &amp; notifications</string>
     <string name="settings_group_app">About the app</string>
-    <string name="type_current_account">Current account</string>
     <string name="type_bank_account">Bank account</string>
     <string name="type_investment_account">Investment account</string>
     <string name="merchant_optional">Merchant (optional)</string>
@@ -331,8 +330,8 @@
     <string name="msg_account_update_failed">Could not update the account: %1$s</string>
     <string name="msg_currencies_fallback">Could not load currencies; showing the built-in list.</string>
     <string name="no_categories_found">No categories found</string>
-    <string name="tap_anywhere_dismiss">Tap anywhere to dismiss</string>
     <string name="no_date">No date</string>
     <string name="no_analytics_data">No data yet</string>
     <string name="no_analytics_hint">Try other filters or add transactions</string>
+    <string name="msg_account_deleted">Account deleted</string>
 </resources>

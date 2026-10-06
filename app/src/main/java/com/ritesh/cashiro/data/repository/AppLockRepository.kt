@@ -104,10 +104,4 @@ class AppLockRepository @Inject constructor(
         timeSinceAuth >= timeoutMillis
     }
 
-    /**
-     * Get the configured timeout in minutes
-     */
-    suspend fun getTimeoutMinutes(): Int {
-        return userPreferencesRepository.getAppLockTimeoutMinutes()
-    }
 }

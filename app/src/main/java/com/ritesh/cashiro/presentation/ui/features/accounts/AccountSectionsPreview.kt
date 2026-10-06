@@ -27,7 +27,7 @@ internal fun AccountSectionsPreview() {
             AccountBalanceEntity(bankName = "Travel bank", accountLast4 = "0138", balance = BigDecimal("8200"), timestamp = now, currency = "HKD"),
             AccountBalanceEntity(bankName = "Savings", accountLast4 = "6208", balance = BigDecimal("16480"), timestamp = now, currency = "CNY"),
             AccountBalanceEntity(bankName = "Visa", accountLast4 = "7712", balance = BigDecimal("2680"), timestamp = now, currency = "CNY", isCreditCard = true)
-        ), emptySet()).visible
+        )).visible
     }
     var expandedSections by rememberSaveable { mutableStateOf(emptyList<String>()) }
     CashiroTheme(themeStyle = ThemeStyle.DEFAULT, dynamicColor = false, blurEffects = false) {

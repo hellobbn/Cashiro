@@ -9,7 +9,6 @@ import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.ritesh.cashiro.data.repository.AppLockRepository
-import com.ritesh.cashiro.data.webhook.WebhookSyncScheduler
 import com.ritesh.cashiro.widget.QuickEntryPublisher
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -27,9 +26,6 @@ class CashiroApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var appLockRepository: AppLockRepository
-
-    @Inject
-    lateinit var webhookSyncScheduler: WebhookSyncScheduler
 
     @Inject
     lateinit var quickEntryPublisher: QuickEntryPublisher
@@ -84,11 +80,12 @@ class CashiroApplication : Application(), Configuration.Provider {
         }
         // Hiding accounts was removed: bring back any hidden before
         getSharedPreferences("account_prefs", MODE_PRIVATE).edit().remove("hidden_accounts").apply()
+        // Webhooks were removed: drop the sync work an older version may have queued
         applicationScope.launch {
-            try {
-                webhookSyncScheduler.applyScheduling()
-            } catch (e: Exception) {
-                Log.e("CashiroApplication", "Error scheduling webhooks", e)
+            runCatching {
+                val workManager = androidx.work.WorkManager.getInstance(this@CashiroApplication)
+                workManager.cancelUniqueWork("webhook_periodic_sync")
+                workManager.cancelUniqueWork("webhook_one_time_sync")
             }
         }
         // Template launcher shortcuts and the home-screen widget follow the quick templates

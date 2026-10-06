@@ -28,8 +28,6 @@ class MerchantIconStore @Inject constructor(@ApplicationContext context: Context
     /** Merchant key to icon file. */
     val icons: StateFlow<Map<String, File>> = _icons.asStateFlow()
 
-    fun iconFor(merchantName: String): File? = _icons.value[key(merchantName)]
-
     suspend fun save(merchantName: String, icon: Bitmap) = withContext(Dispatchers.IO) {
         val key = key(merchantName)
         directory.mkdirs()

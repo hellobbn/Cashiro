@@ -141,30 +141,12 @@ class AttachmentService @Inject constructor(
     }
 
     /**
-     * Get the absolute file path for an attachment.
-     * @param relativePath The relative path of the file
-     * @return Absolute file path
-     */
-    fun getAbsolutePath(relativePath: String): String {
-        return File(context.filesDir, relativePath).absolutePath
-    }
-
-    /**
      * Check if the attachment path is a remote URL.
      * @param path The path or URL
      * @return true if it starts with http:// or https://
      */
     fun isUrl(path: String): Boolean {
         return path.startsWith("http://") || path.startsWith("https://")
-    }
-
-    /**
-     * Get all attachment files in the attachments directory.
-     * Useful for backup operations.
-     * @return List of all attachment files
-     */
-    fun getAllAttachmentFiles(): List<File> {
-        return attachmentsDir.listFiles()?.toList() ?: emptyList()
     }
 
     /**
@@ -261,12 +243,4 @@ class AttachmentService @Inject constructor(
         }
     }
 
-    /**
-     * Get all avatar files in the avatars directory.
-     * Useful for backup operations.
-     * @return List of all avatar files
-     */
-    fun getAllAvatarFiles(): List<File> {
-        return avatarsDir.listFiles()?.toList() ?: emptyList()
-    }
 }

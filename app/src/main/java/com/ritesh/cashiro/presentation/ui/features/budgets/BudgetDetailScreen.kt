@@ -132,7 +132,6 @@ fun SharedTransitionScope.BudgetDetailScreen(
                 onStartDateChange = budgetViewModel::updateStartDate,
                 onEndDateChange = budgetViewModel::updateEndDate,
                 onPeriodTypeChange = budgetViewModel::updatePeriodType,
-                onTrackTypeChange = budgetViewModel::updateTrackType,
                 onBudgetTypeChange = budgetViewModel::updateBudgetType,
                 onAccountIdsChange = budgetViewModel::updateAccountIds,
                 onColorChange = budgetViewModel::updateColor,

@@ -47,63 +47,6 @@ private fun AccountCategory.overviewIcon() = when (this) {
     AccountCategory.INVESTMENTS -> Icons.AutoMirrored.Rounded.ShowChart
 }
 
-/**
- * Home's account overview: every category in one card, a 56 dp row each with the account
- * count under the name, so the overview fits above the fold with the net worth.
- */
-@Composable
-internal fun CompactAccountOverview(items: List<AccountOverviewItem>, onOpen: (AccountCategory) -> Unit, modifier: Modifier = Modifier) {
-    val shape = MaterialTheme.shapes.large
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = shape,
-        modifier = modifier.fillMaxWidth().softShadow(shape).testTag("account_overview_list")
-    ) {
-        Column {
-            items.forEachIndexed { index, item ->
-                if (index > 0) HorizontalDivider(Modifier.padding(start = 60.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onOpen(item.category) }
-                        .heightIn(min = 56.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .testTag("overview_${item.category.name}"),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant) {
-                        Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
-                            Icon(item.category.overviewIcon(), null, Modifier.size(18.dp))
-                        }
-                    }
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(item.category.titleRes), style = MaterialTheme.typography.titleSmall, maxLines = 1)
-                        Text(
-                            text = when (item.status) {
-                                OverviewStatus.CONNECT -> stringResource(R.string.overview_connect_hint)
-                                OverviewStatus.LOADING -> stringResource(R.string.overview_loading)
-                                else -> stringResource(R.string.overview_count, item.count)
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1
-                        )
-                    }
-                    Text(
-                        overviewValue(item),
-                        style = if (item.status == OverviewStatus.CONNECT) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        color = if (item.status == OverviewStatus.CONNECT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
-                    )
-                }
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun AccountOverviewList(items: List<AccountOverviewItem>, onOpen: (AccountCategory) -> Unit, modifier: Modifier = Modifier) {

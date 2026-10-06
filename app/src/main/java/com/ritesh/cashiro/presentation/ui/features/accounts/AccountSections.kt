@@ -25,8 +25,7 @@ internal data class AccountSection(
 }
 
 internal data class AccountSections(
-    val visible: List<AccountSection>,
-    val hidden: List<AccountBalanceEntity>
+    val visible: List<AccountSection>
 )
 
 internal fun AccountBalanceEntity.listKey(): String =
@@ -34,14 +33,11 @@ internal fun AccountBalanceEntity.listKey(): String =
 
 internal fun buildAccountSections(
     accounts: List<AccountBalanceEntity>,
-    hiddenKeys: Set<String>,
     mainKey: String? = null,
     holdings: Map<Long, AccountHoldings> = emptyMap()
 ): AccountSections {
     // Same order as the account picker: one bank's accounts together, the main account first.
-    val (hidden, visible) = accounts.sortedForDisplay(mainKey).partition {
-        "${it.bankName}_${it.accountLast4}" in hiddenKeys
-    }
+    val visible = accounts.sortedForDisplay(mainKey)
     return AccountSections(
         visible = AccountSectionKind.entries.map { kind ->
             val members = visible.filter {
@@ -56,7 +52,6 @@ internal fun buildAccountSections(
             AccountSection(kind, members, members.byCurrency(holdings).groupBy { it.currency }.toSortedMap().mapValues { (_, group) ->
                 group.fold(BigDecimal.ZERO) { total, account -> total + account.balance }
             })
-        },
-        hidden = hidden
+        }
     )
 }

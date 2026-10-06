@@ -127,7 +127,6 @@ import com.ritesh.cashiro.presentation.ui.features.accounts.AccountSectionSummar
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountSectionToggle
 import com.ritesh.cashiro.presentation.ui.features.accounts.buildAccountSections
 import com.ritesh.cashiro.presentation.ui.features.accounts.listKey
-import com.ritesh.cashiro.presentation.ui.components.BalanceCard
 import com.ritesh.cashiro.presentation.ui.components.BudgetCarousel
 import com.ritesh.cashiro.presentation.ui.components.CurrencySelectionBottomSheet
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
@@ -185,6 +184,7 @@ fun SharedTransitionScope.HomeScreen(
     onNavigateToTransactions: () -> Unit = {},
     onNavigateToTransactionsWithSearch: () -> Unit = {},
     onNavigateToSubscriptions: () -> Unit = {},
+    onNavigateToAnalytics: () -> Unit = {},
     onNavigateToBudgets: (Long?) -> Unit = {},
     onNavigateToBudgetHistory: (Long) -> Unit = {},
     onNavigateToLendBorrow: (String?) -> Unit = { _ -> },
@@ -247,31 +247,11 @@ fun SharedTransitionScope.HomeScreen(
     val view = LocalView.current
 
 
-    // Check for app updates and reviews when the screen is first displayed
     LaunchedEffect(Unit) {
         // Refresh account balances to ensure proper currency conversion
         homeViewModel.refreshAccountBalances()
         // A new day since Home was last shown moves "this month" on
         homeViewModel.refreshDate()
-
-        // Check for app updates
-        activity?.let {
-            val componentActivity = it as ComponentActivity
-            homeViewModel.checkForAppUpdate(
-                activity = componentActivity,
-                snackbarHostState = snackbarHostState,
-                scope = scope
-            )
-
-            // Check for in-app review eligibility
-            homeViewModel.checkForInAppReview(componentActivity)
-        }
-    }
-
-    // ensures changes from ManageAccountsScreen are reflected immediately
-    DisposableEffect(Unit) {
-        homeViewModel.refreshHiddenAccounts()
-        onDispose {}
     }
 
     // Handle delete undo snackbar
@@ -407,7 +387,7 @@ fun SharedTransitionScope.HomeScreen(
                                         lastIncome = uiState.lastMonthIncome,
                                         lastExpenses = uiState.lastMonthExpenses,
                                         currency = uiState.selectedCurrency,
-                                        onClick = homeViewModel::showBreakdownDialog,
+                                        onClick = onNavigateToAnalytics,
                                         modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                                     )
                                 }
@@ -574,19 +554,6 @@ fun SharedTransitionScope.HomeScreen(
                 }
             }
 
-            // Breakdown Dialog
-            if (uiState.showBreakdownDialog) {
-                BreakdownDialog(
-                    currentMonthIncome = uiState.currentMonthIncome,
-                    currentMonthExpenses = uiState.currentMonthExpenses,
-                    currentMonthTotal = uiState.currentMonthTotal,
-                    lastMonthIncome = uiState.lastMonthIncome,
-                    lastMonthExpenses = uiState.lastMonthExpenses,
-                    lastMonthTotal = uiState.lastMonthTotal,
-                    onDismiss = { homeViewModel.hideBreakdownDialog() }
-                )
-            }
-
             // Edit Widgets Sheet
             if (showEditWidgetsSheet) {
                 EditWidgetsSheet(
@@ -608,162 +575,6 @@ fun SharedTransitionScope.HomeScreen(
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BreakdownDialog(
-    currentMonthIncome: BigDecimal,
-    currentMonthExpenses: BigDecimal,
-    currentMonthTotal: BigDecimal,
-    lastMonthIncome: BigDecimal,
-    lastMonthExpenses: BigDecimal,
-    lastMonthTotal: BigDecimal,
-    onDismiss: () -> Unit
-) {
-    val now = LocalDate.now()
-    val currentPeriod = "${now.month.name.lowercase().capitalizeFirst()} 1-${now.dayOfMonth}"
-    val lastMonth = now.minusMonths(1)
-    val lastPeriod = "${lastMonth.month.name.lowercase().capitalizeFirst()} 1-${now.dayOfMonth}"
-
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Spacing.md), // Reduced horizontal padding for wider modal
-            shape = MaterialTheme.shapes.extraLarge,
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = CashiroDialogDefaults.containerColor
-                )
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(Dimensions.Padding.card),
-                verticalArrangement = Arrangement.spacedBy(Spacing.md)
-            ) {
-                // Title
-                Text(
-                    text = stringResource(R.string.calculation_breakdown),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                // Current Period Section
-                Text(
-                    text = currentPeriod,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                BreakdownRow(
-                    label = stringResource(R.string.income),
-                    amount = currentMonthIncome,
-                    isIncome = true
-                )
-
-                BreakdownRow(
-                    label = stringResource(R.string.expenses),
-                    amount = currentMonthExpenses,
-                    isIncome = false
-                )
-
-                HorizontalDivider()
-
-                BreakdownRow(
-                    label = stringResource(R.string.net_balance),
-                    amount = currentMonthTotal,
-                    isIncome = currentMonthTotal >= BigDecimal.ZERO,
-                    isBold = true
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.sm))
-
-                // Last Period Section
-                Text(
-                    text = lastPeriod,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                BreakdownRow(
-                    label = stringResource(R.string.income),
-                    amount = lastMonthIncome,
-                    isIncome = true
-                )
-
-                BreakdownRow(
-                    label = stringResource(R.string.expenses),
-                    amount = lastMonthExpenses,
-                    isIncome = false
-                )
-
-                HorizontalDivider()
-
-                BreakdownRow(
-                    label = stringResource(R.string.net_balance),
-                    amount = lastMonthTotal,
-                    isIncome = lastMonthTotal >= BigDecimal.ZERO,
-                    isBold = true
-                )
-
-                // Formula explanation
-                Spacer(modifier = Modifier.height(Spacing.sm))
-                Card(
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(R.string.breakdown_formula_description),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.padding(Spacing.sm),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                // Close button
-                DialogActionsRow {
-                    DialogDismissButton(
-                        text = stringResource(R.string.close),
-                        onClick = onDismiss
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BreakdownRow(
-    label: String,
-    amount: BigDecimal,
-    isIncome: Boolean,
-    isBold: Boolean = false
-) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
-        )
-        Text(
-            text = "${if (isIncome) "+" else "-"}${CurrencyFormatter.formatCurrency(amount.abs())}",
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-            color =
-                if (isIncome) {
-                    if (!isAppInDarkTheme) income_light else income_dark
-                } else {
-                    if (!isAppInDarkTheme) expense_light else expense_dark
-                }
-        )
-    }
-}
-
-@OptIn(ExperimentalHazeApi::class)
 @Composable
 private fun UpcomingSubscriptionsCard(
     modifier: Modifier = Modifier,

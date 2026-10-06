@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AccountDao {
-    @Query("SELECT * FROM accounts WHERE id = :id")
-    suspend fun getAccount(id: Long): AccountEntity?
 
     @Query("SELECT * FROM accounts WHERE name = :name AND last4 = :last4")
     suspend fun findAccount(name: String, last4: String): AccountEntity?
@@ -29,26 +27,14 @@ interface AccountDao {
     @Update
     suspend fun updateAccount(account: AccountEntity)
 
-    @Query("UPDATE accounts SET name = :newName WHERE name = :oldName AND last4 = :last4")
-    suspend fun renameAccount(oldName: String, last4: String, newName: String)
-
     @Query("DELETE FROM accounts WHERE name = :name AND last4 = :last4")
     suspend fun deleteAccount(name: String, last4: String)
-
-    @Query("DELETE FROM accounts")
-    suspend fun deleteAllAccounts()
-
-    @Query("DELETE FROM accounts WHERE is_sample = 1")
-    suspend fun deleteSampleAccounts()
 
     @Query("SELECT * FROM account_currencies WHERE account_id = :accountId ORDER BY created_at, currency")
     suspend fun getCurrencies(accountId: Long): List<AccountCurrencyEntity>
 
     @Query("SELECT * FROM account_currencies ORDER BY account_id, created_at, currency")
     suspend fun getAllCurrencies(): List<AccountCurrencyEntity>
-
-    @Query("SELECT * FROM account_currencies ORDER BY account_id, created_at, currency")
-    fun observeAllCurrencies(): Flow<List<AccountCurrencyEntity>>
 
     /** Adds a currency to an account; one it already holds is left as it is. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)

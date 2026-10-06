@@ -1,32 +1,19 @@
 package com.ritesh.cashiro.domain.usecase
 
-import android.content.Context
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
 import com.ritesh.cashiro.data.database.dao.PocketBalance
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.utils.sumOfBigDecimal
 import java.math.BigDecimal
 
-private const val ACCOUNT_PREFS = "account_prefs"
-private const val HIDDEN_ACCOUNTS_KEY = "hidden_accounts"
-
-/** Identity the account list uses to remember which accounts the user hid. */
-fun AccountBalanceEntity.hiddenAccountKey(): String = "${bankName}_$accountLast4"
-
-fun Context.hiddenAccountKeys(): Set<String> =
-    getSharedPreferences(ACCOUNT_PREFS, Context.MODE_PRIVATE)
-        .getStringSet(HIDDEN_ACCOUNTS_KEY, emptySet())
-        .orEmpty()
-
-fun List<AccountBalanceEntity>.excludingHidden(hiddenKeys: Set<String>): List<AccountBalanceEntity> =
-    if (hiddenKeys.isEmpty()) this else filterNot { it.hiddenAccountKey() in hiddenKeys }
+/** Bank name + last 4: how preferences (the default account) name an account. */
+fun AccountBalanceEntity.accountKey(): String = "${bankName}_$accountLast4"
 
 /**
  * Converts every balance into [targetCurrency] and returns assets minus credit-card debt.
  *
  * Home and Profile have to show the same number, so both go through here instead of
- * summing balances themselves. Callers are responsible for dropping hidden accounts
- * first with [excludingHidden].
+ * summing balances themselves.
  */
 suspend fun List<AccountBalanceEntity>.netWorthIn(
     targetCurrency: String,

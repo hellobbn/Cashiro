@@ -11,7 +11,6 @@
     <string name="update_later">Later</string>
     <string name="update_check_desc">Look for a newer APK on GitHub</string>
     <string name="update_channel">Update channel</string>
-    <string name="update_channel_desc">Choose which GitHub lane to follow</string>
     <string name="update_channel_debug">Debug</string>
     <string name="update_channel_testing">Testing</string>
     <string name="update_channel_release">Release</string>

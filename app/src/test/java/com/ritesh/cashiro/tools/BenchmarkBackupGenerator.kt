@@ -110,7 +110,6 @@ class BenchmarkBackupGenerator {
                 cards = emptyList(),
                 accountBalances = accounts,
                 subscriptions = emptyList(),
-                merchantMappings = emptyList(),
             ),
             preferences = PreferencesSnapshot(
                 theme = ThemePreferences(isDarkThemeEnabled = null, isDynamicColorEnabled = true),

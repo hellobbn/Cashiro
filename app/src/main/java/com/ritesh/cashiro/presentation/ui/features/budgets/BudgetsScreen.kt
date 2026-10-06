@@ -98,7 +98,6 @@ fun SharedTransitionScope.BudgetsScreen(
     
     var showEditSheet by remember { mutableStateOf(false) }
     var showTypeWizard by remember { mutableStateOf(false) }
-    var showTrackWizard by remember { mutableStateOf(false) }
     var editingBudgetId by remember { mutableStateOf<Long?>(null) }
     
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -126,7 +125,6 @@ fun SharedTransitionScope.BudgetsScreen(
                 onStartDateChange = budgetViewModel::updateStartDate,
                 onEndDateChange = budgetViewModel::updateEndDate,
                 onPeriodTypeChange = budgetViewModel::updatePeriodType,
-                onTrackTypeChange = budgetViewModel::updateTrackType,
                 onBudgetTypeChange = budgetViewModel::updateBudgetType,
                 onAccountIdsChange = budgetViewModel::updateAccountIds,
                 onColorChange = budgetViewModel::updateColor,
@@ -180,7 +178,8 @@ fun SharedTransitionScope.BudgetsScreen(
                         budgetViewModel.initNewBudget()
                         budgetViewModel.updateBudgetType(type)
                         showTypeWizard = false
-                        showTrackWizard = true
+                        editingBudgetId = null
+                        showEditSheet = true
                     }
                 },
                 onDismiss = { showTypeWizard = false }
@@ -188,29 +187,6 @@ fun SharedTransitionScope.BudgetsScreen(
         }
     }
 
-    // Budget Track Type Wizard
-    if (showTrackWizard) {
-        CashiroModalBottomSheet(
-            onDismissRequest = { showTrackWizard = false },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            BudgetTrackTypeSelectionSheet(
-                onTrackTypeSelected = { trackType ->
-                    scope.launch {
-                        sheetState.hide()
-                        budgetViewModel.updateTrackType(trackType)
-                        showTrackWizard = false
-                        editingBudgetId = null
-                        showEditSheet = true
-                    }
-                },
-                onDismiss = { showTrackWizard = false }
-            )
-        }
-    }
-    
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val lazyListState = rememberLazyListState()

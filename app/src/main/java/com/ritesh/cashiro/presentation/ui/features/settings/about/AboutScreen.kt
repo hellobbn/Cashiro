@@ -67,7 +67,6 @@ import dev.chrisbanes.haze.HazeEffectScope
 fun AboutScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLicenses: () -> Unit,
-    onNavigateToDeveloper: () -> Unit,
     settingsViewModel: SettingsViewModel = hiltViewModel(),
     updateViewModel: GitHubUpdateViewModel = hiltViewModel(),
     blurEffects: Boolean
@@ -392,16 +391,6 @@ fun AboutScreen(
                         iconColor = orange_dark,
                         iconBackground = orange_light,
                         onClick = onNavigateToLicenses,
-                        position = ListItemPosition.Middle
-                    )
-
-                    AboutListItem(
-                        title = stringResource(R.string.developer_options),
-                        subtitle = stringResource(R.string.developer_options_desc),
-                        icon = Iconax.CodeCircle,
-                        iconColor = grey_dark,
-                        iconBackground = grey_light,
-                        onClick = onNavigateToDeveloper,
                         position = ListItemPosition.Middle
                     )
 

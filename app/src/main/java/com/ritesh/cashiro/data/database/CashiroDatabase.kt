@@ -15,16 +15,10 @@ import com.ritesh.cashiro.data.database.dao.CardDao
 import com.ritesh.cashiro.data.database.dao.CategoryDao
 
 import com.ritesh.cashiro.data.database.dao.ExchangeRateDao
-import com.ritesh.cashiro.data.database.dao.MerchantMappingDao
-import com.ritesh.cashiro.data.database.dao.RuleApplicationDao
-import com.ritesh.cashiro.data.database.dao.RuleDao
 import com.ritesh.cashiro.data.database.dao.SubcategoryDao
 import com.ritesh.cashiro.data.database.dao.SubscriptionDao
 import com.ritesh.cashiro.data.database.dao.BudgetDao
 import com.ritesh.cashiro.data.database.dao.TransactionDao
-import com.ritesh.cashiro.data.database.dao.WebhookCursorDao
-import com.ritesh.cashiro.data.database.dao.WebhookLogDao
-import com.ritesh.cashiro.data.database.dao.WebhookProfileDao
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.BudgetCategoryLimitEntity
 import com.ritesh.cashiro.data.database.entity.BudgetEntity
@@ -32,15 +26,9 @@ import com.ritesh.cashiro.data.database.entity.CardEntity
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 
 import com.ritesh.cashiro.data.database.entity.ExchangeRateEntity
-import com.ritesh.cashiro.data.database.entity.MerchantMappingEntity
-import com.ritesh.cashiro.data.database.entity.RuleApplicationEntity
-import com.ritesh.cashiro.data.database.entity.RuleEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
-import com.ritesh.cashiro.data.database.entity.WebhookCursorEntity
-import com.ritesh.cashiro.data.database.entity.WebhookLogEntity
-import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
 
 /**
  * The Cashiro Room database.
@@ -57,26 +45,20 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
         [
             TransactionEntity::class,
             SubscriptionEntity::class,
-            MerchantMappingEntity::class,
             CategoryEntity::class,
             AccountBalanceEntity::class,
             CardEntity::class,
-            RuleEntity::class,
-            RuleApplicationEntity::class,
             ExchangeRateEntity::class,
             SubcategoryEntity::class,
             BudgetEntity::class,
             BudgetCategoryLimitEntity::class,
-            WebhookProfileEntity::class,
-            WebhookLogEntity::class,
-            WebhookCursorEntity::class,
             com.ritesh.cashiro.data.database.entity.LendBorrowPersonEntity::class,
             com.ritesh.cashiro.data.database.entity.LendBorrowTransactionEntity::class,
             com.ritesh.cashiro.data.database.entity.QuickTemplateEntity::class,
             com.ritesh.cashiro.data.database.entity.AccountEntity::class,
             com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity::class
         ],
-        version = 68,
+        version = 69,
     exportSchema = true,
     autoMigrations =
         [
@@ -107,82 +89,18 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
 abstract class CashiroDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun subscriptionDao(): SubscriptionDao
-    abstract fun merchantMappingDao(): MerchantMappingDao
     abstract fun categoryDao(): CategoryDao
     abstract fun accountBalanceDao(): AccountBalanceDao
     abstract fun accountDao(): com.ritesh.cashiro.data.database.dao.AccountDao
     abstract fun cardDao(): CardDao
-    abstract fun ruleDao(): RuleDao
-    abstract fun ruleApplicationDao(): RuleApplicationDao
     abstract fun exchangeRateDao(): ExchangeRateDao
     abstract fun subcategoryDao(): SubcategoryDao
     abstract fun budgetDao(): BudgetDao
-    abstract fun webhookProfileDao(): WebhookProfileDao
-    abstract fun webhookLogDao(): WebhookLogDao
-    abstract fun webhookCursorDao(): WebhookCursorDao
     abstract fun lendBorrowDao(): com.ritesh.cashiro.data.database.dao.LendBorrowDao
     abstract fun quickTemplateDao(): com.ritesh.cashiro.data.database.dao.QuickTemplateDao
 
     companion object {
         const val DATABASE_NAME = "pennywise_database"
-
-        @Volatile private var INSTANCE: CashiroDatabase? = null
-
-        /**
-         * Returns a singleton instance of the database. This is used by components that don't have
-         * access to Hilt injection (like BroadcastReceivers).
-         */
-        fun getInstance(context: android.content.Context): CashiroDatabase {
-            return INSTANCE
-                ?: synchronized(this) {
-                    val instance =
-                        Room.databaseBuilder(
-                            context.applicationContext,
-                            CashiroDatabase::class.java,
-                            DATABASE_NAME
-                        )
-                            .addMigrations(
-                                MIGRATION_12_14,
-                                MIGRATION_13_14,
-                                MIGRATION_14_15,
-                                MIGRATION_20_21,
-                                MIGRATION_21_22,
-                                MIGRATION_22_23,
-                                MIGRATION_29_30,
-            MIGRATION_48_49,
-            MIGRATION_49_50,
-            MIGRATION_50_51,
-            MIGRATION_51_52,
-            MIGRATION_52_53,
-            MIGRATION_53_54,
-            MIGRATION_54_55,
-MIGRATION_55_56,
-                                MIGRATION_56_57,
-                                MIGRATION_57_58,
-                                MIGRATION_58_59,
-                                MIGRATION_59_60,
-                                MIGRATION_60_61,
-                                MIGRATION_61_62,
-                                MIGRATION_62_63,
-                                MIGRATION_63_64,
-                                MIGRATION_64_65,
-                                MIGRATION_65_66,
-                                MIGRATION_66_67,
-                                MIGRATION_67_68
-                            )
-                            .build()
-                    INSTANCE = instance
-                    instance
-                }
-        }
-
-        /**
-         * Sets the singleton instance. Called by Hilt module to ensure the same instance is used
-         * throughout the app.
-         */
-        fun setInstance(database: CashiroDatabase) {
-            INSTANCE = database
-        }
 
         /**
          * Manual migration from version 1 to 2. Example of how to write manual migrations when
@@ -669,6 +587,45 @@ MIGRATION_55_56,
         val MIGRATION_66_67 = AccountsMigration
 
         /** Credit cards learn their statement closing and payment due days. */
+        /**
+         * Drops what removed features left behind: smart rules, webhooks and merchant mappings;
+         * the mandate number on subscriptions; the "manually added only" budget mode; and
+         * sample data, which can no longer be removed from the app.
+         */
+        val MIGRATION_68_69 =
+            object : Migration(68, 69) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    listOf(
+                        "rule_applications", "transaction_rules", "webhook_logs", "webhook_cursors",
+                        "webhook_profiles", "merchant_mappings"
+                    ).forEach { db.execSQL("DROP TABLE IF EXISTS `$it`") }
+
+                    db.execSQL("UPDATE `budgets` SET `track_type` = 'ALL_TRANSACTIONS' WHERE `track_type` = 'ADDED_ONLY'")
+
+                    db.execSQL("DELETE FROM `budget_category_limits` WHERE `budget_id` IN (SELECT `id` FROM `budgets` WHERE `is_sample` = 1)")
+                    listOf("budgets", "subscriptions", "cards", "account_balances", "transactions").forEach {
+                        db.execSQL("DELETE FROM `$it` WHERE `is_sample` = 1")
+                    }
+                    db.execSQL("DELETE FROM `account_currencies` WHERE `account_id` IN (SELECT `id` FROM `accounts` WHERE `is_sample` = 1)")
+                    db.execSQL("DELETE FROM `accounts` WHERE `is_sample` = 1")
+
+                    val columns = "`id`, `merchant_name`, `amount`, `next_payment_date`, `state`, `bank_name`, " +
+                        "`category`, `subcategory`, `sms_body`, `created_at`, `updated_at`, `currency`, " +
+                        "`billing_cycle`, `last_paid_date`, `is_sample`"
+                    db.execSQL(
+                        "CREATE TABLE `subscriptions_new` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            "`merchant_name` TEXT NOT NULL, `amount` TEXT NOT NULL, `next_payment_date` TEXT, " +
+                            "`state` TEXT NOT NULL, `bank_name` TEXT, `category` TEXT, `subcategory` TEXT, " +
+                            "`sms_body` TEXT, `created_at` TEXT NOT NULL, `updated_at` TEXT NOT NULL, " +
+                            "`currency` TEXT NOT NULL DEFAULT 'INR', `billing_cycle` TEXT, `last_paid_date` TEXT, " +
+                            "`is_sample` INTEGER NOT NULL DEFAULT 0)"
+                    )
+                    db.execSQL("INSERT INTO `subscriptions_new` ($columns) SELECT $columns FROM `subscriptions`")
+                    db.execSQL("DROP TABLE `subscriptions`")
+                    db.execSQL("ALTER TABLE `subscriptions_new` RENAME TO `subscriptions`")
+                }
+            }
+
         val MIGRATION_67_68 =
             object : Migration(67, 68) {
                 override fun migrate(db: SupportSQLiteDatabase) {

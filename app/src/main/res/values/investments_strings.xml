@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="investments_title">Investments</string>
-    <string name="investments_shortcut">Connect a broker · View holdings</string>
-    <string name="investments_report_hint">Read-only report snapshots, not live prices. Linked accounts count toward net worth.</string>
     <string name="investments_syncing">Reading the brokerage report. This may take a minute…</string>
     <string name="investments_retry">Retry</string>
     <string name="investments_empty_title">Your holdings, in one place</string>
@@ -26,10 +23,8 @@
     <string name="investments_disconnect">Disconnect</string>
     <string name="investments_disconnect_hint">Remove the credentials and holdings cached on this phone. Brokerage and bookkeeping accounts are unchanged. To revoke the token, generate a new one in IBKR.</string>
     <string name="investments_cancel">Cancel</string>
-    <string name="investments_back">Back</string>
     <string name="investments_quantity">Quantity: %1$s</string>
     <string name="investments_value">Market value: %1$s %2$s</string>
-    <string name="investments_cost">Cost basis: %1$s %2$s</string>
     <string name="investments_pnl">Unrealized P/L: %1$s %2$s</string>
     <string name="investments_setup">In IBKR Client Portal, open Reports → Flex Queries and create an Activity Flex Query:\n\n• Format: XML; date format: yyyyMMdd; period: Last Business Day\n• Add Open Positions, choose Summary and all fields, not Lots\n• Add Cash Report with currency breakdown so idle cash and margin debit are included\n• Save the Query ID; enable Flex Web Service and generate a token\n\nKeep empty Open Positions and Cash Report sections when those balances are zero.</string>
     <string name="investments_privacy">The token grants access to reports. Keep it private. Credentials and holdings are encrypted on this device, excluded from backups, and sent directly to IBKR, not a Cashiro server. Reconnect after reinstalling.</string>

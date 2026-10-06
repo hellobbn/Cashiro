@@ -38,7 +38,6 @@ import com.ritesh.cashiro.core.Constants
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.utils.CurrencyFormatter
-import com.ritesh.cashiro.utils.DeviceEncryption
 import com.ritesh.cashiro.utils.capitalizeFirst
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -125,21 +124,8 @@ class TransactionDetailViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    // Available accounts for linking (excluding hidden accounts)
-    private val sharedPrefs =
-        context.getSharedPreferences("account_prefs", Context.MODE_PRIVATE)
-
     val availableAccounts: StateFlow<List<AccountBalanceEntity>> = accountBalanceRepository.getAllLatestBalances()
-        .map { balances ->
-            val hiddenAccounts =
-                sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
-            balances
-                .filter { balance ->
-                    val key = "${balance.bankName}_${balance.accountLast4}"
-                    !hiddenAccounts.contains(key)
-                }
-                .distinctBy { "${it.bankName}_${it.accountLast4}" }
-        }
+        .map { balances -> balances.distinctBy { "${it.bankName}_${it.accountLast4}" } }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

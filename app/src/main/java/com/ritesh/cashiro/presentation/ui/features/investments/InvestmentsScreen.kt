@@ -108,40 +108,6 @@ import java.text.DateFormat
 import java.text.NumberFormat
 import java.util.Date
 
-@Composable
-fun InvestmentsShortcut(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    ListItem(
-        modifier = modifier,
-        headline = {
-            Text(
-                text = stringResource(R.string.investments_title),
-                fontWeight = FontWeight.Medium
-            )
-        },
-        supporting = { Text(stringResource(R.string.investments_shortcut)) },
-        leading = {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ShowChart,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        },
-        trailing = {
-            Icon(Icons.Rounded.ChevronRight, contentDescription = null)
-        },
-        onClick = onClick,
-        shape = ListItemPosition.Single.toShape(),
-        padding = PaddingValues(0.dp)
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvestmentsScreen(
