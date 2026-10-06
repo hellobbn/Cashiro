@@ -149,6 +149,8 @@ class SyncEngine(
     /** Remote references this run learned about: replaced records and deleted ones. */
     private val aliases = mutableMapOf<String, String>()
     private val gone = mutableSetOf<String>()
+    /** Local records the server confirmed alive (or never had): a clash with one is a duplicate. */
+    private val confirmed = mutableSetOf<String>()
 
     private val fallback = SyncLocalStore.Fallback { table, syncId ->
         val docId = SyncSchema.docId(table, syncId)
@@ -157,8 +159,10 @@ class SyncEngine(
     }
 
     /**
-     * Applies [records] in one transaction with capture paused: upserts parents first, deletes
-     * children first. A record that cannot be applied yet goes to the inbox; one applied leaves it.
+     * Applies [records] in one transaction with capture paused: deletes first (children first),
+     * then upserts (parents first), so a record deleted and re-made under the same natural key in
+     * one change does not clash with itself. A record that cannot be applied yet goes to the
+     * inbox; one applied leaves it.
      */
     private fun applyPage(records: List<Incoming>): PageOutcome {
         var applied = 0
@@ -166,7 +170,7 @@ class SyncEngine(
         val waiting = mutableMapOf<String, String>()
         val ordered = records.sortedBy { r ->
             val level = SyncSchema.table(r.table)?.level ?: 0
-            if (r.deleted) 100 - level else level
+            if (r.deleted) -level else 100 + level
         }
         database.runInTransaction {
             val local = store
@@ -223,8 +227,7 @@ class SyncEngine(
             local.rowIdOf(table.name, record.syncId)?.let { local.delete(table.name, it) }
             return Applied.Done
         }
-        applyUpsert(local, table, record.syncId, values)
-        return Applied.Done
+        return applyUpsert(local, table, record.syncId, values)
     }
 
     /**
@@ -232,11 +235,18 @@ class SyncEngine(
      * are one record: the smaller sync id survives with its own content, and the other is deleted
      * everywhere with a tombstone naming the survivor (docs/sync.md, "Duplicates").
      */
-    private fun applyUpsert(local: SyncLocalStore, table: SyncSchema.Table, syncId: String, values: android.content.ContentValues) {
+    private fun applyUpsert(local: SyncLocalStore, table: SyncSchema.Table, syncId: String, values: android.content.ContentValues): Applied {
         var existing = local.rowIdOf(table.name, syncId)
         val conflict = local.conflicting(table, values, existing)
         if (conflict != null) {
             val (otherRow, otherId) = conflict
+            // The clashing row may be one the server has already deleted (deleted and made again in
+            // one change, the delete not read yet): unless it has a change of its own queued here,
+            // ask the server about it before treating the two as duplicates
+            val otherDoc = SyncSchema.docId(table.name, otherId)
+            if (otherDoc !in confirmed && local.pendingOp(table.name, otherId) == null) {
+                return Applied.Waiting(WAITING_DUPLICATE + otherDoc)
+            }
             if (syncId < otherId) {
                 if (existing != null) local.mergeRows(table.name, from = otherRow, into = existing)
                 else { local.setSyncId(table.name, otherRow, syncId); existing = otherRow }
@@ -245,10 +255,11 @@ class SyncEngine(
                 if (existing != null) local.mergeRows(table.name, from = existing, into = otherRow)
                 local.queue(table.name, syncId, SyncTriggers.OP_DELETE, replacedBy = otherId)
                 local.queue(table.name, otherId, SyncTriggers.OP_UPSERT)
-                return
+                return Applied.Done
             }
         }
         if (existing != null) local.update(table.name, existing, values) else local.insert(table.name, syncId, values)
+        return Applied.Done
     }
 
     private fun applyDelete(local: SyncLocalStore, table: SyncSchema.Table, syncId: String, replacedBy: String?) {
@@ -266,7 +277,9 @@ class SyncEngine(
     /**
      * Retries held records until none moves, asking the server about each missing parent once: a
      * live parent is applied at once, a replaced one is followed, a deleted one lets the child go
-     * without it (or with it, when the child cannot exist alone).
+     * without it (or with it, when the child cannot exist alone). For a natural-key clash it asks
+     * about the local record: deleted there, its tombstone is applied; otherwise the two are
+     * duplicates.
      */
     private suspend fun retryHeld(): Int {
         var applied = 0
@@ -279,8 +292,16 @@ class SyncEngine(
             applied += outcome.applied
             val missing = outcome.waiting.values.filter { it != WAITING_VERSION && it !in asked }.toSet()
             if (missing.isEmpty() && database.syncDao().inbox().size >= before) return applied
-            for (docId in missing) {
-                asked += docId
+            for (reason in missing) {
+                asked += reason
+                if (reason.startsWith(WAITING_DUPLICATE)) {
+                    val docId = reason.removePrefix(WAITING_DUPLICATE)
+                    val other = remote.get(docId)
+                    if (other != null && other.deleted) applied += applyPage(listOf(Incoming(other))).applied
+                    else confirmed += docId
+                    continue
+                }
+                val docId = reason
                 val parent = remote.get(docId)
                 when {
                     parent == null -> Unit
@@ -320,6 +341,8 @@ class SyncEngine(
 
     /** Replaces this device's data with the cloud's (the caller backs it up first when it matters). */
     suspend fun replaceLocalWithCloud(): PullResult {
+        // Fails offline, before anything here is deleted
+        remote.isEmpty()
         withContext(Dispatchers.IO) {
             database.runInTransaction {
                 val local = store
@@ -354,6 +377,7 @@ class SyncEngine(
         cursorStore.cursor = null
         aliases.clear()
         gone.clear()
+        confirmed.clear()
     }
 
     /** Queues an upload of every record here (parents first), except the documents in [except]. */
@@ -374,7 +398,9 @@ class SyncEngine(
         private const val PUSH_BATCH = 400
         // Firestore commits at most 500 writes at once
         private const val WRITE_BATCH = 400
-        private const val MAX_ROUNDS = 50
+        private const val MAX_ROUNDS = 200
         const val WAITING_VERSION = "version"
+        /** Prefix of `waiting_for` for a record that clashes with a local one: then that one's document id */
+        const val WAITING_DUPLICATE = "duplicate:"
     }
 }

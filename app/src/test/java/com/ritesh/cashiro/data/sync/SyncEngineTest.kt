@@ -46,12 +46,12 @@ class SyncEngineTest {
     private val devices = mutableListOf<Device>()
     private val at = "2026-09-01T09:00"
 
-    inner class Device(val name: String) {
+    // A small page by default, so pulls run over several pages and transactions
+    inner class Device(val name: String, pageSize: Int = 4) {
         val db: CashiroDatabase = Room.inMemoryDatabaseBuilder(context, CashiroDatabase::class.java)
             .addCallback(SyncTriggers.Callback).allowMainThreadQueries().build()
         val cursor = MemoryCursorStore()
-        // A small page, so pulls run over several pages and transactions
-        val engine = SyncEngine(db, remote, key, name, cursor, pageSize = 4)
+        val engine = SyncEngine(db, remote, key, name, cursor, pageSize = pageSize)
         val sql get() = db.openHelper.writableDatabase
         val balances = AccountBalanceRepository(db.accountBalanceDao(), context)
         val transactions = TransactionRepository(db.transactionDao(), balances)
@@ -349,6 +349,56 @@ class SyncEngineTest {
             assertEquals(d.name, 2, d.count("transactions", "account_id = (SELECT id FROM accounts)"))
         }
         assertEquals(a.payloads(), b.payloads())
+    }
+
+    @Test fun aRecordMadeAgainUnderTheSameNaturalKeyReplacesTheDeletedOne() = runTest {
+        // Both orders of the two ids, and the new record read before the delete
+        for (newId in listOf("0".repeat(32), "f".repeat(32))) {
+            remote.docs.clear()
+            val a = Device("a$newId")
+            // One record per page: the new record is read in a page before the old one's delete
+            val b = Device("b$newId", pageSize = 1)
+            a.insert("accounts", "name" to "BOC", "last4" to "1111", "main_currency" to "CNY", "created_at" to at, "sync_id" to "8".repeat(32))
+            a.sync(); b.sync()
+            a.sql.execSQL("UPDATE accounts SET last4 = 'tmp'")
+            a.engine.push()
+            a.insert("accounts", "name" to "BOC", "last4" to "1111", "main_currency" to "CNY", "created_at" to at, "sync_id" to newId)
+            a.engine.push()
+            a.sql.execSQL("DELETE FROM accounts WHERE last4 = 'tmp'")
+            a.engine.push()
+            assertTrue(b.engine.pull().held == 0)
+            b.sync(); a.sync()
+            listOf(a, b).forEach { d ->
+                assertEquals(d.name, listOf(newId), d.sql.query("SELECT sync_id FROM accounts").use { c ->
+                    buildList { while (c.moveToNext()) add(c.getString(0)) }
+                })
+            }
+            assertTrue(remote.docs.values.none { it.replacedBy != null })
+        }
+    }
+
+    @Test fun balanceRowsReplacedByAnEditDoNotClash() = runTest {
+        // TransactionEditor may delete a balance row and write one with the same account, currency
+        // and time; repeated so both orders of the random ids come up
+        repeat(6) { round ->
+            remote.docs.clear()
+            val a = Device("a$round")
+            val b = Device("b$round")
+            val start = LocalDateTime.of(2026, 9, 1, 9, 0)
+            a.balances.insertBalance(
+                AccountBalanceEntity(bankName = "CMB", accountLast4 = "1234", balance = BigDecimal("1000"), timestamp = start, sourceType = "MANUAL", currency = "CNY")
+            )
+            val id = a.add.execute(
+                amount = BigDecimal("100"), merchant = "Manner", category = "Food", type = TransactionType.EXPENSE,
+                date = start.plusDays(1), bankName = "CMB", accountLast4 = "1234", currency = "CNY"
+            )
+            a.sync(); b.sync()
+            val original = a.db.transactionDao().getTransactionById(id)!!
+            TransactionEditor(a.db).update(original, original.copy(amount = BigDecimal("150")))
+            a.sync(); b.sync()
+            assertEquals(mapOf("CMB/CNY" to "850"), b.pockets())
+            assertEquals(a.payloads(), b.payloads())
+        }
     }
 
     // ---- first sync -------------------------------------------------------------------------
