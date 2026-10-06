@@ -79,7 +79,7 @@ fun CategoryChip(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = category.name,
+                    text = com.ritesh.cashiro.presentation.common.categoryName(category.name),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = MaterialTheme.typography.titleMedium.fontWeight,
                     maxLines = 1,

@@ -184,7 +184,7 @@ fun CommonCategoryRow(
                 FilterChip(
                     selected = category.name == selected,
                     onClick = { onSelect(category.name) },
-                    label = { Text(category.name, maxLines = 1) },
+                    label = { Text(com.ritesh.cashiro.presentation.common.categoryName(category.name), maxLines = 1) },
                     leadingIcon = { CategoryIcon(category, 18.dp) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -236,7 +236,7 @@ fun MerchantSuggestionRow(
                     Text(suggestion.merchant, style = MaterialTheme.typography.labelLarge, maxLines = 1,
                         overflow = TextOverflow.Ellipsis)
                     Text(
-                        text = suggestion.subcategory ?: suggestion.category,
+                        text = com.ritesh.cashiro.presentation.common.categoryName(suggestion.subcategory ?: suggestion.category),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1

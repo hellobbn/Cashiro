@@ -176,14 +176,17 @@ fun HeatmapWidget(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 monthLabels.forEach { (weekIndex, label) ->
-                    // horizontal offset based on weekIndex
-                    val xOffset = cellStep * weekIndex
+                    // Under its first week; a month starting in the last weeks ends at the grid's
+                    // edge instead, so its label is not cut off
+                    val atEnd = weekIndex >= weeksToShow - 2
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        
-                        modifier = Modifier.offset(x = xOffset)
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = if (atEnd) Modifier.align(androidx.compose.ui.Alignment.TopEnd)
+                            else Modifier.offset(x = cellStep * weekIndex)
                     )
                 }
             }

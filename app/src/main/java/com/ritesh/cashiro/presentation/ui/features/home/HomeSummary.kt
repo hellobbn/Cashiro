@@ -522,7 +522,7 @@ private fun RecentTransactionRow(
     val incoming = type == TransactionType.INCOME || type == TransactionType.BORROWED
     val transfer = type == TransactionType.TRANSFER
     val accountName = decoration.account?.bankName
-    val category = decoration.subcategory?.name ?: decoration.category?.name ?: transaction.category
+    val category = com.ritesh.cashiro.presentation.common.categoryName(decoration.subcategory?.name ?: decoration.category?.name ?: transaction.category)
     val subtitle = if (transfer && accountName != null && targetName != null) "$accountName → $targetName"
         else listOfNotNull(category.takeIf { it.isNotBlank() }, accountName).joinToString("　")
     val sign = when {

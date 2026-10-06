@@ -408,7 +408,7 @@ fun CategoryPieChart(
         ) {
             items(chartData.sortedByDescending { it.data }) { pie ->
                 LegendItem(
-                    label = pie.label ?: "Unknown",
+                    label = com.ritesh.cashiro.presentation.common.categoryName(pie.label ?: "Miscellaneous"),
                     value = pie.data,
                     color = pie.color,
                     isSelected = pie.selected,

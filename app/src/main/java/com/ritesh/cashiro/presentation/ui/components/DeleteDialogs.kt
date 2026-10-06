@@ -347,7 +347,7 @@ fun DeleteCategoryDialog(
             },
             text = {
                 Text(
-                    stringResource(R.string.delete_category_confirm_with_transactions, categoryName)
+                    stringResource(R.string.delete_category_confirm_with_transactions, com.ritesh.cashiro.presentation.common.categoryName(categoryName))
                 )
             },
             confirmButton = {
@@ -385,7 +385,7 @@ fun DeleteCategoryDialog(
         AlertDialog(
             onDismissRequest = onDismiss,
             title = { Text(stringResource(R.string.delete_category_title)) },
-            text = { Text(stringResource(R.string.delete_category_confirm_no_transactions, categoryName)) },
+            text = { Text(stringResource(R.string.delete_category_confirm_no_transactions, com.ritesh.cashiro.presentation.common.categoryName(categoryName))) },
             confirmButton = {
                 DialogConfirmButton(
                     text = stringResource(R.string.delete),
@@ -493,7 +493,7 @@ fun DeleteSubcategoryDialog(
         title = { Text(stringResource(R.string.delete_subcategory_title)) },
         text = {
             Text(
-                text = stringResource(R.string.delete_subcategory_confirm, subcategoryName),
+                text = stringResource(R.string.delete_subcategory_confirm, com.ritesh.cashiro.presentation.common.categoryName(subcategoryName)),
                 style = MaterialTheme.typography.bodyMedium
             )
         },

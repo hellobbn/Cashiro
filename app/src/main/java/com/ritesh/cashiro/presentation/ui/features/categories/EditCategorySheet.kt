@@ -64,7 +64,10 @@ fun EditCategorySheet(
     onDelete: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
-    var name by remember { mutableStateOf(category?.name ?: "") }
+    // A built-in name is edited as shown; left as shown, it is saved under its stored name
+    val shownName = com.ritesh.cashiro.presentation.common.categoryName(category?.name)
+    var name by remember { mutableStateOf(shownName) }
+    val savedName = { if (category != null && name.trim() == shownName) category.name else name }
     var description by remember { mutableStateOf(category?.description ?: "") }
     var colorHex by remember { mutableStateOf(category?.color ?: "#33B5E5") }
     var iconName by remember(category) {
@@ -368,7 +371,7 @@ fun EditCategorySheet(
 
                 // Create/Update button
                 Button(
-                    onClick = { onSave(name, description, colorHex, iconResId, iconName, isIncome) },
+                    onClick = { onSave(savedName(), description, colorHex, iconResId, iconName, isIncome) },
                     enabled = name.isNotBlank(),
                     modifier = Modifier
                         .weight(1f)
@@ -387,7 +390,7 @@ fun EditCategorySheet(
                     IconButton(
                         shapes = IconButtonDefaults.shapes(),
                         onClick = {
-                            name = category.defaultName ?: category.name
+                            name = com.ritesh.cashiro.presentation.common.CategoryNames.display(category.defaultName ?: category.name)
                             description = category.defaultDescription ?: ""
                             colorHex = category.defaultColor ?: category.color
                             iconName = category.defaultIconName ?: category.iconName

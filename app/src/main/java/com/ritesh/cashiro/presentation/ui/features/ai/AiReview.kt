@@ -240,7 +240,7 @@ private fun subtitle(item: ReviewItem): String? {
 }
 
 private fun describeFields(t: TransactionEntity) =
-    listOfNotNull(t.merchantName.takeIf { it.isNotBlank() }, listOfNotNull(t.category, t.subcategory).joinToString(" · "))
+    listOfNotNull(t.merchantName.takeIf { it.isNotBlank() }, listOfNotNull(t.category, t.subcategory).joinToString(" · ") { com.ritesh.cashiro.presentation.common.CategoryNames.display(it) })
         .joinToString(" · ")
 
 @Composable
@@ -419,7 +419,7 @@ private fun DraftForm(draft: TransactionDraft, lookups: TransactionLookups, onCh
     )
     FieldButton(
         label = stringResource(R.string.category),
-        value = listOfNotNull(draft.category, draft.subcategory).joinToString(" · "),
+        value = listOfNotNull(draft.category, draft.subcategory).joinToString(" · ") { com.ritesh.cashiro.presentation.common.CategoryNames.display(it) },
         onClick = { pickingCategory = true }
     )
     AccountField(account = draft.account, onClick = { pickingAccount = true })

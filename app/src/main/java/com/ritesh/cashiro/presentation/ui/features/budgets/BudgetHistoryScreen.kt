@@ -73,7 +73,7 @@ fun BudgetHistoryScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CustomTitleTopAppBar(
-                title = uiState.budget?.name?.let { stringResource(R.string.budget_history_format, it) } ?: stringResource(R.string.budget_history),
+                title = uiState.budget?.let { stringResource(R.string.budget_history_format, budgetDisplayName(it.name, it.periodType)) } ?: stringResource(R.string.budget_history),
                 scrollBehaviorSmall = scrollBehaviorSmall,
                 scrollBehaviorLarge = scrollBehavior,
                 hazeState = hazeState,

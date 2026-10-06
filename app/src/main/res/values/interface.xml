@@ -131,8 +131,8 @@
         <item quantity="other">Read %d files</item>
     </plurals>
     <plurals name="ai_step_images">
-        <item quantity="one">%d image</item>
-        <item quantity="other">%d images</item>
+        <item quantity="one">long screenshots cut into %d pieces</item>
+        <item quantity="other">long screenshots cut into %d pieces</item>
     </plurals>
     <plurals name="ai_step_found">
         <item quantity="one">Found %d</item>
@@ -336,4 +336,19 @@
     <string name="msg_account_deleted">Account deleted</string>
     <string name="show_notes">Show notes</string>
     <string name="hide_notes">Hide notes</string>
+    <string name="budget_period_custom">Custom</string>
+    <string name="budget_period_daily">Daily</string>
+    <string name="budget_period_weekly">Weekly</string>
+    <string name="budget_period_monthly">Monthly</string>
+    <string name="budget_period_yearly">Yearly</string>
+    <string name="cycle_forever">Forever</string>
+    <string name="view_less">Show less</string>
+    <string name="view_more_count">Show %1$d more</string>
+    <string name="attachment_link">Link</string>
+    <string name="app_logo">App icon</string>
+    <string name="feedback_subject">Cashiro feedback</string>
+    <string name="send_email">Send email</string>
+    <string name="share_backup">Share backup</string>
+    <string name="backup_file_subject">Cashiro backup</string>
+    <string name="settlement_title">Settlement</string>
 </resources>

@@ -208,7 +208,7 @@ fun TransactionsFilterBottomSheet(
                     ) {
                         Column {
                             Text(
-                                text = if (categoryFilter.size == 1) categoryFilter.first() else stringResource(R.string.subcategories),
+                                text = if (categoryFilter.size == 1) com.ritesh.cashiro.presentation.common.categoryName(categoryFilter.first()) else stringResource(R.string.subcategories),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(
@@ -644,14 +644,14 @@ private fun FilterCategoryItem(
             if (resolvedResId != 0) {
                 Icon(
                     painter = painterResource(id = resolvedResId),
-                    contentDescription = name,
+                    contentDescription = com.ritesh.cashiro.presentation.common.categoryName(name),
                     modifier = Modifier.size(iconSize).padding(4.dp),
                     tint =  Color.Unspecified
                 )
             } else {
                 Icon(
                     imageVector = iconVector ?: Iconax.Category2,
-                    contentDescription = name,
+                    contentDescription = com.ritesh.cashiro.presentation.common.categoryName(name),
                     modifier = Modifier.size(iconSize).padding(4.dp),
                     tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -677,7 +677,7 @@ private fun FilterCategoryItem(
         }
         
         Text(
-            text = name,
+            text = com.ritesh.cashiro.presentation.common.categoryName(name),
             style = if (isSmall) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,

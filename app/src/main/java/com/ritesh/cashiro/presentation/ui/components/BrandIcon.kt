@@ -191,7 +191,7 @@ fun CategoryIcon(
     
     Icon(
         painter = painter,
-        contentDescription = category,
+        contentDescription = com.ritesh.cashiro.presentation.common.categoryName(category),
         tint = tint ?: Color.Unspecified,
         modifier = modifier.size(size)
     )

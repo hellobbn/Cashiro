@@ -816,8 +816,8 @@ fun SharedTransitionScope.LendBorrowTransactionListItem(
 
     val currentYear = remember { java.time.Year.now().value }
     val dueDateFormatter = remember(item.dueDate?.year, currentYear) {
-        val pattern = if (item.dueDate?.year == currentYear) "MMM dd" else "MMM dd, yyyy"
-        DateTimeFormatter.ofPattern(pattern)
+        if (item.dueDate?.year == currentYear) com.ritesh.cashiro.utils.DateFormats.monthDayFormatter()
+        else com.ritesh.cashiro.utils.DateFormats.fullDateFormatter()
     }
 
     val sharedModifier = if (animatedContentScope != null && sharedElementKey != null) {

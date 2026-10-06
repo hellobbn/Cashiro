@@ -130,7 +130,8 @@ private fun LazyListScope.timeline(phase: AiPhase.Running, keyPrefix: String, li
             title = when {
                 phase.files == 0 -> stringResource(R.string.ai_step_no_files)
                 images == null -> pluralStringResource(R.plurals.ai_step_reading_files, phase.files, phase.files)
-                images == 0 -> pluralStringResource(R.plurals.ai_step_read_files, phase.files, phase.files)
+                // Images only come up when a long screenshot was cut into pieces for the model
+                images <= phase.files -> pluralStringResource(R.plurals.ai_step_read_files, phase.files, phase.files)
                 else -> pluralStringResource(R.plurals.ai_step_read_files, phase.files, phase.files) + " · " +
                     pluralStringResource(R.plurals.ai_step_images, images, images)
             }
@@ -293,7 +294,7 @@ private fun ProposedStep(step: AiStep.Proposed) {
                     if (change.before.merchantName != change.after.merchantName) {
                         "${change.before.merchantName} → ${change.after.merchantName}"
                     } else {
-                        listOfNotNull(change.after.merchantName, change.after.category).joinToString(" · ")
+                        listOfNotNull(change.after.merchantName, com.ritesh.cashiro.presentation.common.categoryName(change.after.category)).joinToString(" · ")
                     },
                     CurrencyFormatter.formatCurrency(change.after.amount, change.after.currency),
                     transactionTypeColor(change.after.transactionType)

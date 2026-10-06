@@ -88,7 +88,7 @@ fun DateRangePickerDialog(
             )
         },
         dismissButton = {
-            DialogDismissButton("Cancel", onDismiss)
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
         },
         colors = DatePickerDefaults.colors(
             containerColor = CashiroDialogDefaults.containerColor,

@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,7 +55,7 @@ fun DatePicker(
             )
         },
         dismissButton = {
-            DialogDismissButton("Cancel", onDismiss)
+            DialogDismissButton(stringResource(R.string.cancel), onDismiss)
         },
         colors = DatePickerDefaults.colors(
             containerColor = CashiroDialogDefaults.containerColor,

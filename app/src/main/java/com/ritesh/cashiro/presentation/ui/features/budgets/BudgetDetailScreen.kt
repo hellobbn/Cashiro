@@ -178,7 +178,7 @@ fun SharedTransitionScope.BudgetDetailScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CustomTitleTopAppBar(
-                title = budgetWithSpending?.budget?.name ?: stringResource(R.string.budget_details),
+                title = budgetWithSpending?.budget?.let { budgetDisplayName(it.name, it.periodType) } ?: stringResource(R.string.budget_details),
                 hazeState = hazeState,
                 scrollBehaviorSmall = scrollBehaviorSmall,
                 scrollBehaviorLarge = scrollBehavior,

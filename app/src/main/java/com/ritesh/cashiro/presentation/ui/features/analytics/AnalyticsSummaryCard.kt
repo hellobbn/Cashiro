@@ -226,7 +226,7 @@ fun AnalyticsSummaryCard(
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = topCategory,
+                                            text = com.ritesh.cashiro.presentation.common.categoryName(topCategory),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )

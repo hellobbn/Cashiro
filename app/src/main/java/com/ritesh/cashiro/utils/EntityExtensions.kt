@@ -40,5 +40,5 @@ fun AccountBalanceEntity.formatCreditLimit(): String =
 fun TransactionEntity.displayTitle(): String {
     if (merchantName.isNotBlank()) return merchantName
     val note = description?.lineSequence()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() }
-    return listOfNotNull(subcategory?.takeIf { it.isNotBlank() } ?: category, note).joinToString(" · ")
+    return listOfNotNull(com.ritesh.cashiro.presentation.common.CategoryNames.display(subcategory?.takeIf { it.isNotBlank() } ?: category), note).joinToString(" · ")
 }

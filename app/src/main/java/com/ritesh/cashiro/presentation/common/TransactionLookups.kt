@@ -42,6 +42,7 @@ data class TransactionLookups(
     // Subcategory names repeat across categories ("Other"), so the category is part of the key
     val subcategories: Map<Pair<Long, String>, SubcategoryEntity> = emptyMap(),
     val accounts: Map<String, AccountBalanceEntity> = emptyMap(),
+    val accountsById: Map<Long, AccountBalanceEntity> = emptyMap(),
     val persons: Map<Long, PersonInfo> = emptyMap()
 ) {
     fun category(tx: TransactionEntity): CategoryEntity? = categories[tx.category]
@@ -52,7 +53,10 @@ data class TransactionLookups(
         return subcategories[category.id to name]
     }
 
-    fun account(tx: TransactionEntity): AccountBalanceEntity? = accounts[accountKey(tx.bankName, tx.accountNumber)]
+    // By id first: a transaction keeps its account id even when its stored bank name is out of
+    // date (an import that wrote the English name, an old rename)
+    fun account(tx: TransactionEntity): AccountBalanceEntity? =
+        tx.accountId?.let { accountsById[it] } ?: accounts[accountKey(tx.bankName, tx.accountNumber)]
 
     fun decorate(tx: TransactionEntity, conversions: Conversions = Conversions()) = TransactionDecoration(
         category = category(tx),
@@ -92,6 +96,7 @@ class TransactionLookupsSource @Inject constructor(
             categories = categories.associateBy { it.name },
             subcategories = subcategories.associateBy { it.categoryId to it.name },
             accounts = accounts.associateBy { TransactionLookups.accountKey(it.bankName, it.accountLast4) },
+            accountsById = accounts.mapNotNull { a -> a.accountId?.let { it to a } }.toMap(),
             persons = lendBorrow.mapNotNull { lb ->
                 val id = lb.transactionId ?: return@mapNotNull null
                 val person = peopleById[lb.personId]

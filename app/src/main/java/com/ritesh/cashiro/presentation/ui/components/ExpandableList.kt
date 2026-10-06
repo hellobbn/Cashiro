@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -56,9 +58,9 @@ fun <T> ExpandableList(
                 ) {
                     Text(
                         text = if (isExpanded) {
-                            "View Less"
+                            stringResource(R.string.view_less)
                         } else {
-                            "View ${items.size - visibleItemCount} more"
+                            stringResource(R.string.view_more_count, items.size - visibleItemCount)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,

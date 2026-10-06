@@ -367,7 +367,7 @@ constructor(
     private suspend fun saveQuickTemplateFromState(state: TransactionUiState) {
         quickTemplateRepository.add(
             QuickTemplateEntity(
-                name = state.merchant.trim().ifBlank { state.subcategory ?: state.category },
+                name = state.merchant.trim().ifBlank { com.ritesh.cashiro.presentation.common.CategoryNames.display(state.subcategory ?: state.category) },
                 merchantName = state.merchant.trim(),
                 category = state.category,
                 subcategory = state.subcategory,

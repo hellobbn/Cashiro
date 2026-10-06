@@ -2,6 +2,8 @@
 
 package com.ritesh.cashiro.presentation.ui.components
 
+import com.ritesh.cashiro.R
+import androidx.compose.ui.res.stringResource
 import com.ritesh.cashiro.utils.DateFormats
 
 import androidx.compose.foundation.layout.*
@@ -60,12 +62,12 @@ fun CustomBillingCycleCard(
                 ) {
                     Icon(
                         imageVector = Iconax.RefreshCircle,
-                        contentDescription = "repeat",
+                        contentDescription = null,
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        "Repeat every",
+                        stringResource(R.string.repeat_every),
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
@@ -81,7 +83,7 @@ fun CustomBillingCycleCard(
                     ) {
                         Icon(
                             Icons.Rounded.Close,
-                            contentDescription = "Set to Forever",
+                            contentDescription = stringResource(R.string.cycle_forever),
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.error
                         )
@@ -175,7 +177,7 @@ fun CustomBillingCycleCard(
                 // End Date Selection
                 val endDateLabel = endDate?.format(
                     DateFormats.fullDateFormatter()
-                ) ?: "Forever"
+                ) ?: stringResource(R.string.cycle_forever)
 
                 Surface(
                     onClick = onEndDateClick,

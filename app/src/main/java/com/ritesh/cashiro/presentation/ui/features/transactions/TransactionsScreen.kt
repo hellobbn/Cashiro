@@ -572,7 +572,7 @@ fun TransactionsScreen(
                     label = {
                         Text(
                             text = if (categoryFilter.isNotEmpty()) {
-                                stringResource(R.string.search_in_categories_format, categoryFilter.joinToString(", "))
+                                stringResource(R.string.search_in_categories_format, categoryFilter.map { com.ritesh.cashiro.presentation.common.CategoryNames.display(it) }.joinToString("、"))
                             } else stringResource(R.string.search_transactions),
                             maxLines = 1,
                             textAlign = TextAlign.Center,
