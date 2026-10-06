@@ -97,7 +97,6 @@ fun SettingsScreen(
     onNavigateToLendBorrow: () -> Unit = {},
     onNavigateToDataPrivacy: () -> Unit = {},
     onNavigateToCloudBackup: () -> Unit = {},
-    onNavigateToSync: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
     onNavigateToCurrency: () -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel(),
@@ -772,51 +771,6 @@ fun SettingsScreen(
                             )
                         },
                         onClick = { onNavigateToCloudBackup() },
-                        shape = ListItemPosition.Middle.toShape(),
-                        padding = PaddingValues(0.dp)
-                    )
-
-                    // Sync (docs/sync.md)
-                    ListItem(
-                        headline = {
-                            Text(
-                                text = stringResource(R.string.sync_title),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                        },
-                        supporting = {
-                            Text(
-                                text = stringResource(R.string.sync_subtitle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        leading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.secondaryContainer,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Devices,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            }
-                        },
-                        trailing = {
-                            Icon(
-                                Icons.Rounded.ChevronRight,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        onClick = { onNavigateToSync() },
                         shape = ListItemPosition.Bottom.toShape(),
                         padding = PaddingValues(0.dp)
                     )

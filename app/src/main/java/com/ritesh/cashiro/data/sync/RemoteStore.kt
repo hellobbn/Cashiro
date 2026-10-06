@@ -80,6 +80,9 @@ data class SyncAccount(val uid: String, val email: String?)
 interface SyncBackend {
     val available: Boolean
 
+    /** The backend's project, shown in the Sync page's status and debug section. */
+    val projectId: String? get() = null
+
     /** The account signed in now, if any. */
     fun currentAccount(): SyncAccount?
 
@@ -96,7 +99,7 @@ interface SyncBackend {
 class SyncRemoteException(val problem: SyncProblem, cause: Throwable? = null) : Exception(problem.name, cause)
 
 /** Thrown when the user closes the sign-in sheet; not an error worth showing. */
-class SignInCancelledException : Exception("Sign-in cancelled")
+class SignInCancelledException(cause: Throwable? = null) : Exception("Sign-in cancelled", cause)
 
 /** Why the last sync did not finish, shown on the Sync screen. */
 enum class SyncProblem {

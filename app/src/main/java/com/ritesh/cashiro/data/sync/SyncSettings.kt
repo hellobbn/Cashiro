@@ -81,6 +81,19 @@ class SyncSettings @Inject constructor(@ApplicationContext private val context: 
         get() = prefs.getLong(KEY_LAST_SYNC, 0)
         set(value) = prefs.edit { putLong(KEY_LAST_SYNC, value) }
 
+    /**
+     * Sync switched off on the Sync page: nothing is pushed or pulled, but the account, the key
+     * and the cursor stay, so switching it back on resumes where it stopped.
+     */
+    var paused: Boolean
+        get() = prefs.getBoolean(KEY_PAUSED, false)
+        set(value) = prefs.edit { putBoolean(KEY_PAUSED, value) }
+
+    /** The last failure as "Type: message", for the status and debug section; null after a success. */
+    var lastError: String?
+        get() = prefs.getString(KEY_ERROR, null)
+        set(value) = prefs.edit { if (value == null) remove(KEY_ERROR) else putString(KEY_ERROR, value.take(500)) }
+
     var lastProblem: SyncProblem?
         get() = prefs.getString(KEY_PROBLEM, null)?.let { runCatching { SyncProblem.valueOf(it) }.getOrNull() }
         set(value) = prefs.edit { if (value == null) remove(KEY_PROBLEM) else putString(KEY_PROBLEM, value.name) }
@@ -94,6 +107,8 @@ class SyncSettings @Inject constructor(@ApplicationContext private val context: 
         cursor = null
         lastSyncAt = 0
         lastProblem = null
+        lastError = null
+        paused = false
     }
 
     private companion object {
@@ -107,5 +122,7 @@ class SyncSettings @Inject constructor(@ApplicationContext private val context: 
         const val KEY_CURSOR_NANOS = "cursor_nanos"
         const val KEY_LAST_SYNC = "last_sync_at"
         const val KEY_PROBLEM = "last_problem"
+        const val KEY_PAUSED = "paused"
+        const val KEY_ERROR = "last_error"
     }
 }

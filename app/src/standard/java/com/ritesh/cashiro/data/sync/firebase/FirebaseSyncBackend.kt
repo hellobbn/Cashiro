@@ -37,6 +37,7 @@ class FirebaseSyncBackend @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : SyncBackend {
     override val available = true
+    override val projectId: String = FirebaseSyncConfig.PROJECT_ID
 
     private val app: FirebaseApp by lazy {
         FirebaseApp.getApps(context).firstOrNull { it.name == FirebaseSyncConfig.APP_NAME }
@@ -75,7 +76,7 @@ class FirebaseSyncBackend @Inject constructor(
         val credential = try {
             credentialManager.getCredential(activityContext, request).credential
         } catch (e: GetCredentialCancellationException) {
-            throw SignInCancelledException()
+            throw SignInCancelledException(e)
         } catch (e: NoCredentialException) {
             // No Google account on the device (or none allowed)
             throw SyncRemoteException(SyncProblem.OTHER, e)

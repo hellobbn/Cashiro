@@ -7,10 +7,10 @@ encrypted on the device with a key only the user's passphrase gives.
 | Phase | What | State |
 |---|---|---|
 | 1 | Local groundwork: record identity, change capture, outbox | done (database version 71) |
-| 2 | Firebase sign-in, wire protocol, push and pull, Settings → Sync | done (database version 72) |
+| 2 | Firebase sign-in, wire protocol, push and pull, the sync page (Backup & sync → Firebase sync) | done (database version 72) |
 
 Sync is in the **standard flavor only**. The F-Droid flavor links no Firebase, Credential
-Manager or googleid code; its Sync screen says sync is unavailable (see [Code](#code)).
+Manager or googleid code; its Firebase sync entry and page say sync is unavailable (see [Code](#code)).
 
 Contents: the local groundwork ([Synced tables](#synced-tables) to [Backups](#backups)), the
 [Wire protocol](#wire-protocol) another client (iOS) must follow, and the [Engine](#engine) this
@@ -605,7 +605,7 @@ an ordinary edit of that record.
 | `SyncLocalStore` | Rows as payloads and back, on the raw database (no entities or converters) |
 | `SyncEngine` | Push, pull, held records, duplicates, the first sync |
 | `SyncManager` | When to sync, sign-in and passphrase, state for the UI |
-| `SyncSettings` | Account, derived key (encrypted preferences), cursor, last result |
+| `SyncSettings` | Account, derived key (encrypted preferences), cursor, on/off (`paused`), last result and error |
 | `SyncWorker` | WorkManager retry when offline |
 
 ### Push
@@ -647,8 +647,11 @@ balance rows are records like any other and are copied as they are, so no balanc
   there; a remote write by another device triggers a pull (debounced 1 second).
 - **Failures and background**: a failed sync, or going to the background with changes queued,
   enqueues `SyncWorker` (network required, exponential backoff from 30 seconds).
-- **Sync now** on the Sync screen: push, then pull.
-- Sync needs no UI, so the app lock does not hold it back; the Sync screen itself is behind
+- **Sync now** in the sync page's "status & debug info" section: push, then pull.
+- **The switch** on the sync page turns sync off and on (`SyncSettings.paused`). Off pushes and
+  pulls nothing and stops listening, but keeps the account, the key, the cursor and the outbox:
+  local changes are still queued, and switching it on syncs at once.
+- Sync needs no UI, so the app lock does not hold it back; the sync page itself is behind
   the lock like every screen.
 
 ### First sync
@@ -713,7 +716,11 @@ preferences, the AI provider and key, brokerage connections and tokens, exchange
 
 ### Code
 
-- `main`: `data/sync/*`, `presentation/ui/features/settings/sync/*` (Settings → Sync).
+- `main`: `data/sync/*`, `presentation/ui/features/settings/sync/*` (the sync page, opened from
+  Settings → Backup & sync → Firebase sync; route `CloudSync`).
+- The page's "status & debug info" (collapsed) shows the signed-in email and uid, the device id,
+  the last sync, the pull cursor, the outbox and inbox counts, the last problem and error
+  (`SyncSettings.lastError`), the Firestore project id and the protocol version.
 - `standard`: `data/sync/firebase/*` (`FirebaseSyncBackend`, `FirestoreRemoteStore`,
   `FirebaseSyncConfig`), `di/SyncBackendModule.kt`.
 - `fdroid`: `di/SyncBackendModule.kt` with `UnavailableSyncBackend`.

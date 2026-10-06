@@ -21,7 +21,10 @@ import kotlinx.coroutines.launch
 sealed class SyncMessage {
     data object Synced : SyncMessage()
     data object Failed : SyncMessage()
-    data object SignInFailed : SyncMessage()
+    /** Sign-in did not finish; [detail] is the error's type and message */
+    data class SignInFailed(val detail: String) : SyncMessage()
+    /** The account sheet was closed without choosing an account */
+    data object SignInCancelled : SyncMessage()
     data object Merged : SyncMessage()
     data class Replaced(val backupName: String) : SyncMessage()
 }
@@ -47,10 +50,12 @@ class SyncViewModel @Inject constructor(private val manager: SyncManager) : View
         try {
             manager.signIn(activityContext)
         } catch (e: SignInCancelledException) {
-            // Closed the sheet: nothing to say
+            // Said too: a misconfigured client can also end as "cancelled", so it is never silent
+            Log.i(TAG, "Sign-in cancelled", e)
+            _messages.tryEmit(SyncMessage.SignInCancelled)
         } catch (e: Exception) {
             Log.w(TAG, "Sign-in failed", e)
-            _messages.tryEmit(SyncMessage.SignInFailed)
+            _messages.tryEmit(SyncMessage.SignInFailed(SyncManager.describe(e)))
         }
     }
 
@@ -84,6 +89,9 @@ class SyncViewModel @Inject constructor(private val manager: SyncManager) : View
     }
 
     fun signOut() = viewModelScope.launch { manager.signOut() }
+
+    /** The on/off switch: off pauses sync and keeps the account and key. */
+    fun setEnabled(enabled: Boolean) = manager.setPaused(!enabled)
 
     private fun run(success: SyncMessage, block: suspend () -> Unit) = viewModelScope.launch {
         try {

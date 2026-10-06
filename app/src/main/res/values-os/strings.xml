@@ -15,12 +15,7 @@
     <string name="lock_timeout_immediate">Lock immediately when app goes to background</string>
     <string name="lock_timeout_1min">Lock after 1 minute in background</string>
     <string name="lock_timeout_minutes">Lock after %1$d minutes in background</string>
-    <string name="backup_tab">Backup</string>
-    <string name="local_backup_section">Local Backup</string>
     <string name="export_data">Export Data</string>
-    <string name="export_data_sub">Backup your data to a file</string>
-    <string name="import_data">Import Data</string>
-    <string name="import_data_sub">Restore data from backup</string>
     <string name="immediately">Immediately</string>
     <string name="one_minute">1 minute</string>
     <string name="minutes_format">%1$d minutes</string>
@@ -557,9 +552,7 @@
     <string name="amount_i_owe_them">Æхца, кæцы æз сын фыст</string>
     <string name="amount_they_owe_me">Æхца, кæцы уыдон мæнæн фысты</string>
     <string name="auth_failed_format">Растджындзинад нæ ракодтой: %1$s</string>
-    <string name="automatic_backup_schedule">Автоматон резервты график</string>
     <string name="backup_retention_limit">Резервты храны бæрц</string>
-    <string name="backup_schedule">Резервты график</string>
     <string name="backup_sync_title">Резерв &amp; синхронизаци</string>
     <string name="backup_uploaded_success">Резерв сæрмагонд нысан æвдыст цыд!</string>
     <string name="call_person">Йæ фонийыл схуыст</string>
@@ -576,7 +569,6 @@
     <string name="connection_failed_format">Бæстæдзинад нæ æрцыд: %1$s</string>
     <string name="connection_verified">Бæстæдзинад сæрмагонд æрцыд!</string>
     <string name="contacts">Контакттæ</string>
-    <string name="create_backup">Скæн резерв</string>
     <string name="delete_cloud_snapshot_confirm">Æцæг дæ бæллыс, цæмæй %1$s раиппарын? Ацы резервон копи раздæхы нал уыдзæн.</string>
     <string name="delete_cloud_snapshot_title">Раиппарын облакон копи?</string>
     <string name="delete_multiple_persons_confirm">Ацы акци нæ раздæхы. Равзарст адæм æмæ сæм цы уавæртæ сты, уыдон æппæт раиппарынц æмæ сæ нæ раздæхы.</string>
@@ -585,7 +577,6 @@
     <string name="delete_person_confirm_title">Раиппарын адæймаг?</string>
     <string name="delete_record">Раиппарын уавæр</string>
     <string name="delete_snapshot">Раиппарын копи</string>
-    <string name="device_sync_failed">Æнæуæрсейы синхронизаци нæ рацыд</string>
     <string name="downloading_snapshot">Копи байсын...</string>
     <string name="due_date">Аххæст фæгонд бон</string>
     <string name="e2e_disabled_desc">Облакомæ бабæрæг кæнынмæ раздæр резервтæ шифрæй бахъахъхъæн</string>
@@ -595,7 +586,6 @@
     <string name="edit_record">Ивæр уавæр</string>
     <string name="enable_and_save">Басывæр</string>
     <string name="encrypted_backup_title">Шифргонд резерв</string>
-    <string name="encryption_and_automation">Шифраци &amp; автоматизаци</string>
     <string name="enter_passphrase_desc">Бафысс æмбарынвæддзинад, цæмæй фæстæмæ облакон резервтæ AES-256-GCM-æй шифргонд уой:</string>
     <string name="err_auth_failed_retry">Растджындзинад нæ ракодтой. Дæ хъæуы сæфыны бынæй фæстæмæ бавнал.</string>
     <string name="err_network">Хæстæджыты рæдыд. Рацын æрмæсты дæ бæстæдзинад.</string>
@@ -639,7 +629,6 @@
     <string name="person_name">Адæймаджы ном *</string>
     <string name="phone_number_optional">Фонийы номыр (нæ фæнды — ма ныффысс)</string>
     <string name="provider_google_drive">Google Drive</string>
-    <string name="provider_local_only">Бæрцæй хæдзарон</string>
     <string name="provider_webdav">Nextcloud / WebDAV</string>
     <string name="record_options">Уавæры варианттæ</string>
     <string name="reminder_message_format">Салам %1$s, хæрзæхсæв! Нæ %2$s балансæй фæндаг.</string>
@@ -649,10 +638,6 @@
     <string name="restoring_data_format">Дæттытæ фæстæмæ сæвæрын... %1$d%%</string>
     <string name="retention_limit">Храны бæрц</string>
     <string name="review">Басмæт</string>
-    <string name="schedule_daily">Алы бон</string>
-    <string name="schedule_manual">Бæрцæй аххæст</string>
-    <string name="schedule_monthly">Алы мæй</string>
-    <string name="schedule_weekly">Алы къуыри</string>
     <string name="select_person">Равзар адæймаг</string>
     <string name="server_url_hint">Серверы URL (дз., https://cloud.example.com/remote.php/dav/files/user/)</string>
     <string name="settle_description">Сбарæвæрды зымаг</string>
@@ -670,12 +655,7 @@
     <string name="snapshot_restored_success">Копи сæрмагонд фæстæмæ сæвæрд!</string>
     <string name="snapshot_subtitle_format">%1$s • %2$s</string>
     <string name="starting_cloud_backup">Облакон резерв райдай...</string>
-    <string name="storage_provider">Резервты æрæхстæ</string>
     <string name="store_backups_local_desc">Резертвтæ бæрцæй ацы æнæуæрсейы бахъахъхъæн</string>
-    <string name="sync_complete_format">Синхронизаци æрцыд! Бастæуыд %1$d æнæуæрсейы, байстыд %2$d уавæры.</string>
-    <string name="sync_devices">Æнæуæрсейты синхронизаци</string>
-    <string name="synchronizing_devices">Æнæуæрсейты æхсæн синхронизаци...</string>
-    <string name="syncing_devices_format">Æнæуæрсейты æхсæн синхронизаци... %1$d%%</string>
     <string name="telegram_cd">Telegram</string>
     <string name="test_connection">Бæстæдзинад бæлвырдгæнæн</string>
     <string name="total_borrowed">Райстæ</string>

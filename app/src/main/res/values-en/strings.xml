@@ -18,12 +18,7 @@
     <string name="lock_timeout_immediate">Lock immediately when app goes to background</string>
     <string name="lock_timeout_1min">Lock after 1 minute in background</string>
     <string name="lock_timeout_minutes">Lock after %1$d minutes in background</string>
-    <string name="backup_tab">Backup</string>
-    <string name="local_backup_section">Local Backup</string>
     <string name="export_data">Export Data</string>
-    <string name="export_data_sub">Backup your data to a file</string>
-    <string name="import_data">Import Data</string>
-    <string name="import_data_sub">Restore data from backup</string>
     <string name="immediately">Immediately</string>
     <string name="one_minute">1 minute</string>
     <string name="minutes_format">%1$d minutes</string>
@@ -600,7 +595,6 @@
     <!-- Backup & Sync -->
     <string name="review">Review</string>
     <string name="backup_sync_title">Backup &amp; Sync</string>
-    <string name="storage_provider">Storage Provider</string>
     <string name="store_backups_local_desc">Store backups only on this device</string>
     <string name="webdav_provider_desc">Nextcloud, OwnCloud, Synology, or custom WebDAV</string>
     <string name="google_drive_provider_desc">Secure AppData folder in your personal Google Drive</string>
@@ -615,19 +609,14 @@
     <string name="sign_out">Sign Out</string>
     <string name="google_drive_signin_desc">Sign in with your Google account to enable Google Drive backup &amp; sync.</string>
     <string name="sign_in_with_google">Sign in with Google</string>
-    <string name="encryption_and_automation">Encryption &amp; Automation</string>
     <string name="e2e_encryption">End-to-End Encryption</string>
     <string name="e2e_enabled_desc">Backups encrypted with AES-256-GCM</string>
     <string name="e2e_disabled_desc">Encrypt backups before uploading to cloud</string>
-    <string name="automatic_backup_schedule">Automatic Backup Schedule</string>
     <string name="backup_retention_limit">Backup Retention Limit</string>
     <string name="keep_snapshots_format">Keep up to %1$d cloud snapshots</string>
     <string name="manual_actions">Manual Actions</string>
-    <string name="create_backup">Create Backup</string>
-    <string name="sync_devices">Sync Devices</string>
     <string name="cloud_snapshots">Cloud Snapshots</string>
     <string name="no_cloud_snapshots">No remote backup snapshots found in cloud folder.</string>
-    <string name="backup_schedule">Backup Schedule</string>
     <string name="retention_limit">Retention Limit</string>
     <string name="keep_backups_format">Keep up to %1$d backups</string>
     <string name="enter_passphrase_desc">Enter a secure passphrase to encrypt all future cloud backups using AES-256-GCM:</string>
@@ -640,10 +629,6 @@
     <string name="delete_snapshot">Delete Snapshot</string>
     <string name="size_mb_format">%.2f MB</string>
     <string name="snapshot_subtitle_format">%1$s • %2$s</string>
-    <string name="schedule_manual">Manual only</string>
-    <string name="schedule_daily">Daily</string>
-    <string name="schedule_weekly">Weekly</string>
-    <string name="schedule_monthly">Monthly</string>
     <string name="google_signin_failed_null">Google sign-in failed: Account is null</string>
     <string name="google_signin_failed_no_email">Google sign-in failed: Could not retrieve email</string>
     <string name="err_token_null">Retrieved token is null</string>
@@ -659,10 +644,6 @@
     <string name="uploading_to_cloud_format">Uploading to cloud... %1$d%%</string>
     <string name="backup_uploaded_success">Backup successfully uploaded!</string>
     <string name="cloud_backup_failed">Cloud backup failed</string>
-    <string name="synchronizing_devices">Synchronizing across devices...</string>
-    <string name="syncing_devices_format">Syncing across devices... %1$d%%</string>
-    <string name="sync_complete_format">Sync complete! Synced %1$d peer device(s), imported %2$d transactions.</string>
-    <string name="device_sync_failed">Device synchronization failed</string>
     <string name="downloading_snapshot">Downloading snapshot...</string>
     <string name="restoring_data_format">Restoring data... %1$d%%</string>
     <string name="snapshot_restored_success">Snapshot successfully restored!</string>
@@ -671,7 +652,6 @@
     <string name="failed_list_backups_format">Failed to list remote backups: %1$s</string>
     <string name="signin_failed_code_format">Sign-In failed: %1$d</string>
     <string name="error_format">Error: %1$s</string>
-    <string name="provider_local_only">Local Only</string>
     <string name="provider_webdav">Nextcloud / WebDAV</string>
     <string name="provider_google_drive">Google Drive</string>
     <!-- Batch Edit Transactions -->

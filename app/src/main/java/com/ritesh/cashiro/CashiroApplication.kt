@@ -33,6 +33,14 @@ class CashiroApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var syncManager: com.ritesh.cashiro.data.sync.SyncManager
 
+    @Inject
+    lateinit var cloudCredentialStore: com.ritesh.cashiro.data.cloud.security.CloudCredentialStore
+
+    companion object {
+        /** The unique name the removed CloudBackupWorker was scheduled under */
+        internal const val REMOVED_CLOUD_BACKUP_WORK = "CashiroCloudBackupWorker"
+    }
+
     // Route any unhandled coroutine exception to the CrashHandler so the crash screen
     // appears even when the crash originates inside a coroutine (which normally bypasses
     // Thread.UncaughtExceptionHandler).
@@ -89,7 +97,13 @@ class CashiroApplication : Application(), Configuration.Provider {
                 val workManager = androidx.work.WorkManager.getInstance(this@CashiroApplication)
                 workManager.cancelUniqueWork("webhook_periodic_sync")
                 workManager.cancelUniqueWork("webhook_one_time_sync")
+                // Scheduled cloud backups and Drive/WebDAV device sync were removed (manual
+                // backups and Firebase sync remain): stop a periodic job an older version queued
+                workManager.cancelUniqueWork(REMOVED_CLOUD_BACKUP_WORK)
             }
+        }
+        applicationScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching { cloudCredentialStore.forgetRemovedSyncSettings() }
         }
         // Template launcher shortcuts and the home-screen widget follow the quick templates
         quickEntryPublisher.start()

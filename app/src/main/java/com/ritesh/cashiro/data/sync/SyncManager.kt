@@ -62,6 +62,16 @@ class SyncManager @Inject constructor(
         val problem: SyncProblem? = null,
         val pending: Int = 0,
         val held: Int = 0,
+        /** Signed in and set up, but switched off: nothing is pushed or pulled */
+        val paused: Boolean = false,
+        val uid: String? = null,
+        val deviceId: String? = null,
+        /** The last pull's position: `document id @ seconds.nanos`; null before the first pull */
+        val cursor: String? = null,
+        val projectId: String? = null,
+        val protocolVersion: Int = SyncSchema.VERSION,
+        /** The last failure as "Type: message" */
+        val lastError: String? = null,
     )
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -76,7 +86,8 @@ class SyncManager @Inject constructor(
     private var started = false
     private val pullRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-    private val active: Boolean get() = backend.available && settings.enabled && settings.account != null && settings.key != null
+    private val active: Boolean
+        get() = backend.available && settings.enabled && !settings.paused && settings.account != null && settings.key != null
 
     /** Starts watching the outbox; call once when the app starts. */
     @OptIn(FlowPreview::class)
@@ -159,8 +170,33 @@ class SyncManager @Inject constructor(
                 passphraseExists = if (stage == Stage.PASSPHRASE) it.passphraseExists else null,
                 lastSyncAt = settings.lastSyncAt,
                 problem = settings.lastProblem,
+                paused = settings.paused,
+                uid = account?.uid,
+                deviceId = if (backend.available) settings.deviceId else null,
+                cursor = settings.cursor?.let { "${it.docId} @ ${it.time.seconds}.${it.time.nanos.toString().padStart(9, '0')}" },
+                projectId = backend.projectId,
+                lastError = settings.lastError,
             )
         }
+    }
+
+    /**
+     * Switches sync off ([paused]) or back on. Off keeps the account, the key and the cursor;
+     * on syncs at once and listens again while the app is in the foreground.
+     */
+    fun setPaused(paused: Boolean) {
+        _state.update { it.copy(paused = paused) }
+        // Off the main thread: publishing reads the key, which opens the keystore
+        scope.launch {
+            settings.paused = paused
+            if (paused) stopListening()
+            publish()
+            if (!paused && foreground) onForeground()
+        }
+    }
+
+    private fun recordError(e: Throwable) {
+        settings.lastError = describe(e)
     }
 
     private inline fun <T> busy(block: () -> T): T {
@@ -178,7 +214,12 @@ class SyncManager @Inject constructor(
     /** Google sign-in over [activityContext]; then the passphrase is asked. */
     suspend fun signIn(activityContext: Context) = mutex.withLock {
         busy {
-            val account = backend.signIn(activityContext)
+            val account = try {
+                backend.signIn(activityContext)
+            } catch (e: Exception) {
+                recordError(e)
+                throw e
+            }
             if (settings.account?.uid != account.uid) settings.clearAccount()
             settings.account = account
             engine = null
@@ -195,6 +236,7 @@ class SyncManager @Inject constructor(
         } catch (e: Exception) {
             Log.w(TAG, "Reading the account's parameters failed", e)
             settings.lastProblem = classify(e)
+            recordError(e)
             publish()
             return
         }
@@ -288,10 +330,12 @@ class SyncManager @Inject constructor(
                 }
                 settings.lastSyncAt = System.currentTimeMillis()
                 settings.lastProblem = problem
+                settings.lastError = null
                 true
             } catch (e: Exception) {
                 Log.w(TAG, "Sync failed", e)
                 settings.lastProblem = classify(e)
+                recordError(e)
                 SyncWorker.enqueue(context)
                 false
             }
@@ -325,7 +369,11 @@ class SyncManager @Inject constructor(
         return target.name
     }
 
-    private companion object {
+    internal companion object {
+        /** "Type: message" of [e] and its causes, for the debug section; no stack trace. */
+        fun describe(e: Throwable): String = generateSequence(e) { it.cause }.take(3)
+            .joinToString(" ← ") { t -> listOfNotNull(t.javaClass.simpleName, t.message?.takeIf { it.isNotBlank() }).joinToString(": ") }
+
         const val TAG = "SyncManager"
         const val PUSH_DELAY_MS = 3_000L
         const val PULL_DELAY_MS = 1_000L

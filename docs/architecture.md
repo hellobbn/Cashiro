@@ -63,8 +63,10 @@ com.ritesh.cashiro
     brokerage connections.
   - A merge import adds only what is new: transactions by hash, and balance rows of new
     transactions or new accounts.
-- **Cloud** (`data/cloud`): scheduled backups (WorkManager) and device sync, both end-to-end
-  encrypted when the user sets a passphrase.
+- **Cloud** (`data/cloud`): manual full backups to Google Drive or WebDAV (`CloudBackupManager`:
+  upload, list, restore, retention), end-to-end encrypted when the user sets a passphrase. No
+  schedule and no snapshot sync: multi-device sync is Firebase (below). Both share Settings →
+  Backup & sync.
 - **Sync** (`data/sync`, [sync.md](sync.md)): multi-device sync, end-to-end encrypted.
   - `SyncEngine` pushes the outbox to a `RemoteStore` and applies remote records in one
     transaction per page with capture paused, copying balance rows verbatim (never through the

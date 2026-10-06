@@ -53,33 +53,12 @@ sealed class CloudProviderConfig {
 }
 
 /**
- * Status of background synchronization or backup operations
+ * Status of a manual backup or restore
  */
 sealed class SyncStatus {
     object Idle : SyncStatus()
-    data class Syncing(val message: String = "Syncing with cloud...") : SyncStatus()
     data class BackingUp(val progress: Int = 0, val total: Int = 100, val message: String = "Creating backup...") : SyncStatus()
     data class Restoring(val progress: Int = 0, val total: Int = 100, val message: String = "Restoring data...") : SyncStatus()
     data class Success(val message: String, val timestamp: LocalDateTime = LocalDateTime.now()) : SyncStatus()
     data class Error(val message: String) : SyncStatus()
 }
-
-/**
- * Schedule options for automatic background backups
- */
-enum class BackupSchedule(val displayName: String, val intervalDays: Int) {
-    MANUAL("Manual only", 0),
-    DAILY("Daily", 1),
-    WEEKLY("Weekly", 7),
-    MONTHLY("Monthly", 30)
-}
-
-/**
- * Summary result of a multi-device synchronization cycle
- */
-data class CloudSyncResult(
-    val peersSynced: Int,
-    val importedTransactions: Int,
-    val importedCategories: Int,
-    val timestamp: LocalDateTime = LocalDateTime.now()
-)

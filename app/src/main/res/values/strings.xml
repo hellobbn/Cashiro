@@ -18,12 +18,7 @@
     <string name="lock_timeout_immediate">Lock immediately when app goes to background</string>
     <string name="lock_timeout_1min">Lock after 1 minute in background</string>
     <string name="lock_timeout_minutes">Lock after %1$d minutes in background</string>
-    <string name="backup_tab">Backup</string>
-    <string name="local_backup_section">Local Backup</string>
     <string name="export_data">Export Data</string>
-    <string name="export_data_sub">Backup your data to a file</string>
-    <string name="import_data">Import Data</string>
-    <string name="import_data_sub">Restore data from backup</string>
     <string name="import_cashew_backup">Import from Cashew</string>
     <string name="import_cashew_backup_sub">Import SQLite or CSV files from Cashew app</string>
     <string name="immediately">Immediately</string>
@@ -578,9 +573,7 @@
 <string name="appearance_title">Appearance</string>
 <string name="auth_failed_format">Authentication failed: %1$s</string>
 <string name="authenticate_desc">Authenticate to access your expense data</string>
-<string name="automatic_backup_schedule">Automatic Backup Schedule</string>
 <string name="backup_retention_limit">Backup Retention Limit</string>
-<string name="backup_schedule">Backup Schedule</string>
 <string name="backup_sync_title">Backup &amp; Sync</string>
 <string name="backup_uploaded_success">Backup successfully uploaded!</string>
 <string name="base_currency_hint">Base = default currency or main account\'s currency</string>
@@ -620,7 +613,6 @@
 <string name="connection_failed_format">Connection failed: %1$s</string>
 <string name="connection_verified">Connection successfully verified!</string>
 <string name="contacts">Contacts</string>
-<string name="create_backup">Create Backup</string>
 <string name="currency">Currency</string>
 <string name="currency_code">Currency Code</string>
 <string name="currency_code_hint">USD, INR, EUR ...</string>
@@ -646,7 +638,6 @@
 <string name="delete_person_confirm_title">Delete Person?</string>
 <string name="delete_record">Delete Record</string>
 <string name="delete_snapshot">Delete Snapshot</string>
-<string name="device_sync_failed">Device synchronization failed</string>
 <string name="display_currency">Display Currency</string>
 <string name="downloading_snapshot">Downloading snapshot...</string>
 <string name="due_date">Due Date</string>
@@ -661,7 +652,6 @@
 <string name="edit_selected_transactions">Edit Selected Transactions</string>
 <string name="enable_and_save">Save</string>
 <string name="encrypted_backup_title">Encrypted Backup</string>
-<string name="encryption_and_automation">Encryption &amp; Automation</string>
 <string name="enter_passphrase_desc">Enter a secure passphrase to encrypt all future cloud backups using AES-256-GCM:</string>
 <string name="err_accounts_different">Source and target accounts must be different</string>
 <string name="err_amount_positive">Amount must be greater than 0</string>
@@ -736,7 +726,6 @@
 <string name="phone_number_optional">Phone Number (Optional)</string>
 <string name="please_fill_all_fields">Please fill all fields with valid data.</string>
 <string name="provider_google_drive">Google Drive</string>
-<string name="provider_local_only">Local Only</string>
 <string name="provider_webdav">Nextcloud / WebDAV</string>
 <string name="rates_info_subtitle">View exchange rates for your base currency</string>
 <string name="rates_relative_to">Rates relative to %1$s</string>
@@ -751,10 +740,6 @@
 <string name="review">Review</string>
 <string name="save_configuration">Save</string>
 <string name="save_currency">Save Currency</string>
-<string name="schedule_daily">Daily</string>
-<string name="schedule_manual">Manual only</string>
-<string name="schedule_monthly">Monthly</string>
-<string name="schedule_weekly">Weekly</string>
 <string name="search_currencies">Search currencies...</string>
 <string name="select_person">Select Person</string>
 <string name="selected_cd">Selected</string>
@@ -781,16 +766,11 @@
 <string name="sort_merchant_az">Merchant (A-Z)</string>
 <string name="sort_merchant_za">Merchant (Z-A)</string>
 <string name="starting_cloud_backup">Starting cloud backup...</string>
-<string name="storage_provider">Storage Provider</string>
 <string name="store_backups_local_desc">Store backups only on this device</string>
 <string name="style_default">Default</string>
 <string name="style_default_sub">Default Colors</string>
 <string name="style_dynamic">Dynamic</string>
 <string name="style_dynamic_sub">Wallpaper Colors</string>
-<string name="sync_complete_format">Sync complete! Synced %1$d peer device(s), imported %2$d transactions.</string>
-<string name="sync_devices">Sync Devices</string>
-<string name="synchronizing_devices">Synchronizing across devices...</string>
-<string name="syncing_devices_format">Syncing across devices... %1$d%%</string>
 <string name="telegram_cd">Telegram</string>
 <string name="test_connection">Test Connection</string>
 <string name="theme_dark">Dark</string>

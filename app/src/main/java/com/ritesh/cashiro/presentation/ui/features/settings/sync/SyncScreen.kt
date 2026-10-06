@@ -30,6 +30,13 @@ import androidx.compose.material.icons.rounded.HourglassEmpty
 import androidx.compose.material.icons.rounded.Merge
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.SyncDisabled
+import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.text.selection.SelectionContainer
+import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.WarningAmber
@@ -97,8 +104,9 @@ import java.time.ZoneId
 private const val MIN_PASSPHRASE = 8
 
 /**
- * Settings → Sync: Google sign-in, the sync passphrase, the first-sync choice and the status
- * (docs/sync.md). The F-Droid build only says sync is unavailable.
+ * Backup & sync → Firebase sync: Google sign-in, the on/off switch, the sync passphrase, the
+ * first-sync choice and a collapsed status and debug section (docs/sync.md). The F-Droid build
+ * only says sync is unavailable.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,7 +126,8 @@ fun SyncScreen(
 
     val synced = stringResource(R.string.sync_done)
     val failed = stringResource(R.string.sync_failed)
-    val signInFailed = stringResource(R.string.sync_sign_in_failed)
+    val signInFailedFormat = stringResource(R.string.sync_sign_in_failed_detail)
+    val signInCancelled = stringResource(R.string.sync_sign_in_cancelled)
     val merged = stringResource(R.string.sync_merged)
     val replacedFormat = stringResource(R.string.sync_replaced)
     LaunchedEffect(viewModel) {
@@ -127,7 +136,8 @@ fun SyncScreen(
                 when (message) {
                     SyncMessage.Synced -> synced
                     SyncMessage.Failed -> failed
-                    SyncMessage.SignInFailed -> signInFailed
+                    is SyncMessage.SignInFailed -> signInFailedFormat.format(message.detail)
+                    SyncMessage.SignInCancelled -> signInCancelled
                     SyncMessage.Merged -> merged
                     is SyncMessage.Replaced -> replacedFormat.format(message.backupName)
                 }
@@ -140,7 +150,7 @@ fun SyncScreen(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             CustomTitleTopAppBar(
-                title = stringResource(R.string.sync_title),
+                title = stringResource(R.string.sync_firebase_title),
                 scrollBehaviorSmall = scrollBehaviorSmall,
                 scrollBehaviorLarge = scrollBehavior,
                 hazeState = hazeState,
@@ -224,9 +234,12 @@ fun SyncScreen(
                                 }
                                 if (state.busy) BusyRow()
                             }
-                            else -> StatusSection(state, onSyncNow = { viewModel.syncNow() })
+                            else -> EnabledSection(state, onEnabledChange = viewModel::setEnabled)
                         }
                     }
+                }
+                if (state.stage != Stage.UNAVAILABLE) {
+                    DebugSection(state, onSyncNow = { viewModel.syncNow() })
                 }
             }
         }
@@ -358,62 +371,100 @@ private fun PassphraseSection(
     }
 }
 
+/** The on/off switch, and the last problem so a failure is never hidden behind the debug section. */
 @Composable
-private fun StatusSection(state: SyncManager.State, onSyncNow: () -> Unit) {
+private fun EnabledSection(state: SyncManager.State, onEnabledChange: (Boolean) -> Unit) {
     SectionHeader(title = stringResource(R.string.sync_status), modifier = Modifier.padding(start = Spacing.md))
     val problem = state.problem
-    val rows = buildList<@Composable (ListItemPosition) -> Unit> {
-        add { position ->
-            Row(
-                icon = Icons.Rounded.Schedule,
-                title = stringResource(R.string.sync_last_synced),
-                supporting = if (state.lastSyncAt > 0) {
-                    DateFormats.dayTime(Instant.ofEpochMilli(state.lastSyncAt).atZone(ZoneId.systemDefault()))
-                } else stringResource(R.string.sync_never),
-                position = position
-            )
-        }
-        add { position ->
-            Row(
-                icon = Icons.Rounded.CloudUpload,
-                title = stringResource(R.string.sync_pending),
-                supporting = state.pending.toString(),
-                position = position
-            )
-        }
-        if (state.held > 0) add { position ->
-            Row(
-                icon = Icons.Rounded.HourglassEmpty,
-                title = stringResource(R.string.sync_waiting, state.held),
-                supporting = stringResource(R.string.sync_waiting_body),
-                position = position
-            )
-        }
-        if (problem != null) add { position ->
+    Column(verticalArrangement = Arrangement.spacedBy(1.5.dp)) {
+        PreferenceSwitch(
+            title = stringResource(R.string.sync_enabled),
+            subtitle = stringResource(if (state.paused) R.string.sync_paused_body else R.string.sync_enabled_body),
+            checked = !state.paused,
+            onCheckedChange = onEnabledChange,
+            leadingIcon = { RowIcon(if (state.paused) Icons.Rounded.SyncDisabled else Icons.Rounded.Sync) },
+            padding = PaddingValues(0.dp),
+            isFirst = problem != null && !state.paused,
+            isSingle = problem == null || state.paused
+        )
+        if (problem != null && !state.paused) {
             Row(
                 icon = Icons.Rounded.ErrorOutline,
                 title = stringResource(R.string.sync_problem_title),
                 supporting = stringResource(problemText(problem)),
-                position = position,
+                position = ListItemPosition.Bottom,
                 error = true
             )
         }
     }
+}
+
+/**
+ * "Status & debug info", collapsed by default: who and where (account, device, project), how far
+ * (last sync, pull cursor, queued and held records), the last error, and Sync now.
+ */
+@Composable
+private fun DebugSection(state: SyncManager.State, onSyncNow: () -> Unit) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val notSet = stringResource(R.string.sync_debug_none)
+    val rows = listOf(
+        R.string.sync_debug_account to listOfNotNull(state.email, state.uid).joinToString("\n").ifEmpty { notSet },
+        R.string.sync_debug_device to (state.deviceId ?: notSet),
+        R.string.sync_last_synced to if (state.lastSyncAt > 0) {
+            DateFormats.dayTime(Instant.ofEpochMilli(state.lastSyncAt).atZone(ZoneId.systemDefault()))
+        } else stringResource(R.string.sync_never),
+        R.string.sync_debug_cursor to (state.cursor ?: notSet),
+        R.string.sync_pending to state.pending.toString(),
+        R.string.sync_debug_held to state.held.toString(),
+        R.string.sync_debug_problem to (state.problem?.let { stringResource(problemText(it)) } ?: notSet),
+        R.string.sync_debug_error to (state.lastError ?: notSet),
+        R.string.sync_debug_project to (state.projectId ?: notSet),
+        R.string.sync_debug_protocol to state.protocolVersion.toString(),
+    )
     Column(verticalArrangement = Arrangement.spacedBy(1.5.dp)) {
-        rows.forEachIndexed { index, row -> row(ListItemPosition.from(index, rows.size)) }
-    }
-    Spacer(Modifier.height(Spacing.sm))
-    Button(
-        onClick = onSyncNow,
-        enabled = !state.busy,
-        shapes = ButtonDefaults.shapes(),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        if (state.busy) LoadingIndicator(Modifier.size(24.dp), color = LocalContentColor.current)
-        else {
-            Icon(Icons.Rounded.Sync, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.sync_now))
+        val expandLabel = stringResource(if (expanded) R.string.sync_debug_collapse else R.string.sync_debug_expand)
+        ListItem(
+            headline = { Text(stringResource(R.string.sync_debug_title)) },
+            leading = { RowIcon(Icons.Rounded.BugReport) },
+            trailing = {
+                Icon(
+                    if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                    contentDescription = expandLabel
+                )
+            },
+            onClick = { expanded = !expanded },
+            shape = (if (expanded) ListItemPosition.Top else ListItemPosition.Single).toShape(),
+            padding = PaddingValues(0.dp)
+        )
+        AnimatedVisibility(visible = expanded) {
+            Column(verticalArrangement = Arrangement.spacedBy(1.5.dp)) {
+                rows.forEachIndexed { index, (label, value) ->
+                    ListItem(
+                        headline = { Text(stringResource(label)) },
+                        supporting = {
+                            SelectionContainer {
+                                Text(value, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        },
+                        shape = (if (index == rows.lastIndex) ListItemPosition.Bottom else ListItemPosition.Middle).toShape(),
+                        padding = PaddingValues(0.dp)
+                    )
+                }
+                Spacer(Modifier.height(Spacing.sm))
+                Button(
+                    onClick = onSyncNow,
+                    enabled = !state.busy && state.stage == Stage.ACTIVE && !state.paused,
+                    shapes = ButtonDefaults.shapes(),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (state.busy) LoadingIndicator(Modifier.size(24.dp), color = LocalContentColor.current)
+                    else {
+                        Icon(Icons.Rounded.Sync, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.sync_now))
+                    }
+                }
+            }
         }
     }
 }

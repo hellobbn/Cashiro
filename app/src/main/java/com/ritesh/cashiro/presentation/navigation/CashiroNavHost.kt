@@ -328,7 +328,6 @@ fun CashiroNavHost(
                         onNavigateToLendBorrow = { navController.safeNavigate(LendBorrow()) },
                         onNavigateToDataPrivacy = { navController.safeNavigate(DataPrivacy) },
                         onNavigateToCloudBackup = { navController.safeNavigate(CloudBackup) },
-                        onNavigateToSync = { navController.safeNavigate(CloudSync) },
                         onNavigateToAbout = { navController.safeNavigate(About) },
                         onNavigateToCurrency = { navController.safeNavigate(CurrencySettings) },
                         blurEffects = themeUiState.blurEffects
@@ -389,6 +388,7 @@ fun CashiroNavHost(
                     BackupSyncScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToAccounts = { navController.safeNavigate(ManageAccounts) },
+                        onNavigateToFirebaseSync = { navController.safeNavigate(CloudSync) },
                         blurEffects = themeUiState.blurEffects
                     )
                     }

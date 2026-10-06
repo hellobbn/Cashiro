@@ -60,7 +60,7 @@ of a synced table needs a kind there too, `SyncSchemaTest` checks). See `docs/sy
 4. **DI**: Hilt
 5. **Database**: Room
 6. **AI**: cloud only, with the user's own key (see "AI bookkeeping")
-7. **Background**: WorkManager for scheduled cloud backups and sync retries; AlarmManager for the daily reminder
+7. **Background**: WorkManager for sync retries (`SyncWorker`); AlarmManager for the daily reminder. Cloud backups are manual only
 8. **Flavors**: `standard` (default) and `fdroid`; they share all code except sync's backend
    (Firebase in `src/standard`, an unavailable stub in `src/fdroid`)
 
@@ -79,9 +79,20 @@ Personal Chinese / cross-border manual accounts:
 - Broker auto-sync (连接券商自动同步) lives in Add account → Broker, above the manual form: one row
   per registered `BrokerageProvider` (IBKR Flex today), with its connections and connect /
   disconnect. Every "connect a broker" action opens that page (`AddAccount("INVESTMENTS")`); Home →
-  Investments keeps the read-only holdings view; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; device sync never does. The AI provider and key (`ai.json`) follow the same rule, and a restore only fills an empty AI setting, never replaces a device's own key.
+  Investments keeps the read-only holdings view; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; Firebase sync never does. The AI provider and key (`ai.json`) follow the same rule, and a restore only fills an empty AI setting, never replaces a device's own key.
 - Prefer account UX, currency defaults, and imports over automation.
-- Sync (Settings → Sync, `docs/sync.md`): multi-device sync through Firebase Auth (Google
+- Backup & sync (Settings → 备份与同步, `BackupSyncScreen`) is the single entry for both:
+  - **Seamless sync** (无缝同步): one row, Firebase sync, showing on / paused / signed out; it opens
+    the sync page (`SyncScreen`, route `CloudSync`): sign in / out, an on/off switch (off pauses and
+    keeps the account and key), the passphrase and first-sync choice, and a collapsed "status &
+    debug info" section (account and uid, device id, last sync, pull cursor, outbox and inbox
+    counts, last problem and error, Firestore project, protocol version) with Sync now.
+  - **Full backup** (全量备份): local file, Google Drive or WebDAV, manual export and restore only
+    (with backup encryption, retention and the export options). The automatic schedule
+    (`CloudBackupWorker`) and the snapshot-based Drive/WebDAV device sync (`CloudSyncEngine`) were
+    removed; on start the app cancels the old periodic job (`CashiroCloudBackupWorker`) and drops
+    their settings. Do not bring them back: Firebase sync replaces them.
+- Sync (`docs/sync.md`): multi-device sync through Firebase Auth (Google
   sign-in via Credential Manager) and Firestore, **standard flavor only** (F-Droid links no
   Firebase), **end-to-end encrypted** with the user's sync passphrase (AES-256-GCM, PBKDF2). The
   wire protocol in `docs/sync.md` is shared with an iOS client: change it only with a new `v`.
