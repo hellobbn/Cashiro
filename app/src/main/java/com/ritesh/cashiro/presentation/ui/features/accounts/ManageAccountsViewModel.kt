@@ -300,6 +300,7 @@ constructor(
         creditLimit: BigDecimal? = null,
         currency: String = "CNY",
         addedCurrencies: Map<String, BigDecimal> = emptyMap(),
+        cardDates: com.ritesh.cashiro.domain.model.CardDates = com.ritesh.cashiro.domain.model.CardDates(),
         onSaved: () -> Unit = {}
     ) {
         if (_uiState.value.isSavingAccount) return
@@ -331,6 +332,11 @@ constructor(
                     )
                 )
                 addCurrencies(normalizedName, accountLast4, addedCurrencies)
+                if (isCreditCard) {
+                    accountBalanceRepository.updateAccount(normalizedName, accountLast4) {
+                        it.copy(statementDay = cardDates.statementDay, dueDay = cardDates.dueDay)
+                    }
+                }
                 saved = true
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -694,7 +700,8 @@ constructor(
             newIconName: String,
             newColorHex: String,
             newCurrency: String? = null,
-            addedCurrencies: Map<String, BigDecimal> = emptyMap()
+            addedCurrencies: Map<String, BigDecimal> = emptyMap(),
+            cardDates: com.ritesh.cashiro.domain.model.CardDates = com.ritesh.cashiro.domain.model.CardDates()
     ) {
         viewModelScope.launch {
             try {
@@ -742,7 +749,9 @@ constructor(
                         creditLimit = newCreditLimit,
                         iconResId = newIconResId,
                         iconName = newIconName,
-                        color = newColorHex
+                        color = newColorHex,
+                        statementDay = cardDates.statementDay.takeIf { isCreditCard },
+                        dueDay = cardDates.dueDay.takeIf { isCreditCard }
                     )
                 }
 

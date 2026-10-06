@@ -22,7 +22,22 @@ data class AccountDetailUiState(
     val hasMultipleCurrencies: Boolean = false,
     // Transactions in the main currency, where a rate is known
     val conversions: Conversions = Conversions(),
+    // A credit card's billing dates and where the current statement stands
+    val cardDates: com.ritesh.cashiro.domain.model.CardDates = com.ritesh.cashiro.domain.model.CardDates(),
+    val cardStatus: CardStatus? = null,
     val isLoading: Boolean = true
+)
+
+/**
+ * Where a credit card's bill stands. While a statement is open for payment ([due] not passed),
+ * [statementAmount] is what it closed at and [remaining] what of it is still owed; after that,
+ * only the next closing and due dates are known.
+ */
+data class CardStatus(
+    val due: java.time.LocalDate,
+    val closing: java.time.LocalDate?,
+    val statementAmount: BigDecimal?,
+    val remaining: BigDecimal?
 )
 
 enum class DateRange(val label: String) {

@@ -30,7 +30,11 @@ data class AccountEntity(
     @ColumnInfo(name = "icon_name", defaultValue = "") val iconName: String = "",
     @ColumnInfo(name = "color", defaultValue = "#33B5E5") val color: String = "#33B5E5",
     @ColumnInfo(name = "is_sample", defaultValue = "0") val isSample: Boolean = false,
-    @ColumnInfo(name = "created_at") val createdAt: LocalDateTime = LocalDateTime.now()
+    @ColumnInfo(name = "created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
+    // A credit card's statement closing day and payment due day, as days of the month (1–31;
+    // a short month uses its last day)
+    @ColumnInfo(name = "statement_day") val statementDay: Int? = null,
+    @ColumnInfo(name = "due_day") val dueDay: Int? = null
 )
 
 /** A currency an account holds. Added, never removed. */

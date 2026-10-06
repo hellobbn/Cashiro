@@ -357,7 +357,14 @@ private fun AccountCategory.icon(): ImageVector = when (this) {
  * categories are left out, and investments not yet connected offer to connect.
  */
 @Composable
-internal fun AccountCategoryList(items: List<AccountOverviewItem>, onOpen: (AccountCategory) -> Unit, modifier: Modifier = Modifier) {
+internal fun AccountCategoryList(
+    items: List<AccountOverviewItem>,
+    onOpen: (AccountCategory) -> Unit,
+    // The nearest card payment due, said on the credit card row
+    nextCardDue: LocalDate?,
+    modifier: Modifier = Modifier
+) {
+    val locale = locale()
     val shown = items.filter { it.count > 0 || it.status == OverviewStatus.CONNECT }
     val colors = moneyColors
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -388,8 +395,12 @@ internal fun AccountCategoryList(items: List<AccountOverviewItem>, onOpen: (Acco
                     Column(Modifier.weight(1f)) {
                         Text(stringResource(item.category.titleRes), style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            if (item.status == OverviewStatus.CONNECT) stringResource(R.string.home_connect_hint)
-                            else stringResource(R.string.overview_count, item.count),
+                            when {
+                                item.status == OverviewStatus.CONNECT -> stringResource(R.string.home_connect_hint)
+                                item.category == AccountCategory.CREDIT_CARDS && nextCardDue != null ->
+                                    stringResource(R.string.home_cards_due, item.count, shortDate(nextCardDue, locale))
+                                else -> stringResource(R.string.overview_count, item.count)
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

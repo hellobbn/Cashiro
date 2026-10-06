@@ -96,6 +96,7 @@ import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.IconResolutionUtils
 import java.math.BigDecimal
+import com.ritesh.cashiro.domain.model.CardDates
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
@@ -110,6 +111,8 @@ fun EditAccountSheet(
     showHeading: Boolean = true,
     onDismiss: () -> Unit,
     onDelete: (() -> Unit)? = null,
+    // A credit card's statement and due days, as saved
+    initialCardDates: CardDates = CardDates(),
     onSave: (bankName: String,
         balance: BigDecimal,
         accountLast4: String,
@@ -121,7 +124,8 @@ fun EditAccountSheet(
         creditLimit: BigDecimal?,
         currency: String,
         // Currencies added in this sheet with their starting balances
-        addedCurrencies: Map<String, BigDecimal>
+        addedCurrencies: Map<String, BigDecimal>,
+        cardDates: CardDates
     ) -> Unit
 ) {
     val context = LocalContext.current
@@ -129,6 +133,9 @@ fun EditAccountSheet(
     var balance by remember { mutableStateOf(account?.balance ?: BigDecimal.ZERO) }
     var creditLimit by remember { mutableStateOf(account?.creditLimit ?: BigDecimal.ZERO) }
     var isCreditCard by remember { mutableStateOf(account?.isCreditCard ?: (initialCategory == AccountCategory.CREDIT_CARDS)) }
+    var cardDates by remember(initialCardDates) { mutableStateOf(initialCardDates) }
+    // Which day is being picked: true the statement day, false the due day
+    var pickingStatementDay by remember { mutableStateOf<Boolean?>(null) }
     var isWallet by remember { mutableStateOf(account?.isWallet ?: (initialCategory == AccountCategory.WALLETS)) }
     var accountLast4 by remember { mutableStateOf(account?.accountLast4 ?: "") }
     var selectedCurrency by remember { mutableStateOf(account?.currency ?: defaultCurrency) }
@@ -560,6 +567,34 @@ fun EditAccountSheet(
                         }
                     }
 
+                    // Statement closing and payment due days
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        CardDayField(
+                            label = stringResource(R.string.card_statement_day),
+                            day = cardDates.statementDay,
+                            onClick = { pickingStatementDay = true },
+                            modifier = Modifier.weight(1f)
+                        )
+                        CardDayField(
+                            label = stringResource(R.string.card_due_day),
+                            day = cardDates.dueDay,
+                            onClick = { pickingStatementDay = false },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    pickingStatementDay?.let { statement ->
+                        DayOfMonthDialog(
+                            title = stringResource(if (statement) R.string.card_statement_day else R.string.card_due_day),
+                            selected = if (statement) cardDates.statementDay else cardDates.dueDay,
+                            onSelect = { day ->
+                                cardDates = if (statement) cardDates.copy(statementDay = day) else cardDates.copy(dueDay = day)
+                                pickingStatementDay = null
+                            },
+                            onDismiss = { pickingStatementDay = null }
+                        )
+                    }
+
                     // Available Credit Tip
                     val availableCredit = creditLimit - balance
                     val utilization = if (creditLimit > BigDecimal.ZERO) {
@@ -832,7 +867,8 @@ fun EditAccountSheet(
                                 isWallet,
                                 if (isCreditCard) creditLimit else null,
                                 selectedCurrency,
-                                addedCurrencies.toMap()
+                                addedCurrencies.toMap(),
+                                if (isCreditCard) cardDates else CardDates()
                             )
                         },
                         enabled = !isSaving && !duplicateAccount && bankName.isNotBlank() && (isWallet || accountLast4.length == 4),
@@ -962,4 +998,56 @@ private fun PreviewAccountCard(
             }
         }
     }
+}
+
+/** A card day as a field: "每月 5 日", or "未设置". */
+@Composable
+private fun CardDayField(label: String, day: Int?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(onClick = onClick, modifier = modifier, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Text(label, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+            Text(
+                if (day == null) stringResource(R.string.card_day_unset) else stringResource(R.string.card_day_value, day),
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (day == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+/** Picks a day of the month (1–31) or none; a short month uses its last day. */
+@Composable
+private fun DayOfMonthDialog(title: String, selected: Int?, onSelect: (Int?) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                (1..31).chunked(7).forEach { week ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        week.forEach { day ->
+                            val chosen = day == selected
+                            Surface(
+                                onClick = { onSelect(day) },
+                                shape = CircleShape,
+                                color = if (chosen) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                contentColor = if (chosen) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) { Text(day.toString(), style = MaterialTheme.typography.bodyMedium) }
+                            }
+                        }
+                    }
+                }
+                Text(
+                    stringResource(R.string.card_day_short_month),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+        dismissButton = { TextButton(onClick = { onSelect(null) }) { Text(stringResource(R.string.card_day_clear)) } }
+    )
 }

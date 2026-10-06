@@ -212,4 +212,19 @@
     <string name="home_all">全部</string>
     <string name="home_received">到账 %1$s</string>
     <string name="home_recent_empty">还没有交易。点右下角 + 记一笔，或分享账单截图给 AI 记账。</string>
+    <string name="card_statement_day">账单日</string>
+    <string name="card_due_day">还款日</string>
+    <string name="card_day_unset">未设置</string>
+    <string name="card_day_value">每月 %1$d 日</string>
+    <string name="card_day_short_month">当月没有这一天时，按月末算。</string>
+    <string name="card_day_clear">不设置</string>
+    <string name="card_set_dates">设置账单日和还款日</string>
+    <string name="card_due_today">今天到期</string>
+    <string name="card_due_in">还有 %1$d 天</string>
+    <string name="card_statement_amount">本期账单</string>
+    <string name="card_paid">已还清</string>
+    <string name="card_remaining">还需还 %1$s</string>
+    <string name="card_next_statement">下期账单日</string>
+    <string name="card_due_on">%1$s 还款</string>
+    <string name="home_cards_due">%1$d 个账户，%2$s还款</string>
 </resources>

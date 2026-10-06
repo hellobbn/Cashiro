@@ -74,6 +74,10 @@ Personal Chinese / cross-border manual accounts:
   `to_account_id` + `to_currency`, and what arrived in `to_amount` when the currencies differ
   (two currencies of one account included). The account card's big number is the total in the
   app's main currency (`AccountHoldingsSource`), with each currency listed under it.
+- Credit cards can store a statement day and a due day (`accounts.statement_day` / `due_day`, days of
+  the month; a short month uses its last day, `CardCycle`). The account page shows the open
+  statement, what of it is still owed and when it is due; Home's credit card row shows the nearest
+  due date.
 - Balances: a credit card's balance is what is owed and may go negative (overpaid). Edits go
   through `TransactionEditor`: undo the old effect as a delete does, apply the new one as an add does.
 - Most code still finds an account by bank name + last 4 (cards, templates, budgets, preferences).

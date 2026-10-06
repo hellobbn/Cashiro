@@ -22,7 +22,7 @@ import org.robolectric.annotation.Config
 
 /**
  * Builds a version 66 database from its exported schema, fills it the way the app did, then lets
- * Room open it at 67: Room checks the migrated tables against the entities, and the test checks
+ * Room open it at the current version (through 67 and 68): Room checks the migrated tables against the entities, and the test checks
  * what accounts, currencies and links came out.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -95,7 +95,7 @@ class AccountsMigrationTest {
         }
 
         val db = Room.databaseBuilder(context, CashiroDatabase::class.java, name)
-            .addMigrations(CashiroDatabase.MIGRATION_66_67)
+            .addMigrations(CashiroDatabase.MIGRATION_66_67, CashiroDatabase.MIGRATION_67_68)
             .allowMainThreadQueries()
             .build()
         try {

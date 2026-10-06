@@ -227,4 +227,19 @@
     <string name="home_all">全部</string>
     <string name="home_received">到帳 %1$s</string>
     <string name="home_recent_empty">還沒有交易。點右下角 + 記一筆，或分享帳單截圖給 AI 記帳。</string>
+    <string name="card_statement_day">帳單日</string>
+    <string name="card_due_day">還款日</string>
+    <string name="card_day_unset">未設定</string>
+    <string name="card_day_value">每月 %1$d 日</string>
+    <string name="card_day_short_month">當月沒有這一天時，按月底算。</string>
+    <string name="card_day_clear">不設定</string>
+    <string name="card_set_dates">設定帳單日和還款日</string>
+    <string name="card_due_today">今天到期</string>
+    <string name="card_due_in">還有 %1$d 天</string>
+    <string name="card_statement_amount">本期帳單</string>
+    <string name="card_paid">已還清</string>
+    <string name="card_remaining">還需還 %1$s</string>
+    <string name="card_next_statement">下期帳單日</string>
+    <string name="card_due_on">%1$s 還款</string>
+    <string name="home_cards_due">%1$d 個帳戶，%2$s還款</string>
 </resources>

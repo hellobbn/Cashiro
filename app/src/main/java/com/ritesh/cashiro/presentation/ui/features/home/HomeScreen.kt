@@ -199,6 +199,7 @@ fun SharedTransitionScope.HomeScreen(
     val subcategoriesMap by homeViewModel.subcategoriesMap.collectAsStateWithLifecycle()
     val lookups by homeViewModel.lookups.collectAsStateWithLifecycle()
     val homeWidgets by homeViewModel.homeWidgets.collectAsStateWithLifecycle()
+    val nextCardDue by homeViewModel.nextCardDue.collectAsStateWithLifecycle()
     val overviewViewModel: com.ritesh.cashiro.presentation.ui.features.accounts.AccountOverviewViewModel = hiltViewModel()
     val overviewItems by overviewViewModel.items.collectAsStateWithLifecycle()
     val holdings = com.ritesh.cashiro.data.repository.LocalAccountHoldings.current
@@ -392,7 +393,7 @@ fun SharedTransitionScope.HomeScreen(
                                 if (showAccountBreakdown) {
                                     item(key = "account_overview") {
                                         AccountCategoryList(
-                                            overviewItems, openCategory,
+                                            overviewItems, openCategory, nextCardDue,
                                             Modifier.padding(horizontal = Dimensions.Padding.content).animateItem()
                                         )
                                     }
