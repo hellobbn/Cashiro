@@ -44,12 +44,9 @@
     <string name="new_balance_label">Yeni Bakiye</string>
     <string name="save">Kaydet</string>
     <string name="source_transaction">İşlem</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Kart Bağlantısı</string>
     <string name="source_manual">Manuel</string>
     <string name="source_system">Sistem</string>
-    <string name="sms_source">SMS Kaynağı</string>
-    <string name="copy">Kopyala</string>
     <string name="account_details">Hesap Detayları</string>
     <string name="transactions_count">İşlemler (%1$d)</string>
     <string name="balance_trend">Bakiye Eğilimi</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredi</string>
     <string name="debit_card">Borç</string>
     <string name="last_balance">Son Bakiye: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (genişletmek için dokunun)</string>
     <string name="link_card_title">Kartı Bağla</string>
     <string name="no_accounts_found_link">%1$s hesabı bulunamadı. Lütfen önce ilgili bir banka hesabı ekleyin.</string>
     <string name="select_account_link_prompt">Bu kartı bağlamak için bir hesap seçin:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Bugün ödenecek</string>
     <string name="due_tomorrow">Yarın ödenecek</string>
     <string name="due_in_days_format">%1$d gün içinde ödenecek</string>
-    <string name="sms_available">SMS mevcut</string>
     <string name="notes">Notlar</string>
-    <string name="original_sms">Orijinal SMS</string>
     <string name="track_payment">Ödemeyi Takip Et</string>
     <string name="edit_subscription">Aboneliği Düzenle</string>
     <string name="subscription_hidden_format">%1$s gizlendi</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Bu abonelik ödendi mi?</string>
     <string name="no">Hayır</string>
     <string name="yes_its_paid">Evet, ödendi</string>
-    <string name="hide_original_message">Orijinal Mesajı Gizle</string>
-    <string name="show_original_message">Orijinal Mesajı Göster</string>
     <string name="export_transactions">İşlemleri Dışa Aktar</string>
     <string name="exporting">Dışa Aktarılıyor...</string>
     <string name="export_complete">Dışa Aktarma Tamamlandı!</string>

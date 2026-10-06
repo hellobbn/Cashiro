@@ -79,4 +79,33 @@ class MigrationChainTest {
         }
         assertEquals("migrations that failed", emptyList<String>(), failures)
     }
+
+    @Test fun aSubscriptionsNotesSurviveTheRenameOfTheirColumn() {
+        val name = "notes.db"
+        create(name, 69)
+        val helper = FrameworkSQLiteOpenHelperFactory().create(
+            SupportSQLiteOpenHelper.Configuration.builder(context).name(name).callback(
+                object : SupportSQLiteOpenHelper.Callback(69) {
+                    override fun onCreate(db: SupportSQLiteDatabase) = Unit
+                    override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+                }
+            ).build()
+        )
+        helper.writableDatabase.execSQL(
+            "INSERT INTO subscriptions (merchant_name, amount, state, sms_body, created_at, updated_at, currency) " +
+                "VALUES ('Music', '15', 'ACTIVE', 'family plan', '2026-09-01T09:00', '2026-09-01T09:00', 'CNY')"
+        )
+        helper.close()
+        val db = Room.databaseBuilder(context, CashiroDatabase::class.java, name)
+            .addMigrations(*CashiroDatabase.MIGRATIONS).allowMainThreadQueries().build()
+        try {
+            val notes = db.openHelper.writableDatabase.query("SELECT notes FROM subscriptions").use { c ->
+                c.moveToFirst(); c.getString(0)
+            }
+            assertEquals("family plan", notes)
+        } finally {
+            db.close()
+            context.deleteDatabase(name)
+        }
+    }
 }

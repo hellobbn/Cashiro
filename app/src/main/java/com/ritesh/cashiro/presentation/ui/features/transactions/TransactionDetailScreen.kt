@@ -1047,11 +1047,6 @@ private fun TransactionDetailContent(
                     linkedLoanPersonAvatar = linkedLoanPersonAvatar
                 )
                 Spacer(modifier = Modifier.height(Spacing.lg))
-                // SMS Body - Always read-only
-                if (!transaction.smsBody.isNullOrBlank()) {
-                    SmsBodyCard(transaction.smsBody)
-                    Spacer(modifier = Modifier.height(Spacing.md))
-                }
 
                 EditableExtractedInfoCard(
                     transaction = transaction,
@@ -1216,51 +1211,6 @@ private fun TransactionDetailContent(
 }
 
 
-@Composable
-private fun SmsBodyCard(smsBody: String) {
-    CashiroCard(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = 0.dp
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = Spacing.md, vertical =  Spacing.sm),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Iconax.Messages,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(Spacing.sm))
-                Text(
-                    text = stringResource(R.string.original_sms),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            // SMS text in monospace font
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = smsBody,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontFamily = FontFamily.Monospace
-                    ),
-                    modifier = Modifier.padding(Spacing.md)
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun EditableTransactionHeader(
@@ -2545,75 +2495,6 @@ private fun TransactionReceipt(
                     }
                 }
 
-                // Original SMS Content
-                if (!transaction.smsBody.isNullOrBlank()) {
-                    var isSMSExpanded by remember { mutableStateOf(false) }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateContentSize(
-                                MaterialTheme.motionScheme.fastSpatialSpec()
-                            )
-                            .padding(horizontal = Dimensions.Padding.content)
-                            .padding(top = Spacing.md)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = ripple(),
-                                onClick = { isSMSExpanded = !isSMSExpanded }
-                            ),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
-                            ){
-                                Icon(
-                                    imageVector = Iconax.Messages,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = stringResource(R.string.original_sms),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Icon(
-                                imageVector = if (isSMSExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-
-                        BlurredAnimatedVisibility(
-                            visible = isSMSExpanded,
-                            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-                        ) {
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(
-                                    text = transaction.smsBody,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontFamily = FontFamily.Monospace,
-                                        lineHeight = 16.sp
-                                    ),
-                                    modifier = Modifier.padding(Spacing.sm)
-                                )
-                            }
-                        }
-                    }
-                }
 
                 Spacer(modifier = Modifier.height(40.dp)) // Slightly reduced spacer
 

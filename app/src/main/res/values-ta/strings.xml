@@ -44,12 +44,9 @@
     <string name="new_balance_label">புதிய இருப்பு</string>
     <string name="save">சேமி</string>
     <string name="source_transaction">பரிவர்த்தனை</string>
-    <string name="source_sms">எஸ்எம்எஸ்</string>
     <string name="source_card_link">அட்டை இணைப்பு</string>
     <string name="source_manual">கையேடு</string>
     <string name="source_system">கணினி</string>
-    <string name="sms_source">எஸ்எம்எஸ் ஆதாரம்</string>
-    <string name="copy">நகல்</string>
     <string name="account_details">கணக்கு விவரங்கள்</string>
     <string name="transactions_count">பரிவர்த்தனைகள் (%1$d)</string>
     <string name="balance_trend">சமநிலை போக்கு</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">கடன்</string>
     <string name="debit_card">பற்று</string>
     <string name="last_balance">கடைசி நிலுவை: %1$s</string>
-    <string name="sms_source_formatted">எஸ்எம்எஸ்: %1$s</string>
-    <string name="sms_source_expand">எஸ்எம்எஸ்: %1$s... (விரிவாக்கத் தொடவும்)</string>
     <string name="link_card_title">அட்டை இணைக்கவும்</string>
     <string name="no_accounts_found_link">எந்த %1$s கணக்குகளும் காணப்படவில்லை. தயவுசெய்து முதலில் சம்பந்தப்பட்ட வங்கி கணக்கைச் சேர்க்கவும்.</string>
     <string name="select_account_link_prompt">இந்த அட்டையை இணைக்க ஒரு கணக்கைத் தேர்வுசெய்யவும்:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">இன்றைக்கு பெறவேண்டியது</string>
     <string name="due_tomorrow">நாளை பெறவேண்டியது</string>
     <string name="due_in_days_format">%1$d நாட்களில் பெறவேண்டியது</string>
-    <string name="sms_available">எஸ்எம்எஸ் கிடைக்கும்</string>
     <string name="notes">குறிப்புகள்</string>
-    <string name="original_sms">மூல எஸ்எம்எஸ்</string>
     <string name="track_payment">பணம் கண்காணிக்கவும்</string>
     <string name="edit_subscription">சந்தாவை திருத்தவும்</string>
     <string name="subscription_hidden_format">%1$s மறைத்து வைக்கப்பட்டது</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">இந்த சந்தா செலுத்தப்பட்டதா?</string>
     <string name="no">இல்லை</string>
     <string name="yes_its_paid">ஆம், இது செலுத்தப்பட்டது</string>
-    <string name="hide_original_message">மூல செய்தியை மறைக்கவும்</string>
-    <string name="show_original_message">மூல செய்தியை காண்பி</string>
     <string name="export_transactions">பரிவர்த்தனைகளை ஏற்றுமதி செய்யவும்</string>
     <string name="exporting">ஏற்றுமதி செய்யப்படுகிறது...</string>
     <string name="export_complete">ஏற்றுமதி செய்யப்பட்டு முடிந்தது!</string>

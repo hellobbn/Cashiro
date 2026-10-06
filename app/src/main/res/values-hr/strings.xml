@@ -44,12 +44,9 @@
     <string name="new_balance_label">Novo stanje</string>
     <string name="save">Spremi</string>
     <string name="source_transaction">Transakcija</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Povezivanje kartice</string>
     <string name="source_manual">Ručno</string>
     <string name="source_system">Sustav</string>
-    <string name="sms_source">Izvor SMS-a</string>
-    <string name="copy">Kopiraj</string>
     <string name="account_details">Detalji računa</string>
     <string name="transactions_count">Transakcije (%1$d)</string>
     <string name="balance_trend">Trend stanja</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredit</string>
     <string name="debit_card">Odobrenje</string>
     <string name="last_balance">Zadnje stanje: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (dodirnite za proširenje)</string>
     <string name="link_card_title">Poveži karticu</string>
     <string name="no_accounts_found_link">Nije pronađen nijedan %1$s račun. Molimo prvo dodajte odgovarajući bankovni račun.</string>
     <string name="select_account_link_prompt">Odaberite račun za povezivanje ove kartice:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Danas istječe</string>
     <string name="due_tomorrow">Sutra istječe</string>
     <string name="due_in_days_format">Istek za %1$d dana</string>
-    <string name="sms_available">SMS dostupan</string>
     <string name="notes">Bilješke</string>
-    <string name="original_sms">Originalni SMS</string>
     <string name="track_payment">Prati uplatu</string>
     <string name="edit_subscription">Uredi pretplatu</string>
     <string name="subscription_hidden_format">%1$s skriveno</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Je li ova pretplata plaćena?</string>
     <string name="no">Ne</string>
     <string name="yes_its_paid">Da, plaćeno je</string>
-    <string name="hide_original_message">Sakrij izvornu poruku</string>
-    <string name="show_original_message">Prikaži izvornu poruku</string>
     <string name="export_transactions">Izvoz transakcija</string>
     <string name="exporting">Izvoz u tijeku...</string>
     <string name="export_complete">Izvoz je gotov!</string>

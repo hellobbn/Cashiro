@@ -141,7 +141,6 @@ class OnBoardingViewModel @Inject constructor(
     fun finishOnboarding() = runOperation { completeOnboarding() }
 
     private suspend fun completeOnboarding() {
-        userPreferencesRepository.updateSkippedSmsPermission(true)
         userPreferencesRepository.markScanTutorialShown()
         _uiState.update { it.copy(onboardingFinished = true) }
     }

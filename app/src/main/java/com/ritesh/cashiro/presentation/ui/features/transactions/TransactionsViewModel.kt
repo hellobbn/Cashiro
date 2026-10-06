@@ -861,9 +861,6 @@ class TransactionsViewModel @Inject constructor(
                     val matchesMerchant = transaction.merchantName.contains(searchQuery, ignoreCase = true)
                     val matchesDescription = transaction.description?.contains(searchQuery, ignoreCase = true) == true
                     
-                    // Check SMS body (full text search)
-                    val matchesSmsBody = transaction.smsBody?.contains(searchQuery, ignoreCase = true) == true
-                    
                     // Check if search query matches amount
                     val matchesAmount = try {
                         // Remove commas and spaces from search query for number parsing
@@ -883,7 +880,7 @@ class TransactionsViewModel @Inject constructor(
                         false
                     }
                     
-                    matchesMerchant || matchesDescription || matchesSmsBody || matchesAmount
+                    matchesMerchant || matchesDescription || matchesAmount
                 }
             }
         }

@@ -44,12 +44,9 @@
     <string name="new_balance_label">नवीन शिल्लक</string>
     <string name="save">जतन करा</string>
     <string name="source_transaction">याप्रविषयक व्यवहार</string>
-    <string name="source_sms">एसएमएस</string>
     <string name="source_card_link">कार्ड लिंक</string>
     <string name="source_manual">हाताने</string>
     <string name="source_system">प्रणाली</string>
-    <string name="sms_source">एसएमएस स्रोत</string>
-    <string name="copy">प्रत करा</string>
     <string name="account_details">खाते तपशील</string>
     <string name="transactions_count">व्यवहार (%1$d)</string>
     <string name="balance_trend">शिल्लक प्रवाह</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">क्रेडिट</string>
     <string name="debit_card">डेबिट</string>
     <string name="last_balance">शेवटची शिल्लक: %1$s</string>
-    <string name="sms_source_formatted">एसएमएस: %1$s</string>
-    <string name="sms_source_expand">एसएमएस: %1$s... (विस्तारासाठी टॅप करा)</string>
     <string name="link_card_title">कार्ड लिंक करा</string>
     <string name="no_accounts_found_link">%1$s खाते आढळले नाही. कृपया प्रथम संबंधित बँक खाते जोडा.</string>
     <string name="select_account_link_prompt">या कार्डला लिंक करण्यासाठी खाते निवडा:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">आजची देय</string>
     <string name="due_tomorrow">उद्या देय</string>
     <string name="due_in_days_format">%1$d दिवसांत देय</string>
-    <string name="sms_available">एसएमएस उपलब्ध</string>
     <string name="notes">नोंदी</string>
-    <string name="original_sms">मूळ एसएमएस</string>
     <string name="track_payment">देयक ट्रॅक करा</string>
     <string name="edit_subscription">सदस्यता संपादित करा</string>
     <string name="subscription_hidden_format">%1$s लपविले</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">ही सदस्यता भरली आहे का?</string>
     <string name="no">नाही</string>
     <string name="yes_its_paid">होय, ती भरलेली आहे</string>
-    <string name="hide_original_message">मूळ संदेश लपवा</string>
-    <string name="show_original_message">मूळ संदेश दाखवा</string>
     <string name="export_transactions">विनिमय निर्यात करा</string>
     <string name="exporting">निर्यात करत आहे...</string>
     <string name="export_complete">निर्यात पूर्ण!</string>

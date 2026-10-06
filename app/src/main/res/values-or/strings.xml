@@ -44,12 +44,9 @@
     <string name="new_balance_label">ନୂତନ ବ୍ୟାଲାନ୍ସ</string>
     <string name="save">ସଞ୍ଚୟ କରନ୍ତୁ</string>
     <string name="source_transaction">ଲେନଦେନ</string>
-    <string name="source_sms">ଏସଏମଏସ</string>
     <string name="source_card_link">କାର୍ଡ ସଂଯୋଜନ</string>
     <string name="source_manual">ହସ୍ତଚାଳିତ</string>
     <string name="source_system">ସିଷ୍ଟମ୍</string>
-    <string name="sms_source">ଏସଏମଏସ ସ୍ରୋତ</string>
-    <string name="copy">କପି କରନ୍ତୁ</string>
     <string name="account_details">ଖାତା ବିବରଣୀ</string>
     <string name="transactions_count">ଲେନଦେନ (%1$d)</string>
     <string name="balance_trend">ବ୍ୟାଲାନ୍ସ ପ୍ରବୃତ୍ତି</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">କ୍ରେଡିଟ୍</string>
     <string name="debit_card">ଡେବିଟ୍</string>
     <string name="last_balance">ଶେଷ ମୂଲ୍ୟ: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (ବିସ୍ତାର କରିବାକୁ ଟାପ୍ କରନ୍ତୁ)</string>
     <string name="link_card_title">କାର୍ଡ ଲିଙ୍କ୍ କରନ୍ତୁ</string>
     <string name="no_accounts_found_link">କୌଣସି %1$s ଖାତା ମିଳିଲା ନାହିଁ। ଦୟାକରି ପ୍ରଥମେ ଏକ ସମ୍ପର୍କିତ ବ୍ୟାଙ୍କ ଖାତା ଯୋଗ କରନ୍ତୁ।</string>
     <string name="select_account_link_prompt">ଏହି କାର୍ଡକୁ ଲିଙ୍କ୍ କରିବା ପାଇଁ ଏକ ଖାତା ବଛନ୍ତୁ:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">ଆଜି ତିନିକି ସମୟ</string>
     <string name="due_tomorrow">କାଲି ତିନିକି ସମୟ</string>
     <string name="due_in_days_format">%1$d ଦିନରେ ସମୟ</string>
-    <string name="sms_available">ଉପଲବ୍ଧ SMS</string>
     <string name="notes">ନୋଟ୍ସ</string>
-    <string name="original_sms">ମୂଳ SMS</string>
     <string name="track_payment">ପେମେଣ୍ଟ ଟ୍ରାକ୍</string>
     <string name="edit_subscription">ସବସ୍କ୍ରିପ୍ସନ୍ ସଂପାଦନା</string>
     <string name="subscription_hidden_format">%1$s ଲୁକାଇଛି</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">ଏହି ସବସ୍କ୍ରିପ୍ସନ୍ ପେଡ୍ ହୋଇଛି କି?</string>
     <string name="no">ନା</string>
     <string name="yes_its_paid">ହଁ, ଏହା ପେଡ୍ ହୋଇଛି</string>
-    <string name="hide_original_message">ମୂଳ ସନ୍ଦେଶ ଲୁକାନ୍ତୁ</string>
-    <string name="show_original_message">ମୂଳ ସନ୍ଦେଶ ପ୍ରଦର୍ଶନ କରନ୍ତୁ</string>
     <string name="export_transactions">ଲେନଦେନ ନିର୍ୟାତ କରନ୍ତୁ</string>
     <string name="exporting">ନିର୍ୟାତ ହେଉଛି...</string>
     <string name="export_complete">ନିର୍ୟାତ ସମ୍ପୂର୍ଣ୍ଣ!</string>

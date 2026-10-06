@@ -44,12 +44,9 @@
     <string name="new_balance_label">New Balance</string>
     <string name="save">Sekles</string>
     <string name="source_transaction">Transaction</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Card Link</string>
     <string name="source_manual">Manual</string>
     <string name="source_system">Anagraw</string>
-    <string name="sms_source">SMS Source</string>
-    <string name="copy">Nɣel</string>
     <string name="account_details">Account Details</string>
     <string name="transactions_count">Transactions (%1$d)</string>
     <string name="balance_trend">Balance Trend</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Credit</string>
     <string name="debit_card">Debit</string>
     <string name="last_balance">Last Balance: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (tap to expand)</string>
     <string name="link_card_title">Link Card</string>
     <string name="no_accounts_found_link">No %1$s accounts found. Please add a corresponding bank account first.</string>
     <string name="select_account_link_prompt">Select an account to link this card to:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Due today</string>
     <string name="due_tomorrow">Due tomorrow</string>
     <string name="due_in_days_format">Due in %1$d days</string>
-    <string name="sms_available">SMS yella</string>
     <string name="notes">Notes</string>
-    <string name="original_sms">Original SMS</string>
     <string name="track_payment">Track Payment</string>
     <string name="edit_subscription">Edit Subscription</string>
     <string name="subscription_hidden_format">%1$s hidden</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Is this subscription paid?</string>
     <string name="no">Uhu</string>
     <string name="yes_its_paid">Yes, it\'s paid</string>
-    <string name="hide_original_message">Hide Original Message</string>
-    <string name="show_original_message">Show Original Message</string>
     <string name="export_transactions">Export Transactions</string>
     <string name="exporting">Exporting...</string>
     <string name="export_complete">Export Complete!</string>

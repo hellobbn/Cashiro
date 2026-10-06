@@ -334,4 +334,6 @@
     <string name="no_analytics_data">No data yet</string>
     <string name="no_analytics_hint">Try other filters or add transactions</string>
     <string name="msg_account_deleted">Account deleted</string>
+    <string name="show_notes">Show notes</string>
+    <string name="hide_notes">Hide notes</string>
 </resources>

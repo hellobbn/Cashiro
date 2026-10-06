@@ -44,12 +44,9 @@
     <string name="new_balance_label">Új egyenleg</string>
     <string name="save">Mentés</string>
     <string name="source_transaction">Tranzakció</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Kártya Kapcsolat</string>
     <string name="source_manual">Kézi</string>
     <string name="source_system">Rendszer</string>
-    <string name="sms_source">SMS Forrás</string>
-    <string name="copy">Másolás</string>
     <string name="account_details">Fiók részletei</string>
     <string name="transactions_count">Tranzakciók (%1$d)</string>
     <string name="balance_trend">Egyenleg trend</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Hitel</string>
     <string name="debit_card">Terhelés</string>
     <string name="last_balance">Utolsó egyenleg: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (érintse a bővítéshez)</string>
     <string name="link_card_title">Kártya kapcsolása</string>
     <string name="no_accounts_found_link">Nem található %1$s fiók. Kérjük, először adjon hozzá egy megfelelő bankszámlát.</string>
     <string name="select_account_link_prompt">Válasszon egy fiókot a kártya kapcsolásához:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Ma esedékes</string>
     <string name="due_tomorrow">Holnap esedékes</string>
     <string name="due_in_days_format">%1$d nap múlva esedékes</string>
-    <string name="sms_available">SMS elérhető</string>
     <string name="notes">Jegyzetek</string>
-    <string name="original_sms">Eredeti SMS</string>
     <string name="track_payment">Fizetés nyomon követése</string>
     <string name="edit_subscription">Előfizetés szerkesztése</string>
     <string name="subscription_hidden_format">%1$s elrejtve</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Ez az előfizetés ki van fizetve?</string>
     <string name="no">Nem</string>
     <string name="yes_its_paid">Igen, kifizetve</string>
-    <string name="hide_original_message">Eredeti üzenet elrejtése</string>
-    <string name="show_original_message">Eredeti üzenet megjelenítése</string>
     <string name="export_transactions">Tranzakciók exportálása</string>
     <string name="exporting">Exportálás...</string>
     <string name="export_complete">Exportálás kész!</string>

@@ -3,6 +3,7 @@ package com.ritesh.cashiro.data.database.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,7 +18,9 @@ data class SubscriptionEntity(
         @ColumnInfo(name = "bank_name") val bankName: String? = null,
         @ColumnInfo(name = "category") val category: String? = null,
         @ColumnInfo(name = "subcategory") val subcategory: String? = null,
-        @ColumnInfo(name = "sms_body") val smsBody: String? = null,
+        // The user's notes. Stored as sms_body before version 70; older backups still call it smsBody
+        @SerializedName(value = "notes", alternate = ["smsBody"])
+        @ColumnInfo(name = "notes") val notes: String? = null,
         @ColumnInfo(name = "created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
         @ColumnInfo(name = "updated_at") val updatedAt: LocalDateTime = LocalDateTime.now(),
         @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "CNY",

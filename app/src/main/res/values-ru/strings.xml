@@ -44,12 +44,9 @@
     <string name="new_balance_label">Новый баланс</string>
     <string name="save">Сохранить</string>
     <string name="source_transaction">Транзакция</string>
-    <string name="source_sms">СМС</string>
     <string name="source_card_link">Привязка карты</string>
     <string name="source_manual">Ручной</string>
     <string name="source_system">Система</string>
-    <string name="sms_source">Источник SMS</string>
-    <string name="copy">Копировать</string>
     <string name="account_details">Детали счета</string>
     <string name="transactions_count">Транзакции (%1$d)</string>
     <string name="balance_trend">Тренд баланса</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Кредит</string>
     <string name="debit_card">Дебет</string>
     <string name="last_balance">Последний баланс: %1$s</string>
-    <string name="sms_source_formatted">СМС: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (нажмите для раскрытия)</string>
     <string name="link_card_title">Привязать карту</string>
     <string name="no_accounts_found_link">Счета %1$s не найдены. Пожалуйста, сначала добавьте соответствующий банковский счет.</string>
     <string name="select_account_link_prompt">Выберите счет для привязки этой карты:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Срок сегодня</string>
     <string name="due_tomorrow">Срок завтра</string>
     <string name="due_in_days_format">Срок через %1$d дней</string>
-    <string name="sms_available">Доступно SMS</string>
     <string name="notes">Заметки</string>
-    <string name="original_sms">Оригинальное SMS</string>
     <string name="track_payment">Отследить оплату</string>
     <string name="edit_subscription">Редактировать подписку</string>
     <string name="subscription_hidden_format">%1$s скрыто</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Эта подписка оплачена?</string>
     <string name="no">Нет</string>
     <string name="yes_its_paid">Да, оплачено</string>
-    <string name="hide_original_message">Скрыть оригинальное сообщение</string>
-    <string name="show_original_message">Показать оригинальное сообщение</string>
     <string name="export_transactions">Экспортировать транзакции</string>
     <string name="exporting">Экспорт...</string>
     <string name="export_complete">Экспорт завершен!</string>

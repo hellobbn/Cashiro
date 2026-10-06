@@ -57,10 +57,10 @@ class TransactionEditorTest {
         val id = db.transactionDao().insertTransaction(tx)
         val balances = db.accountBalanceDao()
         if (type == TransactionType.TRANSFER) {
-            balances.insertTransactionBalance(bank, last4, tx.amount, TransactionType.EXPENSE, null, tx.dateTime, id, null, false, null, currency)
-            balances.insertTransactionBalance(toBank!!, toLast4!!, tx.toAmount ?: tx.amount, TransactionType.INCOME, null, tx.dateTime, id, null, false, null, currency)
+            balances.insertTransactionBalance(bank, last4, tx.amount, TransactionType.EXPENSE, null, tx.dateTime, id, null, false, currency)
+            balances.insertTransactionBalance(toBank!!, toLast4!!, tx.toAmount ?: tx.amount, TransactionType.INCOME, null, tx.dateTime, id, null, false, currency)
         } else {
-            balances.insertTransactionBalance(bank, last4, tx.amount, type, null, tx.dateTime, id, null, false, null, currency)
+            balances.insertTransactionBalance(bank, last4, tx.amount, type, null, tx.dateTime, id, null, false, currency)
         }
         return tx.copy(id = id)
     }
@@ -184,8 +184,8 @@ class TransactionEditorTest {
         )
         val fxId = db.transactionDao().insertTransaction(fx)
         val balances = db.accountBalanceDao()
-        balances.insertTransactionBalance(BROKER, BROKER_LAST4, fx.amount, TransactionType.EXPENSE, null, fx.dateTime, fxId, null, false, null, "HKD")
-        balances.insertTransactionBalance(BROKER, BROKER_LAST4, fx.toAmount!!, TransactionType.INCOME, null, fx.dateTime, fxId, null, false, null, "USD")
+        balances.insertTransactionBalance(BROKER, BROKER_LAST4, fx.amount, TransactionType.EXPENSE, null, fx.dateTime, fxId, null, false, "HKD")
+        balances.insertTransactionBalance(BROKER, BROKER_LAST4, fx.toAmount!!, TransactionType.INCOME, null, fx.dateTime, fxId, null, false, "USD")
         assertEquals("5000", pocket("HKD"))
         assertEquals("740", pocket("USD"))
         // The account as the screens see it: its main currency

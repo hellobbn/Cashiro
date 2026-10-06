@@ -44,12 +44,9 @@
     <string name="new_balance_label">Νέο Υπόλοιπο</string>
     <string name="save">Αποθήκευση</string>
     <string name="source_transaction">Συναλλαγή</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Σύνδεση Κάρτας</string>
     <string name="source_manual">Χειροκίνητα</string>
     <string name="source_system">Σύστημα</string>
-    <string name="sms_source">Πηγή SMS</string>
-    <string name="copy">Αντιγραφή</string>
     <string name="account_details">Στοιχεία Λογαριασμού</string>
     <string name="transactions_count">Συναλλαγές (%1$d)</string>
     <string name="balance_trend">Τάση Υπολοίπου</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Πίστωση</string>
     <string name="debit_card">Χρέωση</string>
     <string name="last_balance">Τελευταίο Υπόλοιπο: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (πατήστε για μεγέθυνση)</string>
     <string name="link_card_title">Σύνδεση Κάρτας</string>
     <string name="no_accounts_found_link">Δεν βρέθηκαν %1$s λογαριασμοί. Προσθέστε πρώτα τον αντίστοιχο τραπεζικό λογαριασμό.</string>
     <string name="select_account_link_prompt">Επιλέξτε έναν λογαριασμό για να συνδέσετε αυτήν την κάρτα:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Λήγει σήμερα</string>
     <string name="due_tomorrow">Λήγει αύριο</string>
     <string name="due_in_days_format">Λήγει σε %1$d ημέρες</string>
-    <string name="sms_available">Διαθέσιμα SMS</string>
     <string name="notes">Σημειώσεις</string>
-    <string name="original_sms">Αρχικό SMS</string>
     <string name="track_payment">Παρακολούθηση Πληρωμής</string>
     <string name="edit_subscription">Επεξεργασία Συνδρομής</string>
     <string name="subscription_hidden_format">%1$s κρυφό</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Έχει πληρωθεί αυτή η συνδρομή;</string>
     <string name="no">Όχι</string>
     <string name="yes_its_paid">Ναι, έχει πληρωθεί</string>
-    <string name="hide_original_message">Απόκρυψη Αρχικού Μηνύματος</string>
-    <string name="show_original_message">Εμφάνιση Αρχικού Μηνύματος</string>
     <string name="export_transactions">Εξαγωγή Συναλλαγών</string>
     <string name="exporting">Εξαγωγή...</string>
     <string name="export_complete">Η Εξαγωγή Ολοκληρώθηκε!</string>

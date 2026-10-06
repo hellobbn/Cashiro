@@ -44,12 +44,9 @@
     <string name="new_balance_label">નવું બેલેન્સ</string>
     <string name="save">સેવ કરો</string>
     <string name="source_transaction">લેણદેણ</string>
-    <string name="source_sms">એસએમએસ</string>
     <string name="source_card_link">કાર્ડ લિંક</string>
     <string name="source_manual">મેન્યુઅલ</string>
     <string name="source_system">સિસ્ટમ</string>
-    <string name="sms_source">એસએમએસ સ્તર</string>
-    <string name="copy">ਕૉપિ કરો</string>
     <string name="account_details">ખાતાની વિગતો</string>
     <string name="transactions_count">લેણદેણ (%1$d)</string>
     <string name="balance_trend">બાલેન્સનો રુઝાન</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">ક્રેડિટ</string>
     <string name="debit_card">ડેબિટ</string>
     <string name="last_balance">છેલ્લું બેલેન્સ: %1$s</string>
-    <string name="sms_source_formatted">એસએમએસ: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (વિસ્તાર કરવા માટે ટૅપ કરો)</string>
     <string name="link_card_title">કાર્ડ લિંક કરો</string>
     <string name="no_accounts_found_link">કોઈ %1$s ખાતા મળ્યા નથી. કૃપા કરીને પહેલા સુસંગત બેંક ખાતું ઉમેરો.</string>
     <string name="select_account_link_prompt">આ કાર્ડને લિંક કરવા માટે કોઈ ખાતું પસંદ કરો:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">આજની તારીખે બાકી</string>
     <string name="due_tomorrow">કાળજોઈએકાલે</string>
     <string name="due_in_days_format">%1$d દિવસમાં બાકી</string>
-    <string name="sms_available">એસએમએસ ઉપલબ્ધ</string>
     <string name="notes">નોંધ</string>
-    <string name="original_sms">મૂળ એસએમએસ</string>
     <string name="track_payment">ચુકવણી ટ્રેક કરો</string>
     <string name="edit_subscription">સબ્સ્ક્રિપ્શન સંપાદિત કરો</string>
     <string name="subscription_hidden_format">%1$s છુપાયેલ</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">શું આ સબ્સ્ક્રિપ્શન ચૂકવાયું છે?</string>
     <string name="no">ના</string>
     <string name="yes_its_paid">હા, ચૂકવાયું છે</string>
-    <string name="hide_original_message">મૂળ સંદેશ છુપાવો</string>
-    <string name="show_original_message">મૂળ સંદેશ બતાવો</string>
     <string name="export_transactions">લેણદેણ નિકાસ કરો</string>
     <string name="exporting">નિકાસ થઈ રહ્યું છે...</string>
     <string name="export_complete">નિકાસ પૂર્ણ!</string>

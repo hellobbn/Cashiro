@@ -198,8 +198,6 @@ class BackupExporter @Inject constructor(
         val firstLaunchTime = userPreferencesRepository.getFirstLaunchTime().first()
         val hasShownReviewPrompt = userPreferencesRepository.getHasShownReviewPrompt().first()
         val lastReviewPromptTime = userPreferencesRepository.getLastReviewPromptTime().first()
-        val lastScanTimestamp = userPreferencesRepository.getLastScanTimestamp().first()
-        val lastScanPeriod = userPreferencesRepository.getLastScanPeriod().first()
         
         // Calculate statistics
         val dateRange = if (transactions.isNotEmpty()) {
@@ -254,12 +252,6 @@ class BackupExporter @Inject constructor(
                     accentColor = if (config.includeAppPreferences) prefs.accentColor.name else null,
                     blurEffects = if (config.includeAppPreferences) prefs.blurEffects else null,
                     appIcon = if (config.includeAppPreferences) prefs.appIcon.name else null
-                ),
-                sms = SmsPreferences(
-                    hasSkippedSmsPermission = prefs.hasSkippedSmsPermission,
-                    smsScanMonths = prefs.smsScanMonths,
-                    lastScanTimestamp = lastScanTimestamp,
-                    lastScanPeriod = lastScanPeriod
                 ),
                 developer = DeveloperPreferences(
                     isDeveloperModeEnabled = prefs.isDeveloperModeEnabled,

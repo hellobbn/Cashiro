@@ -44,12 +44,9 @@
     <string name="new_balance_label">Nou saldo</string>
     <string name="save">Desar</string>
     <string name="source_transaction">Transacció</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Enllaç de targeta</string>
     <string name="source_manual">Manual</string>
     <string name="source_system">Sistema</string>
-    <string name="sms_source">Font SMS</string>
-    <string name="copy">Copiar</string>
     <string name="account_details">Detalls del compte</string>
     <string name="transactions_count">Transaccions (%1$d)</string>
     <string name="balance_trend">Tendència del saldo</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Crèdit</string>
     <string name="debit_card">Dèbit</string>
     <string name="last_balance">Últim Saldo: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (toca per expandir)</string>
     <string name="link_card_title">Vincular Targeta</string>
     <string name="no_accounts_found_link">No s\'han trobat comptes %1$s. Si us plau, afegeix primer un compte bancari corresponent.</string>
     <string name="select_account_link_prompt">Selecciona un compte per vincular aquesta targeta:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Vencen avui</string>
     <string name="due_tomorrow">Vencen demà</string>
     <string name="due_in_days_format">Vencen d\'aquí a %1$d dies</string>
-    <string name="sms_available">SMS disponibles</string>
     <string name="notes">Notes</string>
-    <string name="original_sms">SMS original</string>
     <string name="track_payment">Seguir pagament</string>
     <string name="edit_subscription">Editar subscripció</string>
     <string name="subscription_hidden_format">%1$s ocult</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Aquesta subscripció està pagada?</string>
     <string name="no">No</string>
     <string name="yes_its_paid">Sí, està pagada</string>
-    <string name="hide_original_message">Amagar missatge original</string>
-    <string name="show_original_message">Mostrar missatge original</string>
     <string name="export_transactions">Exportar transaccions</string>
     <string name="exporting">S\'està exportant...</string>
     <string name="export_complete">Exportació completa!</string>

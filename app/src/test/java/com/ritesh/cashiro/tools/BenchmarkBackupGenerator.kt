@@ -12,7 +12,6 @@ import com.ritesh.cashiro.data.backup.DeveloperPreferences
 import com.ritesh.cashiro.data.backup.LocalDateTimeTypeAdapter
 import com.ritesh.cashiro.data.backup.LocalDateTypeAdapter
 import com.ritesh.cashiro.data.backup.PreferencesSnapshot
-import com.ritesh.cashiro.data.backup.SmsPreferences
 import com.ritesh.cashiro.data.backup.ThemePreferences
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
@@ -113,12 +112,6 @@ class BenchmarkBackupGenerator {
             ),
             preferences = PreferencesSnapshot(
                 theme = ThemePreferences(isDarkThemeEnabled = null, isDynamicColorEnabled = true),
-                sms = SmsPreferences(
-                    hasSkippedSmsPermission = true,
-                    smsScanMonths = 3,
-                    lastScanTimestamp = null,
-                    lastScanPeriod = null,
-                ),
                 developer = DeveloperPreferences(isDeveloperModeEnabled = false, systemPrompt = null),
                 app = AppPreferences(
                     hasShownScanTutorial = true,

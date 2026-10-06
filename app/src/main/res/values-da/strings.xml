@@ -44,12 +44,9 @@
     <string name="new_balance_label">Ny Saldo</string>
     <string name="save">Gem</string>
     <string name="source_transaction">Transaktion</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Kort Link</string>
     <string name="source_manual">Manuelt</string>
     <string name="source_system">System</string>
-    <string name="sms_source">SMS Kilde</string>
-    <string name="copy">Kopiér</string>
     <string name="account_details">Konto Detaljer</string>
     <string name="transactions_count">Transaktioner (%1$d)</string>
     <string name="balance_trend">Saldo Tendens</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredit</string>
     <string name="debit_card">Debet</string>
     <string name="last_balance">Sidste Saldo: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (tryk for at udvide)</string>
     <string name="link_card_title">Link Kort</string>
     <string name="no_accounts_found_link">Ingen %1$s konti fundet. Tilføj venligst en tilsvarende bankkonto først.</string>
     <string name="select_account_link_prompt">Vælg en konto, der skal tilknyttes dette kort til:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Forfalder i dag</string>
     <string name="due_tomorrow">Forfalder i morgen</string>
     <string name="due_in_days_format">Forfalder i %1$d dage</string>
-    <string name="sms_available">SMS tilgængelig</string>
     <string name="notes">Noter</string>
-    <string name="original_sms">Oprindelig SMS</string>
     <string name="track_payment">Spor Betaling</string>
     <string name="edit_subscription">Rediger Abonnement</string>
     <string name="subscription_hidden_format">%1$s skjult</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Er dette abonnement betalt?</string>
     <string name="no">Nej</string>
     <string name="yes_its_paid">Ja, det er betalt</string>
-    <string name="hide_original_message">Skjul Oprindelig Besked</string>
-    <string name="show_original_message">Vis Oprindelig Besked</string>
     <string name="export_transactions">Eksporter Transaktioner</string>
     <string name="exporting">Eksporterer...</string>
     <string name="export_complete">Eksport Færdig!</string>

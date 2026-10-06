@@ -44,12 +44,9 @@
     <string name="new_balance_label">更新后的余额</string>
     <string name="save">保存</string>
     <string name="source_transaction">交易</string>
-    <string name="source_sms">短信</string>
     <string name="source_card_link">卡片关联</string>
     <string name="source_manual">手动</string>
     <string name="source_system">系统</string>
-    <string name="sms_source">短信来源</string>
-    <string name="copy">复制</string>
     <string name="account_details">账户详情</string>
     <string name="transactions_count">交易记录 (%1$d)</string>
     <string name="balance_trend">余额趋势</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">贷方</string>
     <string name="debit_card">借方</string>
     <string name="last_balance">上次余额: %1$s</string>
-    <string name="sms_source_formatted">短信: %1$s</string>
-    <string name="sms_source_expand">短信: %1$s...（点击展开）</string>
     <string name="link_card_title">关联卡片</string>
     <string name="no_accounts_found_link">未找到 %1$s 账户。请先添加相应的银行账户。</string>
     <string name="select_account_link_prompt">选择一个账户来关联此卡:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">今天到期</string>
     <string name="due_tomorrow">明天到期</string>
     <string name="due_in_days_format">%1$d 天后到期</string>
-    <string name="sms_available">短信可用</string>
     <string name="notes">备注</string>
-    <string name="original_sms">原始短信</string>
     <string name="track_payment">跟踪付款</string>
     <string name="edit_subscription">编辑订阅</string>
     <string name="subscription_hidden_format">%1$s 已隐藏</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">该订阅已付款吗？</string>
     <string name="no">否</string>
     <string name="yes_its_paid">是，已付款</string>
-    <string name="hide_original_message">隐藏原始消息</string>
-    <string name="show_original_message">显示原始消息</string>
     <string name="no_subscriptions_yet">暂无订阅</string>
     <string name="add_subscription_empty_hint">添加订阅以开始跟踪定期付款</string>
     <string name="export_transactions">导出交易</string>

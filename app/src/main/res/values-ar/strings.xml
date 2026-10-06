@@ -44,12 +44,9 @@
     <string name="new_balance_label">رصيد جديد</string>
     <string name="save">حفظ</string>
     <string name="source_transaction">المعاملة</string>
-    <string name="source_sms">رسالة قصيرة</string>
     <string name="source_card_link">ربط البطاقة</string>
     <string name="source_manual">يدوي</string>
     <string name="source_system">النظام</string>
-    <string name="sms_source">مصدر الرسالة القصيرة</string>
-    <string name="copy">نسخ</string>
     <string name="account_details">تفاصيل الحساب</string>
     <string name="transactions_count">المعاملات (%1$d)</string>
     <string name="balance_trend">اتجاه الرصيد</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">ائتمان</string>
     <string name="debit_card">مدين</string>
     <string name="last_balance">آخر رصيد: %1$s</string>
-    <string name="sms_source_formatted">رسالة قصيرة: %1$s</string>
-    <string name="sms_source_expand">رسالة قصيرة: %1$s... (اضغط للتوسيع)</string>
     <string name="link_card_title">ربط بطاقة</string>
     <string name="no_accounts_found_link">لم يتم العثور على حسابات %1$s. الرجاء إضافة حساب مصرفي مطابق أولاً.</string>
     <string name="select_account_link_prompt">اختر حسابًا لربط هذه البطاقة به:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">مستحق اليوم</string>
     <string name="due_tomorrow">مستحق غداً</string>
     <string name="due_in_days_format">مستحق خلال %1$d أيام</string>
-    <string name="sms_available">الرسائل القصيرة متوفرة</string>
     <string name="notes">الملاحظات</string>
-    <string name="original_sms">الرسائل القصيرة الأصلية</string>
     <string name="track_payment">تتبع الدفع</string>
     <string name="edit_subscription">تعديل الاشتراك</string>
     <string name="subscription_hidden_format">تم إخفاء %1$s</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">هل تم دفع هذا الاشتراك؟</string>
     <string name="no">لا</string>
     <string name="yes_its_paid">نعم، تم دفعه</string>
-    <string name="hide_original_message">إخفاء الرسالة الأصلية</string>
-    <string name="show_original_message">عرض الرسالة الأصلية</string>
     <string name="export_transactions">تصدير العمليات</string>
     <string name="exporting">جاري التصدير...</string>
     <string name="export_complete">اكتمل التصدير!</string>

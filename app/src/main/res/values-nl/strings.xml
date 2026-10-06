@@ -44,12 +44,9 @@
     <string name="new_balance_label">Nieuw saldo</string>
     <string name="save">Opslaan</string>
     <string name="source_transaction">Transactie</string>
-    <string name="source_sms">sms</string>
     <string name="source_card_link">Kaart Link</string>
     <string name="source_manual">Handleiding</string>
     <string name="source_system">Systeem</string>
-    <string name="sms_source">SMS Bron</string>
-    <string name="copy">Kopiëren</string>
     <string name="account_details">Account details</string>
     <string name="transactions_count">Transacties (%1$d)</string>
     <string name="balance_trend">Saldo trend</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Krediet</string>
     <string name="debit_card">Incasso</string>
     <string name="last_balance">Laatste saldo: %1$s</string>
-    <string name="sms_source_formatted">SMS: 1 dollar</string>
-    <string name="sms_source_expand">SMS: %1$s... (tik om uit te breiden)</string>
     <string name="link_card_title">Link kaart</string>
     <string name="no_accounts_found_link">Geen %1$s rekeningen gevonden. Voeg eerst een overeenkomstige bankrekening toe.</string>
     <string name="select_account_link_prompt">Selecteer een account om deze kaart aan te koppelen:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Vervalt vandaag</string>
     <string name="due_tomorrow">Vervalt morgen</string>
     <string name="due_in_days_format">Vervalt in %1$d dagen</string>
-    <string name="sms_available">SMS beschikbaar</string>
     <string name="notes">Opmerkingen</string>
-    <string name="original_sms">Oorspronkelijke sms</string>
     <string name="track_payment">Bijhouden van betaling</string>
     <string name="edit_subscription">Bewerk abonnement</string>
     <string name="subscription_hidden_format">%1$s verborgen</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Wordt dit abonnement betaald?</string>
     <string name="no">Neen</string>
     <string name="yes_its_paid">Ja, het wordt betaald</string>
-    <string name="hide_original_message">Originele bericht verbergen</string>
-    <string name="show_original_message">Originele bericht tonen</string>
     <string name="export_transactions">Exporteer transacties</string>
     <string name="exporting">Exporteren...</string>
     <string name="export_complete">Exporteren voltooid!</string>

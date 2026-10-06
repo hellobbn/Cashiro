@@ -44,12 +44,9 @@
     <string name="new_balance_label">Ny balans</string>
     <string name="save">Spara</string>
     <string name="source_transaction">Transaktion</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Kortlänk</string>
     <string name="source_manual">Manuell</string>
     <string name="source_system">System</string>
-    <string name="sms_source">SMS-källa</string>
-    <string name="copy">Kopiera</string>
     <string name="account_details">Kontouppgifter</string>
     <string name="transactions_count">Transaktioner (%1$d)</string>
     <string name="balance_trend">Balansutveckling</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredit</string>
     <string name="debit_card">Debet</string>
     <string name="last_balance">Senaste saldo: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (tryck för att expandera)</string>
     <string name="link_card_title">Koppla kort</string>
     <string name="no_accounts_found_link">Inga %1$s-konton hittades. Vänligen lägg till ett motsvarande bankkonto först.</string>
     <string name="select_account_link_prompt">Välj ett konto att koppla detta kort till:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Förfaller idag</string>
     <string name="due_tomorrow">Förfaller imorgon</string>
     <string name="due_in_days_format">Förfaller om %1$d dagar</string>
-    <string name="sms_available">SMS tillgängliga</string>
     <string name="notes">Anteckningar</string>
-    <string name="original_sms">Original SMS</string>
     <string name="track_payment">Spåra betalning</string>
     <string name="edit_subscription">Redigera prenumeration</string>
     <string name="subscription_hidden_format">%1$s dold</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Är denna prenumeration betald?</string>
     <string name="no">Nej</string>
     <string name="yes_its_paid">Ja, den är betald</string>
-    <string name="hide_original_message">Dölj originalmeddelande</string>
-    <string name="show_original_message">Visa originalmeddelande</string>
     <string name="export_transactions">Exportera transaktioner</string>
     <string name="exporting">Exporterar...</string>
     <string name="export_complete">Export klar!</string>

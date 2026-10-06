@@ -44,12 +44,9 @@
     <string name="new_balance_label">Täze balans</string>
     <string name="save">Ýatda saklamak</string>
     <string name="source_transaction">Amal</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Karta baglanyşygy</string>
     <string name="source_manual">El bilen</string>
     <string name="source_system">Sistem</string>
-    <string name="sms_source">SMS çeşmesi</string>
-    <string name="copy">Gatyrmak</string>
     <string name="account_details">Hasap detalylary</string>
     <string name="transactions_count">Amallar (%1$d)</string>
     <string name="balance_trend">Balans tendensiýasy</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredit</string>
     <string name="debit_card">Debet</string>
     <string name="last_balance">Soňky Balans: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (iň ýapylyň ösürmek üçin basyň)</string>
     <string name="link_card_title">Karty Bagla</string>
     <string name="no_accounts_found_link">Heç hili %1$s hasap tapylmady. Ilki bilen degişli bank hasabyny goşuň.</string>
     <string name="select_account_link_prompt">Bu karty baglamak üçin hasaby saýlaň:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Baş günde tölemeli</string>
     <string name="due_tomorrow">Ertesi günüň tölegi</string>
     <string name="due_in_days_format">%1$d günüň içinde tölemeli</string>
-    <string name="sms_available">SMS elýeterli</string>
     <string name="notes">Beýlemeler</string>
-    <string name="original_sms">Asyl SMS</string>
     <string name="track_payment">Töläni yzarlamak</string>
     <string name="edit_subscription">Abunany üýtgetmek</string>
     <string name="subscription_hidden_format">%1$s gizlenildi</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Bu abuna tölenildimi?</string>
     <string name="no">Ýok</string>
     <string name="yes_its_paid">Hawa, tölenildi</string>
-    <string name="hide_original_message">Asyl habary gizle</string>
-    <string name="show_original_message">Asyl habary görkez</string>
     <string name="export_transactions">Transaksiýalary eksport etmek</string>
     <string name="exporting">Eksport edilýär...</string>
     <string name="export_complete">Eksport tamam!</string>

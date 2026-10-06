@@ -44,12 +44,9 @@
     <string name="new_balance_label">Nový zůstatek</string>
     <string name="save">Uložit</string>
     <string name="source_transaction">Transakce</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Odkaz na kartu</string>
     <string name="source_manual">Ruční</string>
     <string name="source_system">Systém</string>
-    <string name="sms_source">Zdroj SMS</string>
-    <string name="copy">Kopírovat</string>
     <string name="account_details">Detaily účtu</string>
     <string name="transactions_count">Transakce (%1$d)</string>
     <string name="balance_trend">Vývoj zůstatku</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Úvěry</string>
     <string name="debit_card">Příloha V část 2 odst.</string>
     <string name="last_balance">Poslední zůstatek: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (klepnutím rozbalit)</string>
     <string name="link_card_title">Odkaz na kartu</string>
     <string name="no_accounts_found_link">Nebyly nalezeny žádné %1$s účty. Nejprve přidejte odpovídající bankovní účet.</string>
     <string name="select_account_link_prompt">Vyberte účet pro propojení této karty s:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Termín dnes</string>
     <string name="due_tomorrow">Termín zítra</string>
     <string name="due_in_days_format">Termín za %1$d dní</string>
-    <string name="sms_available">SMS k dispozici</string>
     <string name="notes">Poznámky</string>
-    <string name="original_sms">Původní SMS</string>
     <string name="track_payment">Sledovat platbu</string>
     <string name="edit_subscription">Upravit předplatné</string>
     <string name="subscription_hidden_format">%1$s skryto</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Je toto předplatné zaplaceno?</string>
     <string name="no">Ne</string>
     <string name="yes_its_paid">Ano, je to zaplaceno</string>
-    <string name="hide_original_message">Skrýt původní zprávu</string>
-    <string name="show_original_message">Zobrazit původní zprávu</string>
     <string name="export_transactions">Exportovat transakce</string>
     <string name="exporting">Exportování...</string>
     <string name="export_complete">Export dokončen!</string>

@@ -565,17 +565,7 @@ class BackupImporter @Inject constructor(
             userPreferencesRepository.updateDarkTheme(it)
         }
         userPreferencesRepository.updateDynamicColor(preferences.theme.isDynamicColorEnabled)
-        
-        // SMS preferences
-        userPreferencesRepository.updateHasSkippedSmsPermission(preferences.sms.hasSkippedSmsPermission)
-        userPreferencesRepository.updateSmsScanMonths(preferences.sms.smsScanMonths)
-        preferences.sms.lastScanTimestamp?.let {
-            userPreferencesRepository.updateLastScanTimestamp(it)
-        }
-        preferences.sms.lastScanPeriod?.let {
-            userPreferencesRepository.updateLastScanPeriod(it)
-        }
-        
+
         // Developer preferences
         userPreferencesRepository.updateDeveloperMode(preferences.developer.isDeveloperModeEnabled)
         userPreferencesRepository.setTokenInfoEnabled(preferences.developer.isTokenInfoEnabled)

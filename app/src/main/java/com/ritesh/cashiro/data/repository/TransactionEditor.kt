@@ -77,7 +77,7 @@ class TransactionEditor @Inject constructor(private val database: CashiroDatabas
                     bankName = move.bankName, accountLast4 = move.accountLast4, amount = move.amount,
                     transactionType = move.type, explicitBalance = move.reportedBalance,
                     timestamp = at, transactionId = id, creditLimit = null,
-                    isCreditCard = false, smsSource = null, currency = move.currency
+                    isCreditCard = false, currency = move.currency
                 )
             }
         }

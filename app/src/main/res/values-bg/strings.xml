@@ -44,12 +44,9 @@
     <string name="new_balance_label">Нов баланс</string>
     <string name="save">Запиши</string>
     <string name="source_transaction">Транзакция</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Свързване на карта</string>
     <string name="source_manual">Ръчно</string>
     <string name="source_system">Система</string>
-    <string name="sms_source">Източник на SMS</string>
-    <string name="copy">Копирай</string>
     <string name="account_details">Детайли на акаунта</string>
     <string name="transactions_count">Транзакции (%1$d)</string>
     <string name="balance_trend">Тенденция на баланса</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Кредит</string>
     <string name="debit_card">Дебит</string>
     <string name="last_balance">Последно салдо: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (натиснете за разширяване)</string>
     <string name="link_card_title">Свържете карта</string>
     <string name="no_accounts_found_link">Не са намерени %1$s акаунти. Моля, добавете съответния банков акаунт първо.</string>
     <string name="select_account_link_prompt">Изберете акаунт, към който да свържете тази карта:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Дължимо днес</string>
     <string name="due_tomorrow">Дължимо утре</string>
     <string name="due_in_days_format">Дължимо след %1$d дни</string>
-    <string name="sms_available">Налични SMS</string>
     <string name="notes">Бележки</string>
-    <string name="original_sms">Оригинален SMS</string>
     <string name="track_payment">Проследи плащане</string>
     <string name="edit_subscription">Редактирай абонамент</string>
     <string name="subscription_hidden_format">%1$s скрито</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Този абонамент е платен?</string>
     <string name="no">Не</string>
     <string name="yes_its_paid">Да, платен е</string>
-    <string name="hide_original_message">Скрий оригиналното съобщение</string>
-    <string name="show_original_message">Покажи оригиналното съобщение</string>
     <string name="export_transactions">Експортиране на транзакции</string>
     <string name="exporting">Експортиране...</string>
     <string name="export_complete">Експортиране завършено!</string>

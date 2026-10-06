@@ -44,12 +44,9 @@
     <string name="new_balance_label">নতুন ব্যালেন্স</string>
     <string name="save">সংরক্ষণ করুন</string>
     <string name="source_transaction">লেনদেন</string>
-    <string name="source_sms">এসএমএস</string>
     <string name="source_card_link">কার্ড লিঙ্ক</string>
     <string name="source_manual">ম্যানুয়াল</string>
     <string name="source_system">সিস্টেম</string>
-    <string name="sms_source">এসএমএস উৎস</string>
-    <string name="copy">কপি করুন</string>
     <string name="account_details">অ্যাকাউন্ট বিবরণ</string>
     <string name="transactions_count">লেনদেন (%1$d)</string>
     <string name="balance_trend">ব্যালেন্সের ধারা</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">ক্রেডিট</string>
     <string name="debit_card">ডেবিট</string>
     <string name="last_balance">শেষ ব্যালান্স: %1$s</string>
-    <string name="sms_source_formatted">এসএমএস: %1$s</string>
-    <string name="sms_source_expand">এসএমএস: %1$s... (বিস্তার করতে ট্যাপ করুন)</string>
     <string name="link_card_title">কার্ড লিঙ্ক করুন</string>
     <string name="no_accounts_found_link">কোন %1$s অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে প্রথমে সংশ্লিষ্ট ব্যাংক অ্যাকাউন্ট যোগ করুন।</string>
     <string name="select_account_link_prompt">এই কার্ডটি লিঙ্ক করার জন্য একটি অ্যাকাউন্ট নির্বাচন করুন:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">আজ পাওয়ার</string>
     <string name="due_tomorrow">আগামীকাল পাওয়ার</string>
     <string name="due_in_days_format">%1$d দিনের মধ্যে পাওয়ার</string>
-    <string name="sms_available">এসএমএস উপলব্ধ</string>
     <string name="notes">নোট</string>
-    <string name="original_sms">মূল এসএমএস</string>
     <string name="track_payment">পেমেন্ট ট্র্যাক করুন</string>
     <string name="edit_subscription">সাবস্ক্রিপশন সম্পাদনা করুন</string>
     <string name="subscription_hidden_format">%1$s লুকানো</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">এই সাবস্ক্রিপশন কি পরিশোধ হয়েছে?</string>
     <string name="no">না</string>
     <string name="yes_its_paid">হ্যাঁ, এটি পরিশোধ হয়েছে</string>
-    <string name="hide_original_message">মূল বার্তা লুকান</string>
-    <string name="show_original_message">মূল বার্তা দেখান</string>
     <string name="export_transactions">লেনদেন রপ্তানি করুন</string>
     <string name="exporting">রপ্তানি করা হচ্ছে...</string>
     <string name="export_complete">রপ্তানি সম্পন্ন!</string>

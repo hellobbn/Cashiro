@@ -44,12 +44,9 @@
     <string name="new_balance_label">Balance Yatsopano</string>
     <string name="save">Sungani</string>
     <string name="source_transaction">Kugulitsa</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Link Card</string>
     <string name="source_manual">Pamanja</string>
     <string name="source_system">Dongosolo</string>
-    <string name="sms_source">Gwero la SMS</string>
-    <string name="copy">Koperani</string>
     <string name="account_details">Tsatanetsatane wa Akaunti</string>
     <string name="transactions_count">Zochita (%1$d)</string>
     <string name="balance_trend">Balance Trend</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Ngongole</string>
     <string name="debit_card">Debit</string>
     <string name="last_balance">Malire Omaliza: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (dinani kuti mukulitse)</string>
     <string name="link_card_title">Link Card</string>
     <string name="no_accounts_found_link">Palibe %1$s maakaunti omwe apezeka. Chonde onjezani akaunti yaku banki yofananira kaye.</string>
     <string name="select_account_link_prompt">Sankhani akaunti yolumikizira khadi ili ku:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Zikuyenera lero</string>
     <string name="due_tomorrow">Zikuyembekezeka mawa</string>
     <string name="due_in_days_format">Zilipiridwe m\'masiku %1$d</string>
-    <string name="sms_available">SMS ilipo</string>
     <string name="notes">Zolemba</string>
-    <string name="original_sms">SMS yoyambirira</string>
     <string name="track_payment">Tsatani Malipiro</string>
     <string name="edit_subscription">Sinthani Kulembetsa</string>
     <string name="subscription_hidden_format">%1$s zobisika</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Kodi kulembetsaku kulipiridwa?</string>
     <string name="no">Ayi</string>
     <string name="yes_its_paid">Inde, zalipidwa</string>
-    <string name="hide_original_message">Bisani Uthenga Woyambirira</string>
-    <string name="show_original_message">Onetsani Uthenga Woyambirira</string>
     <string name="export_transactions">Kutumiza kunja</string>
     <string name="exporting">Kutumiza kunja...</string>
     <string name="export_complete">Kutumiza Kwathunthu!</string>

@@ -95,7 +95,7 @@ class AccountBalanceRepository @Inject constructor(
         return insertBalance(
             latest.copy(
                 id = 0, balance = balance, currency = currency, timestamp = now, transactionId = null,
-                smsSource = null, sourceType = "BALANCE_CALIBRATION", createdAt = now
+                sourceType = "BALANCE_CALIBRATION", createdAt = now
             )
         )
     }
@@ -184,7 +184,6 @@ class AccountBalanceRepository @Inject constructor(
      * @param transactionId The associated transaction ID.
      * @param creditLimit Optionally, a custom credit limit parsed from SMS.
      * @param isCreditCard Whether this account is a credit card.
-     * @param smsSource Sanitized SMS snippet source.
      * @param currency The transaction currency.
      * @return The ID of the inserted balance record.
      */
@@ -198,7 +197,6 @@ class AccountBalanceRepository @Inject constructor(
         transactionId: Long?,
         creditLimit: BigDecimal?,
         isCreditCard: Boolean,
-        smsSource: String?,
         currency: String
     ): Long {
         return accountBalanceDao.insertTransactionBalance(
@@ -211,7 +209,7 @@ class AccountBalanceRepository @Inject constructor(
             transactionId = transactionId,
             creditLimit = creditLimit,
             isCreditCard = isCreditCard,
-            smsSource = smsSource,
+            
             currency = currency
         )
     }
@@ -221,7 +219,6 @@ class AccountBalanceRepository @Inject constructor(
         accountLast4: String,
         balance: BigDecimal,
         timestamp: LocalDateTime,
-        smsSource: String? = null,
         sourceType: String? = null,
         currency: String
     ): Long {
@@ -232,7 +229,7 @@ class AccountBalanceRepository @Inject constructor(
             balance = balance,
             timestamp = timestamp,
             transactionId = null,
-            smsSource = smsSource?.take(500),  // Limit to 500 chars
+             // Limit to 500 chars
             sourceType = sourceType,
             currency = currency,
             iconResId = latest?.iconResId ?: 0,

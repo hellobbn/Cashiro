@@ -73,9 +73,7 @@ constructor(
                         transactionType = type,
                         dateTime = date,
                         description = notes,
-                        smsBody = null, // null indicates manual entry
                         bankName = bankName ?: "Manual Entry",
-                        smsSender = null, // null indicates manual entry
                         accountNumber = accountLast4,
                         fromAccount = accountLast4,
                         toAccount = targetAccountLast4,
@@ -113,7 +111,7 @@ constructor(
                     transactionId = id,
                     creditLimit = null,
                     isCreditCard = false,
-                    smsSource = null,
+                    
                     currency = move.currency
                 )
             }

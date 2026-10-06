@@ -29,7 +29,6 @@ data class AccountBalanceEntity(
     @ColumnInfo(name = "transaction_id") val transactionId: Long? = null,
     @ColumnInfo(name = "credit_limit") val creditLimit: BigDecimal? = null,
     @ColumnInfo(name = "is_credit_card", defaultValue = "0") val isCreditCard: Boolean = false,
-    @ColumnInfo(name = "sms_source") val smsSource: String? = null,
     @ColumnInfo(name = "source_type")
     val sourceType: String? = null, // TRANSACTION, SMS_BALANCE, MANUAL, CARD_LINK
     @ColumnInfo(name = "created_at") val createdAt: LocalDateTime = LocalDateTime.now(),

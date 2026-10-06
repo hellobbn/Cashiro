@@ -44,12 +44,9 @@
     <string name="new_balance_label">Sold nou</string>
     <string name="save">Salvează</string>
     <string name="source_transaction">Tranzacție</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Link card</string>
     <string name="source_manual">Manual</string>
     <string name="source_system">Sistem</string>
-    <string name="sms_source">Sursă SMS</string>
-    <string name="copy">Copiază</string>
     <string name="account_details">Detalii cont</string>
     <string name="transactions_count">Tranzacții (%1$d)</string>
     <string name="balance_trend">Tendința soldului</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Credit</string>
     <string name="debit_card">Debit</string>
     <string name="last_balance">Ultimul sold: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (apasă pentru a extinde)</string>
     <string name="link_card_title">Conectează Cardul</string>
     <string name="no_accounts_found_link">Nu s-au găsit conturi %1$s . Vă rugăm să adăugaţi mai întâi un cont bancar corespunzător.</string>
     <string name="select_account_link_prompt">Selectați un cont pentru a conecta acest card la:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">De finalizat astăzi</string>
     <string name="due_tomorrow">De finalizat mâine</string>
     <string name="due_in_days_format">De finalizat în %1$d zile</string>
-    <string name="sms_available">SMS disponibil</string>
     <string name="notes">Note</string>
-    <string name="original_sms">SMS original</string>
     <string name="track_payment">Urmărire plată</string>
     <string name="edit_subscription">Editare abonament</string>
     <string name="subscription_hidden_format">%1$s ascuns</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Acest abonament este plătit?</string>
     <string name="no">Nr</string>
     <string name="yes_its_paid">Da, este plătit</string>
-    <string name="hide_original_message">Ascunde Mesajul Original</string>
-    <string name="show_original_message">Arată mesajul original</string>
     <string name="export_transactions">Exportă tranzacții</string>
     <string name="exporting">Exportare...</string>
     <string name="export_complete">Export finalizat!</string>

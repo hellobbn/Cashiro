@@ -44,12 +44,9 @@
     <string name="new_balance_label">Ny saldo</string>
     <string name="save">Lagre</string>
     <string name="source_transaction">Transaksjon</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Kort link</string>
     <string name="source_manual">Manuell</string>
     <string name="source_system">Systemadministrasjon</string>
-    <string name="sms_source">SMS kilde</string>
-    <string name="copy">Kopier</string>
     <string name="account_details">Konto detaljer</string>
     <string name="transactions_count">Transaksjoner (%1$d)</string>
     <string name="balance_trend">Balanse Trend</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kreditt</string>
     <string name="debit_card">Debet</string>
     <string name="last_balance">Siste saldo: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (trykk for å utvide)</string>
     <string name="link_card_title">Lenkekort</string>
     <string name="no_accounts_found_link">Ingen %1$s kontoer funnet. Vennligst legg til en tilsvarende bankkonto først.</string>
     <string name="select_account_link_prompt">Velg en konto for å koble dette kortet til:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Forfaller i dag</string>
     <string name="due_tomorrow">Forfaller i morgen</string>
     <string name="due_in_days_format">Forfall om %1$d dager</string>
-    <string name="sms_available">SMS tilgjengelig</string>
     <string name="notes">Notater</string>
-    <string name="original_sms">Opprinnelig SMS</string>
     <string name="track_payment">Spor betaling</string>
     <string name="edit_subscription">Rediger abonnement</string>
     <string name="subscription_hidden_format">%1$s skjult</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Er abonnementet betalt?</string>
     <string name="no">Nei</string>
     <string name="yes_its_paid">Ja, det er betalt</string>
-    <string name="hide_original_message">Skjul opprinnelig melding</string>
-    <string name="show_original_message">Vis opprinnelig melding</string>
     <string name="export_transactions">Eksporter transaksjoner</string>
     <string name="exporting">Eksporterer...</string>
     <string name="export_complete">Eksport fullført!</string>
