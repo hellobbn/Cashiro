@@ -66,10 +66,12 @@ fun EditWidgetsSheet(
     onToggleBannerImage: () -> Unit = {}
 ) {
     // Filter out Networth Summary
-    var reorderableWidgets by remember { mutableStateOf(widgets.filter { it.widget != HomeWidget.NETWORTH_SUMMARY }) }
+    // Net worth stays first, and the account types live under it: neither is listed here
+    val fixed = setOf(HomeWidget.NETWORTH_SUMMARY, HomeWidget.ACCOUNT_CAROUSEL)
+    var reorderableWidgets by remember { mutableStateOf(widgets.filter { it.widget !in fixed }) }
 
     LaunchedEffect(widgets) {
-        val filtered = widgets.filter { it.widget != HomeWidget.NETWORTH_SUMMARY }
+        val filtered = widgets.filter { it.widget !in fixed }
         if (reorderableWidgets != filtered) {
              reorderableWidgets = filtered
         }
@@ -184,7 +186,7 @@ private fun WidgetItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         PreferenceSwitch(
-            title = widgetModel.widget.displayName,
+            title = stringResource(widgetModel.widget.titleRes),
             checked = widgetModel.isVisible,
             onCheckedChange = onToggleVisibility,
             leadingIcon = {

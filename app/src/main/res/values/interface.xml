@@ -198,7 +198,6 @@
     <string name="default_account_note">Default</string>
     <string name="default_account_title">Default account for new entries</string>
     <string name="default_account_hint">Preselected when you add a transaction</string>
-    <string name="home_by_category">By category</string>
     <string name="home_last_days">Last %1$d days</string>
     <string name="home_change_up">up %1$s</string>
     <string name="home_change_down">down %1$s</string>
@@ -270,4 +269,12 @@
     <string name="sub_msg_deleted">Subcategory deleted</string>
     <string name="sub_msg_cannot_delete">Cannot delete this subcategory</string>
     <string name="sub_msg_delete_error">Error deleting subcategory: %1$s</string>
+    <string name="home_widget_net_worth">Net worth</string>
+    <string name="home_widget_loans">Loans</string>
+    <string name="home_widget_accounts">Account types</string>
+    <string name="home_widget_subscriptions">Upcoming payments</string>
+    <string name="home_widget_recent">Recent transactions</string>
+    <string name="home_widget_budgets">Budgets</string>
+    <string name="home_widget_heatmap">Activity heatmap</string>
+    <string name="home_by_category">Account types</string>
 </resources>

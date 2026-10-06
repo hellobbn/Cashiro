@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.home
 
+import com.ritesh.cashiro.domain.usecase.netWorthByDay
 import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -42,6 +43,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -117,6 +120,14 @@ class HomeViewModel @Inject constructor(
     private val baseCurrency = currencyRepository.effectiveBaseCurrencyCode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "CNY")
 
+    // Today, moved on at midnight and when Home comes back: "this month" and the like follow it
+    private val today = MutableStateFlow(LocalDate.now())
+
+    /** Picks up a new day (Home shown again after the app sat in the background). */
+    fun refreshDate() {
+        today.value = LocalDate.now()
+    }
+
     private val _selectedCurrency = MutableStateFlow<String?>(null)
     private val selectedCurrencyCombined = combine(
         baseCurrency,
@@ -127,6 +138,14 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch { runCatching { brokerageRepository.load() } }
+        viewModelScope.launch {
+            while (true) {
+                val now = LocalDateTime.now()
+                val midnight = now.toLocalDate().plusDays(1).atStartOfDay()
+                delay(java.time.Duration.between(now, midnight).toMillis() + 1_000)
+                refreshDate()
+            }
+        }
         loadHomeData()
         loadUserData()
     }
@@ -201,7 +220,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             // Load current month breakdown by currency
             combine(
-                transactionRepository.getCurrentMonthBreakdownByCurrency(),
+                today.flatMapLatest { transactionRepository.getCurrentMonthBreakdownByCurrency(it) },
                 selectedCurrencyCombined,
                 currencyConversionService.rateChangeTrigger
             ) { breakdownByCurrency, selectedCurrency, _ ->
@@ -279,59 +298,13 @@ class HomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            // Load current month transactions by type (currency-filtered)
-            val now = LocalDate.now()
-            val startOfMonth = now.withDayOfMonth(1)
-            val endOfMonth = now.withDayOfMonth(now.lengthOfMonth())
-
-            combine(
-                transactionRepository.getTransactionsBetweenDates(
-                    startDate = startOfMonth,
-                    endDate = endOfMonth
-                ),
-                selectedCurrencyCombined,
-                currencyConversionService.rateChangeTrigger
-            ) { transactions, selectedCurrency, _ ->
-                var creditCardTotal = BigDecimal.ZERO
-                var transferTotal = BigDecimal.ZERO
-                var investmentTotal = BigDecimal.ZERO
-
-                transactions.forEach { tx ->
-                    val convertedAmount = if (tx.currency == selectedCurrency) {
-                        tx.amount
-                    } else {
-                        currencyConversionService.convertAmount(
-                            amount = tx.amount,
-                            fromCurrency = tx.currency,
-                            toCurrency = selectedCurrency
-                        ) ?: tx.amount
-                    }
-
-                    when (tx.transactionType) {
-                        TransactionType.CREDIT -> creditCardTotal += convertedAmount
-                        TransactionType.TRANSFER -> transferTotal += convertedAmount
-                        TransactionType.INVESTMENT -> investmentTotal += convertedAmount
-                        else -> {}
-                    }
-                }
-
-                _uiState.update { it.copy(
-                    currentMonthCreditCard = creditCardTotal,
-                    currentMonthTransfer = transferTotal,
-                    currentMonthInvestment = investmentTotal
-                ) }
-            }.flowOn(Dispatchers.Default).collectLatest { }
-        }
-
-        viewModelScope.launch {
             // Load heatmap data (last 26 weeks)
-            val endOfHeatmap = LocalDate.now()
-            val startOfHeatmap = endOfHeatmap.minusWeeks(26).with(java.time.DayOfWeek.MONDAY)
-            
-            transactionRepository.getTransactionsBetweenDates(
-                startDate = startOfHeatmap,
-                endDate = endOfHeatmap
-            ).map { transactions ->
+            today.flatMapLatest { day ->
+                transactionRepository.getTransactionsBetweenDates(
+                    startDate = day.minusWeeks(26).with(java.time.DayOfWeek.MONDAY),
+                    endDate = day
+                )
+            }.map { transactions ->
                 transactions.groupBy { it.dateTime.toLocalDate() }
                     .mapValues { it.value.size }
             }.flowOn(Dispatchers.Default).collect { heatmap ->
@@ -342,7 +315,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             // Load last month breakdown by currency
             combine(
-                transactionRepository.getLastMonthBreakdownByCurrency(),
+                today.flatMapLatest { transactionRepository.getLastMonthBreakdownByCurrency(it) },
                 selectedCurrencyCombined,
                 currencyConversionService.rateChangeTrigger
             ) { breakdownByCurrency, selectedCurrency, _ ->
@@ -353,7 +326,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             // Load current year breakdown by currency
             combine(
-                transactionRepository.getCurrentYearBreakdownByCurrency(),
+                today.flatMapLatest { transactionRepository.getCurrentYearBreakdownByCurrency(it) },
                 selectedCurrencyCombined,
                 currencyConversionService.rateChangeTrigger
             ) { breakdownByCurrency, selectedCurrency, _ ->
@@ -418,9 +391,8 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             // Load active budgets for current month and react to currency changes
-            val yearMonth = YearMonth.now()
             combine(
-                budgetRepository.getBudgetsWithSpendingForMonth(yearMonth.year, yearMonth.monthValue),
+                today.flatMapLatest { budgetRepository.getBudgetsWithSpendingForMonth(it.year, it.monthValue) },
                 selectedCurrencyCombined,
                 currencyConversionService.rateChangeTrigger
             ) { budgets, targetCurrency, _ ->
@@ -458,58 +430,36 @@ class HomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            // Load portfolio balance history for the last 180 days, reactive to currency changes
-            val endDate = LocalDateTime.now()
-            val startDate = endDate.minusDays(180)
-
+            // Net worth over the last 180 days, ending at the figure shown above it: every account
+            // currency carried forward day by day, cards subtracted, investments at their value now
             combine(
                 accountBalanceRepository.getAllBalances(),
+                accountBalanceRepository.observeAccounts(),
                 selectedCurrencyCombined,
-                currencyConversionService.rateChangeTrigger
-            ) { allBalances, selectedCurrency, _ ->
-                allBalances to selectedCurrency
-            }.collectLatest { (allBalances, selectedCurrency) ->
-                // Group balances by date to calculate daily totals (off Main: scans every snapshot)
-                val dailyPortfolioHistory = withContext(Dispatchers.Default) { allBalances
-                    .filter { it.timestamp.isAfter(startDate) }
-                    .groupBy { it.timestamp.toLocalDate() }
-                    .mapValues { (_, balances) ->
-                        // For each day, keep only the latest balance for each unique account
-                        val latestBalancesPerAccount = balances
-                            .groupBy { "${it.bankName}_${it.accountLast4}" }
-                            .mapValues { (_, accountBalances) ->
-                                accountBalances.maxByOrNull { it.timestamp }
-                            }
-
-                        var dayTotal = BigDecimal.ZERO
-                        for (account in latestBalancesPerAccount.values.filterNotNull()) {
-                            val balanceValue = if (account.isCreditCard) account.balance.negate() else account.balance
-                            val amt = if (account.currency == selectedCurrency) {
-                                balanceValue
-                            } else {
-                                currencyConversionService.convertAmount(
-                                    amount = balanceValue,
-                                    fromCurrency = account.currency,
-                                    toCurrency = selectedCurrency
-                                )
-                            }
-                            dayTotal = dayTotal.add(amt)
-                        }
-                        dayTotal
+                currencyConversionService.rateChangeTrigger,
+                brokerageRepository.connections,
+                today
+            ) { args: Array<Any?> -> args }.collectLatest { args ->
+                @Suppress("UNCHECKED_CAST") val allBalances = args[0] as List<AccountBalanceEntity>
+                @Suppress("UNCHECKED_CAST") val accounts = args[1] as List<com.ritesh.cashiro.data.database.entity.AccountEntity>
+                val selectedCurrency = args[2] as String
+                @Suppress("UNCHECKED_CAST") val connections = args[4] as List<com.ritesh.cashiro.data.brokerage.BrokerConnection>
+                val day = args[5] as LocalDate
+                val history = withContext(Dispatchers.Default) {
+                    val cards = accounts.filter { it.isCreditCard }.map { it.id }.toSet()
+                    val rates = allBalances.map { it.currency }.distinct().associateWith { currency ->
+                        if (currency == selectedCurrency) BigDecimal.ONE
+                        else currencyConversionService.convertAmount(BigDecimal.ONE, currency, selectedCurrency)
                     }
-                    .toSortedMap()
-                    .map { (date, total) ->
-                        BalancePoint(
-                            timestamp = date.atStartOfDay(),
-                            balance = total,
-                            currency = selectedCurrency
-                        )
+                    var investments = BigDecimal.ZERO
+                    for ((currency, value) in connections.investmentSnapshotsOrEmpty()) {
+                        investments += currencyConversionService.convertAmount(value, currency, selectedCurrency)
                     }
+                    netWorthByDay(allBalances, day.minusDays(180), day, rates) { row ->
+                        row.accountId?.let { it in cards } ?: row.isCreditCard
+                    }.map { (date, total) -> BalancePoint(date.atStartOfDay(), total + investments, selectedCurrency) }
                 }
-
-                _uiState.update { it.copy(
-                    balanceHistory = dailyPortfolioHistory
-                ) }
+                _uiState.update { it.copy(balanceHistory = history) }
             }
         }
 

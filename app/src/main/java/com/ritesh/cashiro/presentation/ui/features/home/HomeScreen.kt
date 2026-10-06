@@ -251,6 +251,8 @@ fun SharedTransitionScope.HomeScreen(
     LaunchedEffect(Unit) {
         // Refresh account balances to ensure proper currency conversion
         homeViewModel.refreshAccountBalances()
+        // A new day since Home was last shown moves "this month" on
+        homeViewModel.refreshDate()
 
         // Check for app updates
         activity?.let {
@@ -520,7 +522,8 @@ fun SharedTransitionScope.HomeScreen(
                                         targetName = { tx ->
                                             tx.toAccountId?.let { id -> lookups.accounts.values.firstOrNull { it.accountId == id }?.bankName }
                                         },
-                                        mainCurrency = uiState.baseCurrency,
+                                        // The second line is converted to the currency shown above
+                                        mainCurrency = uiState.selectedCurrency,
                                         isLoading = uiState.isLoading,
                                         onTransactionClick = { onTransactionClick(it.id, "transaction_${it.id}") },
                                         onViewAll = onNavigateToTransactions,
