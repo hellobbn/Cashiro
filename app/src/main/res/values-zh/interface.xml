@@ -239,4 +239,26 @@
     <string name="cycle_every">每 %1$d %2$s</string>
     <string name="cycle_with_monthly">%1$s，约 %2$s/月</string>
     <string name="card_overdue">已逾期 %1$d 天</string>
+    <string name="budget_current_period">本期</string>
+    <string name="cat_msg_updated">分类已更新</string>
+    <string name="cat_msg_exists">已有名为「%1$s」的分类</string>
+    <string name="cat_msg_created">分类已创建</string>
+    <string name="cat_msg_save_error">保存分类失败：%1$s</string>
+    <string name="cat_msg_reset">分类已恢复默认</string>
+    <string name="cat_msg_reset_error">恢复分类失败：%1$s</string>
+    <string name="cat_msg_system">系统分类不能删除</string>
+    <string name="cat_msg_check_error">检查交易失败：%1$s</string>
+    <string name="cat_msg_delete_error">删除失败：%1$s</string>
+    <string name="cat_msg_move_error">转移交易失败：%1$s</string>
+    <string name="cat_msg_deleted">分类已删除</string>
+    <string name="cat_msg_cannot_delete">无法删除这个分类</string>
+    <string name="sub_msg_updated">子分类已更新</string>
+    <string name="sub_msg_added">子分类已添加</string>
+    <string name="sub_msg_save_error">保存子分类失败：%1$s</string>
+    <string name="sub_msg_reset">子分类已恢复默认</string>
+    <string name="sub_msg_reset_error">恢复子分类失败：%1$s</string>
+    <string name="sub_msg_system">系统子分类不能删除</string>
+    <string name="sub_msg_deleted">子分类已删除</string>
+    <string name="sub_msg_cannot_delete">无法删除这个子分类</string>
+    <string name="sub_msg_delete_error">删除子分类失败：%1$s</string>
 </resources>

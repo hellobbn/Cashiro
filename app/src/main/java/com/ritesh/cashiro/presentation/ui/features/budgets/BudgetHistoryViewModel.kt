@@ -44,7 +44,8 @@ data class BudgetHistoryUiState(
 
 @HiltViewModel
 class BudgetHistoryViewModel @Inject constructor(
-    private val budgetRepository: BudgetRepository
+    private val budgetRepository: BudgetRepository,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BudgetHistoryUiState())
@@ -94,56 +95,9 @@ class BudgetHistoryViewModel @Inject constructor(
         }
     }
 
-    private fun calculateHistoricalPeriods(budget: BudgetEntity): List<Pair<LocalDateTime, LocalDateTime>> {
-        val periods = mutableListOf<Pair<LocalDateTime, LocalDateTime>>()
-        val now = LocalDateTime.now()
-        val creationDate = budget.createdAt
-        
-        // If Custom (one-time), only show the original period
-        if (budget.periodType == BudgetPeriod.CUSTOM) {
-            return listOf(budget.startDate to budget.endDate)
-        }
-
-        var currentStart = budget.startDate
-        var currentEnd = budget.endDate
-
-        // Add current period
-        periods.add(currentStart to currentEnd)
-
-        // Go backwards until creation month
-        val creationYearMonth = YearMonth.from(creationDate)
-        
-        while (true) {
-            val prevStart = when (budget.periodType) {
-                BudgetPeriod.DAILY -> currentStart.minusDays(1)
-                BudgetPeriod.WEEKLY -> currentStart.minusWeeks(1)
-                BudgetPeriod.MONTHLY -> currentStart.minusMonths(1)
-                BudgetPeriod.YEARLY -> currentStart.minusYears(1)
-                else -> break
-            }
-            
-            val prevEnd = when (budget.periodType) {
-                BudgetPeriod.DAILY -> prevStart
-                BudgetPeriod.WEEKLY -> prevStart.plusDays(6).withHour(23).withMinute(59).withSecond(59)
-                BudgetPeriod.MONTHLY -> prevStart.withDayOfMonth(prevStart.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
-                BudgetPeriod.YEARLY -> prevStart.plusYears(1).minusDays(1).withHour(23).withMinute(59).withSecond(59)
-                else -> break
-            }
-
-            if (YearMonth.from(prevStart).isBefore(creationYearMonth)) {
-                break
-            }
-
-            periods.add(prevStart to prevEnd)
-            currentStart = prevStart
-            currentEnd = prevEnd
-            
-            // Safety break to prevent infinite loops (back up to 2 years)
-            if (periods.size > 24) break
-        }
-
-        return periods
-    }
+    /** The budget's periods, newest first, back to its first (see [BudgetPeriods]). */
+    private fun calculateHistoricalPeriods(budget: BudgetEntity): List<Pair<LocalDateTime, LocalDateTime>> =
+        com.ritesh.cashiro.domain.model.BudgetPeriods.history(budget).map { it.from to it.to }
 
     private suspend fun calculateSpendingForPeriod(
         budget: BudgetEntity,
@@ -151,9 +105,11 @@ class BudgetHistoryViewModel @Inject constructor(
         endDate: LocalDateTime
     ): BigDecimal {
         // Create a temporary budget entity for calculation
+        // That period alone, as a one-off budget
         val tempBudget = budget.copy(
             startDate = startDate,
-            endDate = endDate
+            endDate = endDate,
+            periodType = BudgetPeriod.CUSTOM
         )
         val spending = budgetRepository.getBudgetWithSpending(tempBudget)
         return spending.currentSpending
@@ -161,30 +117,14 @@ class BudgetHistoryViewModel @Inject constructor(
 
     private fun formatPeriodName(start: LocalDateTime, end: LocalDateTime, periodType: BudgetPeriod): String {
         val now = LocalDateTime.now()
-        val isCurrentPeriod = (now.isAfter(start) || now.isEqual(start)) && (now.isBefore(end) || now.isEqual(end))
-        
-        if (isCurrentPeriod) return "Current Period"
-        
+        if (!now.isBefore(start) && !now.isAfter(end)) return context.getString(com.ritesh.cashiro.R.string.budget_current_period)
+        val formats = com.ritesh.cashiro.utils.DateFormats
         return when (periodType) {
-            BudgetPeriod.MONTHLY -> {
-                if (start.year == now.year) {
-                    start.format(DateTimeFormatter.ofPattern("MMMM d"))
-                } else {
-                    start.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))
-                }
-            }
-            BudgetPeriod.WEEKLY -> {
-                "${start.format(DateTimeFormatter.ofPattern("MMM d"))} - ${end.format(DateTimeFormatter.ofPattern("MMM d"))}"
-            }
-            BudgetPeriod.DAILY -> {
-                start.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
-            }
-            BudgetPeriod.YEARLY -> {
-                start.format(DateTimeFormatter.ofPattern("yyyy"))
-            }
-            BudgetPeriod.CUSTOM -> {
-                "${start.format(DateTimeFormatter.ofPattern("MMM d"))} - ${end.format(DateTimeFormatter.ofPattern("MMM d"))}"
-            }
+            BudgetPeriod.DAILY -> formats.shortDate(start.toLocalDate())
+            BudgetPeriod.YEARLY -> start.year.toString()
+            BudgetPeriod.MONTHLY -> if (start.dayOfMonth == 1) formats.yearMonth(start)
+                else "${formats.shortDate(start.toLocalDate())} – ${formats.shortDate(end.toLocalDate())}"
+            else -> "${formats.shortDate(start.toLocalDate())} – ${formats.shortDate(end.toLocalDate())}"
         }
     }
 }

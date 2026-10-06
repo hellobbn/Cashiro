@@ -71,8 +71,12 @@ class BudgetViewModel @Inject constructor(
         }
     }
 
+    // One collector: reloading after a save replaces it instead of adding another full-table one
+    private var budgetsJob: kotlinx.coroutines.Job? = null
+
     fun loadBudgets() {
-        viewModelScope.launch {
+        budgetsJob?.cancel()
+        budgetsJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
                 combine(

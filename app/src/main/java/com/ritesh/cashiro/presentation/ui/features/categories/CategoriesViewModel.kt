@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.categories
 
+import com.ritesh.cashiro.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
@@ -18,7 +19,9 @@ class CategoriesViewModel
 constructor(
         private val categoryRepository: CategoryRepository,
         private val subcategoryRepository: SubcategoryRepository,
-        private val transactionRepository: TransactionRepository
+        private val transactionRepository: TransactionRepository,
+        private val categoryRenamer: com.ritesh.cashiro.data.repository.CategoryRenamer,
+        @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     // UI State
@@ -137,8 +140,13 @@ constructor(
                 val editingCat = _editingCategory.value
 
                 if (editingCat != null) {
-                    // Update existing category
-                    categoryRepository.updateCategory(
+                    if (name != editingCat.name && categoryRepository.categoryExists(name)) {
+                        _snackbarMessage.value = context.getString(R.string.cat_msg_exists, name)
+                        return@launch
+                    }
+                    // The new name reaches every transaction, budget, subscription and template
+                    categoryRenamer.renameCategory(editingCat.name, name) {
+                        categoryRepository.updateCategory(
                             editingCat.copy(
                                 name = name,
                                 description = description,
@@ -147,12 +155,13 @@ constructor(
                                 iconName = iconName,
                                 isIncome = isIncome
                             )
-                    )
-                    _snackbarMessage.value = "Category updated successfully"
+                        )
+                    }
+                    _snackbarMessage.value = context.getString(R.string.cat_msg_updated)
                 } else {
                     // Check if category already exists
                     if (categoryRepository.categoryExists(name)) {
-                        _snackbarMessage.value = "Category '$name' already exists"
+                        _snackbarMessage.value = context.getString(R.string.cat_msg_exists, name)
                         return@launch
                     }
 
@@ -165,12 +174,12 @@ constructor(
                         iconName = iconName,
                         isIncome = isIncome
                     )
-                    _snackbarMessage.value = "Category created successfully"
+                    _snackbarMessage.value = context.getString(R.string.cat_msg_created)
                 }
 
                 hideDialog()
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error saving category: ${e.message}"
+                _snackbarMessage.value = context.getString(R.string.cat_msg_save_error, e.message.orEmpty())
             }
         }
     }
@@ -178,17 +187,23 @@ constructor(
     fun resetCategory(categoryId: Long) {
         viewModelScope.launch {
             try {
-                categoryRepository.resetCategoryToDefault(categoryId)
-                _snackbarMessage.value = "Category reset to default"
+                val category = categoryRepository.getCategoryById(categoryId)
+                val defaultName = category?.defaultName ?: category?.name
+                if (category != null && defaultName != null) {
+                    categoryRenamer.renameCategory(category.name, defaultName) {
+                        categoryRepository.resetCategoryToDefault(categoryId)
+                    }
+                }
+                _snackbarMessage.value = context.getString(R.string.cat_msg_reset)
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error resetting category: ${e.message}"
+                _snackbarMessage.value = context.getString(R.string.cat_msg_reset_error, e.message.orEmpty())
             }
         }
     }
 
     fun deleteCategory(category: CategoryEntity) {
         if (category.isSystem) {
-            _snackbarMessage.value = "System categories cannot be deleted"
+            _snackbarMessage.value = context.getString(R.string.cat_msg_system)
             return
         }
 
@@ -199,7 +214,7 @@ constructor(
                 _hasTransactions.value = count > 0
                 _showDeleteConfirmation.value = true
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error checking transactions: ${e.message}"
+                _snackbarMessage.value = context.getString(R.string.cat_msg_check_error, e.message.orEmpty())
             }
         }
     }
@@ -236,7 +251,7 @@ constructor(
                 }
                 performDelete(category)
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error during deletion: ${e.message}"
+                _snackbarMessage.value = context.getString(R.string.cat_msg_delete_error, e.message.orEmpty())
             }
         }
     }
@@ -254,7 +269,7 @@ constructor(
                 performDelete(oldCategory)
                 hideMigrationSheet()
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error during migration: ${e.message}"
+                _snackbarMessage.value = context.getString(R.string.cat_msg_move_error, e.message.orEmpty())
                 hideMigrationSheet()
             }
         }
@@ -263,9 +278,9 @@ constructor(
     private suspend fun performDelete(category: CategoryEntity) {
         val deleted = categoryRepository.deleteCategory(category.id)
         if (deleted) {
-            _snackbarMessage.value = "Category deleted successfully"
+            _snackbarMessage.value = context.getString(R.string.cat_msg_deleted)
         } else {
-            _snackbarMessage.value = "Cannot delete this category"
+            _snackbarMessage.value = context.getString(R.string.cat_msg_cannot_delete)
         }
         _showDeleteConfirmation.value = false
         _categoryToDelete.value = null
@@ -279,10 +294,14 @@ constructor(
         viewModelScope.launch {
             try {
                 if (editingSub != null) {
-                    subcategoryRepository.updateSubcategory(
-                        editingSub.copy(name = name, iconResId = iconResId, iconName = iconName, color = color)
-                    )
-                    _snackbarMessage.value = "Subcategory updated"
+                    val parent = categoryRepository.getCategoryById(editingSub.categoryId)?.name
+                    val update: suspend () -> Unit = {
+                        subcategoryRepository.updateSubcategory(
+                            editingSub.copy(name = name, iconResId = iconResId, iconName = iconName, color = color)
+                        )
+                    }
+                    if (parent != null) categoryRenamer.renameSubcategory(parent, editingSub.name, name, update) else update()
+                    _snackbarMessage.value = context.getString(R.string.sub_msg_updated)
                 } else {
                     subcategoryRepository.createSubcategory(
                         categoryId = categoryId,
@@ -291,11 +310,11 @@ constructor(
                         iconName = iconName,
                         color = color
                     )
-                    _snackbarMessage.value = "Subcategory added"
+                    _snackbarMessage.value = context.getString(R.string.sub_msg_added)
                 }
                 hideSubcategoryDialog()
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error saving subcategory: ${e.message}"
+                _snackbarMessage.value = context.getString(R.string.sub_msg_save_error, e.message.orEmpty())
             }
         }
     }
@@ -303,17 +322,24 @@ constructor(
     fun resetSubcategory(subcategoryId: Long) {
         viewModelScope.launch {
             try {
-                subcategoryRepository.resetSubcategoryToDefault(subcategoryId)
-                _snackbarMessage.value = "Subcategory reset to default"
+                val sub = subcategoryRepository.getSubcategoryById(subcategoryId)
+                val parent = sub?.let { categoryRepository.getCategoryById(it.categoryId)?.name }
+                val defaultName = sub?.defaultName ?: sub?.name
+                if (sub != null && parent != null && defaultName != null) {
+                    categoryRenamer.renameSubcategory(parent, sub.name, defaultName) {
+                        subcategoryRepository.resetSubcategoryToDefault(subcategoryId)
+                    }
+                }
+                _snackbarMessage.value = context.getString(R.string.sub_msg_reset)
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error resetting subcategory: ${e.message}"
+                _snackbarMessage.value = context.getString(R.string.sub_msg_reset_error, e.message.orEmpty())
             }
         }
     }
 
     fun deleteSubcategory(subcategory: SubcategoryEntity) {
         if (subcategory.isSystem) {
-            _snackbarMessage.value = "System subcategories cannot be deleted"
+            _snackbarMessage.value = context.getString(R.string.sub_msg_system)
             return
         }
 
@@ -321,12 +347,12 @@ constructor(
             try {
                 val deleted = subcategoryRepository.deleteSubcategory(subcategory)
                 if (deleted) {
-                    _snackbarMessage.value = "Subcategory deleted"
+                    _snackbarMessage.value = context.getString(R.string.sub_msg_deleted)
                 } else {
-                    _snackbarMessage.value = "Cannot delete this subcategory"
+                    _snackbarMessage.value = context.getString(R.string.sub_msg_cannot_delete)
                 }
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error deleting subcategory: ${e.message}"
+                _snackbarMessage.value = context.getString(R.string.sub_msg_delete_error, e.message.orEmpty())
             }
         }
     }
