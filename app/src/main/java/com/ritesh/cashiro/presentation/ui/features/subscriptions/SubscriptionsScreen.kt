@@ -464,7 +464,7 @@ private fun SwipeableSubscriptionItem(
     onEdit: () -> Unit,
     onClick: () -> Unit
 ) {
-    var showSmsBody by remember { mutableStateOf(false) }
+    var showNotes by remember { mutableStateOf(false) }
     
     val dismissState = rememberSwipeToDismissBoxState()
     var isInitialized by remember { mutableStateOf(false) }
@@ -646,11 +646,11 @@ private fun SwipeableSubscriptionItem(
                                     )
                                 }
 
-                                // SMS indicator if available
-                                if (!subscription.smsBody.isNullOrBlank()) {
+                                // Notes indicator
+                                if (!subscription.notes.isNullOrBlank()) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.Chat,
-                                        contentDescription = stringResource(R.string.sms_available),
+                                        contentDescription = stringResource(R.string.notes),
                                         modifier = Modifier.size(12.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
                                     )
@@ -681,8 +681,8 @@ private fun SwipeableSubscriptionItem(
                     }
                 }
                 
-                // SMS Body Display
-                if (showSmsBody && !subscription.smsBody.isNullOrBlank()) {
+                // Notes
+                if (showNotes && !subscription.notes.isNullOrBlank()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -705,7 +705,7 @@ private fun SwipeableSubscriptionItem(
                                 )
                                 Spacer(modifier = Modifier.width(Spacing.sm))
                                 Text(
-                                    text = if (subscription.bankName == "Manual Entry") stringResource(R.string.notes) else stringResource(R.string.original_sms),
+                                    text = stringResource(R.string.notes),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -720,10 +720,8 @@ private fun SwipeableSubscriptionItem(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = subscription.smsBody,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontFamily = FontFamily.Monospace
-                                    ),
+                                    text = subscription.notes,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(Spacing.md)
                                 )
                             }
@@ -747,7 +745,7 @@ private fun PaymentStatusBottomSheet(
     onMarkAsPaid: () -> Unit,
     onEdit: () -> Unit
 ) {
-    var showSmsBody by remember { mutableStateOf(false) }
+    var showNotes by remember { mutableStateOf(false) }
     val today = LocalDate.now()
     val isOverdue = subscription.nextPaymentDate?.isBefore(today) == true && 
                     (subscription.lastPaidDate == null || subscription.lastPaidDate!!.isBefore(subscription.nextPaymentDate!!))
@@ -893,24 +891,24 @@ private fun PaymentStatusBottomSheet(
                 }
             }
             
-            if (!subscription.smsBody.isNullOrBlank()) {
+            if (!subscription.notes.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(Spacing.lg))
 
                 TextButton(
                     shapes = ButtonDefaults.shapes(),
-                    onClick = { showSmsBody = !showSmsBody }
+                    onClick = { showNotes = !showNotes }
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = if (showSmsBody) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                            imageVector = if (showNotes) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(Spacing.sm))
-                        Text(if (showSmsBody) stringResource(R.string.hide_original_message) else stringResource(R.string.show_original_message))
+                        Text(if (showNotes) stringResource(R.string.hide_notes) else stringResource(R.string.show_notes))
                     }
                 }
 
-                if (showSmsBody) {
+                if (showNotes) {
                     Spacer(modifier = Modifier.height(Spacing.sm))
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
@@ -918,10 +916,8 @@ private fun PaymentStatusBottomSheet(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = subscription.smsBody,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontFamily = FontFamily.Monospace
-                            ),
+                            text = subscription.notes,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(16.dp)
                         )
                     }

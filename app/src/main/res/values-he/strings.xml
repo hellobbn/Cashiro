@@ -44,12 +44,9 @@
     <string name="new_balance_label">יתרה חדשה</string>
     <string name="save">שמור</string>
     <string name="source_transaction">עסקה</string>
-    <string name="source_sms">מסרון</string>
     <string name="source_card_link">קישור כרטיס</string>
     <string name="source_manual">ידני</string>
     <string name="source_system">מערכת</string>
-    <string name="sms_source">מקור SMS</string>
-    <string name="copy">העתק</string>
     <string name="account_details">פרטי חשבון</string>
     <string name="transactions_count">עסקאות (%1$d)</string>
     <string name="balance_trend">מגמת יתרה</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">זיכוי</string>
     <string name="debit_card">חיוב</string>
     <string name="last_balance">יתרה אחרונה: %1$s</string>
-    <string name="sms_source_formatted">מסרון: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (הקש להרחבה)</string>
     <string name="link_card_title">קשר כרטיס</string>
     <string name="no_accounts_found_link">לא נמצאו חשבונות %1$s. נא הוסף תחילה חשבון בנק מתאים.</string>
     <string name="select_account_link_prompt">בחר חשבון לקישור הכרטיס הזה:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">מגיע היום</string>
     <string name="due_tomorrow">מגיע מחר</string>
     <string name="due_in_days_format">מגיע בעוד %1$d יום/ימים</string>
-    <string name="sms_available">SMS זמין</string>
     <string name="notes">הערות</string>
-    <string name="original_sms">SMS מקורי</string>
     <string name="track_payment">עקוב אחרי תשלום</string>
     <string name="edit_subscription">ערוך מנוי</string>
     <string name="subscription_hidden_format">%1$s מוסתר</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">האם מנוי זה שולם?</string>
     <string name="no">לא</string>
     <string name="yes_its_paid">כן, הוא שולם</string>
-    <string name="hide_original_message">הסתר הודעה מקורית</string>
-    <string name="show_original_message">הצג הודעה מקורית</string>
     <string name="export_transactions">ייצוא עסקאות</string>
     <string name="exporting">מייצא...</string>
     <string name="export_complete">ייצוא הושלם!</string>

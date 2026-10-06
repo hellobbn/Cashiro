@@ -44,12 +44,9 @@
     <string name="new_balance_label">ニュー残高</string>
     <string name="save">保存</string>
     <string name="source_transaction">取引</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">カードリンク</string>
     <string name="source_manual">マニュアル</string>
     <string name="source_system">システム</string>
-    <string name="sms_source">SMS ソース</string>
-    <string name="copy">コピー</string>
     <string name="account_details">アカウント詳細</string>
     <string name="transactions_count">トランザクション (%1$d)</string>
     <string name="balance_trend">残高</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">クレジット</string>
     <string name="debit_card">デビット</string>
     <string name="last_balance">最後の残高： %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (タップして展開)</string>
     <string name="link_card_title">リンクカード</string>
     <string name="no_accounts_found_link">%1$s アカウントが見つかりませんでした。まず、対応する銀行口座を追加してください。</string>
     <string name="select_account_link_prompt">このカードをリンクするアカウントを選択してください：</string>
@@ -269,9 +264,7 @@
     <string name="due_today">今日が期限</string>
     <string name="due_tomorrow">明日締切予定</string>
     <string name="due_in_days_format">%1$d 日に期限があります</string>
-    <string name="sms_available">SMSが利用可能です</string>
     <string name="notes">メモ</string>
-    <string name="original_sms">元のSMS</string>
     <string name="track_payment">支払いを追跡する</string>
     <string name="edit_subscription">サブスクリプションを編集</string>
     <string name="subscription_hidden_format">%1$s 非表示</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">このサブスクリプションは支払われますか？</string>
     <string name="no">いいえ</string>
     <string name="yes_its_paid">はい、支払い済みです</string>
-    <string name="hide_original_message">元のメッセージを隠す</string>
-    <string name="show_original_message">元のメッセージを表示</string>
     <string name="export_transactions">トランザクションをエクスポート</string>
     <string name="exporting">エクスポート中...</string>
     <string name="export_complete">エクスポート完了！</string>

@@ -605,7 +605,7 @@ class LedgerTools @Inject constructor(
                 accountBalanceRepository.insertBalance(
                     change.before.copy(
                         id = 0, balance = BigDecimal.ZERO, currency = currency, timestamp = now, transactionId = null,
-                        smsSource = null, sourceType = "MANUAL", createdAt = now
+                        sourceType = "MANUAL", createdAt = now
                     )
                 )
                 addedCurrencies += accountId to currency
@@ -677,7 +677,7 @@ class LedgerTools @Inject constructor(
                     creditLimit = change.creditLimit ?: latest.creditLimit,
                     timestamp = LocalDateTime.now(),
                     transactionId = null,
-                    smsSource = null,
+                    
                     sourceType = "BALANCE_CALIBRATION",
                     createdAt = LocalDateTime.now()
                 )

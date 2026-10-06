@@ -819,32 +819,6 @@ private fun OrphanedCardItem(
                     modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp)
                 )
             }
-            // Show source SMS that triggered card detection
-            if (card.lastBalanceSource != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimensions.Padding.content)
-                        .background(
-                            color = MaterialTheme.colorScheme.surface.copy(0.7f),
-                            shape = RoundedCornerShape(Dimensions.Radius.md)
-                        )
-                        .padding(Dimensions.Padding.content)
-                ) {
-                    Text(
-                        text = if (expandedSource) {
-                            stringResource(R.string.sms_source_formatted, card.lastBalanceSource)
-                        } else {
-                            stringResource(R.string.sms_source_expand, card.lastBalanceSource.take(80))
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = if (expandedSource) Int.MAX_VALUE else 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
         }
     }
 }

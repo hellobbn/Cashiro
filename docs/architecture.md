@@ -43,7 +43,7 @@ com.ritesh.cashiro
 
 ### Data
 
-- **Database**: `CashiroDatabase` (version 69).
+- **Database**: `CashiroDatabase` (version 70).
   - Migrations are in `data/database/Migrations.kt`, listed by `CashiroDatabase.MIGRATIONS`.
   - First-run seeding is in `DatabaseCallback.kt`.
 - **Accounts**:

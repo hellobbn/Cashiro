@@ -604,7 +604,7 @@ constructor(
             accountBalanceRepository.insertBalance(
                 account.copy(
                     id = 0, balance = BigDecimal.ZERO, currency = currency, timestamp = now,
-                    transactionId = null, smsSource = null, sourceType = "MANUAL", createdAt = now
+                    transactionId = null, sourceType = "MANUAL", createdAt = now
                 )
             )
             // Once the account is known to hold it, so the choice sticks
@@ -736,7 +736,7 @@ constructor(
                             category = subscription.category ?: "Subscription",
                             subcategory = subscription.subcategory,
                             currency = subscription.currency,
-                            notes = subscription.smsBody ?: "",
+                            notes = subscription.notes ?: "",
                             isLoading = false
                         )
                     }
@@ -908,7 +908,7 @@ constructor(
                             subcategory = state.subcategory,
                             bankName = state.selectedAccount?.bankName,
                             currency = state.currency,
-                            smsBody = state.notes.takeIf { it.isNotBlank() },
+                            notes = state.notes.takeIf { it.isNotBlank() },
                             updatedAt = java.time.LocalDateTime.now()
                         )
                         updateSubscriptionUseCase.execute(updatedSubscription)

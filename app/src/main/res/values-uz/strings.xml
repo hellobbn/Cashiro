@@ -44,12 +44,9 @@
     <string name="new_balance_label">Yangi Balans</string>
     <string name="save">Saqlash</string>
     <string name="source_transaction">Tranzaksiya</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Karta ulanmasi</string>
     <string name="source_manual">Qo\'lda</string>
     <string name="source_system">Tizim</string>
-    <string name="sms_source">SMS manbai</string>
-    <string name="copy">Nusxa olish</string>
     <string name="account_details">Hisob tafsilotlari</string>
     <string name="transactions_count">Tranzaksiyalar (%1$d)</string>
     <string name="balance_trend">Balans tendentsiyasi</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredit</string>
     <string name="debit_card">Debet</string>
     <string name="last_balance">Oxirgi balans: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (kengaytirish uchun bosing)</string>
     <string name="link_card_title">Kartani ulash</string>
     <string name="no_accounts_found_link">%1$s hisoblari topilmadi. Iltimos, avval mos bank hisobini qo\'shing.</string>
     <string name="select_account_link_prompt">Ushbu kartani ulash uchun hisobni tanlang:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Bugun muddati</string>
     <string name="due_tomorrow">Ertaga muddati</string>
     <string name="due_in_days_format">%1$d kundan keyin muddati</string>
-    <string name="sms_available">SMS mavjud</string>
     <string name="notes">Eslatmalar</string>
-    <string name="original_sms">Asl SMS</string>
     <string name="track_payment">To\'lovni kuzatish</string>
     <string name="edit_subscription">Obunani tahrirlash</string>
     <string name="subscription_hidden_format">%1$s yashirilgan</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Bu obuna to\'langanmi?</string>
     <string name="no">Yo\'q</string>
     <string name="yes_its_paid">Ha, to\'langan</string>
-    <string name="hide_original_message">Asl xabarni yashirish</string>
-    <string name="show_original_message">Asl xabarni ko\'rsatish</string>
     <string name="export_transactions">Tranzaksiyalarni eksport qilish</string>
     <string name="exporting">Eksport qilinmoqda...</string>
     <string name="export_complete">Eksport yakunlandi!</string>

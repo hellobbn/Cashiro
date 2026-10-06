@@ -44,12 +44,9 @@
     <string name="new_balance_label">Saldo Baru</string>
     <string name="save">Simpan</string>
     <string name="source_transaction">Transaksi</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Tautan Kartu</string>
     <string name="source_manual">Manual</string>
     <string name="source_system">Sistem</string>
-    <string name="sms_source">Sumber SMS</string>
-    <string name="copy">Salin</string>
     <string name="account_details">Detail Akun</string>
     <string name="transactions_count">Transaksi (%1$d)</string>
     <string name="balance_trend">Tren Saldo</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredit</string>
     <string name="debit_card">Debit</string>
     <string name="last_balance">Saldo Terakhir: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (ketuk untuk memperluas)</string>
     <string name="link_card_title">Hubungkan Kartu</string>
     <string name="no_accounts_found_link">Tidak ada akun %1$s yang ditemukan. Silakan tambahkan akun bank yang sesuai terlebih dahulu.</string>
     <string name="select_account_link_prompt">Pilih akun untuk menghubungkan kartu ini:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Jatuh tempo hari ini</string>
     <string name="due_tomorrow">Jatuh tempo besok</string>
     <string name="due_in_days_format">Jatuh tempo dalam %1$d hari</string>
-    <string name="sms_available">SMS tersedia</string>
     <string name="notes">Catatan</string>
-    <string name="original_sms">SMS Asli</string>
     <string name="track_payment">Lacak Pembayaran</string>
     <string name="edit_subscription">Edit Langganan</string>
     <string name="subscription_hidden_format">%1$s disembunyikan</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Apakah langganan ini sudah dibayar?</string>
     <string name="no">Tidak</string>
     <string name="yes_its_paid">Ya, sudah dibayar</string>
-    <string name="hide_original_message">Sembunyikan Pesan Asli</string>
-    <string name="show_original_message">Tampilkan Pesan Asli</string>
     <string name="export_transactions">Ekspor Transaksi</string>
     <string name="exporting">Sedang mengekspor...</string>
     <string name="export_complete">Ekspor Selesai!</string>

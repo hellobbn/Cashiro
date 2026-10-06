@@ -44,12 +44,9 @@
     <string name="new_balance_label">ਨਵਾਂ ਬੈਲੈਂਸ</string>
     <string name="save">ਸੇਵ ਕਰੋ</string>
     <string name="source_transaction">ਲੈਣ-ਦੇਣ</string>
-    <string name="source_sms">ਐਸ.ਐੱਮ.ਐੱਸ</string>
     <string name="source_card_link">ਕਾਰਡ ਲਿੰਕ</string>
     <string name="source_manual">ਮੈਨੂਅਲ</string>
     <string name="source_system">ਸਿਸਟਮ</string>
-    <string name="sms_source">ਐਸ.ਐੱਮ.ਐੱਸ ਸਰੋਤ</string>
-    <string name="copy">ਕਾਪੀ ਕਰੋ</string>
     <string name="account_details">ਆਕਾਊਂਟ ਵੇਰਵੇ</string>
     <string name="transactions_count">ਲੈਣ-ਦੇਣ (%1$d)</string>
     <string name="balance_trend">ਬੈਲੈਂਸ ਰੁਝਾਨ</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">ਕ੍ਰੈਡਿਟ</string>
     <string name="debit_card">ਡੈਬਿਟ</string>
     <string name="last_balance">ਆਖਰੀ ਬਕਾਇਆ: %1$s</string>
-    <string name="sms_source_formatted">ਐਸਐਮਐਸ: %1$s</string>
-    <string name="sms_source_expand">ਐਸਐਮਐਸ: %1$s... (ਵਧਾਉਣ ਲਈ ਟੈਪ ਕਰੋ)</string>
     <string name="link_card_title">ਕਾਰਡ ਜੋੜੋ</string>
     <string name="no_accounts_found_link">ਕੋਈ %1$s ਖਾਤਾ ਨਹੀਂ ਮਿਲਿਆ। ਪਹਿਲਾਂ ਇੱਕ ਸੰਬੰਧਿਤ ਬੈਂਕ ਖਾਤਾ ਸ਼ਾਮਿਲ ਕਰੋ।</string>
     <string name="select_account_link_prompt">ਇਸ ਕਾਰਡ ਨੂੰ ਜੋੜਨ ਲਈ ਖਾਤਾ ਚੁਣੋ:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">ਅੱਜ ਦੀ ਮਿਆਦ</string>
     <string name="due_tomorrow">ਕੱਲ੍ਹ ਦੀ ਮਿਆਦ</string>
     <string name="due_in_days_format">%1$d ਦਿਨਾਂ ਵਿੱਚ ਮਿਆਦ</string>
-    <string name="sms_available">ਐਸਐਮਐਸ ਉਪਲਬਧ</string>
     <string name="notes">ਨੋਟਸ</string>
-    <string name="original_sms">ਮੂਲ ਐਸਐਮਐਸ</string>
     <string name="track_payment">ਭੁਗਤਾਨ ਦਾ ਪਤਾ ਲਗਾਓ</string>
     <string name="edit_subscription">ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਸੋਧੋ</string>
     <string name="subscription_hidden_format">%1$s ਲੁਕਾਇਆ ਗਿਆ</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">ਕੀ ਇਹ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਅਦਾ ਕੀਤਾ ਗਿਆ ਹੈ?</string>
     <string name="no">ਨਹੀਂ</string>
     <string name="yes_its_paid">ਹਾਂ, ਇਹ ਭੁਗਤਾਨ ਕੀਤਾ ਗਿਆ ਹੈ</string>
-    <string name="hide_original_message">ਮੂਲ ਸੁਨੇਹਾ ਲੁਕਾਓ</string>
-    <string name="show_original_message">ਮੂਲ ਸੁਨੇਹਾ ਦਿਖਾਓ</string>
     <string name="export_transactions">ਲੇਨਦੇਨ ਨਿਰਯਾਤ ਕਰੋ</string>
     <string name="exporting">ਨਿਰਯਾਤ ਹੋ ਰਿਹਾ ਹੈ...</string>
     <string name="export_complete">ਨਿਰਯਾਤ ਪੂਰਾ!</string>

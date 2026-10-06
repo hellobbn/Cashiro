@@ -139,8 +139,6 @@ data class PreferencesSnapshot(
     @SerializedName("theme")
     val theme: ThemePreferences,
     
-    @SerializedName("sms")
-    val sms: SmsPreferences,
     
     @SerializedName("developer")
     val developer: DeveloperPreferences,
@@ -220,23 +218,6 @@ data class ThemePreferences(
 
     @SerializedName("app_icon")
     val appIcon: String? = null
-)
-
-/**
- * SMS-related preferences
- */
-data class SmsPreferences(
-    @SerializedName("has_skipped_sms_permission")
-    val hasSkippedSmsPermission: Boolean,
-    
-    @SerializedName("sms_scan_months")
-    val smsScanMonths: Int,
-    
-    @SerializedName("last_scan_timestamp")
-    val lastScanTimestamp: Long?,
-    
-    @SerializedName("last_scan_period")
-    val lastScanPeriod: Int?
 )
 
 /**

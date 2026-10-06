@@ -48,8 +48,6 @@ data class CardEntity(
     @ColumnInfo(name = "last_balance")
     val lastBalance: BigDecimal? = null,
     
-    @ColumnInfo(name = "last_balance_source")
-    val lastBalanceSource: String? = null,  // SMS snippet for debugging
     
     @ColumnInfo(name = "last_balance_date")
     val lastBalanceDate: LocalDateTime? = null,

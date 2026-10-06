@@ -44,12 +44,9 @@
     <string name="new_balance_label">Новий баланс</string>
     <string name="save">Зберегти</string>
     <string name="source_transaction">Транзакція</string>
-    <string name="source_sms">СМС</string>
     <string name="source_card_link">Посилання на картку</string>
     <string name="source_manual">Вручну</string>
     <string name="source_system">Система</string>
-    <string name="sms_source">Джерело SMS</string>
-    <string name="copy">Копія</string>
     <string name="account_details">Подробиці облікового запису</string>
     <string name="transactions_count">Транзакції (%1$d)</string>
     <string name="balance_trend">Тенденція балансу</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Кредит</string>
     <string name="debit_card">Дебіт</string>
     <string name="last_balance">Останній баланс: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (натисніть щоб розгорнути)</string>
     <string name="link_card_title">Картка посилання</string>
     <string name="no_accounts_found_link">Рахунків %1$s не знайдено. Будь ласка, спочатку додайте відповідний банківський рахунок.</string>
     <string name="select_account_link_prompt">Виберіть обліковий запис, щоб прив\'язати цю картку:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Сьогодні</string>
     <string name="due_tomorrow">На завтра</string>
     <string name="due_in_days_format">Завершення через %1$d днів</string>
-    <string name="sms_available">SMS доступні</string>
     <string name="notes">Нотатки</string>
-    <string name="original_sms">Оригінальне SMS</string>
     <string name="track_payment">Оплата маршруту</string>
     <string name="edit_subscription">Редагувати підписку</string>
     <string name="subscription_hidden_format">%1$s приховано</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Чи сплачується ця підписка?</string>
     <string name="no">Ні</string>
     <string name="yes_its_paid">Так, він сплачений</string>
-    <string name="hide_original_message">Сховати оригінальне повідомлення</string>
-    <string name="show_original_message">Показати оригінальне повідомлення</string>
     <string name="export_transactions">Вивантаження операцій</string>
     <string name="exporting">Експорт...</string>
     <string name="export_complete">Експорт завершено!</string>

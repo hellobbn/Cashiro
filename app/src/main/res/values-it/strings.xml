@@ -44,12 +44,9 @@
     <string name="new_balance_label">Nuovo Saldo</string>
     <string name="save">Salva</string>
     <string name="source_transaction">Transazione</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Collegamento Carta</string>
     <string name="source_manual">Manuale</string>
     <string name="source_system">Sistema</string>
-    <string name="sms_source">Sorgente SMS</string>
-    <string name="copy">Copia</string>
     <string name="account_details">Dettagli Account</string>
     <string name="transactions_count">Transazioni (%1$d)</string>
     <string name="balance_trend">Andamento Del Saldo</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Credito</string>
     <string name="debit_card">Debito</string>
     <string name="last_balance">Ultimo Saldo: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (tocca per espandere)</string>
     <string name="link_card_title">Collega carta</string>
     <string name="no_accounts_found_link">Nessun conto %1$s trovato. Si prega di aggiungere prima un conto bancario corrispondente.</string>
     <string name="select_account_link_prompt">Selezionare un account per collegare questa carta a:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Scade oggi</string>
     <string name="due_tomorrow">Scadenza domani</string>
     <string name="due_in_days_format">Scadenza in %1$d giorni</string>
-    <string name="sms_available">SMS disponibile</string>
     <string name="notes">Note</string>
-    <string name="original_sms">SMS Originale</string>
     <string name="track_payment">Traccia Il Pagamento</string>
     <string name="edit_subscription">Modifica Abbonamento</string>
     <string name="subscription_hidden_format">%1$s nascosto</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Questo abbonamento è pagato?</string>
     <string name="no">No</string>
     <string name="yes_its_paid">Sì, è pagato</string>
-    <string name="hide_original_message">Nascondi Messaggio Originale</string>
-    <string name="show_original_message">Mostra Messaggio Originale</string>
     <string name="export_transactions">Esporta Transazioni</string>
     <string name="exporting">Esportazione...</string>
     <string name="export_complete">Esportazione Completata!</string>

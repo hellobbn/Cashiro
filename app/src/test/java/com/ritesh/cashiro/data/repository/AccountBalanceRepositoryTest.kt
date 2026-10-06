@@ -74,7 +74,7 @@ class AccountBalanceRepositoryTest {
             transactionId = 11,
             creditLimit = null,
             isCreditCard = false,
-            smsSource = "credited alert",
+            
             currency = "INR"
         )
 
@@ -128,7 +128,7 @@ class AccountBalanceRepositoryTest {
             transactionId = 11,
             creditLimit = null,
             isCreditCard = false,
-            smsSource = "credited alert",
+            
             currency = "INR"
         )
 
@@ -181,7 +181,7 @@ class AccountBalanceRepositoryTest {
             transactionId = 11,
             creditLimit = null,
             isCreditCard = false,
-            smsSource = "credited alert",
+            
             currency = "INR"
         )
 
@@ -269,7 +269,7 @@ class AccountBalanceRepositoryTest {
             transactionId = 11,
             creditLimit = null,
             isCreditCard = true,
-            smsSource = "payment alert",
+            
             currency = "INR"
         )
 
@@ -300,7 +300,7 @@ class AccountBalanceRepositoryTest {
             amount = BigDecimal("300"),
             transactionType = TransactionType.EXPENSE,
             explicitBalance = null,
-            smsSource = "EXPENSE of 300",
+            
             currency = "INR",
             timestamp = t2,
             transactionId = 200L,
@@ -347,7 +347,7 @@ class AccountBalanceRepositoryTest {
             amount = BigDecimal("300"),
             transactionType = TransactionType.EXPENSE,
             explicitBalance = null,
-            smsSource = "EXPENSE of 300",
+            
             currency = "INR",
             timestamp = t2,
             transactionId = 200L,
@@ -394,7 +394,7 @@ class AccountBalanceRepositoryTest {
             amount = BigDecimal("300"),
             transactionType = TransactionType.EXPENSE,
             explicitBalance = null,
-            smsSource = "EXPENSE of 300",
+            
             currency = "INR",
             timestamp = t2,
             transactionId = 200L,
@@ -437,7 +437,7 @@ class AccountBalanceRepositoryTest {
             amount = BigDecimal("500"),
             transactionType = TransactionType.INCOME,
             explicitBalance = null,
-            smsSource = "Payment of 500",
+            
             currency = "INR",
             timestamp = t2,
             transactionId = 200L,

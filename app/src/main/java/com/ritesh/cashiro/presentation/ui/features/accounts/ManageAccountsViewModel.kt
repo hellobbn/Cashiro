@@ -392,7 +392,7 @@ constructor(
                     currency = currency,
                     timestamp = now,
                     transactionId = null,
-                    smsSource = null,
+                    
                     sourceType = "MANUAL",
                     createdAt = now
                 )
@@ -535,7 +535,7 @@ constructor(
                                         accountLast4 = accountLast4,
                                         balance = card.lastBalance!!,
                                         timestamp = card.lastBalanceDate ?: LocalDateTime.now(),
-                                        smsSource = card.lastBalanceSource,
+                                        
                                         sourceType = "CARD_LINK",
                                         currency = card.currency
                                 )

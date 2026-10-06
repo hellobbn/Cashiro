@@ -7,10 +7,11 @@ Cashiro is an Android expense tracker. This repository is a personal fork of
 PennyWise AI.
 
 The fork is for personal, mostly **manual** bookkeeping: accounts, categories,
-budgets, and a Chinese / cross-border institution catalog. Upstream's SMS parsing
-(the `parser-core` module) has been removed; old SMS-imported rows stay readable
-(an `sms_body` is still shown on their detail pages). Do not bring SMS parsing back
-unless explicitly requested.
+budgets, and a Chinese / cross-border institution catalog. Upstream's SMS import
+has been removed entirely: the `parser-core` module, its settings and, in migration 69→70, the
+columns it filled (a subscription's notes, once kept in `sms_body`, are now `notes`). Do not
+bring SMS import back unless explicitly requested. (Lend/borrow can still open the messaging
+app to send someone a reminder; that is unrelated.)
 
 ## Identifiers
 
@@ -22,7 +23,7 @@ breaks updates of already-installed builds.
 | Gradle project | `cashiro-beta` |
 | App namespace / applicationId | `com.ritesh.cashiro` |
 | App source root | `app/src/main/java/com/ritesh/cashiro/` |
-| Room schema path | `app/schemas/com.ritesh.cashiro.data.database.CashiroDatabase/` (database version 69) |
+| Room schema path | `app/schemas/com.ritesh.cashiro.data.database.CashiroDatabase/` (database version 70) |
 | Historical Room schema paths | `app/schemas/com.pennywiseai.tracker.data.database.PennyWiseDatabase/`, `app/schemas/com.ritesh.cashiro.data.database.PennyWiseDatabase/` |
 | Version name | `2.1.63` |
 | Version code | `97` |

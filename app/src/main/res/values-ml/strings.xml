@@ -44,12 +44,9 @@
     <string name="new_balance_label">പുതിയ ബാലൻസ്</string>
     <string name="save">സേവ് ചെയ്യുക</string>
     <string name="source_transaction">ട്രാൻസാക്ഷൻ</string>
-    <string name="source_sms">എസ്‌എംഎസ്</string>
     <string name="source_card_link">കാർഡ് ലിങ്ക്</string>
     <string name="source_manual">മാനുവൽ</string>
     <string name="source_system">സിസ്റ്റം</string>
-    <string name="sms_source">എസ്‌എംഎസ് സോഴ്‌സ്</string>
-    <string name="copy">നകൽ ചെയ്യുക</string>
     <string name="account_details">അക്കൗണ്ട് വിശദാംശങ്ങൾ</string>
     <string name="transactions_count">ട്രാൻസാക്ഷനുകൾ (%1$d)</string>
     <string name="balance_trend">ബാലൻസ് ട്രെന്റ്</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">ക്രെഡിറ്റ്</string>
     <string name="debit_card">ഡെബിറ്റ്</string>
     <string name="last_balance">അടുത്ത ബാലൻസ്: %1$s</string>
-    <string name="sms_source_formatted">എസ്‌എം‌എസ്: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (വികസിപ്പിക്കാൻ ടാപ്പ് ചെയ്യുക)</string>
     <string name="link_card_title">കാർഡ് ലിങ്ക് ചെയ്യുക</string>
     <string name="no_accounts_found_link">%1$s അക്കൗണ്ടുകൾ കണ്ടുകെട്ടിയില്ല. ദയവായി അനുയായിയായ ബാങ്ക് അക്കൗണ്ട് ആദ്യം ചേർക്കുക.</string>
     <string name="select_account_link_prompt">ഈ കാർഡ് ലിങ്ക് ചെയ്യാൻ ഒരു അക്കൗണ്ട് തിരഞ്ഞെടുക്കുക:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">ഇന്ന് അടവേണ്ടത്</string>
     <string name="due_tomorrow">നാളെ അടവേണ്ടത്</string>
     <string name="due_in_days_format">%1$d ദിവസത്തിനുള്ളിൽ അടവേണ്ടത്</string>
-    <string name="sms_available">എസ്‌എം‌എസ് ലഭ്യമാണ്</string>
     <string name="notes">കുറിപ്പുകൾ</string>
-    <string name="original_sms">മൂല എസ്‌എം‌എസ്</string>
     <string name="track_payment">പണമടച്ചത് പിന്തുടരുക</string>
     <string name="edit_subscription">സബ്സ്ക്രിപ്ഷൻ ക്രമീകരിക്കുക</string>
     <string name="subscription_hidden_format">%1$s മറച്ചിരിക്കുന്നു</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">ഈ സബ്സ്ക്രിപ്ഷൻ പണമടച്ചതാണോ?</string>
     <string name="no">ഇല്ല</string>
     <string name="yes_its_paid">അതെ, പണമടച്ചിട്ടുണ്ട്</string>
-    <string name="hide_original_message">മൂല സന്ദേശം മറയ്ക്കുക</string>
-    <string name="show_original_message">മൂല സന്ദേശം കാണിക്കുക</string>
     <string name="export_transactions">ട്രാൻസാക്ഷനുകൾ എക്സ്പോർട്ട് ചെയ്യുക</string>
     <string name="exporting">എക്സ്പോർട്ടിംഗ്...</string>
     <string name="export_complete">എക്സ്പോർട്ട് പൂർത്തിയായി!</string>

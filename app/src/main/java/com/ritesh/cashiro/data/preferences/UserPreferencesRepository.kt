@@ -33,14 +33,9 @@ constructor(@ApplicationContext private val context: Context) {
     private object PreferencesKeys {
         val DARK_THEME_ENABLED = booleanPreferencesKey("dark_theme_enabled")
         val DYNAMIC_COLOR_ENABLED = booleanPreferencesKey("dynamic_color_enabled")
-        val HAS_SKIPPED_SMS_PERMISSION = booleanPreferencesKey("has_skipped_sms_permission")
         val DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
         val SYSTEM_PROMPT = stringPreferencesKey("system_prompt")
         val HAS_SHOWN_SCAN_TUTORIAL = booleanPreferencesKey("has_shown_scan_tutorial")
-        val SMS_SCAN_MONTHS = intPreferencesKey("sms_scan_months")
-        val SMS_SCAN_ALL_TIME = booleanPreferencesKey("sms_scan_all_time")
-        val LAST_SCAN_TIMESTAMP = longPreferencesKey("last_scan_timestamp")
-        val LAST_SCAN_PERIOD = intPreferencesKey("last_scan_period")
         val BASE_CURRENCY = stringPreferencesKey("base_currency")
 
         // Currency Settings preferences
@@ -93,18 +88,12 @@ constructor(@ApplicationContext private val context: Context) {
                 isDarkThemeEnabled = preferences[PreferencesKeys.DARK_THEME_ENABLED],
                 isDynamicColorEnabled = preferences[PreferencesKeys.DYNAMIC_COLOR_ENABLED]
                     ?: true,
-                hasSkippedSmsPermission =
-                    preferences[PreferencesKeys.HAS_SKIPPED_SMS_PERMISSION] ?: false,
                 isDeveloperModeEnabled = preferences[PreferencesKeys.DEVELOPER_MODE_ENABLED]
                     ?: false,
                 isTokenInfoEnabled = preferences[PreferencesKeys.TOKEN_INFO_ENABLED]
                     ?: false,
                 hasShownScanTutorial = preferences[PreferencesKeys.HAS_SHOWN_SCAN_TUTORIAL]
                     ?: false,
-                smsScanMonths = preferences[PreferencesKeys.SMS_SCAN_MONTHS]
-                    ?: 3,
-                smsScanAllTime = preferences[PreferencesKeys.SMS_SCAN_ALL_TIME]
-                    ?: true,
                 baseCurrency = preferences[PreferencesKeys.BASE_CURRENCY]
                     ?: "CNY",
                 isAmoledMode = preferences[PreferencesKeys.IS_AMOLED_MODE] ?: false,
@@ -279,12 +268,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    suspend fun updateSkippedSmsPermission(skipped: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.HAS_SKIPPED_SMS_PERMISSION] = skipped
-        }
-    }
-
     suspend fun setDeveloperModeEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DEVELOPER_MODE_ENABLED] = enabled
@@ -317,34 +300,6 @@ constructor(@ApplicationContext private val context: Context) {
         }
     }
 
-    val smsScanMonths: Flow<Int> =
-            context.dataStore.data.map { preferences ->
-                preferences[PreferencesKeys.SMS_SCAN_MONTHS] ?: 3 // Default to 3 months
-            }
-
-    suspend fun updateSmsScanMonths(months: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.SMS_SCAN_MONTHS] = months
-        }
-    }
-
-    val smsScanAllTime: Flow<Boolean> =
-            context.dataStore.data.map { preferences ->
-                preferences[PreferencesKeys.SMS_SCAN_ALL_TIME] ?: true
-            }
-
-    suspend fun setLastScanTimestamp(timestamp: Long) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.LAST_SCAN_TIMESTAMP] = timestamp
-        }
-    }
-
-    suspend fun setLastScanPeriod(period: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.LAST_SCAN_PERIOD] = period
-        }
-    }
-
     suspend fun setFirstLaunchTime(timestamp: Long) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.FIRST_LAUNCH_TIME] = timestamp
@@ -361,16 +316,6 @@ constructor(@ApplicationContext private val context: Context) {
     }
 
     // Flow methods for backup/restore
-    fun getLastScanTimestamp(): Flow<Long?> =
-            context.dataStore.data.map { preferences ->
-                preferences[PreferencesKeys.LAST_SCAN_TIMESTAMP]
-            }
-
-    fun getLastScanPeriod(): Flow<Int?> =
-            context.dataStore.data.map { preferences ->
-                preferences[PreferencesKeys.LAST_SCAN_PERIOD]
-            }
-
     fun getFirstLaunchTime(): Flow<Long?> =
             context.dataStore.data.map { preferences ->
                 preferences[PreferencesKeys.FIRST_LAUNCH_TIME]
@@ -395,20 +340,8 @@ constructor(@ApplicationContext private val context: Context) {
         updateDynamicColorEnabled(enabled)
     }
 
-    suspend fun updateHasSkippedSmsPermission(skipped: Boolean) {
-        updateSkippedSmsPermission(skipped)
-    }
-
     suspend fun updateDeveloperMode(enabled: Boolean) {
         setDeveloperModeEnabled(enabled)
-    }
-
-    suspend fun updateLastScanTimestamp(timestamp: Long) {
-        setLastScanTimestamp(timestamp)
-    }
-
-    suspend fun updateLastScanPeriod(period: Int) {
-        setLastScanPeriod(period)
     }
 
     suspend fun updateFirstLaunchTime(timestamp: Long) {
@@ -629,12 +562,9 @@ constructor(@ApplicationContext private val context: Context) {
 data class UserPreferences(
         val isDarkThemeEnabled: Boolean? = null, // null means follow system
         val isDynamicColorEnabled: Boolean = true, // Default to dynamic colors
-        val hasSkippedSmsPermission: Boolean = false,
         val isDeveloperModeEnabled: Boolean = false,
         val isTokenInfoEnabled: Boolean = false,
         val hasShownScanTutorial: Boolean = false,
-        val smsScanMonths: Int = 3, // Default to 3 months
-        val smsScanAllTime: Boolean = true,
         val baseCurrency: String = "CNY", // Default to CNY
         val isAmoledMode: Boolean = false,
         val userName: String = "User",

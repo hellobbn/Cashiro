@@ -44,12 +44,9 @@
     <string name="new_balance_label">Số dư mới</string>
     <string name="save">Lưu</string>
     <string name="source_transaction">Giao dịch</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Liên kết thẻ</string>
     <string name="source_manual">Thủ công</string>
     <string name="source_system">Hệ thống</string>
-    <string name="sms_source">Nguồn SMS</string>
-    <string name="copy">Sao chép</string>
     <string name="account_details">Chi tiết tài khoản</string>
     <string name="transactions_count">Giao dịch (%1$d)</string>
     <string name="balance_trend">Xu hướng số dư</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Tín dụng</string>
     <string name="debit_card">Ghi nợ</string>
     <string name="last_balance">Số dư cuối: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (chạm để mở rộng)</string>
     <string name="link_card_title">Liên kết thẻ</string>
     <string name="no_accounts_found_link">Không tìm thấy tài khoản %1$s. Vui lòng thêm tài khoản ngân hàng tương ứng trước.</string>
     <string name="select_account_link_prompt">Chọn tài khoản để liên kết thẻ này:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Đến hạn hôm nay</string>
     <string name="due_tomorrow">Đến hạn ngày mai</string>
     <string name="due_in_days_format">Đến hạn sau %1$d ngày</string>
-    <string name="sms_available">SMS khả dụng</string>
     <string name="notes">Ghi chú</string>
-    <string name="original_sms">SMS gốc</string>
     <string name="track_payment">Theo dõi thanh toán</string>
     <string name="edit_subscription">Chỉnh sửa đăng ký</string>
     <string name="subscription_hidden_format">%1$s bị ẩn</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Đăng ký này đã được thanh toán chưa?</string>
     <string name="no">Không</string>
     <string name="yes_its_paid">Có, đã thanh toán</string>
-    <string name="hide_original_message">Ẩn tin nhắn gốc</string>
-    <string name="show_original_message">Hiện tin nhắn gốc</string>
     <string name="export_transactions">Xuất giao dịch</string>
     <string name="exporting">Đang xuất...</string>
     <string name="export_complete">Xuất hoàn tất!</string>

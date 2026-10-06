@@ -44,12 +44,9 @@
     <string name="new_balance_label">དོ་མཉམ་གསར་པ།</string>
     <string name="save">ཉར་ཚགས་བྱས་པ།</string>
     <string name="source_transaction">ཉོ་འཚོང་།</string>
-    <string name="source_sms">འཕྲིན་ཐུང་།</string>
     <string name="source_card_link">ཤོག་བྱང་གི་འབྲེལ་མཐུད།</string>
     <string name="source_manual">ལག་དེབ།</string>
     <string name="source_system">ལམ་ལུགས</string>
-    <string name="sms_source">འཕྲིན་ཐུང་གི་ཡོང་ཁུངས།</string>
-    <string name="copy">འདྲ་བཤུས་</string>
     <string name="account_details">རྩིས་ཐོའི་ཞིབ་ཕྲ།</string>
     <string name="transactions_count">ཉོ་འཚོང་། (%1$d)</string>
     <string name="balance_trend">དོ་མཉམ་འཕེལ་ཕྱོགས།</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">ཡིད་རྟོན་</string>
     <string name="debit_card">གཡར་སེང་</string>
     <string name="last_balance">མཐའ་མཇུག་གི་ལྷག་གྲངས་%1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (རྒྱ་བསྐྱེད་པར་མནན་)</string>
     <string name="link_card_title">འབྲེལ་མཐུད་བྱང་བུ་</string>
     <string name="no_accounts_found_link">%1$s རྩིས་ཐོ་མ་རྙེད། སྔོན་ལ་བབ་མཚུངས་ཀྱི་དངུལ་ཁང་གི་ཐོ་ཁོངས་ཁ་སྣོན་བྱེད་རོགས།</string>
     <string name="select_account_link_prompt">བྱང་བུ་འདི་འབྲེལ་མཐུད་བྱེད་པའི་རྩིས་ཐོ་ཞིག་བདམས་པ་སྟེ།</string>
@@ -269,9 +264,7 @@
     <string name="due_today">དེ་རིང་དུས་ཚོད་རན་པའི་དུས་ཚོད་</string>
     <string name="due_tomorrow">སང་ཉིན་དུས་ཚོད་རྫོགས་པ།</string>
     <string name="due_in_days_format">%1$d ཉིན་གྲངས་ནང་དུས་ཚད་ཐིམ་དགོས།</string>
-    <string name="sms_available">འཕྲིན་ཐུང་ཡོད།</string>
     <string name="notes">མཆན་འགྲེལ།</string>
-    <string name="original_sms">མ་ཡིག་གི་འཕྲིན་ཐུང་།</string>
     <string name="track_payment">དངུལ་སྤྲོད་རྗེས་སྙེག</string>
     <string name="edit_subscription">རྩོམ་སྒྲིག་མངག་ཉོ་</string>
     <string name="subscription_hidden_format">%1$s སྦས་ཡོད།</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">མངག་ཉོ་འདི་རིན་དོད་ཡོད་དམ།</string>
     <string name="no">མིན།</string>
     <string name="yes_its_paid">རེད། རིན་དོད་སྤྲོད་ཀྱི་ཡོད།</string>
-    <string name="hide_original_message">མ་ཡིག་སྦས་སྐུང་</string>
-    <string name="show_original_message">མ་ཡིག་སྟོན་པ།</string>
     <string name="export_transactions">ཕྱིར་གཏོང་ཉོ་འཚོང་།</string>
     <string name="exporting">ཕྱིར་གཏོང་བྱེད་པ...</string>
     <string name="export_complete">ཕྱིར་གཏོང་ལེགས་འགྲུབ་བྱུང་སོང་།</string>

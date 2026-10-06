@@ -44,12 +44,9 @@
     <string name="new_balance_label">క్రొత్త సంతులనం</string>
     <string name="save">సేవ్ చేయండి</string>
     <string name="source_transaction">లావాదేవీ</string>
-    <string name="source_sms">ఎస్ఎమ్‌ఎస్</string>
     <string name="source_card_link">కార్డ్ లింక్</string>
     <string name="source_manual">మాన్యువల్</string>
     <string name="source_system">సిస్టమ్</string>
-    <string name="sms_source">SMS మూలం</string>
-    <string name="copy">నకలు చేయండి</string>
     <string name="account_details">ఖాతా వివరాలు</string>
     <string name="transactions_count">లావాదేవీలు (%1$d)</string>
     <string name="balance_trend">సంతులన ధోరణి</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">క్రెడిట్</string>
     <string name="debit_card">డెబిట్</string>
     <string name="last_balance">చివరి శేషం: %1$s</string>
-    <string name="sms_source_formatted">ఎస్ఎమ్‌ఎస్: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (విస్తరించడానికి తాకండి)</string>
     <string name="link_card_title">కార్డు లింక్ చేయండి</string>
     <string name="no_accounts_found_link">%1$s ఖాతాలు కనుగొనబడలేదు. దయచేసి ముందుగా సభ్యమైన బ్యాంక్ ఖాతాను జోడించండి.</string>
     <string name="select_account_link_prompt">ఈ కార్డును లింక్ చేయడానికి ఒక ఖాతాను ఎంచుకోండి:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">నేడు అవసరం</string>
     <string name="due_tomorrow">రేపు అవసరం</string>
     <string name="due_in_days_format">%1$d రోజుల్లో అవసరం</string>
-    <string name="sms_available">SMS అందుబాటులో ఉంది</string>
     <string name="notes">గమనికలు</string>
-    <string name="original_sms">మూల SMS</string>
     <string name="track_payment">చెల్లింపు ట్రాక్ చేయండి</string>
     <string name="edit_subscription">సబ్‌స్క్రిప్షన్ సవరించండి</string>
     <string name="subscription_hidden_format">%1$s దాచబడింది</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">ఈ సబ్‌స్క్రిప్షన్ చెల్లించబడిందా?</string>
     <string name="no">లేదు</string>
     <string name="yes_its_paid">అవును, చెల్లించబడింది</string>
-    <string name="hide_original_message">మూల సందేశాన్ని దాచండి</string>
-    <string name="show_original_message">మూల సందేశాన్ని చూపించండి</string>
     <string name="export_transactions">ఘటనలను ఎగుమతి చేయండి</string>
     <string name="exporting">ఎగుమతి అవుతున్నది...</string>
     <string name="export_complete">ఎగుమతి పూర్తయింది!</string>

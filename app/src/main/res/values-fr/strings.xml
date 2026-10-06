@@ -44,12 +44,9 @@
     <string name="new_balance_label">Nouveau solde</string>
     <string name="save">Enregistrer</string>
     <string name="source_transaction">Opération</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Lien de la carte</string>
     <string name="source_manual">Manuelle</string>
     <string name="source_system">Système</string>
-    <string name="sms_source">Source SMS</string>
-    <string name="copy">Copie</string>
     <string name="account_details">Détails du compte</string>
     <string name="transactions_count">Transactions (%1$d)</string>
     <string name="balance_trend">Tendance du solde</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Crédit</string>
     <string name="debit_card">Débit</string>
     <string name="last_balance">Dernier solde : %1$s</string>
-    <string name="sms_source_formatted">SMS : %1$s</string>
-    <string name="sms_source_expand">SMS : %1$s... (appuyez pour développer)</string>
     <string name="link_card_title">Associer la carte</string>
     <string name="no_accounts_found_link">Aucun compte %1$s trouvé. Veuillez d\'abord ajouter un compte bancaire correspondant.</string>
     <string name="select_account_link_prompt">Sélectionnez un compte pour lier cette carte à :</string>
@@ -269,9 +264,7 @@
     <string name="due_today">À faire aujourd\'hui</string>
     <string name="due_tomorrow">Echéance demain</string>
     <string name="due_in_days_format">Échéance dans %1$d jours</string>
-    <string name="sms_available">SMS disponible</string>
     <string name="notes">Notes</string>
-    <string name="original_sms">SMS original</string>
     <string name="track_payment">Suivre le paiement</string>
     <string name="edit_subscription">Modifier l\'abonnement</string>
     <string name="subscription_hidden_format">%1$s caché</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Cette souscription est-elle payée ?</string>
     <string name="no">Non</string>
     <string name="yes_its_paid">Oui, il est payé</string>
-    <string name="hide_original_message">Cacher le message original</string>
-    <string name="show_original_message">Afficher le message original</string>
     <string name="export_transactions">Exporter les transactions</string>
     <string name="exporting">Exportation en cours...</string>
     <string name="export_complete">Exportation terminée !</string>

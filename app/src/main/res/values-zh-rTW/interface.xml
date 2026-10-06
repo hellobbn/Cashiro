@@ -348,4 +348,6 @@
     <string name="no_analytics_data">暫無資料</string>
     <string name="no_analytics_hint">試試其他篩選條件，或先記幾筆帳</string>
     <string name="msg_account_deleted">帳戶已刪除</string>
+    <string name="show_notes">顯示備註</string>
+    <string name="hide_notes">隱藏備註</string>
 </resources>

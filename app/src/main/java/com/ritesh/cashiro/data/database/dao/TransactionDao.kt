@@ -114,8 +114,7 @@ interface TransactionDao {
         SELECT * FROM transactions 
         WHERE is_deleted = 0 
         AND (merchant_name LIKE '%' || :searchQuery || '%' 
-        OR description LIKE '%' || :searchQuery || '%'
-        OR sms_body LIKE '%' || :searchQuery || '%') 
+        OR description LIKE '%' || :searchQuery || '%') 
         ORDER BY date_time DESC
     """
     )
@@ -126,8 +125,7 @@ interface TransactionDao {
         SELECT * FROM transactions 
         WHERE is_deleted = 0 
         AND (merchant_name LIKE '%' || :searchQuery || '%' 
-        OR description LIKE '%' || :searchQuery || '%'
-        OR sms_body LIKE '%' || :searchQuery || '%') 
+        OR description LIKE '%' || :searchQuery || '%') 
         ORDER BY date_time DESC
         LIMIT 20
     """

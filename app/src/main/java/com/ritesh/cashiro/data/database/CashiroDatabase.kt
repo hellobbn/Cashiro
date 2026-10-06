@@ -58,7 +58,7 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
             com.ritesh.cashiro.data.database.entity.AccountEntity::class,
             com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity::class
         ],
-        version = 69,
+        version = 70,
     exportSchema = true,
     autoMigrations =
         [
@@ -82,7 +82,8 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
             AutoMigration(from = 44, to = 45, spec = Migration44To45::class),
             AutoMigration(from = 45, to = 46, spec = Migration45To46::class),
             AutoMigration(from = 46, to = 47, spec = Migration46To47::class),
-            AutoMigration(from = 47, to = 48)
+            AutoMigration(from = 47, to = 48),
+            AutoMigration(from = 69, to = 70, spec = Migration69To70::class)
         ]
 )
 @TypeConverters(Converters::class)

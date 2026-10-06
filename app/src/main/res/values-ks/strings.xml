@@ -44,12 +44,9 @@
     <string name="new_balance_label">نیو بیلنس</string>
     <string name="save">محفوظ کٔرِو</string>
     <string name="source_transaction">لین دین</string>
-    <string name="source_sms">ایس ایم ایس</string>
     <string name="source_card_link">کارڈ لنک</string>
     <string name="source_manual">دستی</string>
     <string name="source_system">سسٹم</string>
-    <string name="sms_source">ایس ایم ایس ماخذ</string>
-    <string name="copy">کاپی کٔرِو</string>
     <string name="account_details">اکاؤنٹٕچ تفصیل</string>
     <string name="transactions_count">لین دین (%1$d)</string>
     <string name="balance_trend">بیلنس ٹرینڈ</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">کریڈٹ</string>
     <string name="debit_card">ڈیبِٹ</string>
     <string name="last_balance">ٲخٕری بیلنس: %1$s</string>
-    <string name="sms_source_formatted">ایس ایم ایس: %1$s</string>
-    <string name="sms_source_expand">ایس ایم ایس: %1$s... (بڑاونہٕ خٲطرٕ ٹیپ)</string>
     <string name="link_card_title">لنک کارڈ</string>
     <string name="no_accounts_found_link">کانٛہہ تہِ %1$s اکاؤنٹ لوٚب نہٕ۔ پلیز گۄڈٕ کٔرِو متعلقہ بینک اکاونٹ ایڈ</string>
     <string name="select_account_link_prompt">یہِ کارڈ لنک کرنہٕ خٲطرٕ کٔرِو اکھ اکاؤنٹ ژٲرِو:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">آز کِس سٍتۍ</string>
     <string name="due_tomorrow">پگہہ</string>
     <string name="due_in_days_format">%1$d دۄہَن مَنٛز</string>
-    <string name="sms_available">ایس ایم ایس دٔستِیاب</string>
     <string name="notes">نوٹس</string>
-    <string name="original_sms">اصلی ایس ایم ایس</string>
     <string name="track_payment">ادٲیگی ہُنٛد ٹریک کٔرِو</string>
     <string name="edit_subscription">اؠڈِٹ سبسکرپشن</string>
     <string name="subscription_hidden_format">%1$s چھپاونہٕ آمُت</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">کیا یہِ سبسکرپشن چھا ادا کرنہٕ آمُت؟</string>
     <string name="no">نَہ</string>
     <string name="yes_its_paid">آ، یہ چُھ ادا کرنہٕ آمُت</string>
-    <string name="hide_original_message">اصلی پٲغام کٔرِو ہٲوِتھ</string>
-    <string name="show_original_message">اصلی میسج ہاو</string>
     <string name="export_transactions">برآمدی لین دین</string>
     <string name="exporting">برآمد کَرُن...</string>
     <string name="export_complete">برآمد کٔرِو مُکمل!</string>

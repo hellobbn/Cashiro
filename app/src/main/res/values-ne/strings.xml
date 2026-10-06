@@ -44,12 +44,9 @@
     <string name="new_balance_label">नयाँ सन्तुलन</string>
     <string name="save">सेभ गर्नुहोस्</string>
     <string name="source_transaction">लेनदेन</string>
-    <string name="source_sms">एसएमएस</string>
     <string name="source_card_link">कार्ड लिंक</string>
     <string name="source_manual">म्यानुअल</string>
     <string name="source_system">प्रणाली</string>
-    <string name="sms_source">एसएमएस स्रोत</string>
-    <string name="copy">कपी गर्नुहोस्</string>
     <string name="account_details">खाताको विवरण</string>
     <string name="transactions_count">लेनदेन (%1$d)</string>
     <string name="balance_trend">सन्तुलन प्रवृत्ति</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">क्रेडिट</string>
     <string name="debit_card">डेबिट</string>
     <string name="last_balance">अन्तिम सन्तुलन: %1$s</string>
-    <string name="sms_source_formatted">एसएमएस: %1$s</string>
-    <string name="sms_source_expand">एसएमएस: %1$s... (विस्तार गर्न ट्याप गर्नुहोस्)</string>
     <string name="link_card_title">कार्ड लिंक गर्नुहोस्</string>
     <string name="no_accounts_found_link">%1$s खाता पाइएन। कृपया पहिले सम्बन्धित बैंक खाता थप्नुहोस्।</string>
     <string name="select_account_link_prompt">यो कार्ड लिंक गर्नको लागि खाता चयन गर्नुहोस्:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">आजको म्याद</string>
     <string name="due_tomorrow">भोलिको म्याद</string>
     <string name="due_in_days_format">%1$d दिनमा म्याद</string>
-    <string name="sms_available">एसएमएस उपलब्ध</string>
     <string name="notes">नोटहरू</string>
-    <string name="original_sms">मूल एसएमएस</string>
     <string name="track_payment">भुक्तानी ट्र्याक गर्नुहोस्</string>
     <string name="edit_subscription">सदस्यता सम्पादन गर्नुहोस्</string>
     <string name="subscription_hidden_format">%1$s लुकाइएको</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">के यो सदस्यता भुक्तान गरिएको हो?</string>
     <string name="no">होइन</string>
     <string name="yes_its_paid">हो, यसलाई भुक्तान गरिएको छ</string>
-    <string name="hide_original_message">मूल सन्देश लुकाउनुहोस्</string>
-    <string name="show_original_message">मूल सन्देश देखाउनुहोस्</string>
     <string name="export_transactions">लेनदेन निर्यात गर्नुहोस्</string>
     <string name="exporting">निर्यात गर्दै...</string>
     <string name="export_complete">निर्यात पूरा!</string>

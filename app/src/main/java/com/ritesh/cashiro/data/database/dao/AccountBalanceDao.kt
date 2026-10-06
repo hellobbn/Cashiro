@@ -25,7 +25,7 @@ const val SOURCE_OPENING_BALANCE = "OPENING_BALANCE"
  */
 /** Columns of [AccountBalanceEntity] for an account: its balance row joined with the account's own details. */
 private const val ACCOUNT_ROW = "SELECT ab.id, a.icon_res_id, a.icon_name, a.name AS bank_name, a.last4 AS account_last4, " +
-    "ab.balance, ab.timestamp, ab.transaction_id, a.credit_limit, a.is_credit_card, ab.sms_source, ab.source_type, " +
+    "ab.balance, ab.timestamp, ab.transaction_id, a.credit_limit, a.is_credit_card, ab.source_type, " +
     "ab.created_at, ab.currency, a.is_wallet, a.color, a.is_sample, a.id AS account_id " +
     "FROM accounts a JOIN account_balances ab ON ab.account_id = a.id AND ab.currency = a.main_currency"
 
@@ -209,7 +209,7 @@ abstract class AccountBalanceDao {
             balance = reverseTransactionBalance(entry.balance, amount, transactionType, info.isCreditCard),
             timestamp = openingTimestamp,
             transactionId = null,
-            smsSource = null,
+            
             sourceType = SOURCE_OPENING_BALANCE
         )
         return opening.copy(id = insertBalance(opening))
@@ -227,7 +227,6 @@ abstract class AccountBalanceDao {
      * @param transactionId The associated transaction ID.
      * @param creditLimit Optionally, a custom credit limit parsed from SMS.
      * @param isCreditCard Whether this account is a credit card.
-     * @param smsSource Sanitized SMS snippet source.
      * @param currency The transaction currency.
      */
     @Transaction
@@ -241,7 +240,6 @@ abstract class AccountBalanceDao {
         transactionId: Long?,
         creditLimit: BigDecimal?,
         isCreditCard: Boolean,
-        smsSource: String?,
         currency: String
     ): Long {
         val latest = getLatestBalance(bankName, accountLast4)
@@ -294,7 +292,7 @@ abstract class AccountBalanceDao {
                     previousForBalance?.creditLimit ?: latest?.creditLimit
                 },
                 isCreditCard = accountIsCreditCard,
-                smsSource = smsSource?.take(500),
+                
                 sourceType = if (explicitBalance != null) {
                     SOURCE_TRANSACTION_SMS_BALANCE
                 } else {
@@ -508,7 +506,6 @@ abstract class AccountBalanceDao {
             ab1.created_at,
             ab1.credit_limit,
             ab1.is_credit_card,
-            ab1.sms_source,
             ab1.source_type,
             ab1.currency,
             ab1.icon_res_id,

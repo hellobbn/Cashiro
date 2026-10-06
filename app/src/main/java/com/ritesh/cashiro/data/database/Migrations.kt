@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.data.database
 
 import androidx.room.DeleteColumn
+import androidx.room.RenameColumn
 import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -1578,3 +1579,16 @@ class Migration46To47 : AutoMigrationSpec {
         }
     }
 }
+
+/**
+ * 69 -> 70: SMS import is gone, and so are the columns it filled. A subscription's notes were
+ * kept in its sms_body column; that column is now called notes.
+ */
+@DeleteColumn.Entries(
+    DeleteColumn(tableName = "transactions", columnName = "sms_body"),
+    DeleteColumn(tableName = "transactions", columnName = "sms_sender"),
+    DeleteColumn(tableName = "cards", columnName = "last_balance_source"),
+    DeleteColumn(tableName = "account_balances", columnName = "sms_source")
+)
+@RenameColumn(tableName = "subscriptions", fromColumnName = "sms_body", toColumnName = "notes")
+class Migration69To70 : AutoMigrationSpec

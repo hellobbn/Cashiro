@@ -44,12 +44,9 @@
     <string name="new_balance_label">Novum Aequilibrium</string>
     <string name="save">Serva</string>
     <string name="source_transaction">Transactio</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Carta Nexus</string>
     <string name="source_manual">Manualis</string>
     <string name="source_system">Systema</string>
-    <string name="sms_source">SMS Fons</string>
-    <string name="copy">Copia</string>
     <string name="account_details">Rationis Details</string>
     <string name="transactions_count">Transactiones (%1$d)</string>
     <string name="balance_trend">Aequilibrio Trend</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Creditum</string>
     <string name="debit_card">Debitum</string>
     <string name="last_balance">Ultimus Saldo: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (tappa ad expandere)</string>
     <string name="link_card_title">Connectere Cardam</string>
     <string name="no_accounts_found_link">Nulla %1$s rationes inventae sunt. Quaeso adde primum correspondentem rationem argentariam.</string>
     <string name="select_account_link_prompt">Selige Rationem ad quam hanc cardam connectere:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Hodie Debet</string>
     <string name="due_tomorrow">Cras Debet</string>
     <string name="due_in_days_format">Debet in %1$d diebus</string>
-    <string name="sms_available">SMS praesto</string>
     <string name="notes">Notae</string>
-    <string name="original_sms">Originalis SMS</string>
     <string name="track_payment">Reddere Payment</string>
     <string name="edit_subscription">Edit Subscriptionem</string>
     <string name="subscription_hidden_format">%1$s latet</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Estne haec subscriptio soluta?</string>
     <string name="no">Minime</string>
     <string name="yes_its_paid">Ita soluta est</string>
-    <string name="hide_original_message">Absconde Originalis Nuntius</string>
-    <string name="show_original_message">Ostende Originalis Nuntius</string>
     <string name="export_transactions">Export Transactiones</string>
     <string name="exporting">Exportans...</string>
     <string name="export_complete">Export Completa!</string>

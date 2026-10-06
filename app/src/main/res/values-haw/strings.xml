@@ -44,12 +44,9 @@
     <string name="new_balance_label">Kauna Hou</string>
     <string name="save">Mālama</string>
     <string name="source_transaction">Pāʻoihana</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Ka loulou Kāleka</string>
     <string name="source_manual">Manual</string>
     <string name="source_system">Pūnaehana</string>
-    <string name="sms_source">Puna SMS</string>
-    <string name="copy">kope</string>
     <string name="account_details">Nā kikoʻī moʻokāki</string>
     <string name="transactions_count">Nā hana (%1$d)</string>
     <string name="balance_trend">Kaulike Kaulike</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">aie</string>
     <string name="debit_card">ʻaiʻē</string>
     <string name="last_balance">Koena Hope: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (koomi no ka hoonui)</string>
     <string name="link_card_title">Kāleka loulou</string>
     <string name="no_accounts_found_link">ʻAʻole i loaʻa nā moʻokāki %1$s. E ʻoluʻolu e hoʻohui i kahi waihona waihona pili mua.</string>
     <string name="select_account_link_prompt">E koho i moʻokāki e hoʻopili ai i kēia kāleka iā:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Pono i kēia lā</string>
     <string name="due_tomorrow">Hoʻopaʻa ʻia i ka lā ʻapōpō</string>
     <string name="due_in_days_format">Loaʻa i loko o %1$d lā</string>
-    <string name="sms_available">Loaʻa ka SMS</string>
     <string name="notes">Nā memo</string>
-    <string name="original_sms">SMS kumu</string>
     <string name="track_payment">Track Uku</string>
     <string name="edit_subscription">Hoʻoponopono i ke kau inoa</string>
     <string name="subscription_hidden_format">%1$s huna</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Ua uku ʻia kēia kau inoa?</string>
     <string name="no">ʻAʻole</string>
     <string name="yes_its_paid">ʻAe, ua uku ʻia</string>
-    <string name="hide_original_message">Hūnā memo kumu</string>
-    <string name="show_original_message">Hōʻike i ka memo kumu</string>
     <string name="export_transactions">Nā Kūʻai Kūʻai</string>
     <string name="exporting">Ke lawe aku nei...</string>
     <string name="export_complete">Hoʻopau i waho!</string>

@@ -44,12 +44,9 @@
     <string name="new_balance_label">Nýr staða</string>
     <string name="save">Vista</string>
     <string name="source_transaction">Færslur</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Tengja kort</string>
     <string name="source_manual">Handvirkt</string>
     <string name="source_system">Kerfi</string>
-    <string name="sms_source">SMS uppspretta</string>
-    <string name="copy">Afrita</string>
     <string name="account_details">Upplýsingar um reikning</string>
     <string name="transactions_count">Færslur (%1$d)</string>
     <string name="balance_trend">Stöðutíska</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredit</string>
     <string name="debit_card">Debet</string>
     <string name="last_balance">Síðasta staða: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (snertu til að stækka)</string>
     <string name="link_card_title">Tengja kort</string>
     <string name="no_accounts_found_link">Engir %1$s reikningar fundust. Vinsamlegast bættu fyrst við viðeigandi bankareikningi.</string>
     <string name="select_account_link_prompt">Veldu reikning til að tengja þetta kort við:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Greitt í dag</string>
     <string name="due_tomorrow">Greitt á morgun</string>
     <string name="due_in_days_format">Greitt eftir %1$d daga</string>
-    <string name="sms_available">SMS í boði</string>
     <string name="notes">Athugasemdir</string>
-    <string name="original_sms">Upprunalegt SMS</string>
     <string name="track_payment">Fylgjast með greiðslu</string>
     <string name="edit_subscription">Breyta áskrift</string>
     <string name="subscription_hidden_format">%1$s falin</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Er þessi áskrift greidd?</string>
     <string name="no">Nei</string>
     <string name="yes_its_paid">Já, það er greitt</string>
-    <string name="hide_original_message">Fela upprunalega skilaboð</string>
-    <string name="show_original_message">Sýna upprunaleg skilaboð</string>
     <string name="export_transactions">Flytja út færslur</string>
     <string name="exporting">Flytja út...</string>
     <string name="export_complete">Útflutningur lokið!</string>

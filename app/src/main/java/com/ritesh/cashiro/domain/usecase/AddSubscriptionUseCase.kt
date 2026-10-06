@@ -36,7 +36,7 @@ constructor(private val subscriptionRepository: SubscriptionRepository) {
             bankName = bankName ?: "Manual Entry",
             category = category,
             subcategory = subcategory,
-            smsBody = notes, // Store user notes in smsBody field
+            notes = notes,
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
             currency = currency,

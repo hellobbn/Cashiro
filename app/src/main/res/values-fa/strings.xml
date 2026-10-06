@@ -44,12 +44,9 @@
     <string name="new_balance_label">موجودی جدید</string>
     <string name="save">ذخیره</string>
     <string name="source_transaction">تراکنش</string>
-    <string name="source_sms">پیامک</string>
     <string name="source_card_link">پیوند کارت</string>
     <string name="source_manual">دستی</string>
     <string name="source_system">سیستم</string>
-    <string name="sms_source">منبع پیامک</string>
-    <string name="copy">کپی</string>
     <string name="account_details">جزئیات حساب</string>
     <string name="transactions_count">تراکنش‌ها (%1$d)</string>
     <string name="balance_trend">روند موجودی</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">اعتبار</string>
     <string name="debit_card">بدهی</string>
     <string name="last_balance">آخرین موجودی: %1$s</string>
-    <string name="sms_source_formatted">پیام کوتاه: %1$s</string>
-    <string name="sms_source_expand">پیام کوتاه: %1$s... (برای گسترش ضربه بزنید)</string>
     <string name="link_card_title">پیوند کارت</string>
     <string name="no_accounts_found_link">هیچ حساب %1$s یافت نشد. لطفاً ابتدا یک حساب بانکی مربوطه اضافه کنید.</string>
     <string name="select_account_link_prompt">یک حساب برای پیوند دادن این کارت انتخاب کنید:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">امروز سررسید است</string>
     <string name="due_tomorrow">فردا سررسید است</string>
     <string name="due_in_days_format">در %1$d روز دیگر سررسید است</string>
-    <string name="sms_available">پیامک در دسترس</string>
     <string name="notes">یادداشت‌ها</string>
-    <string name="original_sms">پیامک اصلی</string>
     <string name="track_payment">پیگیری پرداخت</string>
     <string name="edit_subscription">ویرایش اشتراک</string>
     <string name="subscription_hidden_format">%1$s پنهان شد</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">آیا این اشتراک پرداخت شده است؟</string>
     <string name="no">خیر</string>
     <string name="yes_its_paid">بله، پرداخت شده است</string>
-    <string name="hide_original_message">پنهان کردن پیام اصلی</string>
-    <string name="show_original_message">نمایش پیام اصلی</string>
     <string name="export_transactions">صادرات تراکنش‌ها</string>
     <string name="exporting">در حال صادرات...</string>
     <string name="export_complete">صادرات کامل شد!</string>

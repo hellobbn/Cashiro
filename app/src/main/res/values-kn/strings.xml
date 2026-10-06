@@ -44,12 +44,9 @@
     <string name="new_balance_label">ಹೊಸ ಶೇಷ</string>
     <string name="save">ಉಳಿತಾಯ ಮಾಡಿ</string>
     <string name="source_transaction">ವಹಿವಾಟು</string>
-    <string name="source_sms">ಎಸ್‌ಎಂಎಸ್</string>
     <string name="source_card_link">ಕಾರ್ಡು ಲಿಂಕ್</string>
     <string name="source_manual">ಮನ್ಯುವಲ್</string>
     <string name="source_system">ಸಿಸ್ಟಮ್</string>
-    <string name="sms_source">ಎಸ್‌ಎಂಎಸ್ ಮೂಲ</string>
-    <string name="copy">ಪ್ರತಿ</string>
     <string name="account_details">ಗಣಕ ಖಾತೆ ವಿವರಗಳು</string>
     <string name="transactions_count">ವಹಿವಾಟುಗಳು (%1$d)</string>
     <string name="balance_trend">ಶೇಷ ಪ್ರವಾಹ</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">ಕ್ರೆಡಿಟ್</string>
     <string name="debit_card">ಡೆಬಿಟ್</string>
     <string name="last_balance">ಕೊನೆಯ ಬ್ಯಾಲೆನ್ಸ್: %1$s</string>
-    <string name="sms_source_formatted">ಎಸ್‌ಎಂಎಸ್: %1$s</string>
-    <string name="sms_source_expand">ಎಸ್‌ಎಂಎಸ್: %1$s... (ವಿಸ್ತರಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ)</string>
     <string name="link_card_title">ಕಾರ್ಡ್ ಲಿಂಕ್ ಮಾಡಿ</string>
     <string name="no_accounts_found_link">%1$s ಖಾತೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಮೊದಲು ಹೊಂದಾಣಿಕೆಯ ಬ್ಯಾಂಕ್ ಖಾತೆಯನ್ನು ಸೇರಿಸಿ.</string>
     <string name="select_account_link_prompt">ಈ ಕಾರ್ಡ್ ಅನ್ನು ಲಿಂಕ್ ಮಾಡಲು ಖಾತೆಯನ್ನು ಆರಿಸಿ:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">ಇಂದು ಪಾವತಿಸಬೇಕಿದೆ</string>
     <string name="due_tomorrow">ನಾಳೆ ಪಾವತಿಸಬೇಕಿದೆ</string>
     <string name="due_in_days_format">%1$d ದಿನಗಳಲ್ಲಿ ಪಾವತಿಸಬೇಕಿದೆ</string>
-    <string name="sms_available">SMS ಲಭ್ಯವಿದೆ</string>
     <string name="notes">ಸೂಚನೆಗಳು</string>
-    <string name="original_sms">ಮೂಲ SMS</string>
     <string name="track_payment">ಪಾವತಿಯನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ</string>
     <string name="edit_subscription">ಚಂದಾದಾರಿಕೆಯನ್ನು ಸಂಪಾದಿಸಿ</string>
     <string name="subscription_hidden_format">%1$s ಮರೆಸಲಾಗಿದೆ</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">ಈ ಚಂದಾದಾರಿಕೆ ಪಾವತಿಯಾಗಿದೆಯೇ?</string>
     <string name="no">ಇಲ್ಲ</string>
     <string name="yes_its_paid">ಹೌದು, ಪಾವತಿಸಲಾಗಿದೆ</string>
-    <string name="hide_original_message">ಮೂಲ ಸಂದೇಶವನ್ನು ಮರೆಮಾಡಿ</string>
-    <string name="show_original_message">ಮೂಲ ಸಂದೇಶವನ್ನು ತೋರಿಸಿ</string>
     <string name="export_transactions">لینದ ಒಪ್ಪಂದಗಳನ್ನು ರಫ್ತು ಮಾಡಿ</string>
     <string name="exporting">ರಫ್ತು ಮಾಡಲಾಗುತ್ತಿದೆ...</string>
     <string name="export_complete">ರಫ್ತ್ ಪೂರ್ಣವಾಗಿದೆ!</string>

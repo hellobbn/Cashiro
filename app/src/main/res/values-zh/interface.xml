@@ -325,4 +325,6 @@
     <string name="no_analytics_data">暂无数据</string>
     <string name="no_analytics_hint">试试其他筛选条件，或先记几笔账</string>
     <string name="msg_account_deleted">账户已删除</string>
+    <string name="show_notes">显示备注</string>
+    <string name="hide_notes">隐藏备注</string>
 </resources>

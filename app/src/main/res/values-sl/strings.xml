@@ -44,12 +44,9 @@
     <string name="new_balance_label">Novo stanje</string>
     <string name="save">Shrani</string>
     <string name="source_transaction">Transakcija</string>
-    <string name="source_sms">SMS</string>
     <string name="source_card_link">Povezava kartice</string>
     <string name="source_manual">Ročno</string>
     <string name="source_system">Sistem</string>
-    <string name="sms_source">Vir SMS</string>
-    <string name="copy">Kopiraj</string>
     <string name="account_details">Podrobnosti računa</string>
     <string name="transactions_count">Transakcije (%1$d)</string>
     <string name="balance_trend">Trend stanja</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">Kredit</string>
     <string name="debit_card">Debet</string>
     <string name="last_balance">Zadnje stanje: %1$s</string>
-    <string name="sms_source_formatted">SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (tapnite za prikaz)</string>
     <string name="link_card_title">Poveži kartico</string>
     <string name="no_accounts_found_link">Ni najdenih %1$s računov. Najprej dodajte ustrezen bančni račun.</string>
     <string name="select_account_link_prompt">Izberite račun za povezavo te kartice:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">Zapade danes</string>
     <string name="due_tomorrow">Zapade jutri</string>
     <string name="due_in_days_format">Zapade čez %1$d dni</string>
-    <string name="sms_available">SMS na voljo</string>
     <string name="notes">Beležke</string>
-    <string name="original_sms">Originalni SMS</string>
     <string name="track_payment">Sledi plačilu</string>
     <string name="edit_subscription">Uredi naročnino</string>
     <string name="subscription_hidden_format">%1$s skrito</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">Je ta naročnina plačana?</string>
     <string name="no">Ne</string>
     <string name="yes_its_paid">Da, plačano je</string>
-    <string name="hide_original_message">Skrij originalno sporočilo</string>
-    <string name="show_original_message">Prikaži originalno sporočilo</string>
     <string name="export_transactions">Izvozi transakcije</string>
     <string name="exporting">V teku izvoza...</string>
     <string name="export_complete">Izvoz končan!</string>

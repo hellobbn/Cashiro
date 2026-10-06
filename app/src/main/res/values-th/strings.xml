@@ -44,12 +44,9 @@
     <string name="new_balance_label">ยอดเงินใหม่</string>
     <string name="save">บันทึก</string>
     <string name="source_transaction">ธุรกรรม</string>
-    <string name="source_sms">ข้อความ SMS</string>
     <string name="source_card_link">ลิงก์บัตร</string>
     <string name="source_manual">คู่มือ</string>
     <string name="source_system">ระบบ</string>
-    <string name="sms_source">แหล่งที่มาของ SMS</string>
-    <string name="copy">คัดลอก</string>
     <string name="account_details">รายละเอียดบัญชี</string>
     <string name="transactions_count">ธุรกรรม (%1$d)</string>
     <string name="balance_trend">แนวโน้มยอดเงิน</string>
@@ -106,8 +103,6 @@
     <string name="credit_card">เครดิต</string>
     <string name="debit_card">เดบิต</string>
     <string name="last_balance">ยอดคงเหลือล่าสุด: %1$s</string>
-    <string name="sms_source_formatted">ข้อความ SMS: %1$s</string>
-    <string name="sms_source_expand">SMS: %1$s... (แตะเพื่อขยาย)</string>
     <string name="link_card_title">เชื่อมบัตร</string>
     <string name="no_accounts_found_link">ไม่พบบัญชี %1$s กรุณาเพิ่มบัญชีธนาคารที่สอดคล้องกันก่อน</string>
     <string name="select_account_link_prompt">เลือกบัญชีเพื่อเชื่อมบัตรนี้:</string>
@@ -269,9 +264,7 @@
     <string name="due_today">ครบกำหนดวันนี้</string>
     <string name="due_tomorrow">ครบกำหนดพรุ่งนี้</string>
     <string name="due_in_days_format">ครบกำหนดใน %1$d วัน</string>
-    <string name="sms_available">มี SMS ให้ใช้งาน</string>
     <string name="notes">บันทึก</string>
-    <string name="original_sms">SMS ต้นฉบับ</string>
     <string name="track_payment">ติดตามการชำระเงิน</string>
     <string name="edit_subscription">แก้ไขการสมัครสมาชิก</string>
     <string name="subscription_hidden_format">%1$s ซ่อนอยู่</string>
@@ -281,8 +274,6 @@
     <string name="is_subscription_paid">การสมัครสมาชิกนี้จ่ายแล้วหรือยัง?</string>
     <string name="no">ไม่</string>
     <string name="yes_its_paid">ใช่ จ่ายแล้ว</string>
-    <string name="hide_original_message">ซ่อนข้อความต้นฉบับ</string>
-    <string name="show_original_message">แสดงข้อความต้นฉบับ</string>
     <string name="export_transactions">ส่งออกธุรกรรม</string>
     <string name="exporting">กำลังส่งออก...</string>
     <string name="export_complete">ส่งออกเสร็จสิ้น!</string>

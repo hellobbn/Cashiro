@@ -406,7 +406,8 @@ private fun HistoryRecordItem(
                     // Source Badge
                     val (sourceIcon, sourceText, sourceColor) = when (balance.sourceType) {
                         "TRANSACTION", "TRANSACTION_CALCULATED", "TRANSACTION_SMS_BALANCE" -> Triple(Icons.Rounded.SwapHoriz, stringResource(R.string.source_transaction), MaterialTheme.colorScheme.tertiary)
-                        "SMS_BALANCE" -> Triple(Iconax.Messages, stringResource(R.string.source_sms), MaterialTheme.colorScheme.secondary)
+                        // A balance reported with an old SMS import
+                        "SMS_BALANCE" -> Triple(Iconax.Edit2, stringResource(R.string.balance_calibration), MaterialTheme.colorScheme.primary)
                         "CARD_LINK" -> Triple(Iconax.Card, stringResource(R.string.source_card_link), MaterialTheme.colorScheme.primary)
                         "BALANCE_CALIBRATION" -> Triple(Iconax.Edit2, stringResource(R.string.balance_calibration), MaterialTheme.colorScheme.primary)
                         "MANUAL", "MANUAL_EDIT" -> Triple(Iconax.Edit2, stringResource(R.string.source_manual), MaterialTheme.colorScheme.onSurfaceVariant)
@@ -442,63 +443,6 @@ private fun HistoryRecordItem(
                 }
             }
 
-            // SMS Source
-            balance.smsSource?.let { smsSource ->
-                Surface(
-                    onClick = onToggleExpand,
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                    shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = Spacing.sm, vertical = 6.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = stringResource(R.string.sms_source),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Icon(
-                                imageVector = if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        if (isExpanded) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = smsSource,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            IconButton(
-                                shapes = IconButtonDefaults.shapes(),
-                                onClick = { clipboard.setText(AnnotatedString(smsSource)) },
-                                modifier = Modifier
-                                    .align(Alignment.End)
-                                    .size(24.dp)
-                            ) {
-                                Icon(
-                                    Icons.Rounded.ContentCopy,
-                                    contentDescription = stringResource(R.string.copy),
-                                    modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }

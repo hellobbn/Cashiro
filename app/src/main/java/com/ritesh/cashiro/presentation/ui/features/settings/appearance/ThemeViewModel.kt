@@ -26,7 +26,6 @@ class ThemeViewModel @Inject constructor(
             ThemeUiState(
                 isDarkTheme = preferences.isDarkThemeEnabled,
                 isDynamicColorEnabled = preferences.isDynamicColorEnabled,
-                hasSkippedSmsPermission = preferences.hasSkippedSmsPermission,
                 isAmoledMode = preferences.isAmoledMode,
                 appFont = preferences.appFont,
                 themeStyle = preferences.themeStyle,
@@ -94,7 +93,6 @@ class ThemeViewModel @Inject constructor(
 data class ThemeUiState(
     val isDarkTheme: Boolean? = null, // null = follow system
     val isDynamicColorEnabled: Boolean = false, // Default to custom theme colors
-    val hasSkippedSmsPermission: Boolean = false,
     val isAmoledMode: Boolean = false,
     val appFont: AppFont = AppFont.SYSTEM,
     val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
