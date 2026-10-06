@@ -4,11 +4,12 @@ Each fetch uses one channel and never falls back to another. Debug builds can on
 
 | Build | Application ID | Signer | GitHub source | Update ordering | Filename |
 | --- | --- | --- | --- | --- | --- |
-| Debug | `com.ritesh.cashiro.debug` | Persistent debug keystore | `releases/tags/debug-latest` | `commit_count` | `Cashiro-debug-cN-sha-abi.apk` |
+| Debug | `com.ritesh.cashiro` | Same `KEYSTORE` as release | `releases/tags/debug-latest` | `commit_count` | `Cashiro-debug-cN-sha-abi.apk` |
 | Testing | `com.ritesh.cashiro` | Same `KEYSTORE` as release | `releases/tags/testing-latest` | `commit_count` | `Cashiro-testing-cN-sha-abi.apk` |
 | Release | `com.ritesh.cashiro` | `KEYSTORE` | `releases/latest` (stable only) | `version_code` | `Cashiro-vVERSION-abi.apk` |
 
-- Debug: pushes to `main` run **Debug APK**, sign with the persistent debug identity, and publish the rolling `debug-latest` prerelease with `make_latest: false`.
+- Debug, testing and release are one app, labelled Cashiro: the same `applicationId` and signer, so each installs over the others (a smaller `versionCode` still cannot; see below). Pull request debug builds use the default debug key and are not published.
+- Debug: pushes to `main` run **Debug APK**, sign with the release key, and publish the rolling `debug-latest` prerelease with `make_latest: false`.
 - Testing: the **Testing APK** workflow is **manual** (`workflow_dispatch` only). It builds `assembleStandardPreview` (AGP forbids build type names that start with `test`; the GitHub / in-app channel is still `testing`). The APK is minified and release-class, signed with the same `KEYSTORE` environment as release, and published as the rolling `testing-latest` prerelease with `make_latest: false`. Filenames include git commit count and short hash.
 - Release: the **Release** workflow runs on `v*` tags or manual dispatch. Before publishing, update `versionName` and increment `versionCode`; the tag must match `versionName`. Release signing uses the existing `KEYSTORE` environment, not debug secrets.
 - Testing APKs keep `applicationId` `com.ritesh.cashiro` so they install over an existing release or testing install. Their Android `versionCode` is the git commit count, which is higher than official `versionCode` values. Installing a later official release with a smaller `versionCode` over a testing install is blocked by Android; uninstall first, or keep following testing.

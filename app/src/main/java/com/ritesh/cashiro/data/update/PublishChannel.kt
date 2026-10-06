@@ -46,7 +46,7 @@ enum class PublishChannel(val id: String, val releasePath: String, val pagePath:
 
         fun fromBuildConfig(): PublishChannel = fromId(BuildConfig.UPDATE_CHANNEL)
 
-        /** Debug APKs cannot follow release/testing (different applicationId and signer). */
+        /** Debug builds follow only debug: their versionCode orders by commit, not release. */
         fun selectable(buildChannel: PublishChannel = fromBuildConfig()): List<PublishChannel> =
             when (buildChannel) {
                 DEBUG -> listOf(DEBUG)
