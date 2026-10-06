@@ -33,7 +33,8 @@ class BackupExporter @Inject constructor(
     private val database: CashiroDatabase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val brokerageRepository: BrokerageRepository,
-    private val merchantIconStore: MerchantIconStore
+    private val merchantIconStore: MerchantIconStore,
+    private val aiSettings: com.ritesh.cashiro.data.ai.AiSettings
 ) {
     
     private val gson = GsonBuilder()
@@ -136,6 +137,14 @@ class BackupExporter @Inject constructor(
                     brokerageRepository.exportWithCredentials()?.let { connections ->
                         zipOut.putNextEntry(ZipEntry(BROKERAGE_ENTRY))
                         zipOut.write(connections.toByteArray())
+                        zipOut.closeEntry()
+                    }
+                }
+
+                if (config.includeAiKey) {
+                    aiSettings.exportForBackup()?.let { ai ->
+                        zipOut.putNextEntry(ZipEntry(AI_ENTRY))
+                        zipOut.write(ai.toByteArray())
                         zipOut.closeEntry()
                     }
                 }
@@ -334,6 +343,7 @@ class BackupExporter @Inject constructor(
 
     companion object {
         const val BROKERAGE_ENTRY = "brokerage.json"
+        const val AI_ENTRY = "ai.json"
         const val MERCHANT_ICON_INDEX = "${MerchantIconStore.DIRECTORY}/index.json"
     }
 }

@@ -21,10 +21,14 @@ object CategoryNames {
     fun matches(name: String, query: String, locale: Locale = Locale.getDefault()): Boolean =
         name.contains(query, ignoreCase = true) || display(name, locale).contains(query, ignoreCase = true)
 
+    private val HANS by lazy { HANS_ENTRIES.toMap() }
+    private val HANT by lazy { HANT_ENTRIES.toMap() }
+
     private fun isTraditional(locale: Locale) =
         locale.script == "Hant" || (locale.script.isEmpty() && locale.country in setOf("TW", "HK", "MO"))
 
-    private val HANS = mapOf(
+    // Lists, not maps, so a test can catch a name entered twice (a map would keep the last)
+    internal val HANS_ENTRIES = listOf(
         // Categories
         "Bill" to "账单", "Borrowed" to "借入", "Business" to "生意", "Cash Withdrawal" to "取现",
         "Children" to "子女", "Credit Bill" to "信用卡还款", "Donation" to "捐赠", "EMI" to "分期",
@@ -79,7 +83,7 @@ object CategoryNames {
     )
 
     // Traditional Chinese, where it differs from the simplified form
-    private val HANT = mapOf(
+    internal val HANT_ENTRIES = listOf(
         "Bill" to "帳單", "Borrowed" to "借入", "Business" to "生意", "Cash Withdrawal" to "提領現金",
         "Children" to "子女", "Credit Bill" to "信用卡還款", "Donation" to "捐贈", "EMI" to "分期",
         "Entertainment" to "娛樂", "Events" to "活動", "Fitness" to "健身", "Food & Drinks" to "餐飲",

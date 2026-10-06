@@ -27,4 +27,18 @@ class CategoryNamesTest {
         assertTrue(CategoryNames.matches("Cab", "打车", zh))
         assertTrue(CategoryNames.matches("Cab", "cab", zh))
     }
+
+    @Test fun noNameIsTranslatedTwice() {
+        listOf(CategoryNames.HANS_ENTRIES, CategoryNames.HANT_ENTRIES).forEach { entries ->
+            val repeated = entries.groupBy { it.first }.filterValues { it.size > 1 }.keys
+            assertTrue("translated more than once: $repeated", repeated.isEmpty())
+        }
+    }
+
+    @Test fun simplifiedAndTraditionalCoverTheSameNames() {
+        assertEquals(
+            CategoryNames.HANS_ENTRIES.map { it.first }.toSet(),
+            CategoryNames.HANT_ENTRIES.map { it.first }.toSet()
+        )
+    }
 }

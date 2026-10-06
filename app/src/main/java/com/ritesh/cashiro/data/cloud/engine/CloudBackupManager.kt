@@ -75,7 +75,7 @@ class CloudBackupManager @Inject constructor(
                 cloudCredentialStore.getE2ePassphrase().takeIf { it.isNotBlank() }
             } else null
             // Brokerage tokens only travel inside an end-to-end encrypted file
-            val exportResult = backupExporter.exportBackup(config.copy(includeBrokerageCredentials = passphrase != null))
+            val exportResult = backupExporter.exportBackup(config.copy(includeBrokerageCredentials = passphrase != null, includeAiKey = passphrase != null))
             if (exportResult !is ExportResult.Success) {
                 val errorMsg = if (exportResult is ExportResult.Error) exportResult.message else "Backup export failed"
                 return@withContext Result.failure(Exception(errorMsg))
