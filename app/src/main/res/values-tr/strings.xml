@@ -342,8 +342,6 @@
     <string name="about">Hakkında</string>
     <string name="cashiro_logo_cd">Cashiro Logosu</string>
     <string name="version_format">Sürüm %1$s, db-v%2$d</string>
-    <string name="developed_by">Ritesh tarafından geliştirildi</string>
-    <string name="lead_developer_cd">baş geliştirici</string>
     <string name="website">Web Sitesi</string>
     <string name="github">Github</string>
     <string name="discord">Discord</string>

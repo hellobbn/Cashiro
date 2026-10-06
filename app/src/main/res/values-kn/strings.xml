@@ -342,8 +342,6 @@
     <string name="about">ಬಗ್ಗೆ</string>
     <string name="cashiro_logo_cd">ಕ್ಯಾಶಿರೊ ಲೋಗೋ</string>
     <string name="version_format">ಆವೃತ್ತಿ %1$s, db-v%2$d</string>
-    <string name="developed_by">ವಿಕಸಿತ ಮಾಡಿದವರು: ರಿತೇಶ್</string>
-    <string name="lead_developer_cd">ಮುಖ್ಯ ವಿಕಾಸಕರಾಗಿ</string>
     <string name="website">ವೆಬ್‌ಸೈಟ್</string>
     <string name="github">ಗಿಟ್‌ಹಬ್</string>
     <string name="discord">ಡಿಸ್ಕೋರ್ಡ್</string>

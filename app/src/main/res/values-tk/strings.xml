@@ -342,8 +342,6 @@
     <string name="about">Hakynda</string>
     <string name="cashiro_logo_cd">Kaşiro logosy</string>
     <string name="version_format">wersiýa %1$s, db-v%2$d</string>
-    <string name="developed_by">Ritesh tarapyndan işlendi</string>
-    <string name="lead_developer_cd">esas ösen işläp düzüjisi</string>
     <string name="website">Web sahypa</string>
     <string name="github">Github</string>
     <string name="discord">Agzalalyk</string>

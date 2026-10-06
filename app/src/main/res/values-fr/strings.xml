@@ -342,8 +342,6 @@
     <string name="about">À propos de</string>
     <string name="cashiro_logo_cd">Logo Cashiro</string>
     <string name="version_format">Version %1$s, db-v%2$d</string>
-    <string name="developed_by">Développé par Ritesh</string>
-    <string name="lead_developer_cd">développeur principal</string>
     <string name="website">Site Web</string>
     <string name="github">Github</string>
     <string name="discord">Discord.</string>

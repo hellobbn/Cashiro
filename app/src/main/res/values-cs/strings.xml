@@ -342,8 +342,6 @@
     <string name="about">O aplikaci</string>
     <string name="cashiro_logo_cd">Logo Cashiro</string>
     <string name="version_format">Verze %1$s, db-v%2$d</string>
-    <string name="developed_by">Vyvinul Ritesh</string>
-    <string name="lead_developer_cd">hlavní vývojář</string>
     <string name="website">Webová stránka</string>
     <string name="github">Github</string>
     <string name="discord">Discord</string>

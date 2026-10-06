@@ -342,8 +342,6 @@
     <string name="about">אודות</string>
     <string name="cashiro_logo_cd">לוגו Cashiro</string>
     <string name="version_format">גרסה %1$s, db-v%2$d</string>
-    <string name="developed_by">פותח על ידי ריטש</string>
-    <string name="lead_developer_cd">מפתח ראשי</string>
     <string name="website">אתר אינטרנט</string>
     <string name="github">GitHub</string>
     <string name="discord">דיסקורד</string>
