@@ -370,7 +370,6 @@
     <string name="license_disclaimer_software">SOFTWARE JE POSKYTNUTÝ \"AS IS\", BEZ ZÁRUKY JAKÉHO, EXPRESS NEBO IMPLIED, VČETNĚ BUDOUCÍ, KTERÉ NEOMEZENY ZÁRUKÁM MERCHANTABILITY, VÝPOČET PRO ÚČELY A JINÉ JEDNOTKY. V ŽÁDOSTI ŽÁDOSTI NEJSOU POVINNÉ ORGÁNY NEBO KOPYRIGTYŘSKÉ PODNIKY ODPOVĚDNÉ PRO JAKÉKOLI KLASIMAT, DRAŽKY NEBO JINÉ ODPOVĚDNÉ, KTERÉ NEJSOU ZAJIŠŤUJE AKCI SMLOUVY, PRACOVNÍ NEBO JINÉ ODCHYLKY VYPLÝVAJÍCÍ ZE SPOLEČNOSTI SOFTWARE NEBO JINÝCH ZAŘÍZENÍ V SOFTWARU NEBO V SOUVISLOSTI S POUŽITÍM NEBO JINÝMI ZAŘÍZENÍ.</string>
     <string name="license_disclaimer_rates">Směnné kurzy zobrazené v této aplikaci jsou pouze pro informační účely a neměly by být používány pro investiční rozhodnutí. Tyto sazby jsou odhady a nemusí odrážet skutečné sazby. Používáním této aplikace uznáváte, že rozumíte a přijímáte tato omezení a že přebíráte plnou odpovědnost za veškerá rozhodnutí učiněná na základě informací poskytnutých v aplikaci.</string>
     <string name="powered_by">Poháněn Kotlin Compose</string>
-    <string name="sms_title">SMS</string>
     <string name="ok">OK</string>
     <string name="history">Historie</string>
     <string name="type_credit_card">Platební karta</string>

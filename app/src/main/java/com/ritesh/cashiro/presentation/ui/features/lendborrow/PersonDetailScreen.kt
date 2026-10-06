@@ -340,14 +340,6 @@ fun SharedTransitionScope.PersonDetailScreen(
                                 context.startActivity(intent)
                             }
                         },
-                        onSmsClick = {
-                            person.phoneNumber?.let { phone ->
-                                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:$phone")).apply {
-                                    putExtra("sms_body", reminderMessage)
-                                }
-                                context.startActivity(intent)
-                            }
-                        },
                         onWhatsAppClick = {
                             person.phoneNumber?.let { phone ->
                                 val normalized = phone.filter { it.isDigit() }
@@ -584,7 +576,6 @@ private fun SharedTransitionScope.PersonHeaderCard(
     person: LendBorrowPerson,
     onSettleClick: () -> Unit,
     onCallClick: () -> Unit,
-    onSmsClick: () -> Unit,
     onWhatsAppClick: () -> Unit,
     onTelegramClick: () -> Unit,
     currency: String,
@@ -741,21 +732,6 @@ private fun SharedTransitionScope.PersonHeaderCard(
                     Icon(
                         Icons.Default.Call,
                         contentDescription = stringResource(R.string.call_person),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                Button(
-                    shapes = ButtonDefaults.shapes(),
-                    onClick = onSmsClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(
-                        Iconax.Messages,
-                        contentDescription = stringResource(R.string.sms_title),
                         modifier = Modifier.size(18.dp)
                     )
                 }
