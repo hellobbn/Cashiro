@@ -30,6 +30,9 @@ class CashiroApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var quickEntryPublisher: QuickEntryPublisher
 
+    @Inject
+    lateinit var syncManager: com.ritesh.cashiro.data.sync.SyncManager
+
     // Route any unhandled coroutine exception to the CrashHandler so the crash screen
     // appears even when the crash originates inside a coroutine (which normally bypasses
     // Thread.UncaughtExceptionHandler).
@@ -90,6 +93,8 @@ class CashiroApplication : Application(), Configuration.Provider {
         }
         // Template launcher shortcuts and the home-screen widget follow the quick templates
         quickEntryPublisher.start()
+        // Multi-device sync (docs/sync.md): pushes local changes, pulls in the foreground
+        syncManager.start()
     }
 
     /**
@@ -107,6 +112,7 @@ class CashiroApplication : Application(), Configuration.Provider {
                 isAppInForeground = true
                 // Check if app should be locked when returning from background
                 checkAndLockApp()
+                syncManager.onForeground()
             }
         }
 
@@ -120,6 +126,7 @@ class CashiroApplication : Application(), Configuration.Provider {
                 // App went to background
                 isInForeground = false
                 isAppInForeground = false
+                syncManager.onBackground()
                 // Note: We don't need to do anything here
                 // The lock state will be checked when app returns to foreground
             }

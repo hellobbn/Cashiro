@@ -266,6 +266,15 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.security.crypto)
     implementation(libs.play.services.auth)
+    // Sync (docs/sync.md): Firebase and Credential Manager in the standard flavor only; the
+    // F-Droid flavor links none of it. No google-services plugin: FirebaseApp is built from
+    // FirebaseSyncConfig (src/standard), so variants with another applicationId still build.
+    "standardImplementation"(platform(libs.firebase.bom))
+    "standardImplementation"(libs.firebase.auth)
+    "standardImplementation"(libs.firebase.firestore)
+    "standardImplementation"(libs.androidx.credentials)
+    "standardImplementation"(libs.androidx.credentials.play.services.auth)
+    "standardImplementation"(libs.googleid)
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
