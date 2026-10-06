@@ -171,6 +171,9 @@ fun SharedTransitionScope.AccountDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
                         AccountCard(account = balance, showMoreOptions = false)
+                        if (balance.isCreditCard) {
+                            CardBillPanel(uiState.cardStatus, balance.currency, onSetDates = { showEdit = true })
+                        }
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                             // Set the balance to what the bank shows
                             FilledTonalButton(
@@ -225,6 +228,7 @@ fun SharedTransitionScope.AccountDetailScreen(
                     if (showEdit) {
                         AccountEditSheet(
                             account = balance,
+                            cardDates = uiState.cardDates,
                             viewModel = manageViewModel,
                             onDismiss = { showEdit = false },
                             // The page is the account's by name: after a rename or delete it is gone
@@ -534,6 +538,7 @@ fun DateRange.getLocalizedLabel(): String {
 @Composable
 private fun AccountEditSheet(
     account: AccountBalanceEntity,
+    cardDates: com.ritesh.cashiro.domain.model.CardDates,
     viewModel: ManageAccountsViewModel,
     onDismiss: () -> Unit,
     onGone: () -> Unit
@@ -551,13 +556,14 @@ private fun AccountEditSheet(
             allAccounts = accounts.accounts,
             defaultCurrency = defaultCurrency,
             initialCategory = account.category(),
+            initialCardDates = cardDates,
             onDismiss = onDismiss,
             onDelete = {
                 viewModel.deleteAccount(account.bankName, account.accountLast4)
                 onDismiss()
                 onGone()
             },
-            onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies ->
+            onSave = { bankName, balance, last4, iconResId, iconName, color, isCC, isWallet, limit, currency, addedCurrencies, cardDates ->
                 viewModel.editAccount(
                     oldBankName = account.bankName,
                     accountLast4 = account.accountLast4,
@@ -570,11 +576,73 @@ private fun AccountEditSheet(
                     newIconName = iconName,
                     newColorHex = color,
                     newCurrency = currency,
-                    addedCurrencies = addedCurrencies
+                    addedCurrencies = addedCurrencies,
+                    cardDates = cardDates
                 )
                 onDismiss()
                 if (bankName != account.bankName) onGone()
             }
         )
+    }
+}
+
+/**
+ * A credit card's bill: the open statement (what it closed at, what is still owed, when it is
+ * due), or the next closing and due dates once it is paid past; without dates, a way to set them.
+ */
+@Composable
+private fun CardBillPanel(status: CardStatus?, currency: String, onSetDates: () -> Unit) {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val dateFormat = remember(locale) {
+        java.time.format.DateTimeFormatter.ofPattern(if (locale.language == "zh") "M月d日" else "MMM d", locale)
+    }
+    androidx.compose.material3.Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        if (status == null) {
+            androidx.compose.material3.TextButton(onClick = onSetDates, modifier = Modifier.padding(horizontal = 8.dp)) {
+                Text(stringResource(R.string.card_set_dates))
+            }
+            return@Surface
+        }
+        val daysLeft = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), status.due)
+        val dueText = when (daysLeft) {
+            0L -> stringResource(R.string.card_due_today)
+            else -> stringResource(R.string.card_due_in, daysLeft.toInt())
+        }
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                if (status.statementAmount != null) {
+                    Text(stringResource(R.string.card_statement_amount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        com.ritesh.cashiro.utils.CurrencyFormatter.formatCurrency(status.statementAmount, currency),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    val remaining = status.remaining
+                    Text(
+                        if (remaining == null || remaining.signum() == 0) stringResource(R.string.card_paid)
+                        else stringResource(R.string.card_remaining, com.ritesh.cashiro.utils.CurrencyFormatter.formatCurrency(remaining, currency)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (remaining == null || remaining.signum() == 0) com.ritesh.cashiro.presentation.ui.theme.moneyColors.income
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else if (status.closing != null) {
+                    Text(stringResource(R.string.card_next_statement), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(status.closing.format(dateFormat), style = MaterialTheme.typography.titleMedium)
+                } else {
+                    Text(stringResource(R.string.card_due_day), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(status.due.format(dateFormat), style = MaterialTheme.typography.titleMedium)
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(stringResource(R.string.card_due_on, status.due.format(dateFormat)), style = MaterialTheme.typography.labelLarge)
+                Text(dueText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }

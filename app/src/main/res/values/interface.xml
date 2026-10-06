@@ -221,4 +221,19 @@
     <string name="home_all">All</string>
     <string name="home_received">received %1$s</string>
     <string name="home_recent_empty">No transactions yet. Tap + to add one, or share a statement screenshot with AI bookkeeping.</string>
+    <string name="card_statement_day">Statement day</string>
+    <string name="card_due_day">Due day</string>
+    <string name="card_day_unset">Not set</string>
+    <string name="card_day_value">Day %1$d</string>
+    <string name="card_day_short_month">In a shorter month, the last day is used.</string>
+    <string name="card_day_clear">Clear</string>
+    <string name="card_set_dates">Set statement and due days</string>
+    <string name="card_due_today">Due today</string>
+    <string name="card_due_in">%1$d days left</string>
+    <string name="card_statement_amount">Statement balance</string>
+    <string name="card_paid">Paid in full</string>
+    <string name="card_remaining">%1$s to pay</string>
+    <string name="card_next_statement">Next statement</string>
+    <string name="card_due_on">Due %1$s</string>
+    <string name="home_cards_due">%1$d accounts, due %2$s</string>
 </resources>

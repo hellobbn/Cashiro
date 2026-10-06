@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -82,6 +83,17 @@ class HomeViewModel @Inject constructor(
 
     private val _homeWidgets = MutableStateFlow<List<HomeWidgetUiModel>>(emptyList())
     val homeWidgets: StateFlow<List<HomeWidgetUiModel>> = _homeWidgets.asStateFlow()
+
+    /** The nearest payment due date among credit cards that owe something. */
+    val nextCardDue: StateFlow<java.time.LocalDate?> = combine(
+        accountBalanceRepository.observeAccounts(),
+        _uiState.map { it.creditCards }.distinctUntilChanged()
+    ) { accounts, cards ->
+        val today = java.time.LocalDate.now()
+        val owing = cards.filter { it.balance.signum() > 0 }.map { it.bankName to it.accountLast4 }.toSet()
+        accounts.filter { it.isCreditCard && it.dueDay != null && (it.name to it.last4) in owing }
+            .minOfOrNull { com.ritesh.cashiro.domain.model.CardCycle.nextDue(it.dueDay!!, today) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val categoriesMap = categoryRepository.getAllCategories()
         .map { cats -> cats.associateBy { it.name } }

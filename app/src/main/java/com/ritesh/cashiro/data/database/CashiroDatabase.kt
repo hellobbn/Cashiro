@@ -76,7 +76,7 @@ import com.ritesh.cashiro.data.database.entity.WebhookProfileEntity
             com.ritesh.cashiro.data.database.entity.AccountEntity::class,
             com.ritesh.cashiro.data.database.entity.AccountCurrencyEntity::class
         ],
-        version = 67,
+        version = 68,
     exportSchema = true,
     autoMigrations =
         [
@@ -167,7 +167,8 @@ MIGRATION_55_56,
                                 MIGRATION_63_64,
                                 MIGRATION_64_65,
                                 MIGRATION_65_66,
-                                MIGRATION_66_67
+                                MIGRATION_66_67,
+                                MIGRATION_67_68
                             )
                             .build()
                     INSTANCE = instance
@@ -666,6 +667,15 @@ MIGRATION_55_56,
             }
 
         val MIGRATION_66_67 = AccountsMigration
+
+        /** Credit cards learn their statement closing and payment due days. */
+        val MIGRATION_67_68 =
+            object : Migration(67, 68) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `accounts` ADD COLUMN `statement_day` INTEGER")
+                    db.execSQL("ALTER TABLE `accounts` ADD COLUMN `due_day` INTEGER")
+                }
+            }
 
         /** Transfers keep the amount that reached the target account, in its own currency. */
         val MIGRATION_65_66 =

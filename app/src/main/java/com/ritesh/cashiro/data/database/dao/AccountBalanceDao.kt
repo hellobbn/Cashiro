@@ -439,6 +439,9 @@ abstract class AccountBalanceDao {
         deleteCurrencyRow(accountId, currency)
     }
 
+    @Query("SELECT * FROM accounts ORDER BY name, last4")
+    abstract fun observeAccountRows(): Flow<List<AccountEntity>>
+
     @Query(POCKET_BALANCES)
     abstract fun observePocketBalances(): Flow<List<PocketBalance>>
 

@@ -49,6 +49,9 @@ class AccountBalanceRepository @Inject constructor(
     suspend fun pocketBalances(): List<com.ritesh.cashiro.data.database.dao.PocketBalance> =
         accountBalanceDao.getPocketBalances()
 
+    /** Every account's own details (name, kind, limit, card dates…). */
+    fun observeAccounts() = accountBalanceDao.observeAccountRows()
+
     /** Takes back a currency just added to an account; see [AccountBalanceDao.removeCurrency]. */
     suspend fun removeCurrency(accountId: Long, currency: String) = accountBalanceDao.removeCurrency(accountId, currency)
 

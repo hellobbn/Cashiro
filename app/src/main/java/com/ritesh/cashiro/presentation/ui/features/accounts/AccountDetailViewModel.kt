@@ -57,6 +57,41 @@ class AccountDetailViewModel @Inject constructor(
         observeTransactions()
         observeBalanceHistory()
         observeBalanceChartData()
+        observeCardBill()
+    }
+
+    /** A credit card's statement and due dates, and how much of the open statement is still owed. */
+    private fun observeCardBill() {
+        viewModelScope.launch {
+            combine(
+                accountBalanceRepository.observeAccounts().map { all -> all.firstOrNull { it.name == bankName && it.last4 == accountLast4 } },
+                accountBalanceRepository.getLatestBalanceFlow(bankName, accountLast4)
+            ) { account, latest -> account to latest }.collectLatest { (account, latest) ->
+                val dates = com.ritesh.cashiro.domain.model.CardDates(account?.statementDay, account?.dueDay)
+                val status = if (account?.isCreditCard == true && latest != null) cardStatus(dates, latest) else null
+                _uiState.update { it.copy(cardDates = dates, cardStatus = status) }
+            }
+        }
+    }
+
+    private suspend fun cardStatus(dates: com.ritesh.cashiro.domain.model.CardDates, latest: AccountBalanceEntity): CardStatus? {
+        val cycle = com.ritesh.cashiro.domain.model.CardCycle
+        val today = java.time.LocalDate.now()
+        val dueDay = dates.dueDay ?: return null
+        val statementDay = dates.statementDay ?: return CardStatus(cycle.nextDue(dueDay, today), null, null, null)
+        val closing = cycle.lastClosing(statementDay, today)
+        val due = cycle.dueAfter(closing, dueDay)
+        if (today.isAfter(due)) {
+            // That bill is past; the next one is not out yet
+            val next = cycle.nextClosing(statementDay, today)
+            return CardStatus(cycle.dueAfter(next, dueDay), next, null, null)
+        }
+        val statement = accountBalanceRepository.getLatestBalanceOnOrBefore(
+            bankName, accountLast4, closing.atTime(java.time.LocalTime.MAX), latest.currency
+        )?.balance?.coerceAtLeast(BigDecimal.ZERO)
+        // Payments since closing bring what is owed below the statement; new spending is the next bill's
+        val remaining = statement?.min(latest.balance.coerceAtLeast(BigDecimal.ZERO))
+        return CardStatus(due, closing, statement, remaining)
     }
     
     private fun loadAccountData() {
