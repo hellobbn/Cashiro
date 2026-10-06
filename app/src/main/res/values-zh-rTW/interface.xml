@@ -261,4 +261,26 @@
     <string name="cycle_weekly">每週</string>
     <string name="cycle_custom">自訂</string>
     <string name="card_overdue">已逾期 %1$d 天</string>
+    <string name="budget_current_period">本期</string>
+    <string name="cat_msg_updated">分類已更新</string>
+    <string name="cat_msg_exists">已有名為「%1$s」的分類</string>
+    <string name="cat_msg_created">分類已建立</string>
+    <string name="cat_msg_save_error">儲存分類失敗：%1$s</string>
+    <string name="cat_msg_reset">分類已恢復預設</string>
+    <string name="cat_msg_reset_error">恢復分類失敗：%1$s</string>
+    <string name="cat_msg_system">系統分類不能刪除</string>
+    <string name="cat_msg_check_error">檢查交易失敗：%1$s</string>
+    <string name="cat_msg_delete_error">刪除失敗：%1$s</string>
+    <string name="cat_msg_move_error">轉移交易失敗：%1$s</string>
+    <string name="cat_msg_deleted">分類已刪除</string>
+    <string name="cat_msg_cannot_delete">無法刪除這個分類</string>
+    <string name="sub_msg_updated">子分類已更新</string>
+    <string name="sub_msg_added">子分類已新增</string>
+    <string name="sub_msg_save_error">儲存子分類失敗：%1$s</string>
+    <string name="sub_msg_reset">子分類已恢復預設</string>
+    <string name="sub_msg_reset_error">恢復子分類失敗：%1$s</string>
+    <string name="sub_msg_system">系統子分類不能刪除</string>
+    <string name="sub_msg_deleted">子分類已刪除</string>
+    <string name="sub_msg_cannot_delete">無法刪除這個子分類</string>
+    <string name="sub_msg_delete_error">刪除子分類失敗：%1$s</string>
 </resources>

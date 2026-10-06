@@ -248,4 +248,26 @@
     <string name="cycle_every">Every %1$d %2$s</string>
     <string name="cycle_with_monthly">%1$s · about %2$s/mo</string>
     <string name="card_overdue">%1$d days overdue</string>
+    <string name="budget_current_period">Current period</string>
+    <string name="cat_msg_updated">Category updated successfully</string>
+    <string name="cat_msg_exists">Category "%1$s" already exists</string>
+    <string name="cat_msg_created">Category created successfully</string>
+    <string name="cat_msg_save_error">Error saving category: %1$s</string>
+    <string name="cat_msg_reset">Category reset to default</string>
+    <string name="cat_msg_reset_error">Error resetting category: %1$s</string>
+    <string name="cat_msg_system">System categories cannot be deleted</string>
+    <string name="cat_msg_check_error">Error checking transactions: %1$s</string>
+    <string name="cat_msg_delete_error">Error during deletion: %1$s</string>
+    <string name="cat_msg_move_error">Error during migration: %1$s</string>
+    <string name="cat_msg_deleted">Category deleted successfully</string>
+    <string name="cat_msg_cannot_delete">Cannot delete this category</string>
+    <string name="sub_msg_updated">Subcategory updated</string>
+    <string name="sub_msg_added">Subcategory added</string>
+    <string name="sub_msg_save_error">Error saving subcategory: %1$s</string>
+    <string name="sub_msg_reset">Subcategory reset to default</string>
+    <string name="sub_msg_reset_error">Error resetting subcategory: %1$s</string>
+    <string name="sub_msg_system">System subcategories cannot be deleted</string>
+    <string name="sub_msg_deleted">Subcategory deleted</string>
+    <string name="sub_msg_cannot_delete">Cannot delete this subcategory</string>
+    <string name="sub_msg_delete_error">Error deleting subcategory: %1$s</string>
 </resources>

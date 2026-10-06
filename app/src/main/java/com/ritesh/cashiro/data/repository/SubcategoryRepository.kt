@@ -68,6 +68,8 @@ class SubcategoryRepository @Inject constructor(
         )
     }
 
+    suspend fun getSubcategoryById(subcategoryId: Long): SubcategoryEntity? = subcategoryDao.getSubcategoryById(subcategoryId)
+
     suspend fun resetSubcategoryToDefault(subcategoryId: Long) {
         val subcategory = subcategoryDao.getSubcategoryById(subcategoryId)
         if (subcategory != null && subcategory.isSystem) {

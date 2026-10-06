@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
@@ -174,33 +175,9 @@ class BudgetRepository @Inject constructor(
 
     // Spending calculation methods
     suspend fun getBudgetWithSpending(budget: BudgetEntity): BudgetWithSpending {
-        val startDate = budget.startDate
-        val endDate = budget.endDate
-        val now = LocalDateTime.now()
-
-        // Get transactions for the budget period
-        var transactions = transactionDao.getTransactionsBetweenDatesList(startDate, endDate)
-            .filter { !it.isDeleted }
-            
-        // Filter by budget type
-        transactions = if (budget.budgetType == BudgetType.EXPENSE) {
-            transactions.filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.CREDIT || it.transactionType == TransactionType.LENT }
-        } else {
-            transactions.filter { it.transactionType == TransactionType.INCOME || it.transactionType == TransactionType.BORROWED }
-        }
-        
-        // Filter by tracking type
-        if (budget.trackType == BudgetTrackType.ADDED_ONLY) {
-            transactions = transactions.filter { it.smsBody.isNullOrBlank() }
-        }
-        
-        // Filter by accounts if specified
-        if (budget.accountIds.isNotEmpty()) {
-            transactions = transactions.filter { txn ->
-                val accountKey = "${txn.bankName}:${txn.accountNumber?.takeLast(4) ?: ""}"
-                budget.accountIds.any { it.contains(txn.bankName ?: "") && it.contains(txn.accountNumber?.takeLast(4) ?: "") }
-            }
-        }
+        val window = com.ritesh.cashiro.domain.model.BudgetPeriods.current(budget)
+        var transactions = transactionDao.getTransactionsBetweenDatesList(window.from, window.to)
+            .filter { com.ritesh.cashiro.domain.model.BudgetPeriods.counts(budget, it) }
         
         // Convert currencies to match the budget's currency
         transactions = transactions.map { txn ->
@@ -228,16 +205,13 @@ class BudgetRepository @Inject constructor(
 
         val categoryLimits = budgetDao.getCategoryLimitsForBudgetSync(budget.id)
 
-        // Calculate days remaining
-        val duration = Duration.between(startDate, endDate)
-        val totalDays = duration.toDays().toInt().coerceAtLeast(1)
-        
-        val daysRemaining = if (now.isBefore(startDate)) {
-            totalDays
-        } else if (now.isAfter(endDate)) {
-            0
-        } else {
-            Duration.between(now, endDate).toDays().toInt().coerceAtLeast(0)
+        // Days left in the current period, today included
+        val today = java.time.LocalDate.now()
+        val totalDays = window.days
+        val daysRemaining = when {
+            today.isBefore(window.start) -> totalDays
+            today.isAfter(window.end) -> 0
+            else -> (java.time.temporal.ChronoUnit.DAYS.between(today, window.end) + 1).toInt()
         }
 
         return BudgetWithSpending(
@@ -260,14 +234,13 @@ class BudgetRepository @Inject constructor(
             budgetDao.getAllCategoryLimits()
         ) { budgets, transactions, categoryLimits ->
             budgets.filter { budget ->
-                budget.isActive && (
-                    (budget.startDate.isBefore(endOfMonth) || budget.startDate.isEqual(endOfMonth)) &&
-                    (budget.endDate.isAfter(startOfMonth) || budget.endDate.isEqual(startOfMonth))
-                )
+                // A repeating budget always has a current period; a custom one counts while it overlaps
+                val window = com.ritesh.cashiro.domain.model.BudgetPeriods.current(budget)
+                budget.isActive && !window.from.isAfter(endOfMonth) && !window.to.isBefore(startOfMonth)
             }.map { budget ->
                 calculateSpending(budget, transactions, categoryLimits)
             }
-        }
+        }.flowOn(kotlinx.coroutines.Dispatchers.Default)
     }
 
     fun getAllBudgetsWithSpending(): Flow<List<BudgetWithSpending>> {
@@ -279,7 +252,7 @@ class BudgetRepository @Inject constructor(
             budgets.map { budget ->
                 calculateSpending(budget, transactions, categoryLimits)
             }
-        }
+        }.flowOn(kotlinx.coroutines.Dispatchers.Default)
     }
 
     private suspend fun calculateSpending(
@@ -287,34 +260,8 @@ class BudgetRepository @Inject constructor(
         allTransactions: List<TransactionEntity>,
         allCategoryLimits: List<BudgetCategoryLimitEntity>
     ): BudgetWithSpending {
-        val startDate = budget.startDate
-        val endDate = budget.endDate
-        val now = LocalDateTime.now()
-
-        // Filter transactions for this specific budget (already excludes deleted by DAO)
-        var transactions = allTransactions.filter { txn ->
-            (txn.dateTime.isAfter(startDate) || txn.dateTime.isEqual(startDate)) &&
-            (txn.dateTime.isBefore(endDate) || txn.dateTime.isEqual(endDate))
-        }
-
-        // Filter by budget type
-        transactions = if (budget.budgetType == BudgetType.EXPENSE) {
-            transactions.filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.CREDIT || it.transactionType == TransactionType.LENT }
-        } else {
-            transactions.filter { it.transactionType == TransactionType.INCOME || it.transactionType == TransactionType.BORROWED }
-        }
-        
-        // Filter by tracking type
-        if (budget.trackType == BudgetTrackType.ADDED_ONLY) {
-            transactions = transactions.filter { it.smsBody.isNullOrBlank() }
-        }
-        
-        // Filter by accounts if specified
-        if (budget.accountIds.isNotEmpty()) {
-            transactions = transactions.filter { txn ->
-                budget.accountIds.any { it.contains(txn.bankName ?: "") && it.contains(txn.accountNumber?.takeLast(4) ?: "") }
-            }
-        }
+        val window = com.ritesh.cashiro.domain.model.BudgetPeriods.current(budget)
+        var transactions = allTransactions.filter { it.dateTime in window && com.ritesh.cashiro.domain.model.BudgetPeriods.counts(budget, it) }
 
         // Convert currencies to match the budget's currency
         transactions = transactions.map { txn ->
@@ -344,16 +291,13 @@ class BudgetRepository @Inject constructor(
         // Get category limits for this budget
         val categoryLimits = allCategoryLimits.filter { it.budgetId == budget.id }
 
-        // Calculate days remaining
-        val duration = Duration.between(startDate, endDate)
-        val totalDays = duration.toDays().toInt().coerceAtLeast(1)
-        
-        val daysRemaining = if (now.isBefore(startDate)) {
-            totalDays
-        } else if (now.isAfter(endDate)) {
-            0
-        } else {
-            Duration.between(now, endDate).toDays().toInt().coerceAtLeast(0)
+        // Days left in the current period, today included
+        val today = java.time.LocalDate.now()
+        val totalDays = window.days
+        val daysRemaining = when {
+            today.isBefore(window.start) -> totalDays
+            today.isAfter(window.end) -> 0
+            else -> (java.time.temporal.ChronoUnit.DAYS.between(today, window.end) + 1).toInt()
         }
 
         return BudgetWithSpending(
@@ -379,31 +323,11 @@ class BudgetRepository @Inject constructor(
     }
 
     fun getTransactionsForBudget(budget: BudgetEntity): Flow<List<TransactionEntity>> {
-        val startDate = budget.startDate
-        val endDate = budget.endDate
+        val window = com.ritesh.cashiro.domain.model.BudgetPeriods.current(budget)
 
-        return transactionDao.getTransactionsBetweenDates(startDate, endDate)
+        return transactionDao.getTransactionsBetweenDates(window.from, window.to)
             .map { transactions ->
-                var filtered = transactions.filter { !it.isDeleted }
-                
-                // Filter by budget type
-                filtered = if (budget.budgetType == BudgetType.EXPENSE) {
-                    filtered.filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.CREDIT || it.transactionType == TransactionType.LENT }
-                } else {
-                    filtered.filter { it.transactionType == TransactionType.INCOME || it.transactionType == TransactionType.BORROWED }
-                }
-                
-                // Filter by tracking type
-                if (budget.trackType == BudgetTrackType.ADDED_ONLY) {
-                    filtered = filtered.filter { it.smsBody.isNullOrBlank() }
-                }
-                
-                // Filter by accounts if specified
-                if (budget.accountIds.isNotEmpty()) {
-                    filtered = filtered.filter { txn ->
-                        budget.accountIds.any { it.contains(txn.bankName ?: "") && it.contains(txn.accountNumber?.takeLast(4) ?: "") }
-                    }
-                }
+                var filtered = transactions.filter { com.ritesh.cashiro.domain.model.BudgetPeriods.counts(budget, it) }
 
                 // Convert currencies to match the budget's currency
                 filtered = filtered.map { txn ->
