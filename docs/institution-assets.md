@@ -46,3 +46,23 @@ SVG sources are the existing institution marks, rasterized to 192 px. UOB, Ping 
 Validation on 2026-09-07: all 34 PNGs decode and were inspected together for visible institution marks. Vanguard remains 32 px; Fidelity and Hang Seng are 48 px, and DBS and OCBC are 64 px, so these may look softer on high-density screens. Vanguard's official [favicon](https://investor.vanguard.com/corporate-portal/assets/favicon.ico) was also checked and contains only 16 and 32 px frames; the existing compact V was retained. Hang Seng's red emblem was checked against its official website and is intentional despite its familiar green wordmark.
 
 CMB update on 2026-09-07: replaced the low-resolution, text-heavy favicon with the unchanged 512 px artwork of the official [招商银行 app](https://apps.apple.com/cn/app/id392899425), published by CHINA MERCHANTS BANK CO.,LTD. The bank’s [app download page](https://m.cmbchina.com/app) links to this App Store ID. The resource name `ic_institution_cmb` is unchanged, so saved icon names and institution aliases continue to resolve.
+
+Brokers added on 2026-10-06. Each icon is the unchanged 512 px artwork of the broker's own App Store app (found with the iTunes Search/Lookup API, publisher checked), resized to 192 px PNG. A catalog entry's `kind = BROKER` makes accounts named after it investment accounts.
+
+| Drawable suffix | Broker | App Store app (publisher) | Bundled px |
+| --- | --- | --- | --- |
+| `moomoo` | moomoo | [id1440255819](https://apps.apple.com/us/app/id1440255819) (Moomoo Technologies Inc.) | 192 × 192 |
+| `tiger` | 老虎证券 Tiger Brokers | [id1023600494](https://apps.apple.com/hk/app/id1023600494) (Tiger Trade Technology Pte Ltd) | 192 × 192 |
+| `longbridge` | 长桥证券 Longbridge | [id1470042146](https://apps.apple.com/hk/app/id1470042146) (Longport Technology HK Limited) | 192 × 192 |
+| `webull` | 微牛证券 Webull | [id1179213067](https://apps.apple.com/us/app/id1179213067) (Webull Technologies Pte. Ltd.) | 192 × 192 |
+| `snowball` | 雪盈证券 Snowball X | [id1209930465](https://apps.apple.com/us/app/id1209930465) (SNB Finance Holdings Limited) | 192 × 192 |
+| `usmart` | 盈立证券 uSMART | [id1463024118](https://apps.apple.com/us/app/id1463024118) (uSmart Securities Limited) | 192 × 192 |
+| `vbrokers` | 华盛通 VBrokers | [id1151370929](https://apps.apple.com/us/app/id1151370929) (Valuable Capital Ltd) | 192 × 192 |
+| `bright_smart` | 耀才证券 Bright Smart | [id409985364](https://apps.apple.com/hk/app/id409985364) (Bright Smart Securities International (H.K.) Limited) | 192 × 192 |
+| `eastmoney` | 东方财富证券 | [id1111074226](https://apps.apple.com/hk/app/id1111074226) (East Money Information Co.,Ltd.) | 192 × 192 |
+| `huatai` | 华泰证券（涨乐财富通） | [id379594830](https://apps.apple.com/us/app/id379594830) (Huatai Securities) | 192 × 192 |
+| `citic_sec` | 中信证券（信e投） | [id1101673632](https://apps.apple.com/cn/app/id1101673632) (CITIC Securities Company Limited) | 192 × 192 |
+| `cms_sec` | 招商证券 | [id1042567321](https://apps.apple.com/cn/app/id1042567321) (China Merchants Securities CO.,LTD) | 192 × 192 |
+| `gtja` | 国泰海通证券（国泰君安，君弘） | [id952047557](https://apps.apple.com/cn/app/id952047557) (GUOTAI HAITONG SECURITIES CO., LTD.) | 192 × 192 |
+
+Guotai Junan merged with Haitong Securities in 2025; the entry keeps the id `gtja` and answers to both names. Short or generic aliases (Tiger, 老虎, Snowball, 华泰, CMS) are left out on purpose: `find()` also picks merchant icons, so "老虎堂" or "华泰保险" must not resolve to a broker.

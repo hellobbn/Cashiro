@@ -37,7 +37,8 @@ class InstitutionCatalogTest {
         assertEquals("bofa", InstitutionCatalog.search("bank america").single().id)
         assertEquals("ibkr", InstitutionCatalog.search("IBKR US").single().id)
         assertTrue(InstitutionCatalog.search("boc", "US").isEmpty())
-        assertTrue(InstitutionCatalog.search("", "SG").all { it.currency == "SGD" })
+        // Singapore's banks hold SGD; a broker there (Tiger) defaults to USD
+        assertTrue(InstitutionCatalog.search("", "SG").filterNot { it.isBroker }.all { it.currency == "SGD" })
     }
 
     @Test fun `short aliases do not match unrelated merchants`() {
@@ -49,5 +50,40 @@ class InstitutionCatalogTest {
         val institutions = InstitutionCatalog.institutions
         assertEquals(institutions.size, institutions.map { it.id }.distinct().size)
         assertEquals(institutions.size, institutions.map { it.iconName }.distinct().size)
+    }
+
+    @Test fun `brokers are marked on their entry and found by familiar names`() {
+        mapOf(
+            "IBKR" to "ibkr", "富途证券" to "futu", "moomoo" to "moomoo", "老虎证券" to "tiger",
+            "Tiger Trade" to "tiger", "长桥证券" to "longbridge", "Longbridge" to "longbridge",
+            "Webull" to "webull", "微牛" to "webull", "东方财富证券" to "eastmoney", "华泰证券" to "huatai",
+            "中信证券" to "citic_sec", "CITIC Securities" to "citic_sec", "招商证券" to "cms_sec",
+            "国泰君安" to "gtja", "国泰海通证券" to "gtja", "雪盈证券" to "snowball", "耀才证券" to "bright_smart",
+            "盈立证券" to "usmart", "华盛通" to "vbrokers", "富途 美股" to "futu"
+        ).forEach { (name, id) ->
+            val institution = InstitutionCatalog.find(name)
+            assertEquals(name, id, institution?.id)
+            assertTrue(name, institution!!.isBroker)
+            assertTrue(name, InstitutionCatalog.isBrokerName(name))
+        }
+        // The original six keep their ids and stay brokers
+        listOf("ibkr", "schwab", "fidelity", "vanguard", "robinhood", "futu")
+            .forEach { assertTrue(it, InstitutionCatalog.byId(it)!!.isBroker) }
+    }
+
+    @Test fun `securities arms do not take their banks' names`() {
+        assertEquals("cmb", InstitutionCatalog.find("招商银行")?.id)
+        assertEquals("citic_cn", InstitutionCatalog.find("中信银行")?.id)
+        assertEquals("citic_cn", InstitutionCatalog.find("China CITIC Bank")?.id)
+        listOf("招商银行", "中信银行", "华泰保险", "老虎堂", "Tiger Sugar", "Chase", "")
+            .forEach { assertFalse(it, InstitutionCatalog.isBrokerName(it)) }
+    }
+
+    @Test fun `broker search lists only brokers`() {
+        val brokers = InstitutionCatalog.search("", brokersOnly = true)
+        assertTrue(brokers.isNotEmpty())
+        assertTrue(brokers.all { it.isBroker })
+        assertEquals(InstitutionCatalog.institutions.count { it.isBroker }, brokers.size)
+        assertTrue(InstitutionCatalog.search("招商", brokersOnly = true).all { it.id == "cms_sec" })
     }
 }

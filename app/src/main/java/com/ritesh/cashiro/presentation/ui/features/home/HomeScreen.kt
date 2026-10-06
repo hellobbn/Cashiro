@@ -211,7 +211,13 @@ fun SharedTransitionScope.HomeScreen(
         )
     }
     val openCategory: (com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory) -> Unit = { category ->
-        if (category == com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.INVESTMENTS)
+        val investments = com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory.INVESTMENTS
+        // Nothing to show yet: connecting or adding happens in Add account → Broker
+        if (category == investments && overviewItems.any {
+                it.category == investments && it.status == com.ritesh.cashiro.presentation.ui.features.accounts.OverviewStatus.CONNECT
+            })
+            navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.AddAccount(investments.name))
+        else if (category == investments)
             navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.Investments)
         else navController.safeNavigate(com.ritesh.cashiro.presentation.navigation.AccountCategoryRoute(category.name))
     }

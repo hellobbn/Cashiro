@@ -71,7 +71,15 @@ Personal Chinese / cross-border manual accounts:
 - New installs default to CNY. Existing saved currencies are not overwritten.
 - Institution picker covers CN / HK / SG / US banks and brokers as **name and icon presets only**.
 - Choosing an institution does not add login or holdings sync.
-- A separate Home → Investments entry supports explicit read-only IBKR Flex connections; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; device sync never does. The AI provider and key (`ai.json`) follow the same rule, and a restore only fills an empty AI setting, never replaces a device's own key.
+- Investment accounts: an account is one when its name is a catalog broker
+  (`InstitutionCatalog.isBrokerName`, from each entry's `kind = BROKER`); there is no stored flag
+  (no migration, no sync column). Add account has a fourth type, **Broker** (券商): its picker lists
+  only brokers and it saves only a name that resolves to one. The all-accounts list always shows
+  the Investments section, with a "connect a broker or add a broker account" row when empty.
+- Broker auto-sync (连接券商自动同步) lives in Add account → Broker, above the manual form: one row
+  per registered `BrokerageProvider` (IBKR Flex today), with its connections and connect /
+  disconnect. Every "connect a broker" action opens that page (`AddAccount("INVESTMENTS")`); Home →
+  Investments keeps the read-only holdings view; see `docs/brokerage-connections.md`. The provider interface is extensible; holdings do not modify bookkeeping balances or home net worth. Backups carry connections and tokens (`brokerage.json`) only when the user ticks it on export or the cloud backup is end-to-end encrypted; device sync never does. The AI provider and key (`ai.json`) follow the same rule, and a restore only fills an empty AI setting, never replaces a device's own key.
 - Prefer account UX, currency defaults, and imports over automation.
 - Sync (Settings → Sync, `docs/sync.md`): multi-device sync through Firebase Auth (Google
   sign-in via Credential Manager) and Firestore, **standard flavor only** (F-Droid links no

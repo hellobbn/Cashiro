@@ -85,6 +85,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.presentation.ui.features.accounts.AccountDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.AddAccountScreen
+import com.ritesh.cashiro.presentation.ui.features.accounts.AccountCategory
 import com.ritesh.cashiro.presentation.ui.features.accounts.ManageAccountsScreen
 import com.ritesh.cashiro.presentation.ui.features.add.AddScreen
 import com.ritesh.cashiro.presentation.ui.features.analytics.AnalyticsScreen
@@ -231,7 +232,8 @@ fun CashiroNavHost(
                     ReadableWidth {
                     com.ritesh.cashiro.presentation.ui.features.investments.InvestmentsScreen(
                         onNavigateBack = { navController.popBackStack() },
-                        onManageManualAccounts = { navController.safeNavigate(AccountCategoryRoute("INVESTMENTS")) }
+                        onManageManualAccounts = { navController.safeNavigate(AccountCategoryRoute("INVESTMENTS")) },
+                        onAddInvestment = { navController.safeNavigate(AddAccount(AccountCategory.INVESTMENTS.name)) }
                     )
                     }
                 }

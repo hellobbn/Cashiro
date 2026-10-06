@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.brokerage.BrokerageRepository
-import com.ritesh.cashiro.data.brokerage.IbkrFlexProvider
 import com.ritesh.cashiro.domain.brokerage.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -37,8 +36,11 @@ class InvestmentsViewModel @Inject constructor(
 
     init { reload() }
     fun reload() = run { repository.load(); _loaded.value = true }
-    fun connect(label: String, token: String, query: String, onSuccess: () -> Unit) = run {
-        repository.connect(IbkrFlexProvider.ID, label, BrokerCredentials(mapOf("token" to token.trim(), "queryId" to query.trim())))
+    /** The registered providers, listed under "Broker auto-sync". */
+    val providers: List<BrokerageProvider> = repository.availableProviders
+
+    fun connect(providerId: String, label: String, fields: Map<String, String>, onSuccess: () -> Unit) = run {
+        repository.connect(providerId, label, BrokerCredentials(fields))
         onSuccess()
     }
     fun refresh(id: String) = run { repository.refresh(id) }

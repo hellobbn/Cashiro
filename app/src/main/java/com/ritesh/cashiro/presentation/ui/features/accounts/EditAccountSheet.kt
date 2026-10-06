@@ -97,6 +97,10 @@ import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.IconResolutionUtils
 import java.math.BigDecimal
 import com.ritesh.cashiro.domain.model.CardDates
+import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
@@ -113,6 +117,8 @@ fun EditAccountSheet(
     onDelete: (() -> Unit)? = null,
     // A credit card's statement and due days, as saved
     initialCardDates: CardDates = CardDates(),
+    // Shown above the manual form when the Broker type is chosen: "Broker auto-sync"
+    brokerAutoSync: (@Composable () -> Unit)? = null,
     onSave: (bankName: String,
         balance: BigDecimal,
         accountLast4: String,
@@ -137,11 +143,15 @@ fun EditAccountSheet(
     // Which day is being picked: true the statement day, false the due day
     var pickingStatementDay by remember { mutableStateOf<Boolean?>(null) }
     var isWallet by remember { mutableStateOf(account?.isWallet ?: (initialCategory == AccountCategory.WALLETS)) }
+    // Broker type: a bank-like account whose name is a catalog broker, which is what makes it an
+    // investment account (AccountBalanceEntity.category()); no stored flag, so no migration.
+    var isBroker by remember { mutableStateOf(account == null && initialCategory == AccountCategory.INVESTMENTS) }
     var accountLast4 by remember { mutableStateOf(account?.accountLast4 ?: "") }
     var selectedCurrency by remember { mutableStateOf(account?.currency ?: defaultCurrency) }
     var iconResId by remember {
         mutableStateOf(
             if (account?.iconResId != 0 && account?.iconResId != null) account.iconResId
+            else if (isBroker) R.drawable.type_finance_chart_increasing
             else R.drawable.type_finance_bank
         )
     }
@@ -170,6 +180,8 @@ fun EditAccountSheet(
     val duplicateAccount = account == null && bankName.isNotBlank() && allAccounts.any {
         it.bankName.trim() == bankName.trim() && it.accountLast4 == accountLast4
     }
+    // Under the Broker type the name must name a broker, or the account would land in Banks
+    val brokerNameInvalid = isBroker && bankName.isNotBlank() && !InstitutionCatalog.isBrokerName(bankName)
     LaunchedEffect(bankName, accountLast4) {
         onClearSaveError()
     }
@@ -198,8 +210,8 @@ fun EditAccountSheet(
                     }
                     showNumberPad = false
                     },
-                title = if (editingCreditLimit) stringResource(R.string.enter_credit_limit) 
-                        else if (account == null) stringResource(R.string.enter_amount) 
+                title = if (editingCreditLimit) stringResource(R.string.enter_credit_limit)
+                        else if (account == null) stringResource(R.string.enter_amount)
                         else stringResource(R.string.update_amount)
             )
         }
@@ -327,19 +339,21 @@ fun EditAccountSheet(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     SegmentedButton(
-                        selected = !isCreditCard && !isWallet,
-                        onClick = { 
-                            if (isWallet) {
-                                // Clear fields if coming from Wallet
+                        selected = !isCreditCard && !isWallet && !isBroker,
+                        onClick = {
+                            if (isWallet || (isBroker && InstitutionCatalog.isBrokerName(bankName))) {
+                                // Clear fields if coming from Wallet, or a broker's name
                                 bankName = ""
                                 accountLast4 = ""
                                 iconResId = R.drawable.type_finance_bank
+                                iconName = IconResolutionUtils.resIdToName(context, iconResId)
                                 colorHex = "#33B5E5"
                             }
                             isCreditCard = false
-                            isWallet = false 
+                            isWallet = false
+                            isBroker = false
                         },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 4),
                         colors = SegmentedButtonDefaults.colors(
                             inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                             inactiveContentColor = MaterialTheme.colorScheme.onSurface,
@@ -356,11 +370,12 @@ fun EditAccountSheet(
                     }
                     SegmentedButton(
                         selected = isCreditCard,
-                        onClick = { 
+                        onClick = {
                             isCreditCard = true
-                            isWallet = false 
+                            isWallet = false
+                            isBroker = false
                         },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 4),
                         colors = SegmentedButtonDefaults.colors(
                             inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                             inactiveContentColor = MaterialTheme.colorScheme.onSurface,
@@ -378,16 +393,17 @@ fun EditAccountSheet(
                     }
                     SegmentedButton(
                         selected = isWallet,
-                        onClick = { 
+                        onClick = {
                             isWallet = true
                             isCreditCard = false
+                            isBroker = false
                             accountLast4 = "wallet"
                             bankName = "Cash"
                             iconName = "type_finance_dollar_banknote"
                             iconResId = R.drawable.type_finance_dollar_banknote
                             colorHex = "#8BC34A"
                         },
-                        shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+                        shape = SegmentedButtonDefaults.itemShape(index = 2, count = 4),
                         colors = SegmentedButtonDefaults.colors(
                             inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                             inactiveContentColor = MaterialTheme.colorScheme.onSurface,
@@ -402,6 +418,54 @@ fun EditAccountSheet(
                             Text(stringResource(R.string.type_wallet))
                         }
                     }
+                    SegmentedButton(
+                        selected = isBroker,
+                        onClick = {
+                            if (isWallet || !InstitutionCatalog.isBrokerName(bankName)) {
+                                // Start from an empty broker, not a wallet's or bank's name
+                                bankName = ""
+                                accountLast4 = ""
+                                iconResId = R.drawable.type_finance_chart_increasing
+                                iconName = IconResolutionUtils.resIdToName(context, iconResId)
+                                colorHex = "#33B5E5"
+                            }
+                            isBroker = true
+                            isCreditCard = false
+                            isWallet = false
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(index = 3, count = 4),
+                        colors = SegmentedButtonDefaults.colors(
+                            inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                            inactiveBorderColor = Color.Transparent,
+                            activeBorderColor = Color.Transparent
+                        ),
+                        icon = {}
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.AutoMirrored.Rounded.ShowChart, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.type_broker))
+                        }
+                    }
+                }
+            }
+
+            // Broker: connect for read-only holdings, or keep the manual account below
+            if (isBroker && account == null && brokerAutoSync != null) {
+                brokerAutoSync()
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    Text(
+                        stringResource(R.string.broker_manual_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                    Text(
+                        stringResource(R.string.broker_manual_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
@@ -477,9 +541,9 @@ fun EditAccountSheet(
                     }
                     // Balance/Outstanding Input
                     Surface(
-                        onClick = { 
+                        onClick = {
                             editingCreditLimit = false
-                            showNumberPad = true 
+                            showNumberPad = true
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.large,
@@ -523,12 +587,12 @@ fun EditAccountSheet(
 
                 if (isCreditCard) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    
+
                     // Credit Limit Input
                     Surface(
-                        onClick = { 
+                        onClick = {
                             editingCreditLimit = true
-                            showNumberPad = true 
+                            showNumberPad = true
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.large,
@@ -640,7 +704,7 @@ fun EditAccountSheet(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (!isWallet) {
-                    InstitutionPickerButton { institution, name ->
+                    InstitutionPickerButton(brokersOnly = isBroker) { institution, name ->
                         bankName = name
                         iconName = institution.iconName
                         iconResId = institution.iconResId
@@ -652,7 +716,18 @@ fun EditAccountSheet(
                 TextField(
                     value = bankName,
                     onValueChange = { bankName = it },
-                    label = { Text(if (isWallet) stringResource(R.string.wallet_name_label) else stringResource(R.string.bank_name_label), fontWeight = FontWeight.SemiBold) },
+                    label = {
+                        Text(
+                            stringResource(
+                                when {
+                                    isWallet -> R.string.wallet_name_label
+                                    isBroker -> R.string.broker_name_label
+                                    else -> R.string.bank_name_label
+                                }
+                            ),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(
@@ -674,7 +749,7 @@ fun EditAccountSheet(
                     leadingIcon = { Icon(Iconax.Edit2, contentDescription = null)
                     }
                 )
- 
+
                 if (!isWallet) {
                     TextField(
                         value = accountLast4,
@@ -814,7 +889,11 @@ fun EditAccountSheet(
             contentAlignment = Alignment.BottomCenter
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                val error = if (duplicateAccount) stringResource(R.string.account_already_exists) else saveError
+                val error = when {
+                    duplicateAccount -> stringResource(R.string.account_already_exists)
+                    brokerNameInvalid -> stringResource(R.string.broker_name_required)
+                    else -> saveError
+                }
                 if (error != null) {
                     Text(
                         text = error,
@@ -871,7 +950,7 @@ fun EditAccountSheet(
                                 if (isCreditCard) cardDates else CardDates()
                             )
                         },
-                        enabled = !isSaving && !duplicateAccount && bankName.isNotBlank() && (isWallet || accountLast4.length == 4),
+                        enabled = !isSaving && !duplicateAccount && !brokerNameInvalid && bankName.isNotBlank() && (isWallet || accountLast4.length == 4),
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp),

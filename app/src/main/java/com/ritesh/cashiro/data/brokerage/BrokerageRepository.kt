@@ -34,6 +34,9 @@ class BrokerageRepository internal constructor(
         this(store, providers, System::currentTimeMillis)
 
     private val providers = providers.associateBy { it.id }.also { require(it.size == providers.size) }
+
+    /** Every registered provider, in a stable order: the rows of the "Broker auto-sync" list. */
+    val availableProviders: List<BrokerageProvider> = this.providers.values.sortedBy { it.id }
     private val mutex = Mutex()
     private var saved: List<SavedBrokerConnection>? = null
     private val _connections = MutableStateFlow<List<BrokerConnection>>(emptyList())

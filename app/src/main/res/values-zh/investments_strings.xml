@@ -3,12 +3,9 @@
     <string name="investments_syncing">正在读取券商报表，通常需要数十秒…</string>
     <string name="investments_retry">重试</string>
     <string name="investments_empty_title">把持仓放在一起看</string>
-    <string name="investments_empty_body">点右下角加号，可手动添加投资账户，或连接 IBKR。仅查看报表，不下单、不转账。</string>
+    <string name="investments_empty_body">点右下角加号添加券商账户：可连接券商自动同步持仓，也可手动记账。仅查看报表，不下单、不转账。</string>
     <string name="investments_connect_ibkr">连接 IBKR</string>
     <string name="investments_add">添加</string>
-    <string name="investments_add_account">添加投资账户</string>
-    <string name="investments_link_brokerage">连接券商账户</string>
-    <string name="investments_link_ibkr">盈透证券（IBKR）</string>
     <string name="investments_net_worth">投资净资产</string>
     <string name="investments_accounts">账户</string>
     <string name="investments_synced">上次同步：%1$s</string>

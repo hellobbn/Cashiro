@@ -27,6 +27,7 @@ class IbkrFlexProvider internal constructor(
     @Inject constructor(parser: IbkrFlexParser) : this(Android.create(), parser, { delay(7_000) })
 
     override val id = ID
+    override val institutionId = "ibkr"
     private val mutex = Mutex()
     private val client = HttpClient(engine) {
         followRedirects = false // Never forward a report token to a URL from a response.

@@ -39,6 +39,12 @@ data class BrokerageAccount(
 /** Providers translate their API into a common, read-only snapshot. No trading methods. */
 interface BrokerageProvider {
     val id: String
+
+    /**
+     * The `InstitutionCatalog` id whose name and icon the provider is shown with in the
+     * "Broker auto-sync" list (Add account → Broker). Every registered provider is listed there.
+     */
+    val institutionId: String get() = id
     suspend fun fetchHoldings(credentials: BrokerCredentials): List<BrokerageAccount>
 }
 
