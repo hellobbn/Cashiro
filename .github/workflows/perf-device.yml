@@ -240,8 +240,11 @@ jobs:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.DEVICE_RUN_SERVICE_ACCOUNT }}
+      # An exact version: "latest" resolves through the action's own version list, which
+      # lags (568.0.0 as of October 2026) and predates `gcloud beta device-run`.
       - uses: google-github-actions/setup-gcloud@v2
         with:
+          version: 588.0.0
           install_components: beta
       - name: Run on Device Run
         env:
@@ -393,8 +396,10 @@ jobs:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.DEVICE_RUN_SERVICE_ACCOUNT }}
+      # An exact version, as in the device job.
       - uses: google-github-actions/setup-gcloud@v2
         with:
+          version: 588.0.0
           install_components: beta
       - name: Record the profile on Device Run
         run: |
