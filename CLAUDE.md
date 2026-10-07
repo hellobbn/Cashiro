@@ -265,7 +265,7 @@ benchmark/      Macrobenchmark tests against app's `benchmark` build type
 - `.github/workflows/perf-device.yml` runs `:benchmark` on a physical phone in Google Cloud's
   Developer Device Platform (Device Run, `gcloud beta device-run`, Preview; it replaces
   Firebase Test Lab, which shuts down on 2027-09-30; default Pixel 10 Pro, `blazer-36`).
-  Needs the `FIREBASE_SERVICE_ACCOUNT` secret, a service account key of a project with
+  Needs the `DEVICE_RUN_SERVICE_ACCOUNT` secret, a service account key of a project with
   billing, the APIs and the roles the workflow header lists. Results are pulled from the test
   APK's media directory (`/sdcard/Android/media/com.ritesh.cashiro.benchmark.tests`).
   Physical-device time is billed, so it only runs when started by hand (Actions → Performance

@@ -7,7 +7,7 @@ name: Performance (device)
 # verdicts, which goes to the job summary and to a comment on the branch's pull request.
 # The job fails on a regression (see RULES in scripts/benchmark/compare.py).
 #
-# Needs the FIREBASE_SERVICE_ACCOUNT secret: the JSON key of a service account in a Google
+# Needs the DEVICE_RUN_SERVICE_ACCOUNT secret: the JSON key of a service account in a Google
 # Cloud project with billing and the Device Run, Device Streaming and Cloud Testing APIs
 # (devicerun, devicestreaming, testing.googleapis.com) enabled. The account needs the roles
 # the Device Run quickstart lists (Viewer, Device Run Admin, Device Streaming Admin,
@@ -239,7 +239,7 @@ jobs:
           merge-multiple: true
       - uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          credentials_json: ${{ secrets.DEVICE_RUN_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@v2
         with:
           install_components: beta
@@ -392,7 +392,7 @@ jobs:
           du -sh "$GRADLE_BUILD_CACHE_DIR"
       - uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          credentials_json: ${{ secrets.DEVICE_RUN_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@v2
         with:
           install_components: beta
