@@ -13,7 +13,7 @@ import org.junit.runners.JUnit4
  * of startup and the main screens, which ART then compiles ahead of time.
  *
  * Run it against the unminified `profiling` build (same package as `benchmark`), so the
- * rules name source classes; see "[ftl profile]" in perf-device.yml. It needs Android 13+.
+ * rules name source classes; see the profile job in perf-device.yml. It needs Android 13+.
  */
 @RunWith(JUnit4::class)
 class BaselineProfileGenerator {
