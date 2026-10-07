@@ -1,13 +1,19 @@
 name: Performance (device)
 
-# Macrobenchmark on a physical phone in Firebase Test Lab. Both builds are installed side
-# by side and measured alternately in one run (base, candidate, candidate, base) on the
-# same phone; compare.py turns that into an A/B table with 95% intervals and verdicts,
-# which goes to the job summary and to a comment on the branch's pull request. The job
-# fails on a regression (see RULES in scripts/benchmark/compare.py).
+# Macrobenchmark on a physical phone in Google Cloud's Developer Device Platform (Device
+# Run, `gcloud beta device-run`), which replaces Firebase Test Lab. Both builds are
+# installed side by side and measured alternately in one run (base, candidate, candidate,
+# base) on the same phone; compare.py turns that into an A/B table with 95% intervals and
+# verdicts, which goes to the job summary and to a comment on the branch's pull request.
+# The job fails on a regression (see RULES in scripts/benchmark/compare.py).
 #
-# Needs the FIREBASE_SERVICE_ACCOUNT secret: the JSON key of a service account in a
-# Firebase project with the Cloud Testing and Cloud Tool Results APIs enabled.
+# Needs the FIREBASE_SERVICE_ACCOUNT secret: the JSON key of a service account in a Google
+# Cloud project with billing and the Device Run, Device Streaming and Cloud Testing APIs
+# (devicerun, devicestreaming, testing.googleapis.com) enabled. The account needs the roles
+# the Device Run quickstart lists (Viewer, Device Run Admin, Device Streaming Admin,
+# Service Usage Consumer) and Storage Admin: the CLI uploads the APKs to
+# gs://<project>-devicerun, creating the bucket on the first run, and the results are
+# read back from there.
 #
 # Runs only when started by hand: Actions → Performance (device) → Run workflow, on the
 # branch to measure (physical-device time is billed). "mode" picks what to do:
@@ -39,16 +45,21 @@ on:
         type: boolean
         default: false
       device:
-        description: "Test Lab device (gcloud firebase test android models list)"
+        description: "Device ID (gcloud beta device-run devices list)"
         required: false
-        default: model=blazer,version=36
+        default: blazer-36
 
 env:
   # Pixel 10 Pro, Android 16.
-  DEFAULT_DEVICE: model=blazer,version=36
+  DEFAULT_DEVICE: blazer-36
   # Measuring order of the two builds; compare.py maps test indexes back with it.
   ORDER: base+candidate+candidate+base
   TEST_CLASS: com.ritesh.cashiro.benchmark.ScreenBenchmark
+  # Where Macrobenchmark writes its results by default: the media directory of the test APK
+  # (it instruments itself), which the shell can read and so pull. Device Run hands test
+  # options to `am instrument` only as -e arguments, so the no-isolated-storage switch that
+  # let Test Lab runs write to /sdcard/Download is not available.
+  OUTPUT_DIR: /sdcard/Android/media/com.ritesh.cashiro.benchmark.tests
   # BuildConfig carries the commit SHA and count (app/build.gradle.kts). Fixed values here
   # keep it identical across commits, so Gradle's build cache can reuse the app's
   # compilation and R8 output when only other files changed.
@@ -56,7 +67,7 @@ env:
   ORG_GRADLE_PROJECT_gitCommitCount: "0"
 
 jobs:
-  # The two builds run in parallel; the Test Lab job starts once both are done.
+  # The two builds run in parallel; the device job starts once both are done.
   candidate:
     if: inputs.mode != 'profile'
     name: Build candidate
@@ -210,7 +221,7 @@ jobs:
   device:
     needs: [candidate, base]
     if: inputs.mode == 'benchmark'
-    name: Firebase Test Lab
+    name: Device Run
     concurrency:
       group: perf-device-${{ github.ref }}
       cancel-in-progress: true
@@ -230,55 +241,63 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@v2
-      - name: Run on Test Lab
+        with:
+          install_components: beta
+      - name: Run on Device Run
         env:
           DEVICE: ${{ inputs.device || env.DEFAULT_DEVICE }}
           INPUT_TESTS: ${{ inputs.tests }}
           COMPOSE_TRACE: ${{ inputs.compose_trace }}
         run: |
           set -o pipefail
-          # "a, b" -> "class <TEST_CLASS>#a,class <TEST_CLASS>#b"; empty -> the whole class.
-          TARGETS="class $TEST_CLASS"
+          # "a, b" -> one --test-targets per method; empty -> the whole class.
+          TARGETS=(--test-targets "class=$TEST_CLASS")
           METHODS=$(printf '%s' "$INPUT_TESTS" | tr ', +' '\n\n\n' | sed '/^$/d')
           if [ -n "$METHODS" ]; then
-            TARGETS=$(printf '%s\n' "$METHODS" | sed "s/^/class $TEST_CLASS#/" | paste -sd, -)
+            TARGETS=()
+            while read -r METHOD; do TARGETS+=(--test-targets "class=$TEST_CLASS#$METHOD"); done <<< "$METHODS"
           fi
+          # Instrumentation arguments: variants sets the measuring order.
+          OPTIONS="variants=$ORDER"
           # Composable names in traces (runtime-tracing, benchmark builds only).
-          EXTRA_ARGS=""
           if [ "$COMPOSE_TRACE" = "true" ]; then
-            EXTRA_ARGS=",androidx.benchmark.fullTracing.enable=true"
+            OPTIONS="$OPTIONS,androidx.benchmark.fullTracing.enable=true"
           fi
-          RESULTS_DIR="cashiro-perf/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          echo "RESULTS_DIR=$RESULTS_DIR" >> "$GITHUB_ENV"
-          # The test APK instruments itself, so it is both --app and --test; the two
-          # builds under test go in as additional APKs. Instrumentation arguments:
-          # variants sets the measuring order, additionalTestOutputDir where results
-          # go (pulled below).
-          gcloud firebase test android run \
-            --type instrumentation \
-            --app apks/tests.apk \
-            --test apks/tests.apk \
-            --additional-apks apks/base.apk,apks/candidate.apk \
+          # The test APK instruments itself; the two builds under test are installed
+          # before it. The command waits for the session but exits 0 whatever its
+          # result, so the result line is checked below.
+          gcloud beta device-run sessions submit instrumentation \
             --device "$DEVICE" \
-            --test-targets "$TARGETS" \
-            --environment-variables "variants=$ORDER,additionalTestOutputDir=/sdcard/Download,no-isolated-storage=true$EXTRA_ARGS" \
-            --directories-to-pull /sdcard/Download \
-            --results-dir "$RESULTS_DIR" \
-            --timeout 40m \
-            --no-record-video \
-            --no-performance-metrics \
-            2>&1 | tee ftl.txt
+            --test apks/tests.apk \
+            --apps apks/base.apk,apks/candidate.apk \
+            "${TARGETS[@]}" \
+            --additional-test-options "$OPTIONS" \
+            --paths-to-pull "$OUTPUT_DIR" \
+            --instrumentation-timeout 40m \
+            2>&1 | tee device-run.txt
+          RESULT=$(grep -o 'finished with result \[[A-Z_]*\]' device-run.txt | tail -n 1 || true)
+          if [ "$RESULT" != "finished with result [PASSED]" ]; then
+            echo "::error::Device Run session ${RESULT:-did not finish}"
+            exit 1
+          fi
+      # A cancelled job (e.g. replaced by a newer run) would otherwise leave the session
+      # running on the phone, and billed, until its timeout.
+      - name: Cancel the session
+        if: cancelled()
+        run: |
+          SESSION=$(grep -o 'Creating session \[[^]]*' device-run.txt 2>/dev/null | head -n 1 | cut -d[ -f2)
+          [ -z "$SESSION" ] || gcloud beta device-run sessions cancel "$SESSION"
       - name: List physical devices
         if: failure()
-        run: gcloud firebase test android models list --filter=form=PHYSICAL || true
+        run: gcloud beta device-run devices list --filter=hardwareType=PHYSICAL || true
       - name: Download results
         if: always()
         run: |
-          # "Raw results will be stored in your GCS bucket at [https://console.developers.google.com/storage/browser/<bucket>/<dir>/]"
-          BUCKET=$(grep -o 'storage/browser/[^/]*' ftl.txt 2>/dev/null | head -n 1 | cut -d/ -f3)
-          if [ -z "$BUCKET" ] || [ -z "${RESULTS_DIR:-}" ]; then echo "No Test Lab results to fetch"; exit 0; fi
+          # "Result files will be stored at [https://console.cloud.google.com/storage/browser/<bucket>/automation/sessions/<session>/]."
+          DIR=$(grep -o 'storage/browser/[^]]*' device-run.txt 2>/dev/null | head -n 1 | cut -d/ -f3-)
+          if [ -z "$DIR" ]; then echo "No Device Run results to fetch"; exit 0; fi
           mkdir -p out
-          gcloud storage cp -r "gs://$BUCKET/$RESULTS_DIR/*" out/ || true
+          gcloud storage cp -r "gs://${DIR%/}/*" out/ || true
           find out -type f | head -n 50
       - name: Compare
         if: always()
@@ -319,13 +338,13 @@ jobs:
           name: macrobenchmark-device
           path: |
             out/
-            ftl.txt
+            device-run.txt
             report.md
           retention-days: 14
 
   profile:
     if: inputs.mode == 'profile'
-    name: Baseline Profile (Test Lab)
+    name: Baseline Profile (Device Run)
     concurrency:
       group: perf-profile-${{ github.ref }}
       cancel-in-progress: true
@@ -375,36 +394,40 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@v2
-      - name: Record the profile on Test Lab
+        with:
+          install_components: beta
+      - name: Record the profile on Device Run
         run: |
           set -o pipefail
-          RESULTS_DIR="cashiro-profile/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          echo "RESULTS_DIR=$RESULTS_DIR" >> "$GITHUB_ENV"
-          gcloud firebase test android run \
-            --type instrumentation \
-            --app apks/tests.apk \
-            --test apks/tests.apk \
-            --additional-apks apks/app.apk \
+          gcloud beta device-run sessions submit instrumentation \
             --device "$DEFAULT_DEVICE" \
-            --test-targets "class com.ritesh.cashiro.benchmark.BaselineProfileGenerator" \
-            --environment-variables "additionalTestOutputDir=/sdcard/Download,no-isolated-storage=true" \
-            --directories-to-pull /sdcard/Download \
-            --results-dir "$RESULTS_DIR" \
-            --timeout 40m \
-            --no-record-video \
-            --no-performance-metrics \
-            2>&1 | tee ftl.txt
+            --test apks/tests.apk \
+            --apps apks/app.apk \
+            --test-targets "class=com.ritesh.cashiro.benchmark.BaselineProfileGenerator" \
+            --paths-to-pull "$OUTPUT_DIR" \
+            --instrumentation-timeout 40m \
+            2>&1 | tee device-run.txt
+          RESULT=$(grep -o 'finished with result \[[A-Z_]*\]' device-run.txt | tail -n 1 || true)
+          if [ "$RESULT" != "finished with result [PASSED]" ]; then
+            echo "::error::Device Run session ${RESULT:-did not finish}"
+            exit 1
+          fi
+      - name: Cancel the session
+        if: cancelled()
+        run: |
+          SESSION=$(grep -o 'Creating session \[[^]]*' device-run.txt 2>/dev/null | head -n 1 | cut -d[ -f2)
+          [ -z "$SESSION" ] || gcloud beta device-run sessions cancel "$SESSION"
       - name: Download the profile
         if: always()
         run: |
-          BUCKET=$(grep -o 'storage/browser/[^/]*' ftl.txt 2>/dev/null | head -n 1 | cut -d/ -f3)
-          if [ -z "$BUCKET" ] || [ -z "${RESULTS_DIR:-}" ]; then echo "No Test Lab results to fetch"; exit 1; fi
+          DIR=$(grep -o 'storage/browser/[^]]*' device-run.txt 2>/dev/null | head -n 1 | cut -d/ -f3-)
+          if [ -z "$DIR" ]; then echo "No Device Run results to fetch"; exit 1; fi
           mkdir -p out profile
-          gcloud storage cp -r "gs://$BUCKET/$RESULTS_DIR/*" out/ || true
+          gcloud storage cp -r "gs://${DIR%/}/*" out/ || true
           # With includeInStartupProfile the rule writes only *-startup-prof.txt, which holds
           # every rule. Keep the untimestamped one.
           RAW=$(find out -name '*-prof.txt' ! -name '*-20*' | head -n 1)
-          if [ -z "$RAW" ]; then echo "::error::No profile in the Test Lab output"; exit 1; fi
+          if [ -z "$RAW" ]; then echo "::error::No profile in the Device Run output"; exit 1; fi
           cp "$RAW" profile/raw-prof.txt
           # Drop the benchmark-only classes, and rename Kotlin internal members' module
           # suffix from the profiling build to the standard release build.
@@ -417,5 +440,5 @@ jobs:
           name: baseline-profile
           path: |
             profile/
-            ftl.txt
+            device-run.txt
           retention-days: 14

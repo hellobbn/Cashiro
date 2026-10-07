@@ -262,11 +262,15 @@ benchmark/      Macrobenchmark tests against app's `benchmark` build type
   `<profileable>`, applicationId `com.ritesh.cashiro.benchmark`.
 - `app/src/benchmark` adds `SeedActivity`, which writes a fixed data set (4 CNY accounts,
   ~3,400 transactions) and skips onboarding. It exists only in benchmark builds.
-- `.github/workflows/perf-device.yml` runs `:benchmark` on a physical phone in Firebase
-  Test Lab (default Pixel 10 Pro, `model=blazer,version=36`). Needs the
-  `FIREBASE_SERVICE_ACCOUNT` secret. Physical-device time is billed, so it only runs when
-  started by hand (Actions → Performance (device) → Run workflow, on the branch to
-  measure); nothing in a commit message triggers it.
+- `.github/workflows/perf-device.yml` runs `:benchmark` on a physical phone in Google Cloud's
+  Developer Device Platform (Device Run, `gcloud beta device-run`, Preview; it replaces
+  Firebase Test Lab, which shuts down on 2027-09-30; default Pixel 10 Pro, `blazer-36`).
+  Needs the `FIREBASE_SERVICE_ACCOUNT` secret, a service account key of a project with
+  billing, the APIs and the roles the workflow header lists. Results are pulled from the test
+  APK's media directory (`/sdcard/Android/media/com.ritesh.cashiro.benchmark.tests`).
+  Physical-device time is billed, so it only runs when started by hand (Actions → Performance
+  (device) → Run workflow, on the branch to measure); nothing in a commit message triggers it.
+  A cancelled job cancels its session.
 - It A/B tests on one phone: a baseline (the base ref's `app/src/main`, replaced wholesale,
   built with this branch's benchmark setup and `-PbenchmarkIdSuffix=.benchmark.base`, so both
   builds install side by side) and the candidate, measured base, candidate, candidate, base
@@ -292,8 +296,8 @@ benchmark/      Macrobenchmark tests against app's `benchmark` build type
   5 s for a scroll-finished event Compose lists never send. It sleeps while the list coasts.
 - Baseline Profile: `app/src/main/baseline-prof.txt`, installed on sideloaded builds by
   `profileinstaller`. A run with `mode: profile` regenerates it: `BaselineProfileGenerator` runs on the
-  unminified `profiling` build type (the benchmark build without R8, same package) on Test
-  Lab and uploads the `baseline-profile` artifact; copy its `baseline-prof.txt` over the
+  unminified `profiling` build type (the benchmark build without R8, same package) on Device
+  Run and uploads the `baseline-profile` artifact; copy its `baseline-prof.txt` over the
   file (already filtered: no benchmark-only classes, and Kotlin `internal` names use the
   `app_standardRelease` module suffix). Regenerate after large UI changes. The `*WithProfile` tests compile each build with
   its own profile (`CompilationMode.Partial`), so base vs candidate shows what it wins.
