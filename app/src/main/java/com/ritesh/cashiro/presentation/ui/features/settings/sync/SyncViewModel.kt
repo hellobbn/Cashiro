@@ -33,6 +33,9 @@ sealed class SyncMessage {
 class SyncViewModel @Inject constructor(private val manager: SyncManager) : ViewModel() {
     val state: StateFlow<SyncManager.State> = manager.state
 
+    /** False in a build without sync (F-Droid). */
+    val available: Boolean = manager.available
+
     private val _messages = MutableSharedFlow<SyncMessage>(extraBufferCapacity = 4)
     val messages: SharedFlow<SyncMessage> = _messages.asSharedFlow()
 

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Restore
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,12 +40,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.R
+import com.ritesh.cashiro.data.sync.SyncManager.Stage
 import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
 import com.ritesh.cashiro.presentation.ui.components.CurrencyBottomSheet
 import com.ritesh.cashiro.presentation.ui.features.accounts.InstitutionPickerButton
 import com.ritesh.cashiro.presentation.ui.features.profile.EditProfileState
 import com.ritesh.cashiro.presentation.ui.features.profile.PresetAvatarSelection
 import com.ritesh.cashiro.presentation.ui.features.profile.ProfileCardPreview
+import com.ritesh.cashiro.presentation.ui.features.settings.sync.SyncMessagesEffect
+import com.ritesh.cashiro.presentation.ui.features.settings.sync.SyncViewModel
 import com.ritesh.cashiro.presentation.ui.icons.Edit2
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.icons.Wallet3
@@ -56,9 +61,17 @@ import com.ritesh.cashiro.presentation.ui.theme.Spacing
 fun OnBoardingScreen(
     modifier: Modifier = Modifier,
     onOnBoardingComplete: () -> Unit,
-    onBoardingViewModel: OnBoardingViewModel = hiltViewModel()
+    onBoardingViewModel: OnBoardingViewModel = hiltViewModel(),
+    syncViewModel: SyncViewModel = hiltViewModel()
 ) {
     val state by onBoardingViewModel.uiState.collectAsStateWithLifecycle()
+    val syncState by syncViewModel.state.collectAsStateWithLifecycle()
+    val wrongPassphrase by syncViewModel.wrongPassphrase.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    SyncMessagesEffect(syncViewModel, snackbar)
+    // Signing in or the first sync is running: leaving the step would hide its outcome
+    val syncing = state.step == OnboardingStep.SYNC && syncState.busy
+    val syncReady = syncState.stage == Stage.ACTIVE
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(onBoardingViewModel::importBackup)
     }
@@ -68,16 +81,27 @@ fun OnBoardingScreen(
     }
     val importBackup = { importLauncher.launch(arrayOf("application/zip", "application/json", "application/octet-stream", "application/x-zip-compressed")) }
     LaunchedEffect(state.onboardingFinished) { if (state.onboardingFinished) onOnBoardingComplete() }
-    BackHandler(enabled = state.isLoading || state.step != OnboardingStep.WELCOME) {
-        onBoardingViewModel.previousStep()
+    LaunchedEffect(state.step, syncReady, syncState.lastSyncAt) {
+        if (state.step == OnboardingStep.SYNC && syncReady) onBoardingViewModel.refreshSyncSummary()
+    }
+    BackHandler(enabled = state.isLoading || syncing || state.step != OnboardingStep.WELCOME) {
+        if (!syncing) onBoardingViewModel.previousStep()
     }
     OnboardingScaffold(
         state = state, modifier = modifier,
+        continueEnabled = when (state.step) {
+            OnboardingStep.ACCOUNT -> state.canSaveAccount || state.hasSavedAccount
+            OnboardingStep.SYNC -> syncReady
+            else -> true
+        },
+        backEnabled = !syncing,
+        snackbarHost = { SnackbarHost(snackbar) },
         onBack = onBoardingViewModel::previousStep,
         onContinue = {
             when (state.step) {
                 OnboardingStep.WELCOME -> onBoardingViewModel.nextStep()
                 OnboardingStep.ACCOUNT -> onBoardingViewModel.saveManualAccount()
+                OnboardingStep.SYNC -> onBoardingViewModel.continueAfterSync()
                 OnboardingStep.PROFILE -> onBoardingViewModel.saveProfile()
                 OnboardingStep.NOTIFICATIONS -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -88,7 +112,20 @@ fun OnBoardingScreen(
         }
     ) {
         when (state.step) {
-            OnboardingStep.WELCOME -> WelcomeStep(onImportBackup = importBackup)
+            OnboardingStep.WELCOME -> WelcomeStep(
+                syncAvailable = syncViewModel.available,
+                onSync = onBoardingViewModel::openSync,
+                onImportBackup = importBackup
+            )
+            OnboardingStep.SYNC -> SyncStep(
+                syncState = syncState,
+                wrongPassphrase = wrongPassphrase,
+                syncViewModel = syncViewModel,
+                accounts = state.syncedAccounts,
+                transactions = state.syncedTransactions,
+                selectedCurrency = state.selectedCurrency,
+                onSelectCurrency = { onBoardingViewModel.toggleCurrencyBottomSheet(true) }
+            )
             OnboardingStep.ACCOUNT -> ManualAccountEntryStep(
                 accountName = state.manualAccountName, balance = state.manualAccountBalance,
                 accountLast4 = state.manualAccountLast4, selectedCurrency = state.selectedCurrency,
@@ -141,22 +178,26 @@ fun OnBoardingScreen(
 private fun OnboardingScaffold(
     state: OnBoardingUiState,
     modifier: Modifier = Modifier,
+    continueEnabled: Boolean = true,
+    backEnabled: Boolean = true,
+    snackbarHost: @Composable () -> Unit = {},
     onBack: () -> Unit,
     onContinue: () -> Unit,
     content: @Composable () -> Unit
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize().imePadding(),
+        snackbarHost = snackbarHost,
         topBar = {
             Column(Modifier.statusBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.onboarding_step_count, state.step.ordinal + 1, OnboardingStep.entries.size), style = MaterialTheme.typography.labelLarge)
-                LinearWavyProgressIndicator(progress = { (state.step.ordinal + 1f) / OnboardingStep.entries.size }, modifier = Modifier.fillMaxWidth())
+                Text(stringResource(R.string.onboarding_step_count, state.step.number, OnboardingStep.COUNT), style = MaterialTheme.typography.labelLarge)
+                LinearWavyProgressIndicator(progress = { state.step.number.toFloat() / OnboardingStep.COUNT }, modifier = Modifier.fillMaxWidth())
             }
         },
         bottomBar = {
             Row(Modifier.navigationBarsPadding().padding(24.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (state.step != OnboardingStep.WELCOME) {
-                    FilledTonalIconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack, enabled = !state.isLoading, modifier = Modifier.size(56.dp)) {
+                    FilledTonalIconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack, enabled = !state.isLoading && backEnabled, modifier = Modifier.size(56.dp)) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.onboarding_back))
                     }
                 }
@@ -164,10 +205,7 @@ private fun OnboardingScaffold(
                     onClick = onContinue,
                     shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
                     contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
-                    enabled = !state.isLoading && when (state.step) {
-                        OnboardingStep.ACCOUNT -> state.canSaveAccount || state.hasSavedAccount
-                        else -> true
-                    },
+                    enabled = !state.isLoading && continueEnabled,
                     modifier = Modifier.weight(1f).heightIn(min = 56.dp)
                 ) {
                     Text(stringResource(when (state.step) {
@@ -183,7 +221,7 @@ private fun OnboardingScaffold(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun WelcomeStep(onImportBackup: () -> Unit) {
+internal fun WelcomeStep(syncAvailable: Boolean, onSync: () -> Unit, onImportBackup: () -> Unit) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -194,17 +232,37 @@ internal fun WelcomeStep(onImportBackup: () -> Unit) {
         }
         Text(stringResource(R.string.onboarding_welcome_title), style = MaterialTheme.typography.displaySmallEmphasized, textAlign = TextAlign.Center)
         Text(stringResource(R.string.onboarding_welcome_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        Card(
-            onClick = onImportBackup,
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLargeIncreased,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
-        ) {
-            Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(Icons.Rounded.Restore, contentDescription = null)
-                Text(stringResource(R.string.onboarding_import_backup), style = MaterialTheme.typography.titleLarge)
-                Text(stringResource(R.string.onboarding_import_description), style = MaterialTheme.typography.bodyMedium)
-            }
+        // The F-Droid build has no sync
+        if (syncAvailable) {
+            WelcomeChoice(
+                icon = Icons.Rounded.CloudSync,
+                title = stringResource(R.string.onboarding_sync_title),
+                description = stringResource(R.string.onboarding_sync_description),
+                onClick = onSync
+            )
+        }
+        WelcomeChoice(
+            icon = Icons.Rounded.Restore,
+            title = stringResource(R.string.onboarding_import_backup),
+            description = stringResource(R.string.onboarding_import_description),
+            onClick = onImportBackup
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun WelcomeChoice(icon: ImageVector, title: String, description: String, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLargeIncreased,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+    ) {
+        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(icon, contentDescription = null)
+            Text(title, style = MaterialTheme.typography.titleLarge)
+            Text(description, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -426,6 +484,8 @@ fun ManualAccountEntryStep(
 @Composable
 fun OnBoardingWelcomePreview() {
     CashiroTheme(dynamicColor = false) {
-        OnboardingScaffold(OnBoardingUiState(), onBack = {}, onContinue = {}) { WelcomeStep {} }
+        OnboardingScaffold(OnBoardingUiState(), onBack = {}, onContinue = {}) {
+            WelcomeStep(syncAvailable = true, onSync = {}, onImportBackup = {})
+        }
     }
 }

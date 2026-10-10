@@ -8,8 +8,9 @@
 - Tile totals convert into the Net Worth display currency using a checked exchange rate. Converted figures have an approximation mark; missing rates lead to source-currency details instead of relabeling the original number.
 - Summaries include all **visible** group members, including collapsed rows; currencies stay separate. Credit-card balances are outstanding debt, not asset totals. Hidden wallets now obey the same visibility rules as bank accounts and credit cards.
 - Main account, detail navigation, history, balance editing, merge, visibility, delete, linked-card and orphan-card actions remain available.
-- First run offers **Import old backup** or **Start fresh**. Import uses the existing ZIP / legacy JSON reader and merge strategy. Success completes setup directly (including backups with no accounts); cancellation leaves the current screen intact. Errors keep setup open for retry, and repeated taps are blocked during import.
+- First run offers **Turn on sync** (standard build only), **Import old backup** or **Start fresh**. Import uses the existing ZIP / legacy JSON reader and merge strategy. Success completes setup directly (including backups with no accounts); cancellation leaves the current screen intact. Errors keep setup open for retry, and repeated taps are blocked during import.
 - Manual setup is Welcome → Account → Profile → optional Notifications. SMS requests, scanning and tracking screens are no longer part of onboarding. Notification denial/skip still completes setup.
+- Turn on sync is Welcome → Sync → Profile → optional Notifications: the Sync step (step 2, in the account step's place) is the sync page's own sign-in, passphrase and first-sync choice (`SyncSetupSection`). Once sync is on it shows what came down and asks the main currency, since preferences do not sync. Continue skips the account step when the device then holds accounts; with none (an empty cloud, the first device) the account step follows and its account syncs. Back from Profile returns to Sync; back is blocked while sign-in or the first sync runs.
 - The backup's old setup-complete preference is deliberately not restored during onboarding, so navigation happens only after the importer reports success. Settings imports retain their existing default behavior.
 
 ## Performance rationale
@@ -37,7 +38,7 @@ Use the project's Android SDK/JDK setup and Gradle wrapper:
 
 `--no-configuration-cache` avoids the existing `gitCommitCount` / `gitSha` configuration-time process warning becoming a cache-storage failure. No Gradle version, signing, application ID, database schema or Android runtime dependency versions were changed. The optional palette-generation tooling pins MCU 0.4.0 and esbuild 0.25.10.
 
-Unit tests: `AccountSectionsTest` covers grouping, mixed currencies, exact decimal math, hidden wallets, collapse/expand, empty/small sections and stable identities. `OnboardingStateTest` covers the first-run state, validation and the SMS-free step set.
+Unit tests: `AccountSectionsTest` covers grouping, mixed currencies, exact decimal math, hidden wallets, collapse/expand, empty/small sections and stable identities. `OnboardingStateTest` covers the first-run state, validation, the SMS-free step set and the sync path's steps.
 
 Device checklist: fresh start, cancel picker, invalid file/retry, JSON and ZIP restore, empty-account backup, cold restart, manual entry, notification denial, per-section expansion, hidden accounts, mixed currencies, scrolling, light/dark, larger font.
 

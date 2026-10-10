@@ -87,6 +87,9 @@ Personal Chinese / cross-border manual accounts:
     keeps the account and key), the passphrase and first-sync choice, and a collapsed "status &
     debug info" section (account and uid, device id, last sync, pull cursor, outbox and inbox
     counts, last problem and error, Firestore project, protocol version) with Sync now.
+  - First run can turn sync on too: the welcome step's **Turn on sync** (开启同步, standard flavor)
+    runs the sync page's sign-in and passphrase (`SyncSetupSection`) as step 2; accounts from the cloud
+    skip the account step (only the main currency is asked), an empty cloud still adds one.
   - **Full backup** (全量备份): local file, Google Drive or WebDAV, manual export and restore only
     (with backup encryption, retention and the export options). The automatic schedule
     (`CloudBackupWorker`) and the snapshot-based Drive/WebDAV device sync (`CloudSyncEngine`) were

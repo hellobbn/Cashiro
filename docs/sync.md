@@ -717,7 +717,10 @@ preferences, the AI provider and key, brokerage connections and tokens, exchange
 ### Code
 
 - `main`: `data/sync/*`, `presentation/ui/features/settings/sync/*` (the sync page, opened from
-  Settings → Backup & sync → Firebase sync; route `CloudSync`).
+  Settings → Backup & sync → Firebase sync; route `CloudSync`). Onboarding's **Turn on sync**
+  (`OnboardingSyncStep.kt`) reuses its `SyncSetupSection`; a new install that signs in to an
+  account with data takes the "this device only the defaults" case of [First sync](#first-sync)
+  and skips adding an account.
 - The page's "status & debug info" (collapsed) shows the signed-in email and uid, the device id,
   the last sync, the pull cursor, the outbox and inbox counts, the last problem and error
   (`SyncSettings.lastError`), the Firestore project id and the protocol version.

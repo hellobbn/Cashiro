@@ -14,6 +14,7 @@ import com.ritesh.cashiro.data.backup.ImportStrategy
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.repository.AccountBalanceRepository
+import com.ritesh.cashiro.data.repository.TransactionRepository
 import com.ritesh.cashiro.presentation.common.icons.InstitutionCatalog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,6 +29,7 @@ class OnBoardingViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val accountBalanceRepository: AccountBalanceRepository,
+    private val transactionRepository: TransactionRepository,
     private val backupImporter: BackupImporter
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(OnBoardingUiState())
@@ -50,18 +52,44 @@ class OnBoardingViewModel @Inject constructor(
     fun nextStep() {
         if (_uiState.value.isLoading) return
         _uiState.update { state ->
-            state.copy(step = when (state.step) {
-                OnboardingStep.WELCOME -> OnboardingStep.ACCOUNT
-                OnboardingStep.ACCOUNT -> if (state.hasSavedAccount) OnboardingStep.PROFILE else state.step
-                OnboardingStep.PROFILE -> OnboardingStep.NOTIFICATIONS
-                OnboardingStep.NOTIFICATIONS -> state.step
-            })
+            when (state.step) {
+                OnboardingStep.WELCOME -> state.copy(step = OnboardingStep.ACCOUNT, accountsFromSync = false)
+                OnboardingStep.ACCOUNT -> if (state.hasSavedAccount) state.copy(step = OnboardingStep.PROFILE) else state
+                OnboardingStep.PROFILE -> state.copy(step = OnboardingStep.NOTIFICATIONS)
+                // Sync moves on with continueAfterSync
+                OnboardingStep.SYNC, OnboardingStep.NOTIFICATIONS -> state
+            }
         }
     }
 
     fun previousStep() {
         if (_uiState.value.isLoading) return
-        _uiState.update { it.copy(step = OnboardingStep.entries[(it.step.ordinal - 1).coerceAtLeast(0)]) }
+        _uiState.update { it.copy(step = it.previousStep) }
+    }
+
+    /** From the welcome step: turn on sync instead of adding an account. */
+    fun openSync() {
+        if (_uiState.value.isLoading) return
+        _uiState.update { it.copy(step = OnboardingStep.SYNC) }
+    }
+
+    /** Counts what this device holds now that sync is on, for the sync step's summary. */
+    fun refreshSyncSummary() {
+        viewModelScope.launch {
+            val accounts = accountBalanceRepository.getAccountCount().first()
+            val transactions = transactionRepository.countVisibleTransactions()
+            _uiState.update { it.copy(syncedAccounts = accounts, syncedTransactions = transactions) }
+        }
+    }
+
+    /**
+     * Sync is on. With accounts from the cloud the chosen main currency is saved (preferences do
+     * not sync) and the account step is skipped; see [OnBoardingUiState.afterSync].
+     */
+    fun continueAfterSync() = runOperation {
+        val accounts = accountBalanceRepository.getAccountCount().first()
+        if (accounts > 0) userPreferencesRepository.updateBaseCurrency(_uiState.value.selectedCurrency)
+        _uiState.update { it.afterSync(accounts) }
     }
 
     fun clearError() { _uiState.update { it.copy(errorMessage = null) } }
@@ -114,7 +142,7 @@ class OnBoardingViewModel @Inject constructor(
                 putString("main_account", "${state.manualAccountName.trim()}_${state.manualAccountLast4}")
             }
             userPreferencesRepository.updateBaseCurrency(state.selectedCurrency)
-            _uiState.update { it.copy(hasSavedAccount = true, step = OnboardingStep.PROFILE) }
+            _uiState.update { it.copy(hasSavedAccount = true, step = OnboardingStep.PROFILE, accountsFromSync = false) }
         }
     }
 
