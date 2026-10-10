@@ -86,6 +86,10 @@ class SyncManager @Inject constructor(
     private var started = false
     private val pullRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
+    /** False in a build without sync (F-Droid); known at once, before [state] is first published. */
+    val available: Boolean
+        get() = backend.available
+
     private val active: Boolean
         get() = backend.available && settings.enabled && !settings.paused && settings.account != null && settings.key != null
 

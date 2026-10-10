@@ -117,34 +117,11 @@ fun SyncScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val wrongPassphrase by viewModel.wrongPassphrase.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
-    var showChoice by rememberSaveable { mutableStateOf(true) }
-    var confirmSignOut by rememberSaveable { mutableStateOf(false) }
-
-    val synced = stringResource(R.string.sync_done)
-    val failed = stringResource(R.string.sync_failed)
-    val signInFailedFormat = stringResource(R.string.sync_sign_in_failed_detail)
-    val signInCancelled = stringResource(R.string.sync_sign_in_cancelled)
-    val merged = stringResource(R.string.sync_merged)
-    val replacedFormat = stringResource(R.string.sync_replaced)
-    LaunchedEffect(viewModel) {
-        viewModel.messages.collect { message ->
-            snackbar.showSnackbar(
-                when (message) {
-                    SyncMessage.Synced -> synced
-                    SyncMessage.Failed -> failed
-                    is SyncMessage.SignInFailed -> signInFailedFormat.format(message.detail)
-                    SyncMessage.SignInCancelled -> signInCancelled
-                    SyncMessage.Merged -> merged
-                    is SyncMessage.Replaced -> replacedFormat.format(message.backupName)
-                }
-            )
-        }
-    }
+    SyncMessagesEffect(viewModel, snackbar)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).imePadding(),
@@ -180,68 +157,113 @@ fun SyncScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = Spacing.md)
                 )
-                when (state.stage) {
-                    Stage.UNAVAILABLE -> Row(
-                        icon = Icons.Rounded.CloudOff,
-                        title = stringResource(R.string.sync_unavailable_title),
-                        supporting = stringResource(R.string.sync_unavailable_body),
-                        position = ListItemPosition.Single
-                    )
-                    Stage.SIGNED_OUT -> Button(
-                        onClick = { context.findActivity()?.let(viewModel::signIn) },
-                        enabled = !state.busy,
-                        shapes = ButtonDefaults.shapes(),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        if (state.busy) LoadingIndicator(Modifier.size(24.dp), color = LocalContentColor.current)
-                        else Text(stringResource(R.string.sync_sign_in))
-                    }
-                    else -> {
-                        SectionHeader(title = stringResource(R.string.sync_account), modifier = Modifier.padding(start = Spacing.md))
-                        ListItem(
-                            headline = { Text(state.email ?: stringResource(R.string.sync_signed_in_as)) },
-                            supporting = { Text(stringResource(R.string.sync_signed_in_as)) },
-                            leading = { RowIcon(Icons.Rounded.AccountCircle) },
-                            trailing = {
-                                TextButton(onClick = { confirmSignOut = true }, enabled = !state.busy, shapes = ButtonDefaults.shapes()) {
-                                    Text(stringResource(R.string.sync_sign_out))
-                                }
-                            },
-                            shape = ListItemPosition.Single.toShape(),
-                            padding = PaddingValues(0.dp)
-                        )
-                        when (state.stage) {
-                            Stage.PASSPHRASE -> PassphraseSection(
-                                state = state,
-                                wrong = wrongPassphrase,
-                                onEdit = viewModel::clearWrongPassphrase,
-                                onSubmit = { viewModel.submitPassphrase(it) },
-                                onRetry = { viewModel.refresh() }
-                            )
-                            Stage.CHOICE -> {
-                                Row(
-                                    icon = Icons.Rounded.Merge,
-                                    title = stringResource(R.string.sync_choice_pending),
-                                    supporting = stringResource(R.string.sync_choice_body),
-                                    position = ListItemPosition.Single,
-                                    onClick = { showChoice = true }
-                                )
-                                if (showChoice && !state.busy) {
-                                    ChoiceDialog(
-                                        onMerge = { showChoice = false; viewModel.merge() },
-                                        onReplace = { showChoice = false; viewModel.replaceLocal() },
-                                        onDismiss = { showChoice = false }
-                                    )
-                                }
-                                if (state.busy) BusyRow()
-                            }
-                            else -> EnabledSection(state, onEnabledChange = viewModel::setEnabled)
-                        }
-                    }
+                SyncSetupSection(state, wrongPassphrase, viewModel) {
+                    EnabledSection(state, onEnabledChange = viewModel::setEnabled)
                 }
                 if (state.stage != Stage.UNAVAILABLE) {
                     DebugSection(state, onSyncNow = { viewModel.syncNow() })
                 }
+            }
+        }
+    }
+}
+
+/** Shows [SyncViewModel.messages] as snackbars. */
+@Composable
+internal fun SyncMessagesEffect(viewModel: SyncViewModel, snackbar: SnackbarHostState) {
+    val synced = stringResource(R.string.sync_done)
+    val failed = stringResource(R.string.sync_failed)
+    val signInFailedFormat = stringResource(R.string.sync_sign_in_failed_detail)
+    val signInCancelled = stringResource(R.string.sync_sign_in_cancelled)
+    val merged = stringResource(R.string.sync_merged)
+    val replacedFormat = stringResource(R.string.sync_replaced)
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            snackbar.showSnackbar(
+                when (message) {
+                    SyncMessage.Synced -> synced
+                    SyncMessage.Failed -> failed
+                    is SyncMessage.SignInFailed -> signInFailedFormat.format(message.detail)
+                    SyncMessage.SignInCancelled -> signInCancelled
+                    SyncMessage.Merged -> merged
+                    is SyncMessage.Replaced -> replacedFormat.format(message.backupName)
+                }
+            )
+        }
+    }
+}
+
+/**
+ * The steps that turn sync on: Google sign-in, then the account (with sign-out), the passphrase
+ * and the first-sync choice; [active] once sync is set up. Shared by this page and onboarding,
+ * inside a column.
+ */
+@Composable
+internal fun SyncSetupSection(
+    state: SyncManager.State,
+    wrongPassphrase: Boolean,
+    viewModel: SyncViewModel,
+    active: @Composable () -> Unit,
+) {
+    val context = LocalContext.current
+    var showChoice by rememberSaveable { mutableStateOf(true) }
+    var confirmSignOut by rememberSaveable { mutableStateOf(false) }
+    when (state.stage) {
+        Stage.UNAVAILABLE -> SyncRow(
+            icon = Icons.Rounded.CloudOff,
+            title = stringResource(R.string.sync_unavailable_title),
+            supporting = stringResource(R.string.sync_unavailable_body),
+            position = ListItemPosition.Single
+        )
+        Stage.SIGNED_OUT -> Button(
+            onClick = { context.findActivity()?.let(viewModel::signIn) },
+            enabled = !state.busy,
+            shapes = ButtonDefaults.shapes(),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (state.busy) LoadingIndicator(Modifier.size(24.dp), color = LocalContentColor.current)
+            else Text(stringResource(R.string.sync_sign_in))
+        }
+        else -> {
+            SectionHeader(title = stringResource(R.string.sync_account), modifier = Modifier.padding(start = Spacing.md))
+            ListItem(
+                headline = { Text(state.email ?: stringResource(R.string.sync_signed_in_as)) },
+                supporting = { Text(stringResource(R.string.sync_signed_in_as)) },
+                leading = { RowIcon(Icons.Rounded.AccountCircle) },
+                trailing = {
+                    TextButton(onClick = { confirmSignOut = true }, enabled = !state.busy, shapes = ButtonDefaults.shapes()) {
+                        Text(stringResource(R.string.sync_sign_out))
+                    }
+                },
+                shape = ListItemPosition.Single.toShape(),
+                padding = PaddingValues(0.dp)
+            )
+            when (state.stage) {
+                Stage.PASSPHRASE -> PassphraseSection(
+                    state = state,
+                    wrong = wrongPassphrase,
+                    onEdit = viewModel::clearWrongPassphrase,
+                    onSubmit = { viewModel.submitPassphrase(it) },
+                    onRetry = { viewModel.refresh() }
+                )
+                Stage.CHOICE -> {
+                    SyncRow(
+                        icon = Icons.Rounded.Merge,
+                        title = stringResource(R.string.sync_choice_pending),
+                        supporting = stringResource(R.string.sync_choice_body),
+                        position = ListItemPosition.Single,
+                        onClick = { showChoice = true }
+                    )
+                    if (showChoice && !state.busy) {
+                        ChoiceDialog(
+                            onMerge = { showChoice = false; viewModel.merge() },
+                            onReplace = { showChoice = false; viewModel.replaceLocal() },
+                            onDismiss = { showChoice = false }
+                        )
+                    }
+                    if (state.busy) BusyRow()
+                }
+                else -> active()
             }
         }
     }
@@ -263,6 +285,18 @@ fun SyncScreen(
     }
 }
 
+/** The last sync's problem, as an error row. */
+@Composable
+internal fun SyncProblemRow(problem: SyncProblem) {
+    SyncRow(
+        icon = Icons.Rounded.ErrorOutline,
+        title = stringResource(R.string.sync_problem_title),
+        supporting = stringResource(problemText(problem)),
+        position = ListItemPosition.Single,
+        error = true
+    )
+}
+
 @Composable
 private fun PassphraseSection(
     state: SyncManager.State,
@@ -274,7 +308,7 @@ private fun PassphraseSection(
     val creating = state.passphraseExists == false
     if (state.passphraseExists == null) {
         if (state.problem != null && !state.busy) {
-            Row(
+            SyncRow(
                 icon = Icons.Rounded.ErrorOutline,
                 title = stringResource(R.string.sync_problem_title),
                 supporting = stringResource(problemText(state.problem)),
@@ -389,7 +423,7 @@ private fun EnabledSection(state: SyncManager.State, onEnabledChange: (Boolean) 
             isSingle = problem == null || state.paused
         )
         if (problem != null && !state.paused) {
-            Row(
+            SyncRow(
                 icon = Icons.Rounded.ErrorOutline,
                 title = stringResource(R.string.sync_problem_title),
                 supporting = stringResource(problemText(problem)),
@@ -491,14 +525,14 @@ private fun ChoiceDialog(onMerge: () -> Unit, onReplace: () -> Unit, onDismiss: 
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(bottom = Spacing.md)
                 )
-                Row(
+                SyncRow(
                     icon = Icons.Rounded.Merge,
                     title = stringResource(R.string.sync_choice_merge),
                     supporting = stringResource(R.string.sync_choice_merge_body),
                     position = ListItemPosition.Top,
                     onClick = onMerge
                 )
-                Row(
+                SyncRow(
                     icon = Icons.Rounded.CloudDownload,
                     title = stringResource(R.string.sync_choice_replace),
                     supporting = stringResource(R.string.sync_choice_replace_body),
@@ -524,7 +558,7 @@ private fun BusyRow(text: String? = null) {
 }
 
 @Composable
-private fun Row(
+private fun SyncRow(
     icon: ImageVector,
     title: String,
     supporting: String,

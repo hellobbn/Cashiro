@@ -8,6 +8,21 @@
     <string name="account_section_collapsed">Summary only; account details are collapsed</string>
     <string name="onboarding_import_backup">Import old backup</string>
     <string name="onboarding_import_description">Bring back your accounts, transactions and preferences from a Cashiro ZIP or JSON backup. No new account needed.</string>
+    <string name="onboarding_sync_title">Turn on sync</string>
+    <string name="onboarding_sync_description">Sign in with Google to keep one ledger on all your devices. If another device already syncs, its accounts and transactions come here: no backup to import, no account to add.</string>
+    <string name="onboarding_sync_ready">Sync is on</string>
+    <string name="onboarding_sync_summary">%1$s and %2$s are on this device.</string>
+    <plurals name="onboarding_sync_accounts">
+        <item quantity="one">%d account</item>
+        <item quantity="other">%d accounts</item>
+    </plurals>
+    <plurals name="onboarding_sync_transactions">
+        <item quantity="one">%d transaction</item>
+        <item quantity="other">%d transactions</item>
+    </plurals>
+    <string name="onboarding_sync_empty">The cloud has no accounts yet. Next, add your first account; your other devices get it too.</string>
+    <string name="onboarding_sync_currency">Main currency</string>
+    <string name="onboarding_sync_currency_body">Totals are shown in it. Settings do not sync, so choose it here.</string>
     <string name="onboarding_welcome_title">Your money.\nA fresh perspective.</string>
     <string name="onboarding_welcome_body">Start a new money journal, or pick up right where you left off.</string>
     <string name="onboarding_start_fresh">Start fresh</string>
